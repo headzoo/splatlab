@@ -1,0 +1,8 @@
+{
+  "assetId": "space_ghost_01",
+  "approvedAt": "2026-09-10T15:35:54.544993+00:00",
+  "recipe": "sprite-specs/space_ghost_01.json",
+  "runtimeImage": "sprites/space_ghost_01.png",
+  "sha256": "dc588c0c2035334cf5c218c72eaacbc7f30b62e912044e2b81b8bd43ba9b200a",
+  "validationReport": "sprite-reports/space_ghost_01/space_ghost_01-report.json"
+}

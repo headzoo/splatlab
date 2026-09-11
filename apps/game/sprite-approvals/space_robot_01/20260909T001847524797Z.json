@@ -1,0 +1,8 @@
+{
+  "assetId": "space_robot_01",
+  "approvedAt": "2026-09-09T00:18:47.524797+00:00",
+  "recipe": "sprite-specs/space_robot_01.json",
+  "runtimeImage": "sprites/space_robot_01.png",
+  "sha256": "eb465257894874fca8d763ed586d3e2d81c0585ab404d06bf35b6f15eb4700a9",
+  "validationReport": "sprite-reports/space_robot_01/space_robot_01-report.json"
+}

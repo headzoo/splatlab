@@ -1,0 +1,463 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_boss_01",
+  "frameLabels": [
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_boss_01-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          348,
+          444
+        ],
+        [
+          348,
+          0,
+          720,
+          444
+        ],
+        [
+          720,
+          0,
+          1049,
+          444
+        ],
+        [
+          1049,
+          0,
+          1450,
+          444
+        ],
+        [
+          1450,
+          0,
+          1774,
+          444
+        ],
+        [
+          0,
+          444,
+          336,
+          887
+        ],
+        [
+          336,
+          444,
+          711,
+          887
+        ],
+        [
+          711,
+          444,
+          1040,
+          887
+        ],
+        [
+          1040,
+          444,
+          1437,
+          887
+        ],
+        [
+          1437,
+          444,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          99,
+          116
+        ],
+        "paste": [
+          14,
+          4
+        ],
+        "localLandmark": [
+          49.5,
+          116
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          107,
+          114
+        ],
+        "paste": [
+          10,
+          6
+        ],
+        "localLandmark": [
+          53.5,
+          114
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          92,
+          113
+        ],
+        "paste": [
+          18,
+          7
+        ],
+        "localLandmark": [
+          46.0,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          114,
+          113
+        ],
+        "paste": [
+          7,
+          7
+        ],
+        "localLandmark": [
+          57.0,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          89,
+          113
+        ],
+        "paste": [
+          20,
+          7
+        ],
+        "localLandmark": [
+          44.5,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          94,
+          114
+        ],
+        "paste": [
+          17,
+          6
+        ],
+        "localLandmark": [
+          47.0,
+          114
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          107,
+          113
+        ],
+        "paste": [
+          10,
+          7
+        ],
+        "localLandmark": [
+          53.5,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          93,
+          113
+        ],
+        "paste": [
+          18,
+          7
+        ],
+        "localLandmark": [
+          46.5,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          112,
+          112
+        ],
+        "paste": [
+          8,
+          8
+        ],
+        "localLandmark": [
+          56.0,
+          112
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          90,
+          113
+        ],
+        "paste": [
+          19,
+          7
+        ],
+        "localLandmark": [
+          45.0,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_boss_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/haunted_boss_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          14,
+          4,
+          113,
+          120
+        ],
+        [
+          10,
+          6,
+          117,
+          120
+        ],
+        [
+          18,
+          7,
+          110,
+          120
+        ],
+        [
+          7,
+          7,
+          121,
+          120
+        ],
+        [
+          20,
+          7,
+          109,
+          120
+        ],
+        [
+          17,
+          6,
+          111,
+          120
+        ],
+        [
+          10,
+          7,
+          117,
+          120
+        ],
+        [
+          18,
+          7,
+          111,
+          120
+        ],
+        [
+          8,
+          8,
+          120,
+          120
+        ],
+        [
+          19,
+          7,
+          109,
+          120
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        89,
+        114
+      ],
+      "bboxHeightRange": [
+        112,
+        116
+      ],
+      "bboxCenterXRange": [
+        63.5,
+        64.5
+      ],
+      "bboxCenterYRange": [
+        62.0,
+        64.0
+      ],
+      "bboxBottomRange": [
+        120,
+        120
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_boss_01/haunted_boss_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_boss_01/haunted_boss_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

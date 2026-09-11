@@ -1,0 +1,15 @@
+{
+  "assetId": "dragons_emberkeep_platformer_goal_01",
+  "approvedAt": "2026-09-11T14:16:22.109208+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_platformer_goal_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_platformer_goal_01.png",
+  "sha256": "7073cdd4a6819059f3e0fd2f53d25278d947beb52e80760be66769af674b1c0c",
+  "validationReport": "sprite-reports/dragons_emberkeep_platformer_goal_01/dragons_emberkeep_platformer_goal_01-report.json",
+  "eventSheets": {
+    "level_complete": {
+      "runtimeImage": "sprites/dragons_emberkeep_platformer_goal_01_level_complete.png",
+      "sha256": "6a302feb20c8dfd6c64f2bd1272749eedb1d7248d34acb65279836bcbf9700fa",
+      "validationReport": "sprite-reports/dragons_emberkeep_platformer_goal_01_level_complete/dragons_emberkeep_platformer_goal_01_level_complete-report.json"
+    }
+  }
+}

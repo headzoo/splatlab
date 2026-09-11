@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_spirit_orb_01",
+  "frameLabels": [
+    "glow_1",
+    "glow_2",
+    "glow_3",
+    "glow_4"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "haunted_spirit_orb_01",
+    "image": "/media/sean/work/www/chickensplat/sprites/haunted_spirit_orb_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          6,
+          1,
+          46,
+          41
+        ],
+        [
+          7,
+          1,
+          47,
+          41
+        ],
+        [
+          5,
+          1,
+          45,
+          41
+        ],
+        [
+          7,
+          0,
+          47,
+          40
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        40,
+        40
+      ],
+      "bboxHeightRange": [
+        40,
+        40
+      ],
+      "bboxCenterXRange": [
+        25.0,
+        27.0
+      ],
+      "bboxCenterYRange": [
+        20.0,
+        21.0
+      ],
+      "bboxBottomRange": [
+        40,
+        41
+      ],
+      "landmarks": [
+        [
+          22.995,
+          25.376
+        ],
+        [
+          23.945,
+          26.243
+        ],
+        [
+          24.283,
+          26.039
+        ],
+        [
+          23.735,
+          25.587
+        ]
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_spirit_orb_01/haunted_spirit_orb_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_spirit_orb_01/haunted_spirit_orb_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

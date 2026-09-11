@@ -1,0 +1,55 @@
+{
+  "requestId": "20260909T185400297201Z-f429cfaf",
+  "assetId": "space_platformer_hazard_01",
+  "sheetId": "space_platformer_hazard_01",
+  "event": null,
+  "createdAt": "2026-09-09T18:54:00.297201+00:00",
+  "status": "pending",
+  "prompt": "The base of the sprite is staring at G1 in frame 1, and in frame 2 it jumps to G2 for the rest of the animation. It should always be at G2",
+  "recipe": "sprite-specs/space_platformer_hazard_01.json",
+  "candidateImage": "sprite-build/space_platformer_hazard_01.png",
+  "candidateSha256": "4f7fbbf0cf98ee64006c11bc022fba093477a506ecfe10a1df5a979e695fa553",
+  "sourceImage": "sprites/space_platformer_hazard_01-source.png",
+  "revisionSource": "sprite-revisions/space_platformer_hazard_01/20260909T185400297201Z-f429cfaf/space_platformer_hazard_01-source.png",
+  "revisionRecipe": "sprite-revisions/space_platformer_hazard_01/20260909T185400297201Z-f429cfaf/recipe.json",
+  "candidateSnapshot": "sprite-revisions/space_platformer_hazard_01/20260909T185400297201Z-f429cfaf/space_platformer_hazard_01-candidate-before.png",
+  "annotatedGuidePreview": "sprite-revisions/space_platformer_hazard_01/20260909T185400297201Z-f429cfaf/space_platformer_hazard_01-guide-preview.png",
+  "annotatedGuidePreviewSha256": "8ec7473941c2a4d93ce45c471520d71e97d7190f3197602502ca53d08fb07a25",
+  "recipeSnapshot": "sprite-revisions/space_platformer_hazard_01/20260909T185400297201Z-f429cfaf/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 1,
+    "frameNumber": 2,
+    "frameLabel": "flame_rise",
+    "sequence": "All frames",
+    "sequenceFrameIndices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "event": null
+  },
+  "guides": [
+    {
+      "id": "G1",
+      "orientation": "horizontal",
+      "coordinate": 48
+    },
+    {
+      "id": "G2",
+      "orientation": "horizontal",
+      "coordinate": 64
+    }
+  ],
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 2,
+    "rows": 2,
+    "anchor": {
+      "x": 32,
+      "y": 64
+    }
+  },
+  "recordPath": "sprite-change-requests/space_platformer_hazard_01/20260909T185400297201Z-f429cfaf.json"
+}

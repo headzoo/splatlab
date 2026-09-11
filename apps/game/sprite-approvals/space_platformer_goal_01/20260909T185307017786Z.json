@@ -1,0 +1,8 @@
+{
+  "assetId": "space_platformer_goal_01",
+  "approvedAt": "2026-09-09T18:53:07.017786+00:00",
+  "recipe": "sprite-specs/space_platformer_goal_01.json",
+  "runtimeImage": "sprites/space_platformer_goal_01.png",
+  "sha256": "f246e05d4e5771360922347a34d19af6573437a0e5d2d14189186ed2f5e15d7f",
+  "validationReport": "sprite-reports/space_platformer_goal_01/space_platformer_goal_01-report.json"
+}

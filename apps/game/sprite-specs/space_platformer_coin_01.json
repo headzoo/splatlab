@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "space_platformer_coin_01",
+  "kind": "collectible",
+  "runtime": "platformer_v1",
+  "themeTags": [
+    "space"
+  ],
+  "visualSlot": "coin",
+  "collision": "collectible",
+  "source": "sprites/space_platformer_coin_01-source.png",
+  "output": "sprites/space_platformer_coin_01.png",
+  "sourceLayout": { "columns": 2, "rows": 2 },
+  "sheet": { "columns": 2, "rows": 2, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["spin_front", "spin_three_quarter_right", "spin_edge", "spin_three_quarter_left"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "center",
+    "anchor": { "x": 32, "y": 32 },
+    "contentBox": { "width": 40, "height": 40 },
+    "resizeMode": "contain_shared"
+  },
+  "animation": { "fps": 4, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1, "centerDriftWarning": 4 },
+  "preview": { "scale": 5 },
+  "eventSheets": {
+    "collected": {
+      "source": "sprites/space_platformer_coin_01_collected-source.png",
+      "output": "sprites/space_platformer_coin_01_collected.png",
+      "sourceLayout": {
+        "columns": 2,
+        "rows": 2,
+        "regions": [
+          [0, 0, 627, 627],
+          [627, 0, 1254, 627],
+          [0, 627, 627, 1254],
+          [627, 627, 1254, 1254]
+        ]
+      },
+      "sheet": { "columns": 2, "rows": 2, "frameWidth": 64, "frameHeight": 64 },
+      "frameLabels": ["poof_1", "poof_2", "poof_3", "poof_4"],
+      "detection": { "alphaThreshold": 48 },
+      "alignment": {
+        "mode": "center",
+        "anchor": { "x": 32, "y": 32 },
+        "contentBox": { "width": 56, "height": 56 },
+        "resizeMode": "contain_shared"
+      },
+      "animation": { "fps": 12, "loop": false },
+      "validation": { "requiredPadding": 0, "pivotTolerance": 2, "centerDriftWarning": 5 },
+      "preview": { "scale": 5 }
+    }
+  }
+}

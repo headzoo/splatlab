@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://splatlab.local/schemas/game-physics-v1.json",
+  "title": "Splat Lab editable game physics",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "revision",
+    "runtime",
+    "baseProfileId",
+    "movement",
+    "editPolicy",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "runtime": {
+      "enum": [
+        "top_down_v1",
+        "platformer_v1"
+      ]
+    },
+    "baseProfileId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*_v[0-9]+$"
+    },
+    "movement": {
+      "type": "object"
+    },
+    "verticalMovement": {
+      "$ref": "#/$defs/verticalMovement"
+    },
+    "editPolicy": {
+      "$ref": "#/$defs/editPolicy"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "top_down_v1"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "movement": {
+            "$ref": "#/$defs/topDownMovement"
+          }
+        },
+        "not": {
+          "required": [
+            "verticalMovement"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "platformer_v1"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "verticalMovement"
+        ],
+        "properties": {
+          "movement": {
+            "$ref": "#/$defs/platformerMovement"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "topDownMovement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maximumSpeedTilesPerSecond"
+      ],
+      "properties": {
+        "maximumSpeedTilesPerSecond": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 12
+        }
+      }
+    },
+    "platformerMovement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maximumRunSpeedTilesPerSecond",
+        "groundTimeToMaximumSpeedSeconds",
+        "groundTimeToStopSeconds",
+        "airTimeToMaximumSpeedSeconds"
+      ],
+      "properties": {
+        "maximumRunSpeedTilesPerSecond": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 12
+        },
+        "groundTimeToMaximumSpeedSeconds": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 2
+        },
+        "groundTimeToStopSeconds": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 2
+        },
+        "airTimeToMaximumSpeedSeconds": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 2
+        }
+      }
+    },
+    "verticalMovement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "groundedJump",
+        "flight"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "grounded_jump",
+            "flight"
+          ]
+        },
+        "groundedJump": {
+          "$ref": "#/$defs/groundedJump"
+        },
+        "flight": {
+          "$ref": "#/$defs/flight"
+        }
+      }
+    },
+    "groundedJump": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "jumpHeightTiles",
+        "timeToApexSeconds",
+        "maximumFallSpeedTilesPerSecond",
+        "coyoteTimeTicks",
+        "inputBufferTicks",
+        "earlyReleaseVelocityMultiplier"
+      ],
+      "properties": {
+        "jumpHeightTiles": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 8
+        },
+        "timeToApexSeconds": {
+          "type": "number",
+          "minimum": 0.15,
+          "maximum": 1.5
+        },
+        "maximumFallSpeedTilesPerSecond": {
+          "type": "number",
+          "minimum": 2,
+          "maximum": 30
+        },
+        "coyoteTimeTicks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "inputBufferTicks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "earlyReleaseVelocityMultiplier": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 1
+        }
+      }
+    },
+    "flight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maximumRiseSpeedTilesPerSecond",
+        "maximumFallSpeedTilesPerSecond",
+        "timeToMaximumSpeedSeconds",
+        "timeToStopSeconds"
+      ],
+      "properties": {
+        "maximumRiseSpeedTilesPerSecond": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 10
+        },
+        "maximumFallSpeedTilesPerSecond": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 10
+        },
+        "timeToMaximumSpeedSeconds": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 2
+        },
+        "timeToStopSeconds": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 2
+        }
+      }
+    },
+    "editPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agentEditable",
+        "applyTiming",
+        "allowedPaths"
+      ],
+      "properties": {
+        "agentEditable": {
+          "const": true
+        },
+        "applyTiming": {
+          "const": "next_simulation_reset"
+        },
+        "allowedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lastEditedBy",
+        "lastPrompt"
+      ],
+      "properties": {
+        "lastEditedBy": {
+          "enum": [
+            "system_default",
+            "user",
+            "cooper"
+          ]
+        },
+        "lastPrompt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

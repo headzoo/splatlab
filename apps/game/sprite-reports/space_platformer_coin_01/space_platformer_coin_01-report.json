@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_platformer_coin_01",
+  "frameLabels": [
+    "spin_front",
+    "spin_three_quarter_right",
+    "spin_edge",
+    "spin_three_quarter_left"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "space_platformer_coin_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprites/space_platformer_coin_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          12,
+          12,
+          52,
+          52
+        ],
+        [
+          18,
+          12,
+          46,
+          52
+        ],
+        [
+          28,
+          12,
+          37,
+          51
+        ],
+        [
+          20,
+          12,
+          45,
+          52
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        9,
+        40
+      ],
+      "bboxHeightRange": [
+        39,
+        40
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.0
+      ],
+      "bboxBottomRange": [
+        51,
+        52
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_platformer_coin_01/space_platformer_coin_01-contact.png",
+    "animationPreview": "sprite-reports/space_platformer_coin_01/space_platformer_coin_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

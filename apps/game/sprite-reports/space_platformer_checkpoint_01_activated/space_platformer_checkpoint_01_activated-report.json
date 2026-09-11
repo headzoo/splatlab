@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_platformer_checkpoint_01_activated",
+  "frameLabels": [
+    "activate_1",
+    "activate_2",
+    "activate_3",
+    "activated"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "space_platformer_checkpoint_01_activated",
+    "image": "/media/sean/work/www/chickensplat/sprites/space_platformer_checkpoint_01_activated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          12,
+          11,
+          53,
+          64
+        ],
+        [
+          12,
+          11,
+          53,
+          64
+        ],
+        [
+          12,
+          11,
+          53,
+          64
+        ],
+        [
+          12,
+          10,
+          53,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          7
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [
+        0
+      ],
+      "bboxWidthRange": [
+        41,
+        41
+      ],
+      "bboxHeightRange": [
+        53,
+        54
+      ],
+      "bboxCenterXRange": [
+        32.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        37.0,
+        37.5
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_platformer_checkpoint_01_activated/space_platformer_checkpoint_01_activated-contact.png",
+    "animationPreview": "sprite-reports/space_platformer_checkpoint_01_activated/space_platformer_checkpoint_01_activated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

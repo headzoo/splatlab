@@ -1,0 +1,8 @@
+{
+  "requestId": "20260908T233030210046Z-c705ed26",
+  "assetId": "neutral_ghost_01",
+  "finishedAt": "2026-09-08T23:37:33.735157+00:00",
+  "status": "error",
+  "codexThreadId": "01a0835b-db9a-7940-ad28-d251fe4c619e",
+  "error": "sprite pipeline rejected the revision: FAIL neutral_ghost_01: sprite-build/neutral_ghost_01.png\n  report: sprite-reports/neutral_ghost_01/neutral_ghost_01-report.json\n  warning: Visible alpha centers vary by 12.5px; inspect the animation preview\n  error: Frame baselines drift by 3.0px (limit 1.0px)\n  error: Frame 9 baseline is at 53px instead of anchor 56px (limit 1.0px)\n  error: Frame 13 baseline is at 53px instead of anchor 56px (limit 1.0px)"
+}

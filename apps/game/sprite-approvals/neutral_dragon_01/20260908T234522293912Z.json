@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_dragon_01",
+  "approvedAt": "2026-09-08T23:45:22.293912+00:00",
+  "recipe": "sprite-specs/neutral_dragon_01.json",
+  "runtimeImage": "sprites/neutral_dragon_01.png",
+  "sha256": "925690c7425cd50853cfb8aaaf39e183c5ea878e617df7c759d5039b6ff10578",
+  "validationReport": "sprite-reports/neutral_dragon_01/neutral_dragon_01-report.json"
+}

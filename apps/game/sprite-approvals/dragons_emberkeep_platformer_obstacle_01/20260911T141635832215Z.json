@@ -1,0 +1,8 @@
+{
+  "assetId": "dragons_emberkeep_platformer_obstacle_01",
+  "approvedAt": "2026-09-11T14:16:35.832215+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_platformer_obstacle_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_platformer_obstacle_01.png",
+  "sha256": "51abeedfba65753f3d84d8fef50001547a29ebca5764217c33149f220d652ae4",
+  "validationReport": "sprite-reports/dragons_emberkeep_platformer_obstacle_01/dragons_emberkeep_platformer_obstacle_01-report.json"
+}

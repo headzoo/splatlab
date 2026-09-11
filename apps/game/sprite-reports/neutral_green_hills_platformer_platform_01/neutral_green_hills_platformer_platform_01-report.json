@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_green_hills_platformer_platform_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_green_hills_platformer_platform_01-source.png",
+    "sourceSize": [
+      1286,
+      1286
+    ],
+    "detection": {
+      "analysisScale": 0.5443234836702955,
+      "selectedComponentAreas": [
+        465124
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        642.08
+      ],
+      "yCenters": [
+        642.08
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1286,
+          1286
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          64
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          32.0,
+          64
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_green_hills_platformer_platform_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/neutral_green_hills_platformer_platform_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        255,
+        255
+      ],
+      "frameBboxes": [
+        [
+          0,
+          0,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        64,
+        64
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_green_hills_platformer_platform_01/neutral_green_hills_platformer_platform_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_green_hills_platformer_platform_01/neutral_green_hills_platformer_platform_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

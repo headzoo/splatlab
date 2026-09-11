@@ -1,0 +1,15 @@
+{
+  "assetId": "space_boss_01",
+  "approvedAt": "2026-09-11T19:26:47.250581+00:00",
+  "recipe": "sprite-specs/space_boss_01.json",
+  "runtimeImage": "sprites/space_boss_01.png",
+  "sha256": "b0572ad5758ca77f7d8475f19979db5c9d465a18a1e3199aa479584e5f8cff59",
+  "validationReport": "sprite-reports/space_boss_01/space_boss_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/space_boss_01_defeated.png",
+      "sha256": "5afcbdd0fc555f54183bf44745ed1c445d9c686f0d9f5e9ef19f96ae4426a67f",
+      "validationReport": "sprite-reports/space_boss_01_defeated/space_boss_01_defeated-report.json"
+    }
+  }
+}

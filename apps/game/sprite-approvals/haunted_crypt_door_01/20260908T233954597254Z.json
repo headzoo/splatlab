@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_crypt_door_01",
+  "approvedAt": "2026-09-08T23:39:54.597254+00:00",
+  "recipe": "sprite-specs/haunted_crypt_door_01.json",
+  "runtimeImage": "sprites/haunted_crypt_door_01.png",
+  "sha256": "727daec19deb7a61aea606c231b2a21103d666f91bf7246676e19f1ff54044a5",
+  "validationReport": "sprite-reports/haunted_crypt_door_01/haunted_crypt_door_01-report.json"
+}

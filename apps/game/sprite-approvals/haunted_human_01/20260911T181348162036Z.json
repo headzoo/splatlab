@@ -1,0 +1,18 @@
+{
+  "assetId": "haunted_human_01",
+  "approvedAt": "2026-09-11T18:13:48.162036+00:00",
+  "recipe": "sprite-specs/haunted_human_01.json",
+  "runtimeImage": "sprites/haunted_human_01.png",
+  "sha256": "494563dee5649e4baa8b457ff789b1f09852b31d57d8899f4891e9031af96b9e",
+  "validationReport": "sprite-reports/haunted_human_01/haunted_human_01-report.json",
+  "skinTone": {
+    "paletteId": "skin_tones_v1",
+    "mask": "sprite-masks/haunted_human_01-skin-mask.png",
+    "maskSha256": "85939455c7f1ecbb3ab5b4b39a8523fdb6bf3d7ab10d26f504d5d2106e3de1ab"
+  },
+  "hairColor": {
+    "paletteId": "hair_colors_v1",
+    "mask": "sprite-masks/haunted_human_01-hair-mask.png",
+    "maskSha256": "3e6311d6cd24c3065c50a994ce25c1dbd311400134c498ecf32cd5cd04976497"
+  }
+}

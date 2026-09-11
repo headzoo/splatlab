@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_cooper_01",
+  "approvedAt": "2026-09-09T13:35:08.843841+00:00",
+  "recipe": "sprite-specs/haunted_cooper_01.json",
+  "runtimeImage": "sprites/haunted_cooper_01.png",
+  "sha256": "e1eb3bb5c533f38951ae162a8a51771881d16864db64baca61a9ab44532975f7",
+  "validationReport": "sprite-reports/haunted_cooper_01/haunted_cooper_01-report.json"
+}

@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env*.local
+
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+apps/game/sprite_viewer/.env.local

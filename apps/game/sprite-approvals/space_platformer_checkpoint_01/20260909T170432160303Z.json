@@ -1,0 +1,8 @@
+{
+  "assetId": "space_platformer_checkpoint_01",
+  "approvedAt": "2026-09-09T17:04:32.160303+00:00",
+  "recipe": "sprite-specs/space_platformer_checkpoint_01.json",
+  "runtimeImage": "sprites/space_platformer_checkpoint_01.png",
+  "sha256": "a367d030c3294fa110439e7f0082608317c8738e33c90102c888616fbcf5ff3b",
+  "validationReport": "sprite-reports/space_platformer_checkpoint_01/space_platformer_checkpoint_01-report.json"
+}

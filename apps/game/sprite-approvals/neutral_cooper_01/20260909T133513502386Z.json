@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_cooper_01",
+  "approvedAt": "2026-09-09T13:35:13.502386+00:00",
+  "recipe": "sprite-specs/neutral_cooper_01.json",
+  "runtimeImage": "sprites/neutral_cooper_01.png",
+  "sha256": "25eb739dcebde7079cda01b68717cedd597b8c9508ca4553074bed86310f2f0a",
+  "validationReport": "sprite-reports/neutral_cooper_01/neutral_cooper_01-report.json"
+}

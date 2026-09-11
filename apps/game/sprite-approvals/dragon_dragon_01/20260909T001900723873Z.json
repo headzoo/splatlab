@@ -1,0 +1,8 @@
+{
+  "assetId": "dragon_dragon_01",
+  "approvedAt": "2026-09-09T00:19:00.723873+00:00",
+  "recipe": "sprite-specs/dragon_dragon_01.json",
+  "runtimeImage": "sprites/dragon_dragon_01.png",
+  "sha256": "6d27c2a0a107fb5662852040b55d2337ddbdf5ac1d876fb3a63afa686ad549ea",
+  "validationReport": "sprite-reports/dragon_dragon_01/dragon_dragon_01-report.json"
+}

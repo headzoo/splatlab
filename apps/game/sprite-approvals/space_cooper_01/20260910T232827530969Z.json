@@ -1,0 +1,20 @@
+{
+  "assetId": "space_cooper_01",
+  "approvedAt": "2026-09-10T23:28:27.530969+00:00",
+  "recipe": "sprite-specs/space_cooper_01.json",
+  "runtimeImage": "sprites/space_cooper_01.png",
+  "sha256": "32814d3d7172f7efdbf0d25dadc1312317a92bec9a0ef658d1a3700f2119f93a",
+  "validationReport": "sprite-reports/space_cooper_01/space_cooper_01-report.json",
+  "eventSheets": {
+    "attack": {
+      "runtimeImage": "sprites/space_cooper_01_attack.png",
+      "sha256": "131016dc66cfdbe3b858e1c244b7257e76a777174cf522a457e21d6f5fad6976",
+      "validationReport": "sprite-reports/space_cooper_01_attack/space_cooper_01_attack-report.json"
+    },
+    "defeated": {
+      "runtimeImage": "sprites/space_cooper_01_defeated.png",
+      "sha256": "0499a4074cfda76cba6c98b2e35285a36754370df7fa47868e2a935e67dabdbb",
+      "validationReport": "sprite-reports/space_cooper_01_defeated/space_cooper_01_defeated-report.json"
+    }
+  }
+}

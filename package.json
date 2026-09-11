@@ -1,0 +1,18 @@
+{
+  "name": "chickensplat-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "scripts": {
+    "dev": "pnpm --filter website dev",
+    "build": "pnpm --filter website build",
+    "lint": "pnpm --filter website lint",
+    "typecheck": "pnpm --filter website typecheck",
+    "game:test": "pnpm --filter game test",
+    "game:physics": "pnpm --filter game physics:validate",
+    "game:sprites": "pnpm --filter game sprites:validate"
+  },
+  "engines": {
+    "node": ">=20.9.0",
+    "pnpm": ">=10.17.1"
+  }
+}

@@ -1,0 +1,703 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_boss_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_left_5",
+    "defeated_left_6",
+    "defeated_left_7",
+    "defeated_left_8",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4",
+    "defeated_right_5",
+    "defeated_right_6",
+    "defeated_right_7",
+    "defeated_right_8"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_boss_01_defeated-source.png",
+    "sourceSize": [
+      2172,
+      724
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          279,
+          366
+        ],
+        [
+          279,
+          0,
+          562,
+          378
+        ],
+        [
+          562,
+          0,
+          830,
+          386
+        ],
+        [
+          830,
+          0,
+          1084,
+          398
+        ],
+        [
+          1084,
+          0,
+          1345,
+          423
+        ],
+        [
+          1345,
+          0,
+          1615,
+          451
+        ],
+        [
+          1615,
+          0,
+          1882,
+          459
+        ],
+        [
+          1882,
+          0,
+          2172,
+          453
+        ],
+        [
+          0,
+          366,
+          283,
+          724
+        ],
+        [
+          283,
+          378,
+          562,
+          724
+        ],
+        [
+          562,
+          386,
+          828,
+          724
+        ],
+        [
+          828,
+          398,
+          1096,
+          724
+        ],
+        [
+          1096,
+          423,
+          1368,
+          724
+        ],
+        [
+          1368,
+          451,
+          1632,
+          724
+        ],
+        [
+          1632,
+          459,
+          1896,
+          724
+        ],
+        [
+          1896,
+          453,
+          2172,
+          724
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          100,
+          120
+        ],
+        "paste": [
+          14,
+          0
+        ],
+        "localLandmark": [
+          50.0,
+          120
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          105,
+          111
+        ],
+        "paste": [
+          12,
+          9
+        ],
+        "localLandmark": [
+          52.5,
+          111
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          98,
+          105
+        ],
+        "paste": [
+          15,
+          15
+        ],
+        "localLandmark": [
+          49.0,
+          105
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          92,
+          97
+        ],
+        "paste": [
+          18,
+          23
+        ],
+        "localLandmark": [
+          46.0,
+          97
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          96,
+          82
+        ],
+        "paste": [
+          16,
+          38
+        ],
+        "localLandmark": [
+          48.0,
+          82
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          100,
+          68
+        ],
+        "paste": [
+          14,
+          52
+        ],
+        "localLandmark": [
+          50.0,
+          68
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          98,
+          60
+        ],
+        "paste": [
+          15,
+          60
+        ],
+        "localLandmark": [
+          49.0,
+          60
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          99,
+          85
+        ],
+        "paste": [
+          14,
+          35
+        ],
+        "localLandmark": [
+          49.5,
+          85
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          99,
+          117
+        ],
+        "paste": [
+          14,
+          3
+        ],
+        "localLandmark": [
+          49.5,
+          117
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          103,
+          109
+        ],
+        "paste": [
+          12,
+          11
+        ],
+        "localLandmark": [
+          51.5,
+          109
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          97,
+          102
+        ],
+        "paste": [
+          16,
+          18
+        ],
+        "localLandmark": [
+          48.5,
+          102
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          97,
+          98
+        ],
+        "paste": [
+          16,
+          22
+        ],
+        "localLandmark": [
+          48.5,
+          98
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          100,
+          83
+        ],
+        "paste": [
+          14,
+          37
+        ],
+        "localLandmark": [
+          50.0,
+          83
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          99,
+          66
+        ],
+        "paste": [
+          14,
+          54
+        ],
+        "localLandmark": [
+          49.5,
+          66
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          98,
+          60
+        ],
+        "paste": [
+          15,
+          60
+        ],
+        "localLandmark": [
+          49.0,
+          60
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          96,
+          81
+        ],
+        "paste": [
+          16,
+          39
+        ],
+        "localLandmark": [
+          48.0,
+          81
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_boss_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/haunted_boss_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          14,
+          0,
+          114,
+          120
+        ],
+        [
+          12,
+          9,
+          117,
+          120
+        ],
+        [
+          15,
+          15,
+          113,
+          120
+        ],
+        [
+          18,
+          23,
+          110,
+          120
+        ],
+        [
+          16,
+          38,
+          112,
+          120
+        ],
+        [
+          14,
+          52,
+          114,
+          120
+        ],
+        [
+          15,
+          60,
+          113,
+          120
+        ],
+        [
+          14,
+          35,
+          113,
+          120
+        ],
+        [
+          14,
+          3,
+          113,
+          120
+        ],
+        [
+          12,
+          11,
+          115,
+          120
+        ],
+        [
+          16,
+          18,
+          113,
+          120
+        ],
+        [
+          16,
+          22,
+          113,
+          120
+        ],
+        [
+          14,
+          37,
+          114,
+          120
+        ],
+        [
+          14,
+          54,
+          113,
+          120
+        ],
+        [
+          15,
+          60,
+          113,
+          120
+        ],
+        [
+          16,
+          39,
+          112,
+          120
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        92,
+        105
+      ],
+      "bboxHeightRange": [
+        60,
+        120
+      ],
+      "bboxCenterXRange": [
+        63.5,
+        64.5
+      ],
+      "bboxCenterYRange": [
+        60.0,
+        90.0
+      ],
+      "bboxBottomRange": [
+        120,
+        120
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_boss_01_defeated/haunted_boss_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/haunted_boss_01_defeated/haunted_boss_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

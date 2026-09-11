@@ -1,0 +1,27 @@
+{
+  "assetId": "haunted_tombstone_01",
+  "sheetId": "haunted_tombstone_01",
+  "event": null,
+  "createdAt": "2026-09-11T18:16:30.180646+00:00",
+  "recipe": "sprite-specs/haunted_tombstone_01.json",
+  "recipeBeforeSha256": "8e6e84c648ce177978ef75db2f4775bd0cbcfe41e4d54abd7eb058b2882a9219",
+  "recipeAfterSha256": "b9e3a1b1ba794e15de4451ef2548fad78b77649b4808ea95070aae04052f3a2e",
+  "adjustments": [
+    {
+      "frameIndex": 0,
+      "x": 0,
+      "y": 8,
+      "resultX": 0,
+      "resultY": 8
+    }
+  ],
+  "frameOffsets": [
+    {
+      "x": 0,
+      "y": 8
+    }
+  ],
+  "candidateImage": "sprite-build/haunted_tombstone_01.png",
+  "candidateSha256": "98b57847209cb2964450d76220f168d00dd5b3574d6942a02d7c155d4ec923d9",
+  "validationReport": "sprite-reports/haunted_tombstone_01/haunted_tombstone_01-report.json"
+}

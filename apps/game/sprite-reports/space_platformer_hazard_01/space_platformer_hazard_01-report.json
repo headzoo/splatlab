@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_platformer_hazard_01",
+  "frameLabels": [
+    "flame_low",
+    "flame_rise",
+    "flame_high",
+    "flame_recede"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "space_platformer_hazard_01",
+    "image": "/media/sean/work/www/chickensplat/sprites/space_platformer_hazard_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          0,
+          34,
+          64,
+          64
+        ],
+        [
+          0,
+          21,
+          64,
+          64
+        ],
+        [
+          0,
+          18,
+          64,
+          64
+        ],
+        [
+          0,
+          26,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          16
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [
+        0
+      ],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        30,
+        46
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        41.0,
+        49.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_platformer_hazard_01/space_platformer_hazard_01-contact.png",
+    "animationPreview": "sprite-reports/space_platformer_hazard_01/space_platformer_hazard_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

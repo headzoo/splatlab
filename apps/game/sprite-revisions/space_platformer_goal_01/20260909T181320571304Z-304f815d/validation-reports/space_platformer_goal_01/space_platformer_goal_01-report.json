@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_platformer_goal_01",
+  "frameLabels": [
+    "wave_up",
+    "wave_center_a",
+    "wave_down",
+    "wave_center_b"
+  ],
+  "normalization": {
+    "source": "sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/space_platformer_goal_01-source.png",
+    "sourceSize": [
+      1024,
+      1536
+    ],
+    "detection": {
+      "analysisScale": 0.4557291666666667,
+      "selectedComponentAreas": [
+        30665,
+        30279,
+        30005,
+        29890
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        261.32,
+        777.24
+      ],
+      "yCenters": [
+        385.85,
+        1158.97
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          519,
+          772
+        ],
+        [
+          519,
+          0,
+          1024,
+          772
+        ],
+        [
+          0,
+          772,
+          519,
+          1536
+        ],
+        [
+          519,
+          772,
+          1024,
+          1536
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          56,
+          92
+        ],
+        "paste": [
+          4,
+          4
+        ],
+        "localLandmark": [
+          28.0,
+          92
+        ],
+        "target": [
+          32.0,
+          96.0
+        ]
+      },
+      {
+        "size": [
+          54,
+          92
+        ],
+        "paste": [
+          5,
+          4
+        ],
+        "localLandmark": [
+          27.0,
+          92
+        ],
+        "target": [
+          32.0,
+          96.0
+        ]
+      },
+      {
+        "size": [
+          56,
+          92
+        ],
+        "paste": [
+          4,
+          4
+        ],
+        "localLandmark": [
+          28.0,
+          92
+        ],
+        "target": [
+          32.0,
+          96.0
+        ]
+      },
+      {
+        "size": [
+          56,
+          92
+        ],
+        "paste": [
+          4,
+          4
+        ],
+        "localLandmark": [
+          28.0,
+          92
+        ],
+        "target": [
+          32.0,
+          96.0
+        ]
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_platformer_goal_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/validation-build/space_platformer_goal_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          4,
+          60,
+          96
+        ],
+        [
+          5,
+          4,
+          59,
+          96
+        ],
+        [
+          4,
+          4,
+          60,
+          96
+        ],
+        [
+          4,
+          4,
+          59,
+          96
+        ]
+      ],
+      "bboxWidthRange": [
+        54,
+        56
+      ],
+      "bboxHeightRange": [
+        92,
+        92
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        50.0,
+        50.0
+      ],
+      "bboxBottomRange": [
+        96,
+        96
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/validation-reports/space_platformer_goal_01/space_platformer_goal_01-contact.png",
+    "animationPreview": "sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/validation-reports/space_platformer_goal_01/space_platformer_goal_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

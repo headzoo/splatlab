@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_robot_01",
+  "approvedAt": "2026-09-11T18:13:52.133702+00:00",
+  "recipe": "sprite-specs/haunted_robot_01.json",
+  "runtimeImage": "sprites/haunted_robot_01.png",
+  "sha256": "be61af34d41269589aff53e2defbfcecdce684c6fa2bdde485cb970185493421",
+  "validationReport": "sprite-reports/haunted_robot_01/haunted_robot_01-report.json"
+}

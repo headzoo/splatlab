@@ -1,0 +1,8 @@
+{
+  "assetId": "dragon_ghost_01",
+  "approvedAt": "2026-09-11T14:15:23.412172+00:00",
+  "recipe": "sprite-specs/dragon_ghost_01.json",
+  "runtimeImage": "sprites/dragon_ghost_01.png",
+  "sha256": "c2cc8722eda2d62c03a58f486cbafb2c3092121a75ed78d6de4dc91697c4e88f",
+  "validationReport": "sprite-reports/dragon_ghost_01/dragon_ghost_01-report.json"
+}

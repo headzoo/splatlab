@@ -1,0 +1,972 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_human_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_human_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        6756,
+        6739,
+        6653,
+        6649,
+        6608,
+        6607,
+        6597,
+        6589,
+        6567,
+        6565,
+        6559,
+        6551,
+        6530,
+        6522,
+        6446,
+        6439,
+        6415,
+        6294,
+        6273,
+        6268
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        171.01,
+        435.85,
+        698.19,
+        961.99,
+        1226.48
+      ],
+      "yCenters": [
+        141.06,
+        415.27,
+        687.14,
+        957.36
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          303,
+          278
+        ],
+        [
+          303,
+          0,
+          567,
+          278
+        ],
+        [
+          567,
+          0,
+          830,
+          278
+        ],
+        [
+          830,
+          0,
+          1094,
+          278
+        ],
+        [
+          1094,
+          0,
+          1402,
+          278
+        ],
+        [
+          0,
+          278,
+          303,
+          551
+        ],
+        [
+          303,
+          278,
+          567,
+          551
+        ],
+        [
+          567,
+          278,
+          830,
+          551
+        ],
+        [
+          830,
+          278,
+          1094,
+          551
+        ],
+        [
+          1094,
+          278,
+          1402,
+          551
+        ],
+        [
+          0,
+          551,
+          303,
+          822
+        ],
+        [
+          303,
+          551,
+          567,
+          822
+        ],
+        [
+          567,
+          551,
+          830,
+          822
+        ],
+        [
+          830,
+          551,
+          1094,
+          822
+        ],
+        [
+          1094,
+          551,
+          1402,
+          822
+        ],
+        [
+          0,
+          822,
+          303,
+          1122
+        ],
+        [
+          303,
+          822,
+          567,
+          1122
+        ],
+        [
+          567,
+          822,
+          830,
+          1122
+        ],
+        [
+          830,
+          822,
+          1094,
+          1122
+        ],
+        [
+          1094,
+          822,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          39,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          19.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          56
+        ],
+        "paste": [
+          11,
+          0
+        ],
+        "localLandmark": [
+          21.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          41,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          19.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          53
+        ],
+        "paste": [
+          12,
+          3
+        ],
+        "localLandmark": [
+          19.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          20.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          54
+        ],
+        "paste": [
+          13,
+          2
+        ],
+        "localLandmark": [
+          19.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          41,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          20.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          55
+        ],
+        "paste": [
+          12,
+          1
+        ],
+        "localLandmark": [
+          19.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          19.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          19.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          55
+        ],
+        "paste": [
+          12,
+          1
+        ],
+        "localLandmark": [
+          19.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_human_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/haunted_human_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "skinTone": {
+        "palette": "skin_tones_v1",
+        "toneCount": 6,
+        "mask": "sprite-masks/haunted_human_01-skin-mask.png",
+        "maskedPixels": 2851,
+        "outsideSpritePixels": 0,
+        "shadeValues": [
+          0,
+          85,
+          170,
+          255
+        ],
+        "frameMaskedPixels": [
+          192,
+          195,
+          214,
+          187,
+          196,
+          151,
+          137,
+          161,
+          143,
+          164,
+          146,
+          173,
+          170,
+          171,
+          165,
+          49,
+          62,
+          55,
+          61,
+          59
+        ]
+      },
+      "hairColor": {
+        "palette": "hair_colors_v1",
+        "colorCount": 8,
+        "mask": "sprite-masks/haunted_human_01-hair-mask.png",
+        "maskedPixels": 8798,
+        "outsideSpritePixels": 0,
+        "skinOverlapPixels": 0,
+        "shadeValues": [
+          0,
+          85,
+          170,
+          255
+        ],
+        "frameMaskedPixels": [
+          391,
+          375,
+          379,
+          406,
+          404,
+          389,
+          412,
+          429,
+          403,
+          416,
+          431,
+          429,
+          438,
+          421,
+          440,
+          525,
+          537,
+          523,
+          536,
+          514
+        ]
+      },
+      "frameBboxes": [
+        [
+          12,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          0,
+          52,
+          56
+        ],
+        [
+          11,
+          0,
+          53,
+          56
+        ],
+        [
+          12,
+          0,
+          52,
+          56
+        ],
+        [
+          12,
+          0,
+          53,
+          56
+        ],
+        [
+          12,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          3,
+          51,
+          56
+        ],
+        [
+          12,
+          2,
+          52,
+          56
+        ],
+        [
+          13,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          2,
+          53,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ],
+        [
+          12,
+          1,
+          51,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ],
+        [
+          12,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          0,
+          51,
+          56
+        ],
+        [
+          12,
+          1,
+          51,
+          56
+        ],
+        [
+          12,
+          0,
+          52,
+          56
+        ],
+        [
+          12,
+          0,
+          52,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        38,
+        42
+      ],
+      "bboxHeightRange": [
+        53,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        29.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_human_01/haunted_human_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_human_01/haunted_human_01-preview.gif",
+    "skinTonePreview": "sprite-reports/haunted_human_01/haunted_human_01-skin-tones.png",
+    "hairColorPreview": "sprite-reports/haunted_human_01/haunted_human_01-hair-colors.png"
+  },
+  "humanApprovalRequired": true
+}

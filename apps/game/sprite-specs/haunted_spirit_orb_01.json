@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "haunted_spirit_orb_01",
+  "kind": "collectible",
+  "name": "Haunted Spirit Orb 01",
+  "runtime": "platformer_v1",
+  "themeTags": ["haunted"],
+  "roles": ["enemy"],
+  "source": "sprites/haunted_spirit_orb_01-source.png",
+  "output": "sprites/haunted_spirit_orb_01.png",
+  "sourceLayout": { "columns": 2, "rows": 2 },
+  "sheet": { "columns": 2, "rows": 2, "frameWidth": 48, "frameHeight": 48 },
+  "frameLabels": ["glow_1", "glow_2", "glow_3", "glow_4"],
+  "detection": {
+    "alphaThreshold": 64,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.4
+  },
+  "alignment": {
+    "mode": "bright_core",
+    "anchor": { "x": 24, "y": 24 },
+    "contentBox": { "width": 40, "height": 40 },
+    "resizeMode": "stretch_each",
+    "landmark": {
+      "target": { "x": 24, "y": 26 },
+      "region": [0.2, 0.25, 0.8, 0.85],
+      "alphaThreshold": 128,
+      "minLuminance": 220,
+      "minimumPixels": 3
+    }
+  },
+  "animation": { "fps": 8, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 2.5, "centerDriftWarning": 6 },
+  "preview": { "scale": 5 }
+}

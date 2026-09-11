@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_platformer_hud_lives_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/space_platformer_hud_lives_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        206432
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        627.67
+      ],
+      "yCenters": [
+        678.25
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          47,
+          58
+        ],
+        "paste": [
+          8,
+          3
+        ],
+        "localLandmark": [
+          23.5,
+          29.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_platformer_hud_lives_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_platformer_hud_lives_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          8,
+          3,
+          55,
+          61
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        47,
+        47
+      ],
+      "bboxHeightRange": [
+        58,
+        58
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        31.5
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        61,
+        61
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_platformer_hud_lives_01/space_platformer_hud_lives_01-contact.png",
+    "animationPreview": "sprite-reports/space_platformer_hud_lives_01/space_platformer_hud_lives_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

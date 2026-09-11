@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_green_hills_flying_cooper_01",
+  "frameLabels": [
+    "fly_left_1",
+    "fly_left_2",
+    "fly_left_3",
+    "fly_left_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_green_hills_flying_cooper_01-source.png",
+    "sourceSize": [
+      1374,
+      1145
+    ],
+    "detection": {
+      "analysisScale": 0.5094614264919942,
+      "selectedComponentAreas": [
+        36886,
+        35441,
+        34934,
+        32546
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        372.03,
+        1025.21
+      ],
+      "yCenters": [
+        337.58,
+        854.77
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          699,
+          596
+        ],
+        [
+          699,
+          0,
+          1374,
+          596
+        ],
+        [
+          0,
+          596,
+          699,
+          1145
+        ],
+        [
+          699,
+          596,
+          1374,
+          1145
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          49,
+          40
+        ],
+        "paste": [
+          8,
+          12
+        ],
+        "localLandmark": [
+          24.5,
+          20.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          60,
+          39
+        ],
+        "paste": [
+          2,
+          12
+        ],
+        "localLandmark": [
+          30.0,
+          19.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          49,
+          42
+        ],
+        "paste": [
+          8,
+          11
+        ],
+        "localLandmark": [
+          24.5,
+          21.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          52,
+          38
+        ],
+        "paste": [
+          6,
+          13
+        ],
+        "localLandmark": [
+          26.0,
+          19.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_green_hills_flying_cooper_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/neutral_green_hills_flying_cooper_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          8,
+          12,
+          57,
+          52
+        ],
+        [
+          2,
+          12,
+          62,
+          51
+        ],
+        [
+          8,
+          11,
+          57,
+          53
+        ],
+        [
+          6,
+          13,
+          58,
+          51
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        49,
+        60
+      ],
+      "bboxHeightRange": [
+        38,
+        42
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.0
+      ],
+      "bboxBottomRange": [
+        51,
+        53
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_green_hills_flying_cooper_01/neutral_green_hills_flying_cooper_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_green_hills_flying_cooper_01/neutral_green_hills_flying_cooper_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

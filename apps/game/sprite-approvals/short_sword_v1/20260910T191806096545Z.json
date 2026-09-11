@@ -1,0 +1,8 @@
+{
+  "assetId": "short_sword_v1",
+  "approvedAt": "2026-09-10T19:18:06.096545+00:00",
+  "recipe": "sprite-specs/short_sword_v1.json",
+  "runtimeImage": "sprites/short_sword_v1.png",
+  "sha256": "0660b68573c09bc8382a21bae4f2a5e141610ea22b1ed65a15643f488b556f60",
+  "validationReport": "sprite-reports/short_sword_v1/short_sword_v1-report.json"
+}

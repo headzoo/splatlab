@@ -1,0 +1,776 @@
+{
+  "schemaVersion": 1,
+  "id": "space_01",
+  "revision": 1,
+  "runtime": "platformer_v1",
+  "tileSize": 64,
+  "size": {
+    "columns": 88,
+    "rows": 12
+  },
+  "camera": {
+    "columns": 16,
+    "rows": 9
+  },
+  "presentation": {
+    "backgroundId": "space_orbital_outpost_01",
+    "victoryEffectId": "shared_victory_burst_01",
+    "gameOverEffectId": "shared_game_over_01",
+    "hud": [
+      {
+        "id": "lives",
+        "type": "lives",
+        "column": 5,
+        "row": 0
+      },
+      {
+        "id": "coins",
+        "type": "coins",
+        "column": 9,
+        "row": 0
+      }
+    ]
+  },
+  "legend": {
+    ".": {
+      "visualSlot": "empty",
+      "collision": "none"
+    },
+    "#": {
+      "visualSlot": "ground",
+      "collision": "solid"
+    },
+    "=": {
+      "visualSlot": "platform",
+      "collision": "solid"
+    },
+    "O": {
+      "visualSlot": "obstacle",
+      "collision": "solid"
+    },
+    "o": {
+      "visualSlot": "obstacle",
+      "collision": "one_way"
+    },
+    "^": {
+      "visualSlot": "hazard",
+      "collision": "hazard"
+    }
+  },
+  "layers": [
+    {
+      "id": "terrain",
+      "rows": [
+        "........................................................................................",
+        "........................................................======O.........................",
+        ".......................................................=.......o........................",
+        "......................................................=.........o.......................",
+        ".....................................................=...........o......................",
+        "...=========...................................======.............o.....................",
+        "............==..======.............................................o....................",
+        "......................=.............................................o...................",
+        ".......====..................=====........................===........o.......O..........",
+        "......o....o...........o....=.....=....O.O......O...O....=...=........o.....OOO.........",
+        ".....o......o.........oo...=..........oO.Oo....OO...OO..=.....o............OOOOO........",
+        "##############^^########################.###..####################^^#^^#^^##############"
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "coin_1",
+      "type": "collectible",
+      "x": 8,
+      "y": 7,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_2",
+      "type": "collectible",
+      "x": 19,
+      "y": 5,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_1",
+      "type": "enemy_spawn",
+      "x": 36,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "bob",
+          "heightTiles": 0.12,
+          "periodMs": 1600
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "space_ghost_01",
+      "direction": "left",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 3,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "weapon"
+    },
+    {
+      "id": "checkpoint_1",
+      "type": "checkpoint",
+      "x": 25,
+      "y": 10
+    },
+    {
+      "id": "enemy_2",
+      "type": "enemy_spawn",
+      "x": 10,
+      "y": 7,
+      "role": "enemy",
+      "behavior": "chaser",
+      "assetId": "space_robot_01",
+      "direction": "left",
+      "viewLeftTiles": 3,
+      "viewRightTiles": 1,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "spawn_1",
+      "type": "player_spawn",
+      "x": 1,
+      "y": 10
+    },
+    {
+      "id": "enemy_3",
+      "type": "enemy_spawn",
+      "x": 32,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "bob",
+          "heightTiles": 0.12,
+          "periodMs": 1600
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "space_ghost_01",
+      "direction": "right",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 2,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "coin_7",
+      "type": "collectible",
+      "x": 9,
+      "y": 7,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_8",
+      "type": "collectible",
+      "x": 30,
+      "y": 7,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_9",
+      "type": "collectible",
+      "x": 31,
+      "y": 7,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_10",
+      "type": "collectible",
+      "x": 32,
+      "y": 7,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_11",
+      "type": "collectible",
+      "x": 28,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_12",
+      "type": "collectible",
+      "x": 29,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_13",
+      "type": "collectible",
+      "x": 30,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_14",
+      "type": "collectible",
+      "x": 22,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_15",
+      "type": "collectible",
+      "x": 23,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_16",
+      "type": "collectible",
+      "x": 38,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_17",
+      "type": "collectible",
+      "x": 42,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_18",
+      "type": "collectible",
+      "x": 18,
+      "y": 5,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_19",
+      "type": "collectible",
+      "x": 17,
+      "y": 5,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_20",
+      "type": "collectible",
+      "x": 21,
+      "y": 5,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_21",
+      "type": "collectible",
+      "x": 20,
+      "y": 5,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_22",
+      "type": "collectible",
+      "x": 7,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_23",
+      "type": "collectible",
+      "x": 8,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_24",
+      "type": "collectible",
+      "x": 9,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_25",
+      "type": "collectible",
+      "x": 10,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_26",
+      "type": "collectible",
+      "x": 11,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_27",
+      "type": "collectible",
+      "x": 12,
+      "y": 5,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_28",
+      "type": "collectible",
+      "x": 13,
+      "y": 5,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_29",
+      "type": "collectible",
+      "x": 16,
+      "y": 5,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_30",
+      "type": "collectible",
+      "x": 3,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_31",
+      "type": "collectible",
+      "x": 4,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_32",
+      "type": "collectible",
+      "x": 5,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_33",
+      "type": "collectible",
+      "x": 6,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_4",
+      "type": "collectible",
+      "x": 7,
+      "y": 7,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_5",
+      "type": "collectible",
+      "x": 6,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_6",
+      "type": "collectible",
+      "x": 5,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_34",
+      "type": "collectible",
+      "x": 35,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_35",
+      "type": "collectible",
+      "x": 34,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_36",
+      "type": "collectible",
+      "x": 39,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_37",
+      "type": "collectible",
+      "x": 41,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "goal_1",
+      "type": "goal",
+      "x": 86,
+      "y": 10
+    },
+    {
+      "id": "coin_38",
+      "type": "collectible",
+      "x": 46,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_39",
+      "type": "collectible",
+      "x": 47,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_40",
+      "type": "collectible",
+      "x": 48,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_41",
+      "type": "collectible",
+      "x": 52,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_42",
+      "type": "collectible",
+      "x": 53,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_43",
+      "type": "collectible",
+      "x": 54,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_45",
+      "type": "collectible",
+      "x": 49,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_46",
+      "type": "collectible",
+      "x": 51,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_4",
+      "type": "enemy_spawn",
+      "x": 50,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "bob",
+          "heightTiles": 0.12,
+          "periodMs": 1600
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "space_ghost_01",
+      "direction": "left",
+      "patrolLeftTiles": 1,
+      "patrolRightTiles": 1,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "checkpoint_2",
+      "type": "checkpoint",
+      "x": 47,
+      "y": 4
+    },
+    {
+      "id": "coin_44",
+      "type": "collectible",
+      "x": 48,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_47",
+      "type": "collectible",
+      "x": 49,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_48",
+      "type": "collectible",
+      "x": 50,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_49",
+      "type": "collectible",
+      "x": 51,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_55",
+      "type": "collectible",
+      "x": 57,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_56",
+      "type": "collectible",
+      "x": 59,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_5",
+      "type": "enemy_spawn",
+      "x": 59,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "bob",
+          "heightTiles": 0.12,
+          "periodMs": 1600
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "space_ghost_01",
+      "direction": "left",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 2,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "enemy_6",
+      "type": "enemy_spawn",
+      "x": 64,
+      "y": 10,
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "space_robot_01",
+      "direction": "left",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 2,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "coin_57",
+      "type": "collectible",
+      "x": 68,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_58",
+      "type": "collectible",
+      "x": 71,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_59",
+      "type": "collectible",
+      "x": 74,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_60",
+      "type": "collectible",
+      "x": 75,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_61",
+      "type": "collectible",
+      "x": 76,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_62",
+      "type": "collectible",
+      "x": 77,
+      "y": 7,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_63",
+      "type": "collectible",
+      "x": 78,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_64",
+      "type": "collectible",
+      "x": 79,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_65",
+      "type": "collectible",
+      "x": 80,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_7",
+      "type": "enemy_spawn",
+      "x": 82,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "bob",
+          "heightTiles": 0.12,
+          "periodMs": 1600
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "space_ghost_01",
+      "direction": "left",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 2,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "coin_66",
+      "type": "collectible",
+      "x": 56,
+      "y": 0,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_67",
+      "type": "collectible",
+      "x": 57,
+      "y": 0,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_68",
+      "type": "collectible",
+      "x": 58,
+      "y": 0,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_69",
+      "type": "collectible",
+      "x": 59,
+      "y": 0,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_70",
+      "type": "collectible",
+      "x": 60,
+      "y": 0,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_71",
+      "type": "collectible",
+      "x": 61,
+      "y": 0,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_72",
+      "type": "collectible",
+      "x": 62,
+      "y": 0,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_3",
+      "type": "collectible",
+      "x": 11,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_94",
+      "type": "collectible",
+      "x": 12,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_50",
+      "type": "collectible",
+      "x": 52,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_51",
+      "type": "collectible",
+      "x": 53,
+      "y": 3,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_52",
+      "type": "collectible",
+      "x": 54,
+      "y": 2,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_53",
+      "type": "collectible",
+      "x": 55,
+      "y": 1,
+      "pointValue": 1
+    }
+  ]
+}

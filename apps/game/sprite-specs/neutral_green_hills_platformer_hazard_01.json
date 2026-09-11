@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "neutral_green_hills_platformer_hazard_01",
+  "name": "Green Hills Waterfall",
+  "kind": "hazard",
+  "runtime": "platformer_v1",
+  "themeTags": ["neutral"],
+  "visualSlot": "hazard",
+  "collision": "hazard",
+  "source": "sprites/neutral_green_hills_platformer_hazard_01-source.png",
+  "output": "sprites/neutral_green_hills_platformer_hazard_01.png",
+  "sourceLayout": {
+    "columns": 2,
+    "rows": 2,
+    "regions": [
+      [0, 0, 1056, 1056],
+      [1056, 0, 2112, 1056],
+      [0, 1056, 1056, 2112],
+      [1056, 1056, 2112, 2112]
+    ]
+  },
+  "sheet": { "columns": 2, "rows": 2, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": [
+    "waterfall_flow_1",
+    "waterfall_flow_2",
+    "waterfall_flow_3",
+    "waterfall_flow_4"
+  ],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "bottom_center",
+    "anchor": { "x": 32, "y": 64 },
+    "contentBox": { "width": 64, "height": 64 },
+    "resizeMode": "contain_shared"
+  },
+  "animation": { "fps": 8, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1 },
+  "preview": { "scale": 5 }
+}

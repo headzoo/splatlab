@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_platformer_platform_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "space_platformer_platform_01",
+    "image": "/media/sean/work/www/chickensplat/sprites/space_platformer_platform_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        254
+      ],
+      "frameBboxes": [
+        [
+          0,
+          0,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        64,
+        64
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_platformer_platform_01/space_platformer_platform_01-contact.png",
+    "animationPreview": "sprite-reports/space_platformer_platform_01/space_platformer_platform_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

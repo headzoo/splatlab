@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "platformer_small_01",
+  "revision": 1,
+  "runtime": "platformer_v1",
+  "baseProfileId": "platformer_standard_v1",
+  "movement": {
+    "maximumRunSpeedTilesPerSecond": 5,
+    "groundTimeToMaximumSpeedSeconds": 0.13333333333333333,
+    "groundTimeToStopSeconds": 0.10666666666666667,
+    "airTimeToMaximumSpeedSeconds": 0.22857142857142856
+  },
+  "verticalMovement": {
+    "mode": "grounded_jump",
+    "groundedJump": {
+      "jumpHeightTiles": 2.25625,
+      "timeToApexSeconds": 0.38,
+      "maximumFallSpeedTilesPerSecond": 18.75,
+      "coyoteTimeTicks": 6,
+      "inputBufferTicks": 7,
+      "earlyReleaseVelocityMultiplier": 0.55
+    },
+    "flight": {
+      "maximumRiseSpeedTilesPerSecond": 5,
+      "maximumFallSpeedTilesPerSecond": 5,
+      "timeToMaximumSpeedSeconds": 0.2,
+      "timeToStopSeconds": 0.15
+    }
+  },
+  "editPolicy": {
+    "agentEditable": true,
+    "applyTiming": "next_simulation_reset",
+    "allowedPaths": [
+      "/movement/maximumRunSpeedTilesPerSecond",
+      "/movement/groundTimeToMaximumSpeedSeconds",
+      "/movement/groundTimeToStopSeconds",
+      "/movement/airTimeToMaximumSpeedSeconds",
+      "/verticalMovement/mode",
+      "/verticalMovement/groundedJump/jumpHeightTiles",
+      "/verticalMovement/groundedJump/timeToApexSeconds",
+      "/verticalMovement/groundedJump/maximumFallSpeedTilesPerSecond",
+      "/verticalMovement/groundedJump/coyoteTimeTicks",
+      "/verticalMovement/groundedJump/inputBufferTicks",
+      "/verticalMovement/groundedJump/earlyReleaseVelocityMultiplier",
+      "/verticalMovement/flight/maximumRiseSpeedTilesPerSecond",
+      "/verticalMovement/flight/maximumFallSpeedTilesPerSecond",
+      "/verticalMovement/flight/timeToMaximumSpeedSeconds",
+      "/verticalMovement/flight/timeToStopSeconds"
+    ]
+  },
+  "provenance": {
+    "lastEditedBy": "system_default",
+    "lastPrompt": null
+  }
+}

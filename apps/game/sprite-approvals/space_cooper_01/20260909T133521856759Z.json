@@ -1,0 +1,8 @@
+{
+  "assetId": "space_cooper_01",
+  "approvedAt": "2026-09-09T13:35:21.856759+00:00",
+  "recipe": "sprite-specs/space_cooper_01.json",
+  "runtimeImage": "sprites/space_cooper_01.png",
+  "sha256": "32814d3d7172f7efdbf0d25dadc1312317a92bec9a0ef658d1a3700f2119f93a",
+  "validationReport": "sprite-reports/space_cooper_01/space_cooper_01-report.json"
+}

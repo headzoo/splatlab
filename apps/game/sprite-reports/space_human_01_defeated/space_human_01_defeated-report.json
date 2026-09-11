@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_human_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/space_human_01_defeated-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "analysisScale": 0.3945885005636979,
+      "selectedComponentAreas": [
+        7577,
+        7145,
+        7135,
+        7084,
+        6351,
+        6257,
+        6255,
+        6251
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        178.51,
+        579.18,
+        1053.73,
+        1533.32
+      ],
+      "yCenters": [
+        301.86,
+        706.83
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          379,
+          504
+        ],
+        [
+          379,
+          0,
+          816,
+          504
+        ],
+        [
+          816,
+          0,
+          1294,
+          504
+        ],
+        [
+          1294,
+          0,
+          1774,
+          504
+        ],
+        [
+          0,
+          504,
+          379,
+          887
+        ],
+        [
+          379,
+          504,
+          816,
+          887
+        ],
+        [
+          816,
+          504,
+          1294,
+          887
+        ],
+        [
+          1294,
+          504,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          31,
+          56
+        ],
+        "paste": [
+          16,
+          0
+        ],
+        "localLandmark": [
+          15.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          41
+        ],
+        "paste": [
+          14,
+          15
+        ],
+        "localLandmark": [
+          18.0,
+          41
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          27
+        ],
+        "paste": [
+          10,
+          29
+        ],
+        "localLandmark": [
+          22.0,
+          27
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          25
+        ],
+        "paste": [
+          9,
+          31
+        ],
+        "localLandmark": [
+          23.0,
+          25
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          44
+        ],
+        "paste": [
+          16,
+          12
+        ],
+        "localLandmark": [
+          16.5,
+          44
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          42
+        ],
+        "paste": [
+          13,
+          14
+        ],
+        "localLandmark": [
+          19.0,
+          42
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          26
+        ],
+        "paste": [
+          10,
+          30
+        ],
+        "localLandmark": [
+          22.5,
+          26
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          25
+        ],
+        "paste": [
+          9,
+          31
+        ],
+        "localLandmark": [
+          23.0,
+          25
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_human_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_human_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          16,
+          0,
+          47,
+          56
+        ],
+        [
+          14,
+          15,
+          50,
+          56
+        ],
+        [
+          10,
+          29,
+          54,
+          56
+        ],
+        [
+          9,
+          31,
+          55,
+          56
+        ],
+        [
+          16,
+          12,
+          49,
+          56
+        ],
+        [
+          13,
+          14,
+          51,
+          56
+        ],
+        [
+          10,
+          30,
+          55,
+          56
+        ],
+        [
+          9,
+          31,
+          55,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        31,
+        46
+      ],
+      "bboxHeightRange": [
+        25,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        43.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_human_01_defeated/space_human_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/space_human_01_defeated/space_human_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

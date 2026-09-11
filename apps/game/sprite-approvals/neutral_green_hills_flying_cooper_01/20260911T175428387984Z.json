@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_green_hills_flying_cooper_01",
+  "approvedAt": "2026-09-11T17:54:28.387984+00:00",
+  "recipe": "sprite-specs/neutral_green_hills_flying_cooper_01.json",
+  "runtimeImage": "sprites/neutral_green_hills_flying_cooper_01.png",
+  "sha256": "7a86ba226e3e3c88278f69be7c79d73e8319a0ea1c1fe35b12b4c085a9a14693",
+  "validationReport": "sprite-reports/neutral_green_hills_flying_cooper_01/neutral_green_hills_flying_cooper_01-report.json"
+}

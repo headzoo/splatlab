@@ -1,0 +1,32 @@
+{
+  "requestId": "20260908T233030303710Z-742116a7",
+  "assetId": "neutral_robot_01",
+  "createdAt": "2026-09-08T23:30:30.303710+00:00",
+  "status": "pending",
+  "prompt": "Fix the walking gait in every direction using four distinct phases: Contact A with one foot clearly forward and the other back, Passing A, Contact B with the opposite foot forward, and Passing B. Left and right must visibly reverse the leading leg; up must visibly alternate the advancing foot from behind. Arm swing or body bob may support the stride but cannot substitute for leg motion. Preserve the exact robot identity, cyan lights, colors, proportions, pixel-art style, 5x4 grid, row and frame order, transparent background, spacing, scale, and anchor.",
+  "recipe": "sprite-specs/neutral_robot_01.json",
+  "candidateImage": "sprites/neutral_robot_01.png",
+  "candidateSha256": "9bf027e0f3e77fe5fb3b1677909f6f861adf56c87e39fc345b594687efd41ca3",
+  "sourceImage": "sprites/neutral_robot_01-source.png",
+  "revisionSource": "sprite-revisions/neutral_robot_01/20260908T233030303710Z-742116a7/neutral_robot_01-source.png",
+  "revisionRecipe": "sprite-revisions/neutral_robot_01/20260908T233030303710Z-742116a7/recipe.json",
+  "candidateSnapshot": "sprite-revisions/neutral_robot_01/20260908T233030303710Z-742116a7/neutral_robot_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/neutral_robot_01/20260908T233030303710Z-742116a7/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 6,
+    "frameNumber": 7,
+    "frameLabel": "walk_left_1",
+    "sequence": "Walk Left"
+  },
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 5,
+    "rows": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    }
+  },
+  "recordPath": "sprite-change-requests/neutral_robot_01/20260908T233030303710Z-742116a7.json"
+}

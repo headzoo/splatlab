@@ -1,0 +1,41 @@
+{
+  "requestId": "20260909T195158048159Z-36041df1",
+  "assetId": "space_platformer_ground_01",
+  "sheetId": "space_platformer_ground_01",
+  "event": null,
+  "createdAt": "2026-09-09T19:51:58.048159+00:00",
+  "status": "pending",
+  "prompt": "The ground needs to be full height otherwise the characters float above it. The art should completely fill the available 64x64 space.",
+  "recipe": "sprite-specs/space_platformer_ground_01.json",
+  "candidateImage": "sprite-build/space_platformer_ground_01.png",
+  "candidateSha256": "4dc290afc0560051c267b5d80e82f71202a5e5209bae3f4df6955d997914deac",
+  "sourceImage": "sprite-revisions/space_platformer_ground_01/20260909T190011052402Z-3e9883f2/space_platformer_ground_01-source.png",
+  "revisionSource": "sprite-revisions/space_platformer_ground_01/20260909T195158048159Z-36041df1/space_platformer_ground_01-source.png",
+  "revisionRecipe": "sprite-revisions/space_platformer_ground_01/20260909T195158048159Z-36041df1/recipe.json",
+  "candidateSnapshot": "sprite-revisions/space_platformer_ground_01/20260909T195158048159Z-36041df1/space_platformer_ground_01-candidate-before.png",
+  "annotatedGuidePreview": null,
+  "annotatedGuidePreviewSha256": null,
+  "recipeSnapshot": "sprite-revisions/space_platformer_ground_01/20260909T195158048159Z-36041df1/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 0,
+    "frameNumber": 1,
+    "frameLabel": "static",
+    "sequence": "All frames",
+    "sequenceFrameIndices": [
+      0
+    ],
+    "event": null
+  },
+  "guides": [],
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 1,
+    "rows": 1,
+    "anchor": {
+      "x": 32,
+      "y": 64
+    }
+  },
+  "recordPath": "sprite-change-requests/space_platformer_ground_01/20260909T195158048159Z-36041df1.json"
+}

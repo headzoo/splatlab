@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_dragon_01",
+  "approvedAt": "2026-09-11T18:13:38.642176+00:00",
+  "recipe": "sprite-specs/haunted_dragon_01.json",
+  "runtimeImage": "sprites/haunted_dragon_01.png",
+  "sha256": "8a6709308b76f602ac7a2d5216c000d2de014c6a1f32b68d4084c5a794afa0ff",
+  "validationReport": "sprite-reports/haunted_dragon_01/haunted_dragon_01-report.json"
+}

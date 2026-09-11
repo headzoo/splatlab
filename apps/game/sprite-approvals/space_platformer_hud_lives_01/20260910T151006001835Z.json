@@ -1,0 +1,8 @@
+{
+  "assetId": "space_platformer_hud_lives_01",
+  "approvedAt": "2026-09-10T15:10:06.001835+00:00",
+  "recipe": "sprite-specs/space_platformer_hud_lives_01.json",
+  "runtimeImage": "sprites/space_platformer_hud_lives_01.png",
+  "sha256": "448c9b7bf8659d4932991be3b5d1a73054097d008aab647c3951d9cfb3628d65",
+  "validationReport": "sprite-reports/space_platformer_hud_lives_01/space_platformer_hud_lives_01-report.json"
+}

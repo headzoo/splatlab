@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_ghost_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/space_ghost_01_defeated-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "analysisScale": 0.3945885005636979,
+      "selectedComponentAreas": [
+        6952,
+        6886,
+        6306,
+        6296,
+        4974,
+        4912,
+        3680,
+        3653
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        242.37,
+        690.83,
+        1128.13,
+        1559.5
+      ],
+      "yCenters": [
+        306.25,
+        702.53
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          467,
+          504
+        ],
+        [
+          467,
+          0,
+          909,
+          504
+        ],
+        [
+          909,
+          0,
+          1344,
+          504
+        ],
+        [
+          1344,
+          0,
+          1774,
+          504
+        ],
+        [
+          0,
+          504,
+          467,
+          887
+        ],
+        [
+          467,
+          504,
+          909,
+          887
+        ],
+        [
+          909,
+          504,
+          1344,
+          887
+        ],
+        [
+          1344,
+          504,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          29,
+          56
+        ],
+        "paste": [
+          18,
+          0
+        ],
+        "localLandmark": [
+          14.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          30,
+          42
+        ],
+        "paste": [
+          17,
+          14
+        ],
+        "localLandmark": [
+          15.0,
+          42
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          27
+        ],
+        "paste": [
+          16,
+          29
+        ],
+        "localLandmark": [
+          16.5,
+          27
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          30,
+          22
+        ],
+        "paste": [
+          17,
+          34
+        ],
+        "localLandmark": [
+          15.0,
+          22
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          29,
+          43
+        ],
+        "paste": [
+          18,
+          13
+        ],
+        "localLandmark": [
+          14.5,
+          43
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          30,
+          43
+        ],
+        "paste": [
+          17,
+          13
+        ],
+        "localLandmark": [
+          15.0,
+          43
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          28
+        ],
+        "paste": [
+          16,
+          28
+        ],
+        "localLandmark": [
+          16.5,
+          28
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          30,
+          22
+        ],
+        "paste": [
+          17,
+          34
+        ],
+        "localLandmark": [
+          15.0,
+          22
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_ghost_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_ghost_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          18,
+          0,
+          47,
+          56
+        ],
+        [
+          17,
+          14,
+          47,
+          56
+        ],
+        [
+          16,
+          29,
+          49,
+          56
+        ],
+        [
+          17,
+          34,
+          47,
+          56
+        ],
+        [
+          18,
+          13,
+          47,
+          56
+        ],
+        [
+          17,
+          13,
+          47,
+          56
+        ],
+        [
+          16,
+          28,
+          49,
+          56
+        ],
+        [
+          17,
+          34,
+          47,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        29,
+        33
+      ],
+      "bboxHeightRange": [
+        22,
+        56
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        45.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_ghost_01_defeated/space_ghost_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/space_ghost_01_defeated/space_ghost_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

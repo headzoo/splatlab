@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_platformer_goal_01_level_complete",
+  "frameLabels": [
+    "complete_1",
+    "complete_2",
+    "complete_3",
+    "level_complete"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_platformer_goal_01_level_complete-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        34364,
+        31446,
+        31130,
+        30886
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        328.4,
+        880.44
+      ],
+      "yCenters": [
+        343.34,
+        950.41
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          604,
+          647
+        ],
+        [
+          604,
+          0,
+          1254,
+          647
+        ],
+        [
+          0,
+          647,
+          604,
+          1254
+        ],
+        [
+          604,
+          647,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          56,
+          76
+        ],
+        "paste": [
+          4,
+          20
+        ],
+        "localLandmark": [
+          28.0,
+          76
+        ],
+        "target": [
+          32.0,
+          96.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          59,
+          79
+        ],
+        "paste": [
+          2,
+          17
+        ],
+        "localLandmark": [
+          29.5,
+          79
+        ],
+        "target": [
+          32.0,
+          96.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          57,
+          72
+        ],
+        "paste": [
+          4,
+          24
+        ],
+        "localLandmark": [
+          28.5,
+          72
+        ],
+        "target": [
+          32.0,
+          96.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          62,
+          74
+        ],
+        "paste": [
+          1,
+          22
+        ],
+        "localLandmark": [
+          31.0,
+          74
+        ],
+        "target": [
+          32.0,
+          96.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_platformer_goal_01_level_complete",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/dragons_emberkeep_platformer_goal_01_level_complete.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          20,
+          60,
+          96
+        ],
+        [
+          2,
+          17,
+          61,
+          96
+        ],
+        [
+          4,
+          24,
+          61,
+          96
+        ],
+        [
+          1,
+          22,
+          63,
+          96
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        56,
+        62
+      ],
+      "bboxHeightRange": [
+        72,
+        79
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        56.5,
+        60.0
+      ],
+      "bboxBottomRange": [
+        96,
+        96
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_platformer_goal_01_level_complete/dragons_emberkeep_platformer_goal_01_level_complete-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_platformer_goal_01_level_complete/dragons_emberkeep_platformer_goal_01_level_complete-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

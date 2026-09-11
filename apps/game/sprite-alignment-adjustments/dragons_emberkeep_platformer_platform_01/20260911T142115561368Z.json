@@ -1,0 +1,27 @@
+{
+  "assetId": "dragons_emberkeep_platformer_platform_01",
+  "sheetId": "dragons_emberkeep_platformer_platform_01",
+  "event": null,
+  "createdAt": "2026-09-11T14:21:15.561368+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_platformer_platform_01.json",
+  "recipeBeforeSha256": "118c6bdd815dcf9c4232bb2b0266d147a106c21564eaf5e87b47241e57c62fe7",
+  "recipeAfterSha256": "02db97c16de58bce9dafb175d0db0bf59424b21cdbca72e51ff80078654c1feb",
+  "adjustments": [
+    {
+      "frameIndex": 0,
+      "x": 0,
+      "y": -34,
+      "resultX": 0,
+      "resultY": -34
+    }
+  ],
+  "frameOffsets": [
+    {
+      "x": 0,
+      "y": -34
+    }
+  ],
+  "candidateImage": "sprite-build/dragons_emberkeep_platformer_platform_01.png",
+  "candidateSha256": "19e342db7e815b690f1fa9c6ea0b0dc97c0d643b4f6bcb0f9a57de3831e58e81",
+  "validationReport": "sprite-reports/dragons_emberkeep_platformer_platform_01/dragons_emberkeep_platformer_platform_01-report.json"
+}

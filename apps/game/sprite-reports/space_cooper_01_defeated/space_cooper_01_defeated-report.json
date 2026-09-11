@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_cooper_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/space_cooper_01_defeated-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "analysisScale": 0.3945885005636979,
+      "selectedComponentAreas": [
+        9542,
+        9448,
+        9203,
+        9137,
+        8226,
+        8177,
+        7617,
+        7417
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        196.83,
+        622.81,
+        1079.66,
+        1543.54
+      ],
+      "yCenters": [
+        281.58,
+        685.77
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          410,
+          484
+        ],
+        [
+          410,
+          0,
+          851,
+          484
+        ],
+        [
+          851,
+          0,
+          1312,
+          484
+        ],
+        [
+          1312,
+          0,
+          1774,
+          484
+        ],
+        [
+          0,
+          484,
+          410,
+          887
+        ],
+        [
+          410,
+          484,
+          851,
+          887
+        ],
+        [
+          851,
+          484,
+          1312,
+          887
+        ],
+        [
+          1312,
+          484,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          38,
+          56
+        ],
+        "paste": [
+          13,
+          0
+        ],
+        "localLandmark": [
+          19.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          41
+        ],
+        "paste": [
+          10,
+          15
+        ],
+        "localLandmark": [
+          21.5,
+          41
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          48,
+          27
+        ],
+        "paste": [
+          8,
+          29
+        ],
+        "localLandmark": [
+          24.0,
+          27
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          48,
+          26
+        ],
+        "paste": [
+          8,
+          30
+        ],
+        "localLandmark": [
+          24.0,
+          26
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          43
+        ],
+        "paste": [
+          12,
+          13
+        ],
+        "localLandmark": [
+          19.5,
+          43
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          42
+        ],
+        "paste": [
+          10,
+          14
+        ],
+        "localLandmark": [
+          21.5,
+          42
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          48,
+          27
+        ],
+        "paste": [
+          8,
+          29
+        ],
+        "localLandmark": [
+          24.0,
+          27
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          49,
+          25
+        ],
+        "paste": [
+          8,
+          31
+        ],
+        "localLandmark": [
+          24.5,
+          25
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_cooper_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_cooper_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          13,
+          0,
+          51,
+          56
+        ],
+        [
+          10,
+          15,
+          53,
+          56
+        ],
+        [
+          8,
+          29,
+          56,
+          56
+        ],
+        [
+          8,
+          30,
+          56,
+          56
+        ],
+        [
+          12,
+          13,
+          51,
+          56
+        ],
+        [
+          10,
+          14,
+          53,
+          56
+        ],
+        [
+          8,
+          29,
+          56,
+          56
+        ],
+        [
+          8,
+          31,
+          57,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        38,
+        49
+      ],
+      "bboxHeightRange": [
+        25,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        43.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_cooper_01_defeated/space_cooper_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/space_cooper_01_defeated/space_cooper_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

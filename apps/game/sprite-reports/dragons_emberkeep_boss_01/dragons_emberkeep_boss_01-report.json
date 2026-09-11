@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_boss_01",
+  "frameLabels": [
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "dragons_emberkeep_boss_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprites/dragons_emberkeep_boss_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          28,
+          117,
+          120
+        ],
+        [
+          7,
+          33,
+          121,
+          120
+        ],
+        [
+          6,
+          33,
+          122,
+          120
+        ],
+        [
+          4,
+          33,
+          124,
+          120
+        ],
+        [
+          10,
+          33,
+          117,
+          120
+        ],
+        [
+          12,
+          31,
+          116,
+          120
+        ],
+        [
+          6,
+          33,
+          122,
+          120
+        ],
+        [
+          6,
+          33,
+          123,
+          120
+        ],
+        [
+          8,
+          33,
+          121,
+          120
+        ],
+        [
+          8,
+          33,
+          120,
+          120
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        104,
+        120
+      ],
+      "bboxHeightRange": [
+        87,
+        92
+      ],
+      "bboxCenterXRange": [
+        63.5,
+        64.5
+      ],
+      "bboxCenterYRange": [
+        74.0,
+        76.5
+      ],
+      "bboxBottomRange": [
+        120,
+        120
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_boss_01/dragons_emberkeep_boss_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_boss_01/dragons_emberkeep_boss_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

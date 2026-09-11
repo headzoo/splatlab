@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "haunted_graveyard_01",
+  "name": "Haunted Graveyard",
+  "kind": "platformer_background",
+  "runtime": "platformer_v1",
+  "theme": "haunted",
+  "description": "A moonlit graveyard with crooked castles, bare trees, iron fences, old stones, and subdued pumpkin-orange accents.",
+  "color": "#17143f",
+  "layers": [
+    {
+      "id": "graveyard",
+      "type": "repeat_x",
+      "assetId": "background_haunted_graveyard_01",
+      "image": "backgrounds/background_haunted_graveyard_01.png",
+      "parallax": 0.24,
+      "verticalAnchor": "bottom",
+      "heightRatio": 1,
+      "opacity": 1,
+      "mirrorAlternate": true
+    }
+  ]
+}

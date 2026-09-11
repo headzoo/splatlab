@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "defaults": {
+    "top_down_v1": "top_down_standard_v1",
+    "platformer_v1": "platformer_standard_v1"
+  }
+}

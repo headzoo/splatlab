@@ -1,0 +1,8 @@
+{
+  "assetId": "pirate_human_01",
+  "approvedAt": "2026-09-08T23:58:54.312014+00:00",
+  "recipe": "sprite-specs/pirate_human_01.json",
+  "runtimeImage": "sprites/pirate_human_01.png",
+  "sha256": "b533271b06b2c763ca1df35c6624f44f3e7211b00844c243e4db89f2cfe2b60b",
+  "validationReport": "sprite-reports/pirate_human_01/pirate_human_01-report.json"
+}

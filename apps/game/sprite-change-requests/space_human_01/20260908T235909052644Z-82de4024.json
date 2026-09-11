@@ -1,0 +1,32 @@
+{
+  "requestId": "20260908T235909052644Z-82de4024",
+  "assetId": "space_human_01",
+  "createdAt": "2026-09-08T23:59:09.052644+00:00",
+  "status": "pending",
+  "prompt": "Fix the walking gait in every direction. Use sprites/neutral_human_01.png as the approved body-motion reference: Contact A, Passing A, Contact B with the opposite foot leading, then Passing B. Transfer that alternating leg logic while preserving this astronaut's exact white-and-blue suit, open helmet, face and hair, colors, proportions, three-quarter top-down pixel-art style, 5 by 4 frame order, transparent background, scale, spacing, and bottom-center anchor. Left and right must visibly reverse the leading leg; up must visibly alternate the advancing foot. Arm, suit, or torso movement cannot substitute for leg movement. Do not alter idle frames.",
+  "recipe": "sprite-specs/space_human_01.json",
+  "candidateImage": "sprite-build/space_human_01.png",
+  "candidateSha256": "67811a20b20e6c65afc4c76604b70edbe20973545320877d1752cce34da2b391",
+  "sourceImage": "sprites/space_human_01-source.png",
+  "revisionSource": "sprite-revisions/space_human_01/20260908T235909052644Z-82de4024/space_human_01-source.png",
+  "revisionRecipe": "sprite-revisions/space_human_01/20260908T235909052644Z-82de4024/recipe.json",
+  "candidateSnapshot": "sprite-revisions/space_human_01/20260908T235909052644Z-82de4024/space_human_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/space_human_01/20260908T235909052644Z-82de4024/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 0,
+    "frameNumber": 1,
+    "frameLabel": "idle_down",
+    "sequence": "All frames"
+  },
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 5,
+    "rows": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    }
+  },
+  "recordPath": "sprite-change-requests/space_human_01/20260908T235909052644Z-82de4024.json"
+}

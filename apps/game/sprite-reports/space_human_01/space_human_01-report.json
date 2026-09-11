@@ -1,0 +1,972 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_human_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": {
+    "source": "sprite-revisions/space_human_01/20260908T235909052644Z-82de4024/space_human_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        6076,
+        6048,
+        6028,
+        6017,
+        5985,
+        5942,
+        5908,
+        5895,
+        5878,
+        5862,
+        5859,
+        5858,
+        5853,
+        5812,
+        5812,
+        5776,
+        5776,
+        5766,
+        5329,
+        5135
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        170.91,
+        436.23,
+        699.12,
+        963.42,
+        1226.38
+      ],
+      "yCenters": [
+        137.77,
+        409.67,
+        680.49,
+        949.59
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          304,
+          274
+        ],
+        [
+          304,
+          0,
+          568,
+          274
+        ],
+        [
+          568,
+          0,
+          831,
+          274
+        ],
+        [
+          831,
+          0,
+          1095,
+          274
+        ],
+        [
+          1095,
+          0,
+          1402,
+          274
+        ],
+        [
+          0,
+          274,
+          304,
+          545
+        ],
+        [
+          304,
+          274,
+          568,
+          545
+        ],
+        [
+          568,
+          274,
+          831,
+          545
+        ],
+        [
+          831,
+          274,
+          1095,
+          545
+        ],
+        [
+          1095,
+          274,
+          1402,
+          545
+        ],
+        [
+          0,
+          545,
+          304,
+          815
+        ],
+        [
+          304,
+          545,
+          568,
+          815
+        ],
+        [
+          568,
+          545,
+          831,
+          815
+        ],
+        [
+          831,
+          545,
+          1095,
+          815
+        ],
+        [
+          1095,
+          545,
+          1402,
+          815
+        ],
+        [
+          0,
+          815,
+          304,
+          1122
+        ],
+        [
+          304,
+          815,
+          568,
+          1122
+        ],
+        [
+          568,
+          815,
+          831,
+          1122
+        ],
+        [
+          831,
+          815,
+          1095,
+          1122
+        ],
+        [
+          1095,
+          815,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          33,
+          53
+        ],
+        "paste": [
+          16,
+          3
+        ],
+        "localLandmark": [
+          16.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          17.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          56
+        ],
+        "paste": [
+          15,
+          0
+        ],
+        "localLandmark": [
+          17.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          31,
+          53
+        ],
+        "paste": [
+          16,
+          3
+        ],
+        "localLandmark": [
+          15.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          53
+        ],
+        "paste": [
+          16,
+          3
+        ],
+        "localLandmark": [
+          16.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          53
+        ],
+        "paste": [
+          15,
+          3
+        ],
+        "localLandmark": [
+          17.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          31,
+          53
+        ],
+        "paste": [
+          16,
+          3
+        ],
+        "localLandmark": [
+          15.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          54
+        ],
+        "paste": [
+          16,
+          2
+        ],
+        "localLandmark": [
+          16.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          54
+        ],
+        "paste": [
+          16,
+          2
+        ],
+        "localLandmark": [
+          16.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          53
+        ],
+        "paste": [
+          16,
+          3
+        ],
+        "localLandmark": [
+          16.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          55
+        ],
+        "paste": [
+          15,
+          1
+        ],
+        "localLandmark": [
+          17.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          56
+        ],
+        "paste": [
+          15,
+          0
+        ],
+        "localLandmark": [
+          17.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          56
+        ],
+        "paste": [
+          14,
+          0
+        ],
+        "localLandmark": [
+          17.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          55
+        ],
+        "paste": [
+          15,
+          1
+        ],
+        "localLandmark": [
+          17.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_human_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_human_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "skinTone": {
+        "palette": "skin_tones_v1",
+        "toneCount": 6,
+        "mask": "sprite-masks/space_human_01-skin-mask.png",
+        "maskedPixels": 1788,
+        "outsideSpritePixels": 0,
+        "shadeValues": [
+          0,
+          85,
+          170,
+          255
+        ],
+        "frameMaskedPixels": [
+          145,
+          121,
+          135,
+          136,
+          124,
+          101,
+          95,
+          96,
+          96,
+          94,
+          116,
+          116,
+          108,
+          110,
+          97,
+          19,
+          22,
+          19,
+          20,
+          18
+        ]
+      },
+      "hairColor": {
+        "palette": "hair_colors_v1",
+        "colorCount": 8,
+        "mask": "sprite-masks/space_human_01-hair-mask.png",
+        "maskedPixels": 6128,
+        "outsideSpritePixels": 0,
+        "skinOverlapPixels": 0,
+        "shadeValues": [
+          0,
+          85,
+          170,
+          255
+        ],
+        "frameMaskedPixels": [
+          323,
+          360,
+          348,
+          331,
+          343,
+          208,
+          219,
+          205,
+          206,
+          207,
+          219,
+          228,
+          232,
+          230,
+          230,
+          422,
+          446,
+          460,
+          456,
+          455
+        ]
+      },
+      "frameBboxes": [
+        [
+          16,
+          3,
+          49,
+          56
+        ],
+        [
+          14,
+          2,
+          49,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          15,
+          0,
+          49,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          16,
+          3,
+          47,
+          56
+        ],
+        [
+          16,
+          3,
+          49,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          15,
+          3,
+          49,
+          56
+        ],
+        [
+          16,
+          3,
+          47,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          16,
+          2,
+          49,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          16,
+          2,
+          49,
+          56
+        ],
+        [
+          16,
+          3,
+          49,
+          56
+        ],
+        [
+          15,
+          1,
+          49,
+          56
+        ],
+        [
+          15,
+          0,
+          49,
+          56
+        ],
+        [
+          14,
+          0,
+          49,
+          56
+        ],
+        [
+          15,
+          1,
+          49,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        31,
+        35
+      ],
+      "bboxHeightRange": [
+        53,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        29.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_human_01/space_human_01-contact.png",
+    "animationPreview": "sprite-reports/space_human_01/space_human_01-preview.gif",
+    "skinTonePreview": "sprite-reports/space_human_01/space_human_01-skin-tones.png",
+    "hairColorPreview": "sprite-reports/space_human_01/space_human_01-hair-colors.png"
+  },
+  "humanApprovalRequired": true
+}

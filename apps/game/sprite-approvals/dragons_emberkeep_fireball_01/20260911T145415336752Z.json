@@ -1,0 +1,8 @@
+{
+  "assetId": "dragons_emberkeep_fireball_01",
+  "approvedAt": "2026-09-11T14:54:15.336752+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_fireball_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_fireball_01.png",
+  "sha256": "9741698ecdcd4da0618a2e7a5d3846eabcc438a7f16b97aa5c2569a741d96d24",
+  "validationReport": "sprite-reports/dragons_emberkeep_fireball_01/dragons_emberkeep_fireball_01-report.json"
+}

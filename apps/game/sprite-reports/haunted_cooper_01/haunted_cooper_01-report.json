@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_cooper_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "haunted_cooper_01",
+    "image": "/media/sean/work/www/chickensplat/sprites/haunted_cooper_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          5,
+          55,
+          56
+        ],
+        [
+          10,
+          3,
+          53,
+          56
+        ],
+        [
+          11,
+          3,
+          53,
+          56
+        ],
+        [
+          10,
+          3,
+          55,
+          56
+        ],
+        [
+          10,
+          5,
+          54,
+          56
+        ],
+        [
+          11,
+          1,
+          53,
+          56
+        ],
+        [
+          10,
+          4,
+          54,
+          56
+        ],
+        [
+          12,
+          3,
+          53,
+          56
+        ],
+        [
+          12,
+          4,
+          53,
+          56
+        ],
+        [
+          10,
+          3,
+          53,
+          56
+        ],
+        [
+          10,
+          2,
+          54,
+          56
+        ],
+        [
+          10,
+          3,
+          54,
+          56
+        ],
+        [
+          10,
+          2,
+          53,
+          56
+        ],
+        [
+          10,
+          4,
+          54,
+          56
+        ],
+        [
+          10,
+          2,
+          53,
+          56
+        ],
+        [
+          10,
+          5,
+          53,
+          56
+        ],
+        [
+          12,
+          3,
+          53,
+          56
+        ],
+        [
+          10,
+          2,
+          53,
+          56
+        ],
+        [
+          10,
+          0,
+          53,
+          56
+        ],
+        [
+          10,
+          1,
+          53,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        41,
+        45
+      ],
+      "bboxHeightRange": [
+        51,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        30.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_cooper_01/haunted_cooper_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_cooper_01/haunted_cooper_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

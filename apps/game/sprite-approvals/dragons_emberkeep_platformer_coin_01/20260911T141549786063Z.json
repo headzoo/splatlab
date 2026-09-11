@@ -1,0 +1,15 @@
+{
+  "assetId": "dragons_emberkeep_platformer_coin_01",
+  "approvedAt": "2026-09-11T14:15:49.786063+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_platformer_coin_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_platformer_coin_01.png",
+  "sha256": "69c4c9226f57efbb3b7d33d5593c06b29d4492a827121ff9fedf008dddc88eff",
+  "validationReport": "sprite-reports/dragons_emberkeep_platformer_coin_01/dragons_emberkeep_platformer_coin_01-report.json",
+  "eventSheets": {
+    "collected": {
+      "runtimeImage": "sprites/dragons_emberkeep_platformer_coin_01_collected.png",
+      "sha256": "d580a5e6dcb6e015c5f55c4f180375e38bc897935fa73170a23b405e4d225296",
+      "validationReport": "sprite-reports/dragons_emberkeep_platformer_coin_01_collected/dragons_emberkeep_platformer_coin_01_collected-report.json"
+    }
+  }
+}

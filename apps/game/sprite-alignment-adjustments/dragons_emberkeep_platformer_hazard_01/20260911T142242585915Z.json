@@ -1,0 +1,39 @@
+{
+  "assetId": "dragons_emberkeep_platformer_hazard_01",
+  "sheetId": "dragons_emberkeep_platformer_hazard_01",
+  "event": null,
+  "createdAt": "2026-09-11T14:22:42.585915+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_platformer_hazard_01.json",
+  "recipeBeforeSha256": "01a5ba0ecdd81e1490777ab2dac1294e913c17e7519b81ad88eb727bba955c7c",
+  "recipeAfterSha256": "d2328db140c2b155e1c1c3ecaea7797356dfe7b1e004957865563c4476766502",
+  "adjustments": [
+    {
+      "frameIndex": 0,
+      "x": 0,
+      "y": 19,
+      "resultX": 0,
+      "resultY": 19
+    }
+  ],
+  "frameOffsets": [
+    {
+      "x": 0,
+      "y": 19
+    },
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "candidateImage": "sprite-build/dragons_emberkeep_platformer_hazard_01.png",
+  "candidateSha256": "875db8d34546b11e85120bca6906fc43300cd601424cf999419153b2e57dc22e",
+  "validationReport": "sprite-reports/dragons_emberkeep_platformer_hazard_01/dragons_emberkeep_platformer_hazard_01-report.json"
+}

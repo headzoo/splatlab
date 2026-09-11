@@ -1,0 +1,782 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://splatlab.local/schemas/physics-profile-v1.json",
+  "title": "Splat Lab physics profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "runtime",
+    "name",
+    "description",
+    "units",
+    "simulation",
+    "coordinates",
+    "player",
+    "movement",
+    "collision",
+    "levelDesign",
+    "unsupported"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*_v[0-9]+$"
+    },
+    "runtime": {
+      "enum": [
+        "top_down_v1",
+        "platformer_v1"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "units": {
+      "$ref": "#/$defs/units"
+    },
+    "simulation": {
+      "$ref": "#/$defs/simulation"
+    },
+    "coordinates": {
+      "$ref": "#/$defs/coordinates"
+    },
+    "player": {
+      "$ref": "#/$defs/player"
+    },
+    "movement": {
+      "type": "object"
+    },
+    "facing": {
+      "type": "object"
+    },
+    "gravity": {
+      "type": "object"
+    },
+    "jump": {
+      "type": "object"
+    },
+    "collision": {
+      "$ref": "#/$defs/collision"
+    },
+    "triggers": {
+      "type": "object"
+    },
+    "respawn": {
+      "type": "object"
+    },
+    "levelDesign": {
+      "type": "object"
+    },
+    "unsupported": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "uniqueItems": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "top_down_v1"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "facing",
+          "triggers"
+        ],
+        "properties": {
+          "movement": {
+            "$ref": "#/$defs/topDownMovement"
+          },
+          "facing": {
+            "$ref": "#/$defs/facing"
+          },
+          "triggers": {
+            "$ref": "#/$defs/topDownTriggers"
+          },
+          "levelDesign": {
+            "$ref": "#/$defs/topDownLevelDesign"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "gravity"
+              ]
+            },
+            {
+              "required": [
+                "jump"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "const": "platformer_v1"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "gravity",
+          "jump",
+          "triggers",
+          "respawn"
+        ],
+        "properties": {
+          "movement": {
+            "$ref": "#/$defs/platformerMovement"
+          },
+          "gravity": {
+            "$ref": "#/$defs/gravity"
+          },
+          "jump": {
+            "$ref": "#/$defs/jump"
+          },
+          "triggers": {
+            "$ref": "#/$defs/platformerTriggers"
+          },
+          "respawn": {
+            "$ref": "#/$defs/respawn"
+          },
+          "levelDesign": {
+            "$ref": "#/$defs/platformerLevelDesign"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "distance",
+        "time",
+        "tileSizePx"
+      ],
+      "properties": {
+        "distance": {
+          "const": "world_pixel"
+        },
+        "time": {
+          "const": "second"
+        },
+        "tileSizePx": {
+          "const": 64
+        }
+      }
+    },
+    "simulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tickRateHz",
+        "fixedDeltaSeconds",
+        "maxCatchUpSteps",
+        "maxFrameDeltaSeconds",
+        "numericPrecision"
+      ],
+      "properties": {
+        "tickRateHz": {
+          "const": 60
+        },
+        "fixedDeltaSeconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maxCatchUpSteps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxFrameDeltaSeconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "numericPrecision": {
+          "const": "float64"
+        }
+      }
+    },
+    "coordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "positiveX",
+        "positiveY",
+        "playerPositionReference"
+      ],
+      "properties": {
+        "origin": {
+          "const": "top_left"
+        },
+        "positiveX": {
+          "const": "right"
+        },
+        "positiveY": {
+          "const": "down"
+        },
+        "playerPositionReference": {
+          "const": "bottom_center"
+        }
+      }
+    },
+    "player": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collider",
+        "playersBlockEachOther"
+      ],
+      "properties": {
+        "collider": {
+          "$ref": "#/$defs/collider"
+        },
+        "playersBlockEachOther": {
+          "const": false
+        }
+      }
+    },
+    "collider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shape",
+        "widthPx",
+        "heightPx",
+        "offsetFromPositionPx"
+      ],
+      "properties": {
+        "shape": {
+          "const": "aabb"
+        },
+        "widthPx": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 64
+        },
+        "heightPx": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 64
+        },
+        "offsetFromPositionPx": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "topDownMovement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputAxes",
+        "inputMinimum",
+        "inputMaximum",
+        "diagonalNormalization",
+        "response",
+        "maxSpeedPxPerSecond",
+        "maxSpeedTilesPerSecond",
+        "zeroInputBehavior"
+      ],
+      "properties": {
+        "inputAxes": {
+          "const": [
+            "moveX",
+            "moveY"
+          ]
+        },
+        "inputMinimum": {
+          "const": -1
+        },
+        "inputMaximum": {
+          "const": 1
+        },
+        "diagonalNormalization": {
+          "const": "unit_circle"
+        },
+        "response": {
+          "const": "instant"
+        },
+        "maxSpeedPxPerSecond": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maxSpeedTilesPerSecond": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "zeroInputBehavior": {
+          "const": "stop_immediately"
+        }
+      }
+    },
+    "facing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "directions",
+        "selection",
+        "equalAxisTieBreak"
+      ],
+      "properties": {
+        "directions": {
+          "const": [
+            "down",
+            "left",
+            "right",
+            "up"
+          ]
+        },
+        "selection": {
+          "const": "last_dominant_input_axis"
+        },
+        "equalAxisTieBreak": {
+          "const": "keep_current_facing"
+        }
+      }
+    },
+    "topDownLevelDesign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimumCorridorWidthTiles",
+        "preferredCorridorWidthTiles"
+      ],
+      "properties": {
+        "minimumCorridorWidthTiles": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "preferredCorridorWidthTiles": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "platformerMovement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputAxes",
+        "inputMinimum",
+        "inputMaximum",
+        "maxRunSpeedPxPerSecond",
+        "maxRunSpeedTilesPerSecond",
+        "groundAccelerationPxPerSecondSquared",
+        "groundDecelerationPxPerSecondSquared",
+        "airAccelerationPxPerSecondSquared"
+      ],
+      "properties": {
+        "inputAxes": {
+          "const": [
+            "moveX"
+          ]
+        },
+        "inputMinimum": {
+          "const": -1
+        },
+        "inputMaximum": {
+          "const": 1
+        },
+        "maxRunSpeedPxPerSecond": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maxRunSpeedTilesPerSecond": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "groundAccelerationPxPerSecondSquared": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "groundDecelerationPxPerSecondSquared": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "airAccelerationPxPerSecondSquared": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "gravity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accelerationPxPerSecondSquared",
+        "maximumFallSpeedPxPerSecond"
+      ],
+      "properties": {
+        "accelerationPxPerSecondSquared": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maximumFallSpeedPxPerSecond": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "jump": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pressedInput",
+        "heldInput",
+        "launchVelocityYPxPerSecond",
+        "requiresGroundedOrCoyoteTime",
+        "coyoteTimeTicks",
+        "inputBufferTicks",
+        "earlyReleaseVelocityMultiplier",
+        "earlyReleaseApplication",
+        "requiresReleaseBeforeNextJump",
+        "maximumAirJumps"
+      ],
+      "properties": {
+        "pressedInput": {
+          "const": "jumpPressed"
+        },
+        "heldInput": {
+          "const": "jumpHeld"
+        },
+        "launchVelocityYPxPerSecond": {
+          "type": "number",
+          "exclusiveMaximum": 0
+        },
+        "requiresGroundedOrCoyoteTime": {
+          "const": true
+        },
+        "coyoteTimeTicks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9
+        },
+        "inputBufferTicks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9
+        },
+        "earlyReleaseVelocityMultiplier": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "earlyReleaseApplication": {
+          "const": "once_when_released_while_rising"
+        },
+        "requiresReleaseBeforeNextJump": {
+          "const": true
+        },
+        "maximumAirJumps": {
+          "const": 0
+        }
+      }
+    },
+    "triggerVolume": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shape",
+        "widthPx",
+        "heightPx",
+        "anchor"
+      ],
+      "properties": {
+        "shape": {
+          "const": "aabb"
+        },
+        "widthPx": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 64
+        },
+        "heightPx": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 64
+        },
+        "anchor": {
+          "enum": [
+            "cell_center",
+            "cell_bottom_center",
+            "cell_bounds"
+          ]
+        }
+      }
+    },
+    "topDownTriggers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overlapRule",
+        "priorityOrder",
+        "responses",
+        "volumes"
+      ],
+      "properties": {
+        "overlapRule": {
+          "const": "positive_area"
+        },
+        "priorityOrder": {
+          "const": [
+            "key",
+            "exit"
+          ]
+        },
+        "responses": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "exit"
+          ],
+          "properties": {
+            "key": {
+              "const": "attempt_collect_key"
+            },
+            "exit": {
+              "const": "attempt_finish"
+            }
+          }
+        },
+        "volumes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "exit"
+          ],
+          "properties": {
+            "key": {
+              "$ref": "#/$defs/triggerVolume"
+            },
+            "exit": {
+              "$ref": "#/$defs/triggerVolume"
+            }
+          }
+        }
+      }
+    },
+    "platformerTriggers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overlapRule",
+        "priorityOrder",
+        "responses",
+        "volumes"
+      ],
+      "properties": {
+        "overlapRule": {
+          "const": "positive_area"
+        },
+        "priorityOrder": {
+          "const": [
+            "out_of_bounds",
+            "hazard",
+            "goal",
+            "checkpoint",
+            "collectible"
+          ]
+        },
+        "responses": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "collectible",
+            "checkpoint",
+            "goal",
+            "hazard",
+            "out_of_bounds"
+          ],
+          "properties": {
+            "collectible": {
+              "const": "collect_and_score"
+            },
+            "checkpoint": {
+              "const": "set_latest_respawn"
+            },
+            "goal": {
+              "const": "finish_level"
+            },
+            "hazard": {
+              "const": "respawn"
+            },
+            "out_of_bounds": {
+              "const": "respawn"
+            }
+          }
+        },
+        "volumes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "collectible",
+            "checkpoint",
+            "goal",
+            "hazard"
+          ],
+          "properties": {
+            "collectible": {
+              "$ref": "#/$defs/triggerVolume"
+            },
+            "checkpoint": {
+              "$ref": "#/$defs/triggerVolume"
+            },
+            "goal": {
+              "$ref": "#/$defs/triggerVolume"
+            },
+            "hazard": {
+              "$ref": "#/$defs/triggerVolume"
+            }
+          }
+        }
+      }
+    },
+    "respawn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkpointSelection",
+        "clearVelocity",
+        "outOfBoundsMarginPx"
+      ],
+      "properties": {
+        "checkpointSelection": {
+          "const": "latest_checkpoint_or_initial_spawn"
+        },
+        "clearVelocity": {
+          "const": true
+        },
+        "outOfBoundsMarginPx": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "platformerLevelDesign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maximumCriticalPathGapTiles",
+        "maximumDirectRiseTiles",
+        "preferredLandingWidthTiles",
+        "minimumLandingWidthTiles",
+        "minimumJumpHeightMarginPx",
+        "minimumJumpRangeMarginPx"
+      ],
+      "properties": {
+        "maximumCriticalPathGapTiles": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maximumDirectRiseTiles": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "preferredLandingWidthTiles": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minimumLandingWidthTiles": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minimumJumpHeightMarginPx": {
+          "type": "number",
+          "minimum": 0
+        },
+        "minimumJumpRangeMarginPx": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "collision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "solver",
+        "axisOrder",
+        "skinWidthPx",
+        "solidSemantics"
+      ],
+      "properties": {
+        "source": {
+          "const": "map_semantics"
+        },
+        "solver": {
+          "const": "axis_separated_swept_aabb"
+        },
+        "axisOrder": {
+          "const": [
+            "x",
+            "y"
+          ]
+        },
+        "skinWidthPx": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.01
+        },
+        "solidSemantics": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "oneWaySemantics": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "groundedDefinition": {
+          "const": "downward_solid_contact_this_step"
+        }
+      }
+    }
+  }
+}

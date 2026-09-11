@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "haunted_flying_cooper_bat_01",
+  "name": "Bat-Costume Cooper",
+  "kind": "flying_object",
+  "body": "chicken",
+  "parentAssetId": "haunted_cooper_01",
+  "runtime": "platformer_v1",
+  "themeTags": ["haunted"],
+  "visualSlot": "flying_object",
+  "collision": "none",
+  "nativeDirection": "left",
+  "source": "sprites/haunted_flying_cooper_bat_01-source.png",
+  "output": "sprites/haunted_flying_cooper_bat_01.png",
+  "sourceLayout": { "columns": 2, "rows": 2 },
+  "sheet": { "columns": 2, "rows": 2, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["fly_left_1", "fly_left_2", "fly_left_3", "fly_left_4"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "center",
+    "anchor": { "x": 32, "y": 32 },
+    "contentBox": { "width": 60, "height": 56 },
+    "resizeMode": "contain_shared"
+  },
+  "animation": { "fps": 8, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 2, "centerDriftWarning": 6 },
+  "preview": { "scale": 5 }
+}

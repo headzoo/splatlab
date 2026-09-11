@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "id": "top_down_standard_v1",
+  "runtime": "top_down_v1",
+  "name": "HackYard top-down movement",
+  "description": "Responsive continuous movement for Maze with four-direction facing and normalized diagonals.",
+  "units": {
+    "distance": "world_pixel",
+    "time": "second",
+    "tileSizePx": 64
+  },
+  "simulation": {
+    "tickRateHz": 60,
+    "fixedDeltaSeconds": 0.016666666666666666,
+    "maxCatchUpSteps": 5,
+    "maxFrameDeltaSeconds": 0.25,
+    "numericPrecision": "float64"
+  },
+  "coordinates": {
+    "origin": "top_left",
+    "positiveX": "right",
+    "positiveY": "down",
+    "playerPositionReference": "bottom_center"
+  },
+  "player": {
+    "collider": {
+      "shape": "aabb",
+      "widthPx": 28,
+      "heightPx": 20,
+      "offsetFromPositionPx": {
+        "x": -14,
+        "y": -20
+      }
+    },
+    "playersBlockEachOther": false
+  },
+  "movement": {
+    "inputAxes": [
+      "moveX",
+      "moveY"
+    ],
+    "inputMinimum": -1,
+    "inputMaximum": 1,
+    "diagonalNormalization": "unit_circle",
+    "response": "instant",
+    "maxSpeedPxPerSecond": 224,
+    "maxSpeedTilesPerSecond": 3.5,
+    "zeroInputBehavior": "stop_immediately"
+  },
+  "facing": {
+    "directions": [
+      "down",
+      "left",
+      "right",
+      "up"
+    ],
+    "selection": "last_dominant_input_axis",
+    "equalAxisTieBreak": "keep_current_facing"
+  },
+  "collision": {
+    "source": "map_semantics",
+    "solver": "axis_separated_swept_aabb",
+    "axisOrder": [
+      "x",
+      "y"
+    ],
+    "skinWidthPx": 0.001,
+    "solidSemantics": [
+      "solid",
+      "solid_wall",
+      "closed_door"
+    ]
+  },
+  "triggers": {
+    "overlapRule": "positive_area",
+    "priorityOrder": [
+      "key",
+      "exit"
+    ],
+    "responses": {
+      "key": "attempt_collect_key",
+      "exit": "attempt_finish"
+    },
+    "volumes": {
+      "key": {
+        "shape": "aabb",
+        "widthPx": 32,
+        "heightPx": 32,
+        "anchor": "cell_center"
+      },
+      "exit": {
+        "shape": "aabb",
+        "widthPx": 48,
+        "heightPx": 48,
+        "anchor": "cell_center"
+      }
+    }
+  },
+  "levelDesign": {
+    "minimumCorridorWidthTiles": 1,
+    "preferredCorridorWidthTiles": 2
+  },
+  "unsupported": [
+    "gravity",
+    "jumping",
+    "movement_inertia",
+    "player_player_blocking",
+    "sprite_pixel_collision"
+  ]
+}

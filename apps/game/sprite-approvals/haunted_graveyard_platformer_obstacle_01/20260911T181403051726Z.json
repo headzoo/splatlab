@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_graveyard_platformer_obstacle_01",
+  "approvedAt": "2026-09-11T18:14:03.051726+00:00",
+  "recipe": "sprite-specs/haunted_graveyard_platformer_obstacle_01.json",
+  "runtimeImage": "sprites/haunted_graveyard_platformer_obstacle_01.png",
+  "sha256": "6baf9994622975b53ef9e25791f24981d6e09e84beb60d3487fda84906cdaad0",
+  "validationReport": "sprite-reports/haunted_graveyard_platformer_obstacle_01/haunted_graveyard_platformer_obstacle_01-report.json"
+}

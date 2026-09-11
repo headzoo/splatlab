@@ -1,0 +1,8 @@
+{
+  "assetId": "dragon_human_01",
+  "approvedAt": "2026-09-09T00:18:22.665286+00:00",
+  "recipe": "sprite-specs/dragon_human_01.json",
+  "runtimeImage": "sprites/dragon_human_01.png",
+  "sha256": "ea93f2665672cb2766239fed964981bfca03e91f51306141b55f6e50f1d43b81",
+  "validationReport": "sprite-reports/dragon_human_01/dragon_human_01-report.json"
+}

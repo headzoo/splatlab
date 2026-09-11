@@ -1,0 +1,8 @@
+{
+  "assetId": "shared_game_over_01",
+  "approvedAt": "2026-09-11T16:33:10.798195+00:00",
+  "recipe": "sprite-specs/shared_game_over_01.json",
+  "runtimeImage": "sprites/shared_game_over_01.png",
+  "sha256": "f217ae128c4c0282baaae93302310e8f73bb202a9eebc3d9976f1445db634d18",
+  "validationReport": "sprite-reports/shared_game_over_01/shared_game_over_01-report.json"
+}

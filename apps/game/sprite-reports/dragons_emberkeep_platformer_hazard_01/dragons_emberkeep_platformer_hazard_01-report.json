@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_platformer_hazard_01",
+  "frameLabels": [
+    "lava_low",
+    "lava_rise",
+    "lava_high",
+    "lava_recede"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_platformer_hazard_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        45654,
+        29052,
+        28179,
+        22061
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        312.98,
+        943.26
+      ],
+      "yCenters": [
+        539.91,
+        1050.33
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          628,
+          795
+        ],
+        [
+          628,
+          0,
+          1254,
+          795
+        ],
+        [
+          0,
+          795,
+          628,
+          1254
+        ],
+        [
+          628,
+          795,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          38
+        ],
+        "paste": [
+          0,
+          45
+        ],
+        "localLandmark": [
+          32.0,
+          38
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          19
+        ],
+        "intentionallyClipped": true
+      },
+      {
+        "size": [
+          64,
+          28
+        ],
+        "paste": [
+          0,
+          36
+        ],
+        "localLandmark": [
+          32.0,
+          28
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          38
+        ],
+        "paste": [
+          0,
+          26
+        ],
+        "localLandmark": [
+          32.0,
+          38
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          25
+        ],
+        "paste": [
+          0,
+          39
+        ],
+        "localLandmark": [
+          32.0,
+          25
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_platformer_hazard_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/dragons_emberkeep_platformer_hazard_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        254
+      ],
+      "frameBboxes": [
+        [
+          0,
+          45,
+          64,
+          64
+        ],
+        [
+          0,
+          36,
+          64,
+          64
+        ],
+        [
+          0,
+          26,
+          64,
+          64
+        ],
+        [
+          0,
+          39,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [
+        0
+      ],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        19,
+        38
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        45.0,
+        54.5
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_platformer_hazard_01/dragons_emberkeep_platformer_hazard_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_platformer_hazard_01/dragons_emberkeep_platformer_hazard_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "skin_tones_v1",
+  "defaultToneId": "skin_04",
+  "tones": [
+    {
+      "id": "skin_01",
+      "label": "Skin tone 1",
+      "colors": ["#9b5b44", "#c57a5b", "#e9a37c", "#ffd0a4"]
+    },
+    {
+      "id": "skin_02",
+      "label": "Skin tone 2",
+      "colors": ["#86503e", "#ad6c52", "#d78f6c", "#f0b38a"]
+    },
+    {
+      "id": "skin_03",
+      "label": "Skin tone 3",
+      "colors": ["#744535", "#975c45", "#bf795a", "#dd9b73"]
+    },
+    {
+      "id": "skin_04",
+      "label": "Skin tone 4",
+      "colors": ["#462a2e", "#6b413b", "#965e4c", "#c38464"]
+    },
+    {
+      "id": "skin_05",
+      "label": "Skin tone 5",
+      "colors": ["#352329", "#553735", "#7d5145", "#aa7358"]
+    },
+    {
+      "id": "skin_06",
+      "label": "Skin tone 6",
+      "colors": ["#261c20", "#432f2f", "#694a3f", "#98705a"]
+    }
+  ]
+}

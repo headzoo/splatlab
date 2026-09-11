@@ -1,0 +1,15 @@
+{
+  "assetId": "dragons_emberkeep_platformer_checkpoint_01",
+  "approvedAt": "2026-09-11T14:15:31.994222+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_platformer_checkpoint_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_platformer_checkpoint_01.png",
+  "sha256": "27714d2a9159e6b297587128d8600b98ec2e51dcb05c767955e4a0aea099e6a6",
+  "validationReport": "sprite-reports/dragons_emberkeep_platformer_checkpoint_01/dragons_emberkeep_platformer_checkpoint_01-report.json",
+  "eventSheets": {
+    "activated": {
+      "runtimeImage": "sprites/dragons_emberkeep_platformer_checkpoint_01_activated.png",
+      "sha256": "e1607598d2df3c47cd46dd4ca968452378b2f09ff97f68537e2570f3affd4abf",
+      "validationReport": "sprite-reports/dragons_emberkeep_platformer_checkpoint_01_activated/dragons_emberkeep_platformer_checkpoint_01_activated-report.json"
+    }
+  }
+}

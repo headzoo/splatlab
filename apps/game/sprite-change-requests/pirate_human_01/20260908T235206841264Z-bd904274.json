@@ -1,0 +1,32 @@
+{
+  "requestId": "20260908T235206841264Z-bd904274",
+  "assetId": "pirate_human_01",
+  "createdAt": "2026-09-08T23:52:06.841264+00:00",
+  "status": "pending",
+  "prompt": "Fix the walking gait in every direction. Use sprites/neutral_human_01.png as the approved body-motion reference: Contact A, Passing A, Contact B with the opposite foot leading, then Passing B. Transfer that alternating leg logic while preserving this pirate character's exact navy coat, cream shirt, red sash, brown boots, tricorn hat, face, colors, proportions, three-quarter top-down pixel-art style, 5 by 4 frame order, transparent background, scale, spacing, and bottom-center anchor. Left and right must visibly reverse the leading leg; up must visibly alternate the advancing foot. Arm or coat movement cannot substitute for leg movement. Do not alter idle frames.",
+  "recipe": "sprite-specs/pirate_human_01.json",
+  "candidateImage": "sprite-build/pirate_human_01.png",
+  "candidateSha256": "e8524d2d1bf41af6718f17a17ae3a0687f4a782eee0dc1c38802ddd357ec22aa",
+  "sourceImage": "sprites/pirate_human_01-source.png",
+  "revisionSource": "sprite-revisions/pirate_human_01/20260908T235206841264Z-bd904274/pirate_human_01-source.png",
+  "revisionRecipe": "sprite-revisions/pirate_human_01/20260908T235206841264Z-bd904274/recipe.json",
+  "candidateSnapshot": "sprite-revisions/pirate_human_01/20260908T235206841264Z-bd904274/pirate_human_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/pirate_human_01/20260908T235206841264Z-bd904274/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 0,
+    "frameNumber": 1,
+    "frameLabel": "idle_down",
+    "sequence": "All frames"
+  },
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 5,
+    "rows": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    }
+  },
+  "recordPath": "sprite-change-requests/pirate_human_01/20260908T235206841264Z-bd904274.json"
+}

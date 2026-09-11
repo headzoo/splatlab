@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_flying_cooper_bat_01",
+  "approvedAt": "2026-09-11T18:12:25.937347+00:00",
+  "recipe": "sprite-specs/haunted_flying_cooper_bat_01.json",
+  "runtimeImage": "sprites/haunted_flying_cooper_bat_01.png",
+  "sha256": "c32e6996aeaa1d56d4bb703486eed872cc5e703a0b682d0209a6cfe8d7a602fb",
+  "validationReport": "sprite-reports/haunted_flying_cooper_bat_01/haunted_flying_cooper_bat_01-report.json"
+}

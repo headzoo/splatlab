@@ -1,0 +1,32 @@
+{
+  "requestId": "20260908T233030254482Z-bda05010",
+  "assetId": "neutral_dragon_01",
+  "createdAt": "2026-09-08T23:30:30.254482+00:00",
+  "status": "pending",
+  "prompt": "Fix the walking gait in every direction using four distinct phases: Contact A with one foot clearly forward and the other back, Passing A, Contact B with the opposite foot forward, and Passing B. Left and right must visibly reverse the leading leg; up must visibly alternate the advancing foot from behind. Wings, arms, tail motion, or body bob may support the stride but cannot substitute for leg motion. Preserve the exact dragon identity, colors, proportions, pixel-art style, 5x4 grid, row and frame order, transparent background, spacing, scale, and anchor.",
+  "recipe": "sprite-specs/neutral_dragon_01.json",
+  "candidateImage": "sprites/neutral_dragon_01.png",
+  "candidateSha256": "73ebf39c5650a7b851e73a56e20be89ba5b59f66995b1c35e99d7d455590b14f",
+  "sourceImage": "sprites/neutral_dragon_01-source.png",
+  "revisionSource": "sprite-revisions/neutral_dragon_01/20260908T233030254482Z-bda05010/neutral_dragon_01-source.png",
+  "revisionRecipe": "sprite-revisions/neutral_dragon_01/20260908T233030254482Z-bda05010/recipe.json",
+  "candidateSnapshot": "sprite-revisions/neutral_dragon_01/20260908T233030254482Z-bda05010/neutral_dragon_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/neutral_dragon_01/20260908T233030254482Z-bda05010/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 6,
+    "frameNumber": 7,
+    "frameLabel": "walk_left_1",
+    "sequence": "Walk Left"
+  },
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 5,
+    "rows": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    }
+  },
+  "recordPath": "sprite-change-requests/neutral_dragon_01/20260908T233030254482Z-bda05010.json"
+}

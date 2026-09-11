@@ -1,0 +1,32 @@
+{
+  "requestId": "20260908T233216389043Z-a6001d71",
+  "assetId": "haunted_crypt_door_01",
+  "createdAt": "2026-09-08T23:32:16.389043+00:00",
+  "status": "pending",
+  "prompt": "The door frame shrinks upwards by a few pixels as the door opens.",
+  "recipe": "sprite-specs/haunted_crypt_door_01.json",
+  "candidateImage": "sprites/haunted_crypt_door_01.png",
+  "candidateSha256": "065138275a9f00dd672919324b658e783680c4fa0bd0907e69ff33e5c34d4c72",
+  "sourceImage": "sprites/haunted_crypt_door_01-source.png",
+  "revisionSource": "sprite-revisions/haunted_crypt_door_01/20260908T233216389043Z-a6001d71/haunted_crypt_door_01-source.png",
+  "revisionRecipe": "sprite-revisions/haunted_crypt_door_01/20260908T233216389043Z-a6001d71/recipe.json",
+  "candidateSnapshot": "sprite-revisions/haunted_crypt_door_01/20260908T233216389043Z-a6001d71/haunted_crypt_door_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/haunted_crypt_door_01/20260908T233216389043Z-a6001d71/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 1,
+    "frameNumber": 2,
+    "frameLabel": "opening_1",
+    "sequence": "Opening"
+  },
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "columns": 2,
+    "rows": 2,
+    "anchor": {
+      "x": 32,
+      "y": 88
+    }
+  },
+  "recordPath": "sprite-change-requests/haunted_crypt_door_01/20260908T233216389043Z-a6001d71.json"
+}

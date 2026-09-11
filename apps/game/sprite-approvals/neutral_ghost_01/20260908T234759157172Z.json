@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_ghost_01",
+  "approvedAt": "2026-09-08T23:47:59.157172+00:00",
+  "recipe": "sprite-specs/neutral_ghost_01.json",
+  "runtimeImage": "sprites/neutral_ghost_01.png",
+  "sha256": "0816a07682713934758b4f4b7c22c2661409ddb880e23e5aa8511879a204f03b",
+  "validationReport": "sprite-reports/neutral_ghost_01/neutral_ghost_01-report.json"
+}

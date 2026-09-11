@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "haunted_magic_portal_01",
+  "kind": "exit",
+  "source": "sprites/haunted_magic_portal_01-source.png",
+  "output": "sprites/haunted_magic_portal_01.png",
+  "sourceLayout": { "columns": 4, "rows": 2 },
+  "sheet": { "columns": 4, "rows": 2, "frameWidth": 128, "frameHeight": 128 },
+  "frameLabels": ["swirl_1", "swirl_2", "swirl_3", "swirl_4", "swirl_5", "swirl_6", "swirl_7", "swirl_8"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.005,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "dark_opening",
+    "anchor": { "x": 64, "y": 120 },
+    "contentBox": { "width": 96, "height": 112 },
+    "resizeMode": "stretch_each",
+    "landmark": {
+      "target": { "x": 64, "y": 64 },
+      "region": [0.22, 0.2, 0.78, 0.82],
+      "alphaThreshold": 128,
+      "maxLuminance": 75,
+      "minimumPixels": 20
+    }
+  },
+  "animation": { "fps": 10, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 2.5, "centerDriftWarning": 6 },
+  "preview": { "scale": 2 }
+}

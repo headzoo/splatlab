@@ -1,0 +1,8 @@
+{
+  "assetId": "space_platformer_platform_01",
+  "approvedAt": "2026-09-10T01:06:38.945368+00:00",
+  "recipe": "sprite-specs/space_platformer_platform_01.json",
+  "runtimeImage": "sprites/space_platformer_platform_01.png",
+  "sha256": "5c53f81f894fe502d7ee315ab09e79401c48b573194740b440a54345ca54f6c7",
+  "validationReport": "sprite-reports/space_platformer_platform_01/space_platformer_platform_01-report.json"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_ghost_01",
+  "approvedAt": "2026-09-11T18:13:43.008603+00:00",
+  "recipe": "sprite-specs/haunted_ghost_01.json",
+  "runtimeImage": "sprites/haunted_ghost_01.png",
+  "sha256": "048ff45af142f177f5a7da70fbe7ef1ba3857b17de2c5435acc8575dfb154e51",
+  "validationReport": "sprite-reports/haunted_ghost_01/haunted_ghost_01-report.json"
+}

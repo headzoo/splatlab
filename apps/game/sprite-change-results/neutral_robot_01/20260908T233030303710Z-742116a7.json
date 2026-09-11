@@ -1,0 +1,12 @@
+{
+  "requestId": "20260908T233030303710Z-742116a7",
+  "assetId": "neutral_robot_01",
+  "finishedAt": "2026-09-08T23:36:17.511667+00:00",
+  "status": "completed",
+  "codexThreadId": "01a0835b-dc44-7393-92af-30b74d5d99d6",
+  "agentSummary": "I\u2019m using the image-generation skill because this is a constrained bitmap sprite edit. I\u2019ll first read the project contracts and revision metadata, then edit only the cloned source PNG while preserving the locked 5\u00d74 sheet contract.\nThe request is safe and matches the existing character contract: it changes locomotion poses only, with no identity or gameplay-contract change. I\u2019m finishing the required contract read in bounded sections so none of the source guidance is lost to output truncation.\nThe inspected source confirms the defect: several side and rear walk frames change pose or bob without a consistently reversed leg lead. I\u2019m now applying a gait-only edit to all 16 walking poses; the four idle poses, robot design, sheet ordering, spacing, scale, and transparency are locked.\nThe gait edit itself is materially improved, but alpha inspection found a baked checkerboard (RGB-only), which the project explicitly rejects. The imagegen skill therefore requires a targeted background-extraction pass before I can save the revision source.\nThe second extraction attempt also returned RGB-only checkerboard. I\u2019m applying a narrow background flood extraction to that generated edit, then I\u2019ll verify true alpha and visually inspect the isolated silhouettes before replacing the cloned source. This does not touch the recipe or any canonical asset.\nUpdated [neutral_robot_01-source.png](/media/sean/work/www/chickensplat/sprite-revisions/neutral_robot_01/20260908T233030303710Z-742116a7/neutral_robot_01-source.png).\n\nThe four directional walk cycles now use alternating contact/passing leg phases. Robot identity, cyan lighting, 5\u00d74 ordering, original canvas size, scale, and transparent background were preserved. No recipes, canonical assets, or contract files were changed.",
+  "candidateImage": "sprite-build/neutral_robot_01.png",
+  "candidateSha256": "37d03b39a975b71e2208bad18ae6babe671cef94a8049a1e9d78e07c81ba4e31",
+  "validationReport": "sprite-reports/neutral_robot_01/neutral_robot_01-report.json",
+  "sourceImage": "sprite-revisions/neutral_robot_01/20260908T233030303710Z-742116a7/neutral_robot_01-source.png"
+}

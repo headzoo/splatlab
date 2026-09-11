@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_platformer_coin_01",
+  "frameLabels": [
+    "spin_front",
+    "spin_three_quarter_right",
+    "spin_edge",
+    "spin_three_quarter_left"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_platformer_coin_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        62285,
+        45301,
+        39684,
+        16332
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        312.45,
+        938.46
+      ],
+      "yCenters": [
+        351.88,
+        925.62
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          625,
+          639
+        ],
+        [
+          625,
+          0,
+          1254,
+          639
+        ],
+        [
+          0,
+          639,
+          625,
+          1254
+        ],
+        [
+          625,
+          639,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          40,
+          40
+        ],
+        "paste": [
+          12,
+          12
+        ],
+        "localLandmark": [
+          20.0,
+          20.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          28,
+          40
+        ],
+        "paste": [
+          18,
+          12
+        ],
+        "localLandmark": [
+          14.0,
+          20.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          9,
+          39
+        ],
+        "paste": [
+          28,
+          12
+        ],
+        "localLandmark": [
+          4.5,
+          19.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          25,
+          40
+        ],
+        "paste": [
+          20,
+          12
+        ],
+        "localLandmark": [
+          12.5,
+          20.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_platformer_coin_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/dragons_emberkeep_platformer_coin_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          12,
+          12,
+          52,
+          52
+        ],
+        [
+          18,
+          12,
+          46,
+          52
+        ],
+        [
+          28,
+          12,
+          37,
+          51
+        ],
+        [
+          20,
+          12,
+          45,
+          52
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        9,
+        40
+      ],
+      "bboxHeightRange": [
+        39,
+        40
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.0
+      ],
+      "bboxBottomRange": [
+        51,
+        52
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_platformer_coin_01/dragons_emberkeep_platformer_coin_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_platformer_coin_01/dragons_emberkeep_platformer_coin_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_platformer_checkpoint_01",
+  "frameLabels": [
+    "wave_up",
+    "wave_center_a",
+    "wave_down",
+    "wave_center_b"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_platformer_checkpoint_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        29836,
+        29731,
+        29039,
+        28776
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        324.93,
+        878.03
+      ],
+      "yCenters": [
+        343.78,
+        958.6
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          601,
+          651
+        ],
+        [
+          601,
+          0,
+          1254,
+          651
+        ],
+        [
+          0,
+          651,
+          601,
+          1254
+        ],
+        [
+          601,
+          651,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          43,
+          56
+        ],
+        "paste": [
+          10,
+          8
+        ],
+        "localLandmark": [
+          21.5,
+          56
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          56
+        ],
+        "paste": [
+          10,
+          8
+        ],
+        "localLandmark": [
+          22.5,
+          56
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          56
+        ],
+        "paste": [
+          10,
+          8
+        ],
+        "localLandmark": [
+          21.5,
+          56
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          56
+        ],
+        "paste": [
+          10,
+          8
+        ],
+        "localLandmark": [
+          22.5,
+          56
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_platformer_checkpoint_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/dragons_emberkeep_platformer_checkpoint_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          8,
+          53,
+          64
+        ],
+        [
+          10,
+          8,
+          55,
+          64
+        ],
+        [
+          10,
+          8,
+          53,
+          64
+        ],
+        [
+          10,
+          8,
+          55,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        43,
+        45
+      ],
+      "bboxHeightRange": [
+        56,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        36.0,
+        36.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_platformer_checkpoint_01/dragons_emberkeep_platformer_checkpoint_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_platformer_checkpoint_01/dragons_emberkeep_platformer_checkpoint_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

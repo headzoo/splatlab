@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "neutral_green_hills_01",
+  "name": "Green Hills",
+  "kind": "platformer_background",
+  "runtime": "platformer_v1",
+  "theme": "neutral",
+  "description": "A bright storybook valley with a distant castle, blue-green mountain forests, waterfalls, and lush foreground foliage.",
+  "color": "#4dbcf2",
+  "layers": [
+    {
+      "id": "castle_far",
+      "type": "repeat_x",
+      "assetId": "background_neutral_green_hills_castle_far_01",
+      "image": "backgrounds/background_neutral_green_hills_castle_far_01.png",
+      "parallax": 0.1,
+      "verticalAnchor": "center",
+      "heightRatio": 1,
+      "opacity": 0.78,
+      "mirrorAlternate": true
+    },
+    {
+      "id": "waterfalls_mid",
+      "type": "repeat_x",
+      "assetId": "background_neutral_green_hills_waterfalls_mid_01",
+      "image": "backgrounds/background_neutral_green_hills_waterfalls_mid_01.png",
+      "parallax": 0.34,
+      "verticalAnchor": "bottom",
+      "heightRatio": 0.94,
+      "opacity": 0.88,
+      "mirrorAlternate": true
+    },
+    {
+      "id": "foliage_near",
+      "type": "repeat_x",
+      "assetId": "background_neutral_green_hills_foliage_near_01",
+      "image": "backgrounds/background_neutral_green_hills_foliage_near_01.png",
+      "parallax": 0.66,
+      "verticalAnchor": "bottom",
+      "heightRatio": 0.82,
+      "opacity": 0.94,
+      "mirrorAlternate": true
+    }
+  ]
+}

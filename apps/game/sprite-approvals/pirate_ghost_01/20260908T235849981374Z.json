@@ -1,0 +1,8 @@
+{
+  "assetId": "pirate_ghost_01",
+  "approvedAt": "2026-09-08T23:58:49.981374+00:00",
+  "recipe": "sprite-specs/pirate_ghost_01.json",
+  "runtimeImage": "sprites/pirate_ghost_01.png",
+  "sha256": "79e712a59a949c6f1d8431cf0d1305d192d743e8ac03f4853a521b67c9676e94",
+  "validationReport": "sprite-reports/pirate_ghost_01/pirate_ghost_01-report.json"
+}

@@ -1,0 +1,60 @@
+{
+  "assetId": "space_platformer_goal_01",
+  "sheetId": "space_platformer_goal_01_level_complete",
+  "event": "level_complete",
+  "createdAt": "2026-09-10T11:07:43.827051+00:00",
+  "recipe": "sprite-specs/space_platformer_goal_01.json",
+  "recipeBeforeSha256": "7e8af01c51f7ac24eeeaffac93f0a48408fc9fdcf76f259e28824f8f9c4a80a1",
+  "recipeAfterSha256": "f0b35adca9443f9e9af2a6ac8eb6fe74a96b2a01a1a8c960343e68bdee64f6e4",
+  "adjustments": [
+    {
+      "frameIndex": 0,
+      "x": 0,
+      "y": 4,
+      "resultX": 0,
+      "resultY": 4
+    },
+    {
+      "frameIndex": 1,
+      "x": 2,
+      "y": 4,
+      "resultX": 2,
+      "resultY": 4
+    },
+    {
+      "frameIndex": 2,
+      "x": 3,
+      "y": 0,
+      "resultX": 3,
+      "resultY": 0
+    },
+    {
+      "frameIndex": 3,
+      "x": 1,
+      "y": 0,
+      "resultX": 1,
+      "resultY": 0
+    }
+  ],
+  "frameOffsets": [
+    {
+      "x": 0,
+      "y": 4
+    },
+    {
+      "x": 2,
+      "y": 4
+    },
+    {
+      "x": 3,
+      "y": 0
+    },
+    {
+      "x": 1,
+      "y": 0
+    }
+  ],
+  "candidateImage": "sprite-build/space_platformer_goal_01_level_complete.png",
+  "candidateSha256": "c96e9493e7f413ef73af840b217421352513a99fdd5197a0c3a6fd79529372fe",
+  "validationReport": "sprite-reports/space_platformer_goal_01_level_complete/space_platformer_goal_01_level_complete-report.json"
+}

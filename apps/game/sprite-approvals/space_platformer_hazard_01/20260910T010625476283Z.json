@@ -1,0 +1,8 @@
+{
+  "assetId": "space_platformer_hazard_01",
+  "approvedAt": "2026-09-10T01:06:25.476283+00:00",
+  "recipe": "sprite-specs/space_platformer_hazard_01.json",
+  "runtimeImage": "sprites/space_platformer_hazard_01.png",
+  "sha256": "4f883f16043e6cdb32346058e4c0e3b258a3c7d45baeb185720be2333fd24183",
+  "validationReport": "sprite-reports/space_platformer_hazard_01/space_platformer_hazard_01-report.json"
+}

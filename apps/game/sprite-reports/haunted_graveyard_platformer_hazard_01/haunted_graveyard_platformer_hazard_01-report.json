@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_graveyard_platformer_hazard_01",
+  "frameLabels": [
+    "hand_hidden",
+    "hand_emerge",
+    "hand_rise",
+    "hand_high",
+    "hand_swipe",
+    "hand_descend",
+    "hand_lower",
+    "hand_reset"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_graveyard_platformer_hazard_01-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          443,
+          443
+        ],
+        [
+          443,
+          0,
+          887,
+          443
+        ],
+        [
+          887,
+          0,
+          1330,
+          443
+        ],
+        [
+          1330,
+          0,
+          1774,
+          443
+        ],
+        [
+          0,
+          443,
+          443,
+          887
+        ],
+        [
+          443,
+          443,
+          887,
+          887
+        ],
+        [
+          887,
+          443,
+          1330,
+          887
+        ],
+        [
+          1330,
+          443,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          58
+        ],
+        "paste": [
+          0,
+          6
+        ],
+        "localLandmark": [
+          32.0,
+          58
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          58
+        ],
+        "paste": [
+          0,
+          6
+        ],
+        "localLandmark": [
+          32.0,
+          58
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          58
+        ],
+        "paste": [
+          0,
+          6
+        ],
+        "localLandmark": [
+          32.0,
+          58
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          58
+        ],
+        "paste": [
+          0,
+          6
+        ],
+        "localLandmark": [
+          32.0,
+          58
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          64
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          32.0,
+          64
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          58
+        ],
+        "paste": [
+          0,
+          6
+        ],
+        "localLandmark": [
+          32.0,
+          58
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          58
+        ],
+        "paste": [
+          0,
+          6
+        ],
+        "localLandmark": [
+          32.0,
+          58
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          58
+        ],
+        "paste": [
+          0,
+          6
+        ],
+        "localLandmark": [
+          32.0,
+          58
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_graveyard_platformer_hazard_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/haunted_graveyard_platformer_hazard_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          0,
+          6,
+          64,
+          64
+        ],
+        [
+          0,
+          6,
+          64,
+          64
+        ],
+        [
+          0,
+          6,
+          64,
+          64
+        ],
+        [
+          0,
+          6,
+          64,
+          64
+        ],
+        [
+          0,
+          0,
+          64,
+          64
+        ],
+        [
+          0,
+          6,
+          64,
+          64
+        ],
+        [
+          0,
+          6,
+          64,
+          64
+        ],
+        [
+          0,
+          6,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        58,
+        64
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        35.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_graveyard_platformer_hazard_01/haunted_graveyard_platformer_hazard_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_graveyard_platformer_hazard_01/haunted_graveyard_platformer_hazard_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

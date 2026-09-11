@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "dragons_emberkeep_01",
+  "name": "Emberkeep",
+  "kind": "platformer_background",
+  "runtime": "platformer_v1",
+  "theme": "dragons",
+  "description": "A ruined volcanic stronghold beneath drifting ash, distant lava peaks, and ember-lit battlements.",
+  "color": "#241225",
+  "layers": [
+    {
+      "id": "ash_far",
+      "type": "repeat_x",
+      "assetId": "background_dragons_ash_far_01",
+      "image": "backgrounds/background_dragons_ash_far_01.png",
+      "parallax": 0.1,
+      "verticalAnchor": "center",
+      "heightRatio": 1,
+      "opacity": 0.58,
+      "mirrorAlternate": true
+    },
+    {
+      "id": "volcano_mid",
+      "type": "repeat_x",
+      "assetId": "background_dragons_volcano_mid_01",
+      "image": "backgrounds/background_dragons_volcano_mid_01.png",
+      "parallax": 0.34,
+      "verticalAnchor": "bottom",
+      "heightRatio": 0.94,
+      "opacity": 0.88,
+      "mirrorAlternate": true
+    },
+    {
+      "id": "ruins_near",
+      "type": "repeat_x",
+      "assetId": "background_dragons_ruins_near_01",
+      "image": "backgrounds/background_dragons_ruins_near_01.png",
+      "parallax": 0.66,
+      "verticalAnchor": "bottom",
+      "heightRatio": 0.82,
+      "opacity": 0.94,
+      "mirrorAlternate": true
+    }
+  ]
+}

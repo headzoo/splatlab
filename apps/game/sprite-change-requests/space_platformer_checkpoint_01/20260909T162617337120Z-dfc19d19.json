@@ -1,0 +1,55 @@
+{
+  "requestId": "20260909T162617337120Z-dfc19d19",
+  "assetId": "space_platformer_checkpoint_01",
+  "sheetId": "space_platformer_checkpoint_01",
+  "event": null,
+  "createdAt": "2026-09-09T16:26:17.337120+00:00",
+  "status": "pending",
+  "prompt": "The base of the flag is moving 1px between g1 and g2. The base and pole should not animate. Only the flag moves.",
+  "recipe": "sprite-specs/space_platformer_checkpoint_01.json",
+  "candidateImage": "sprite-build/space_platformer_checkpoint_01.png",
+  "candidateSha256": "594d867e4452a8ecd211ce35753c036dc11181cc29753075524f6572e5216f23",
+  "sourceImage": "sprites/space_platformer_checkpoint_01-source.png",
+  "revisionSource": "sprite-revisions/space_platformer_checkpoint_01/20260909T162617337120Z-dfc19d19/space_platformer_checkpoint_01-source.png",
+  "revisionRecipe": "sprite-revisions/space_platformer_checkpoint_01/20260909T162617337120Z-dfc19d19/recipe.json",
+  "candidateSnapshot": "sprite-revisions/space_platformer_checkpoint_01/20260909T162617337120Z-dfc19d19/space_platformer_checkpoint_01-candidate-before.png",
+  "annotatedGuidePreview": "sprite-revisions/space_platformer_checkpoint_01/20260909T162617337120Z-dfc19d19/space_platformer_checkpoint_01-guide-preview.png",
+  "annotatedGuidePreviewSha256": "7e57235b3a45df3bb14d3be3d5f8a069e1fbc62dea02442e0ff66e8caf79082d",
+  "recipeSnapshot": "sprite-revisions/space_platformer_checkpoint_01/20260909T162617337120Z-dfc19d19/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 3,
+    "frameNumber": 4,
+    "frameLabel": "wave_center_b",
+    "sequence": "All frames",
+    "sequenceFrameIndices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "event": null
+  },
+  "guides": [
+    {
+      "id": "G1",
+      "orientation": "vertical",
+      "coordinate": 10
+    },
+    {
+      "id": "G2",
+      "orientation": "vertical",
+      "coordinate": 11
+    }
+  ],
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 2,
+    "rows": 2,
+    "anchor": {
+      "x": 32,
+      "y": 64
+    }
+  },
+  "recordPath": "sprite-change-requests/space_platformer_checkpoint_01/20260909T162617337120Z-dfc19d19.json"
+}

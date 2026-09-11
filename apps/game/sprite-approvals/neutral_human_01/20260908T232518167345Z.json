@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_human_01",
+  "approvedAt": "2026-09-08T23:25:18.167345+00:00",
+  "recipe": "sprite-specs/neutral_human_01.json",
+  "runtimeImage": "sprites/neutral_human_01.png",
+  "sha256": "3d52f8d9f3539a70544c7d64ab120021275dcda5367887aa6419cfb77a74a711",
+  "validationReport": "sprite-reports/neutral_human_01/neutral_human_01-report.json"
+}

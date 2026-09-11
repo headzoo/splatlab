@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_flying_cooper_bat_01",
+  "frameLabels": [
+    "fly_left_1",
+    "fly_left_2",
+    "fly_left_3",
+    "fly_left_4"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_flying_cooper_bat_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        31203,
+        28946,
+        25666,
+        22506
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        332.08,
+        1027.89
+      ],
+      "yCenters": [
+        355.74,
+        844.62
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          680,
+          600
+        ],
+        [
+          680,
+          0,
+          1402,
+          600
+        ],
+        [
+          0,
+          600,
+          680,
+          1122
+        ],
+        [
+          680,
+          600,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          42,
+          40
+        ],
+        "paste": [
+          11,
+          12
+        ],
+        "localLandmark": [
+          21.0,
+          20.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          60,
+          31
+        ],
+        "paste": [
+          2,
+          16
+        ],
+        "localLandmark": [
+          30.0,
+          15.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          33
+        ],
+        "paste": [
+          10,
+          16
+        ],
+        "localLandmark": [
+          22.0,
+          16.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          35
+        ],
+        "paste": [
+          10,
+          14
+        ],
+        "localLandmark": [
+          22.0,
+          17.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_flying_cooper_bat_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/haunted_flying_cooper_bat_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          11,
+          12,
+          53,
+          52
+        ],
+        [
+          2,
+          16,
+          62,
+          47
+        ],
+        [
+          10,
+          16,
+          54,
+          49
+        ],
+        [
+          10,
+          14,
+          54,
+          49
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        42,
+        60
+      ],
+      "bboxHeightRange": [
+        31,
+        40
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.5
+      ],
+      "bboxBottomRange": [
+        47,
+        52
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_flying_cooper_bat_01/haunted_flying_cooper_bat_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_flying_cooper_bat_01/haunted_flying_cooper_bat_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

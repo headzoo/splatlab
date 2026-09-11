@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_tombstone_01",
+  "approvedAt": "2026-09-11T19:26:39.657974+00:00",
+  "recipe": "sprite-specs/haunted_tombstone_01.json",
+  "runtimeImage": "sprites/haunted_tombstone_01.png",
+  "sha256": "142b39efb79725326005c4e3da5bc83a368805669235d6464341fe7212046978",
+  "validationReport": "sprite-reports/haunted_tombstone_01/haunted_tombstone_01-report.json"
+}

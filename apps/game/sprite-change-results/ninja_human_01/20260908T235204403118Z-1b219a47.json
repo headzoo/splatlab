@@ -1,0 +1,12 @@
+{
+  "requestId": "20260908T235204403118Z-1b219a47",
+  "assetId": "ninja_human_01",
+  "finishedAt": "2026-09-08T23:56:52.947375+00:00",
+  "status": "completed",
+  "codexThreadId": "01a0836f-9af7-7e32-b9e4-55caee9a5f6f",
+  "agentSummary": "I\u2019m using the image-generation/editing skill because this request directly modifies the sprite master. I\u2019ll first read the project contracts and revision metadata, then inspect both images at full detail before editing only the revision source PNG.\nThe request is contract-safe: it changes only leg motion in the 16 walk poses and explicitly preserves all four idle poses, identity, layout, perspective, alpha, and anchor. I\u2019m now comparing the high-resolution master against the approved neutral gait reference so the edit can be narrowly constrained.\nThe first edit produced the intended alternating stride shapes, but its preview shows a checkerboard pattern that may be baked into the image. Per the project\u2019s fail-closed alpha rules, I\u2019m verifying the file before touching the revision master; if opaque, I\u2019ll run a background-extraction-only cleanup while preserving all poses.\nThe cleaned result is the required 1402\u00d71122 RGBA sheet with genuine transparent pixels and the full 20-pose layout intact. The walk rows now show distinct contact/passing phases, including reversed side-leading legs and visible rear-view alternation; I\u2019m saving that result over the editable revision clone only.\nThe saved-file renderer exposed an alpha defect that the initial preview hid: the extractor made much of the character nearly transparent. I\u2019m rejecting that intermediate and correcting alpha only before completion; the revision master will not be left in this state.\nUpdated [ninja_human_01-source.png](/media/sean/work/www/chickensplat/sprite-revisions/ninja_human_01/20260908T235204403118Z-1b219a47/ninja_human_01-source.png).\n\nThe built-in image editor added alternating four-phase leg motion in every direction, preserved the idle poses and ninja styling, and restored genuine RGBA transparency. No recipe, candidate, canonical asset, promotion, or pipeline run was performed.",
+  "candidateImage": "sprite-build/ninja_human_01.png",
+  "candidateSha256": "6f8c6abbf8b300ff7fa4da57ff75edff37132cfb28a1dbf3b645670f25f1c3e4",
+  "validationReport": "sprite-reports/ninja_human_01/ninja_human_01-report.json",
+  "sourceImage": "sprite-revisions/ninja_human_01/20260908T235204403118Z-1b219a47/ninja_human_01-source.png"
+}

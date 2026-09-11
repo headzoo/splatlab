@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_human_01_attack",
+  "frameLabels": [
+    "attack_left_1",
+    "attack_left_2",
+    "attack_left_3",
+    "attack_left_4",
+    "attack_right_1",
+    "attack_right_2",
+    "attack_right_3",
+    "attack_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/space_human_01_attack-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "analysisScale": 0.3945885005636979,
+      "selectedComponentAreas": [
+        8101,
+        7915,
+        7807,
+        7756,
+        7717,
+        7683,
+        7576,
+        7409
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        224.45,
+        645.18,
+        1100.07,
+        1537.31
+      ],
+      "yCenters": [
+        237.37,
+        652.16
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          435,
+          445
+        ],
+        [
+          435,
+          0,
+          873,
+          445
+        ],
+        [
+          873,
+          0,
+          1319,
+          445
+        ],
+        [
+          1319,
+          0,
+          1774,
+          445
+        ],
+        [
+          0,
+          445,
+          435,
+          887
+        ],
+        [
+          435,
+          445,
+          873,
+          887
+        ],
+        [
+          873,
+          445,
+          1319,
+          887
+        ],
+        [
+          1319,
+          445,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          35,
+          55
+        ],
+        "paste": [
+          14,
+          1
+        ],
+        "localLandmark": [
+          17.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          56
+        ],
+        "paste": [
+          13,
+          0
+        ],
+        "localLandmark": [
+          19.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          53
+        ],
+        "paste": [
+          10,
+          3
+        ],
+        "localLandmark": [
+          22.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          55
+        ],
+        "paste": [
+          14,
+          1
+        ],
+        "localLandmark": [
+          18.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          56
+        ],
+        "paste": [
+          13,
+          0
+        ],
+        "localLandmark": [
+          19.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          56
+        ],
+        "paste": [
+          13,
+          0
+        ],
+        "localLandmark": [
+          19.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          22.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          56
+        ],
+        "paste": [
+          13,
+          0
+        ],
+        "localLandmark": [
+          19.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_human_01_attack",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_human_01_attack.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          14,
+          1,
+          49,
+          56
+        ],
+        [
+          13,
+          0,
+          51,
+          56
+        ],
+        [
+          10,
+          3,
+          54,
+          56
+        ],
+        [
+          14,
+          1,
+          50,
+          56
+        ],
+        [
+          13,
+          0,
+          51,
+          56
+        ],
+        [
+          13,
+          0,
+          51,
+          56
+        ],
+        [
+          10,
+          1,
+          55,
+          56
+        ],
+        [
+          13,
+          0,
+          51,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        35,
+        45
+      ],
+      "bboxHeightRange": [
+        53,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        29.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_human_01_attack/space_human_01_attack-contact.png",
+    "animationPreview": "sprite-reports/space_human_01_attack/space_human_01_attack-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

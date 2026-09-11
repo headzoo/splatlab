@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "short_sword_v1",
+  "kind": "weapon",
+  "runtime": "platformer_v1",
+  "themeTags": ["neutral", "space"],
+  "source": "sprites/short_sword_v1-source.png",
+  "output": "sprites/short_sword_v1.png",
+  "sourceLayout": { "columns": 1, "rows": 1 },
+  "sheet": { "columns": 1, "rows": 1, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["short_sword"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "bottom_center",
+    "anchor": { "x": 32, "y": 56 },
+    "contentBox": { "width": 42, "height": 52 },
+    "resizeMode": "contain_each"
+  },
+  "animation": { "fps": 1, "loop": false },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1, "centerDriftWarning": 4 },
+  "preview": { "scale": 5 }
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "short_sword_v1",
+  "name": "Short Sword",
+  "kind": "melee_weapon",
+  "runtime": "platformer_v1",
+  "mechanics": {
+    "damage": 1,
+    "reachTiles": 0.95,
+    "attackDurationMs": 333,
+    "activeStartMs": 80,
+    "activeEndMs": 245,
+    "cooldownMs": 450,
+    "knockbackTiles": 1
+  },
+  "visual": {
+    "spriteAssetId": "short_sword_v1",
+    "attackEventId": "attack",
+    "grip": { "x": 32, "y": 49 },
+    "characters": {
+      "space_cooper_01": {
+        "directions": {
+          "left": [
+            { "offsetX": -8, "offsetY": -31, "rotationDegrees": -55, "layer": "behind" },
+            { "offsetX": -12, "offsetY": -29, "rotationDegrees": -95, "layer": "front" },
+            { "offsetX": -13, "offsetY": -23, "rotationDegrees": -135, "layer": "front" },
+            { "offsetX": -9, "offsetY": -25, "rotationDegrees": -165, "layer": "front" }
+          ],
+          "right": [
+            { "offsetX": 8, "offsetY": -31, "rotationDegrees": 55, "layer": "behind" },
+            { "offsetX": 12, "offsetY": -29, "rotationDegrees": 95, "layer": "front" },
+            { "offsetX": 13, "offsetY": -23, "rotationDegrees": 135, "layer": "front" },
+            { "offsetX": 9, "offsetY": -25, "rotationDegrees": 165, "layer": "front" }
+          ]
+        }
+      },
+      "space_human_01": {
+        "directions": {
+          "left": [
+            { "offsetX": -7, "offsetY": -31, "rotationDegrees": -55, "layer": "behind" },
+            { "offsetX": -11, "offsetY": -29, "rotationDegrees": -95, "layer": "front" },
+            { "offsetX": -13, "offsetY": -23, "rotationDegrees": -135, "layer": "front" },
+            { "offsetX": -9, "offsetY": -25, "rotationDegrees": -165, "layer": "front" }
+          ],
+          "right": [
+            { "offsetX": 7, "offsetY": -31, "rotationDegrees": 55, "layer": "behind" },
+            { "offsetX": 11, "offsetY": -29, "rotationDegrees": 95, "layer": "front" },
+            { "offsetX": 13, "offsetY": -23, "rotationDegrees": 135, "layer": "front" },
+            { "offsetX": 9, "offsetY": -25, "rotationDegrees": 165, "layer": "front" }
+          ]
+        }
+      }
+    }
+  }
+}

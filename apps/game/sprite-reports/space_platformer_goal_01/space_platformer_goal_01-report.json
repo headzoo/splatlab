@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_platformer_goal_01",
+  "frameLabels": [
+    "wave_up",
+    "wave_center_a",
+    "wave_down",
+    "wave_center_b"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "space_platformer_goal_01",
+    "image": "/media/sean/work/www/chickensplat/sprites/space_platformer_goal_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          7,
+          60,
+          96
+        ],
+        [
+          4,
+          7,
+          59,
+          96
+        ],
+        [
+          4,
+          7,
+          58,
+          96
+        ],
+        [
+          4,
+          8,
+          59,
+          96
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "intentionallyClippedFrames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "bboxWidthRange": [
+        54,
+        56
+      ],
+      "bboxHeightRange": [
+        88,
+        89
+      ],
+      "bboxCenterXRange": [
+        31.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        51.5,
+        52.0
+      ],
+      "bboxBottomRange": [
+        96,
+        96
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_platformer_goal_01/space_platformer_goal_01-contact.png",
+    "animationPreview": "sprite-reports/space_platformer_goal_01/space_platformer_goal_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

@@ -1,0 +1,15 @@
+{
+  "assetId": "dragons_emberkeep_boss_01",
+  "approvedAt": "2026-09-11T19:50:40.386044+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_boss_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_boss_01.png",
+  "sha256": "af068d1ec498cdcf92cbac0bf7f2e4ebade39903b9ae1ee8df94c666c9efab93",
+  "validationReport": "sprite-reports/dragons_emberkeep_boss_01/dragons_emberkeep_boss_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/dragons_emberkeep_boss_01_defeated.png",
+      "sha256": "4810e8e99a89163d1e6c07661f78eb53a5e8816ee9ea28454c7232e26c1e24d5",
+      "validationReport": "sprite-reports/dragons_emberkeep_boss_01_defeated/dragons_emberkeep_boss_01_defeated-report.json"
+    }
+  }
+}

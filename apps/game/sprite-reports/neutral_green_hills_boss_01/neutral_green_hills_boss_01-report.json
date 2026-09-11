@@ -1,0 +1,487 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_green_hills_boss_01",
+  "frameLabels": [
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_green_hills_boss_01-source.png",
+    "sourceSize": [
+      1882,
+      836
+    ],
+    "detection": {
+      "analysisScale": 0.4782146652497343,
+      "selectedComponentAreas": [
+        14043,
+        14032,
+        14004,
+        14004,
+        13862,
+        13861,
+        13838,
+        13694,
+        13636,
+        13613
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        191.07,
+        562.87,
+        931.76,
+        1304.84,
+        1687.1
+      ],
+      "yCenters": [
+        249.38,
+        598.88
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          377,
+          424
+        ],
+        [
+          377,
+          0,
+          747,
+          424
+        ],
+        [
+          747,
+          0,
+          1118,
+          424
+        ],
+        [
+          1118,
+          0,
+          1496,
+          424
+        ],
+        [
+          1496,
+          0,
+          1882,
+          424
+        ],
+        [
+          0,
+          424,
+          377,
+          836
+        ],
+        [
+          377,
+          424,
+          747,
+          836
+        ],
+        [
+          747,
+          424,
+          1118,
+          836
+        ],
+        [
+          1118,
+          424,
+          1496,
+          836
+        ],
+        [
+          1496,
+          424,
+          1882,
+          836
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          115,
+          87
+        ],
+        "paste": [
+          6,
+          33
+        ],
+        "localLandmark": [
+          57.5,
+          87
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          117,
+          87
+        ],
+        "paste": [
+          6,
+          33
+        ],
+        "localLandmark": [
+          58.5,
+          87
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          115,
+          87
+        ],
+        "paste": [
+          6,
+          33
+        ],
+        "localLandmark": [
+          57.5,
+          87
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          120,
+          87
+        ],
+        "paste": [
+          4,
+          33
+        ],
+        "localLandmark": [
+          60.0,
+          87
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          118,
+          87
+        ],
+        "paste": [
+          5,
+          33
+        ],
+        "localLandmark": [
+          59.0,
+          87
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          115,
+          88
+        ],
+        "paste": [
+          6,
+          32
+        ],
+        "localLandmark": [
+          57.5,
+          88
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          117,
+          88
+        ],
+        "paste": [
+          6,
+          32
+        ],
+        "localLandmark": [
+          58.5,
+          88
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          114,
+          88
+        ],
+        "paste": [
+          7,
+          32
+        ],
+        "localLandmark": [
+          57.0,
+          88
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          119,
+          88
+        ],
+        "paste": [
+          4,
+          32
+        ],
+        "localLandmark": [
+          59.5,
+          88
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          119,
+          88
+        ],
+        "paste": [
+          4,
+          32
+        ],
+        "localLandmark": [
+          59.5,
+          88
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_green_hills_boss_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/neutral_green_hills_boss_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          6,
+          33,
+          121,
+          120
+        ],
+        [
+          6,
+          33,
+          123,
+          120
+        ],
+        [
+          6,
+          33,
+          121,
+          120
+        ],
+        [
+          4,
+          33,
+          124,
+          120
+        ],
+        [
+          5,
+          33,
+          123,
+          120
+        ],
+        [
+          6,
+          32,
+          121,
+          120
+        ],
+        [
+          6,
+          32,
+          123,
+          120
+        ],
+        [
+          7,
+          32,
+          121,
+          120
+        ],
+        [
+          4,
+          32,
+          123,
+          120
+        ],
+        [
+          4,
+          32,
+          123,
+          120
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        114,
+        120
+      ],
+      "bboxHeightRange": [
+        87,
+        88
+      ],
+      "bboxCenterXRange": [
+        63.5,
+        64.5
+      ],
+      "bboxCenterYRange": [
+        76.0,
+        76.5
+      ],
+      "bboxBottomRange": [
+        120,
+        120
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_green_hills_boss_01/neutral_green_hills_boss_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_green_hills_boss_01/neutral_green_hills_boss_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

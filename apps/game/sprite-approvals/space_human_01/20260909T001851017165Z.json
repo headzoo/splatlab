@@ -1,0 +1,8 @@
+{
+  "assetId": "space_human_01",
+  "approvedAt": "2026-09-09T00:18:51.017165+00:00",
+  "recipe": "sprite-specs/space_human_01.json",
+  "runtimeImage": "sprites/space_human_01.png",
+  "sha256": "61624d4220598b63a1a857a93145e4073342609f3ed844d4693f9777540a21d2",
+  "validationReport": "sprite-reports/space_human_01/space_human_01-report.json"
+}

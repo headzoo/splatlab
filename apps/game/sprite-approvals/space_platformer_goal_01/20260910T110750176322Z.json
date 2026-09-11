@@ -1,0 +1,15 @@
+{
+  "assetId": "space_platformer_goal_01",
+  "approvedAt": "2026-09-10T11:07:50.176322+00:00",
+  "recipe": "sprite-specs/space_platformer_goal_01.json",
+  "runtimeImage": "sprites/space_platformer_goal_01.png",
+  "sha256": "ed4130edbbd66d2d9dbf87ad27324869da12221a0e6f39549ca7d13174b2b219",
+  "validationReport": "sprite-reports/space_platformer_goal_01/space_platformer_goal_01-report.json",
+  "eventSheets": {
+    "level_complete": {
+      "runtimeImage": "sprites/space_platformer_goal_01_level_complete.png",
+      "sha256": "c96e9493e7f413ef73af840b217421352513a99fdd5197a0c3a6fd79529372fe",
+      "validationReport": "sprite-reports/space_platformer_goal_01_level_complete/space_platformer_goal_01_level_complete-report.json"
+    }
+  }
+}

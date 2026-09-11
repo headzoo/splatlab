@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_crypt_door_01",
+  "frameLabels": [
+    "closed",
+    "opening_1",
+    "opening_2",
+    "open"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "haunted_crypt_door_01",
+    "image": "/media/sean/work/www/chickensplat/sprites/haunted_crypt_door_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          8,
+          60,
+          88
+        ],
+        [
+          4,
+          8,
+          60,
+          88
+        ],
+        [
+          4,
+          8,
+          60,
+          88
+        ],
+        [
+          4,
+          8,
+          60,
+          88
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        56,
+        56
+      ],
+      "bboxHeightRange": [
+        80,
+        80
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        48.0,
+        48.0
+      ],
+      "bboxBottomRange": [
+        88,
+        88
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_crypt_door_01/haunted_crypt_door_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_crypt_door_01/haunted_crypt_door_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

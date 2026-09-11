@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_robot_01",
+  "approvedAt": "2026-09-08T23:45:30.568116+00:00",
+  "recipe": "sprite-specs/neutral_robot_01.json",
+  "runtimeImage": "sprites/neutral_robot_01.png",
+  "sha256": "37d03b39a975b71e2208bad18ae6babe671cef94a8049a1e9d78e07c81ba4e31",
+  "validationReport": "sprite-reports/neutral_robot_01/neutral_robot_01-report.json"
+}

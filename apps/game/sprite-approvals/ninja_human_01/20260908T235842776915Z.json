@@ -1,0 +1,8 @@
+{
+  "assetId": "ninja_human_01",
+  "approvedAt": "2026-09-08T23:58:42.776915+00:00",
+  "recipe": "sprite-specs/ninja_human_01.json",
+  "runtimeImage": "sprites/ninja_human_01.png",
+  "sha256": "6f8c6abbf8b300ff7fa4da57ff75edff37132cfb28a1dbf3b645670f25f1c3e4",
+  "validationReport": "sprite-reports/ninja_human_01/ninja_human_01-report.json"
+}

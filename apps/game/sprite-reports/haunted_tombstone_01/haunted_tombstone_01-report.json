@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_tombstone_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_tombstone_01-source.png",
+    "sourceSize": [
+      1024,
+      1536
+    ],
+    "detection": {
+      "analysisScale": 0.4557291666666667,
+      "selectedComponentAreas": [
+        150612
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        511.25
+      ],
+      "yCenters": [
+        792.67
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1024,
+          1536
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          56,
+          78
+        ],
+        "paste": [
+          4,
+          18
+        ],
+        "localLandmark": [
+          28.0,
+          78
+        ],
+        "target": [
+          32.0,
+          88.0
+        ],
+        "frameOffset": [
+          0,
+          8
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_tombstone_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/haunted_tombstone_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          18,
+          60,
+          96
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          8
+        ]
+      ],
+      "intentionallyClippedFrames": [
+        0
+      ],
+      "bboxWidthRange": [
+        56,
+        56
+      ],
+      "bboxHeightRange": [
+        78,
+        78
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        57.0,
+        57.0
+      ],
+      "bboxBottomRange": [
+        96,
+        96
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_tombstone_01/haunted_tombstone_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_tombstone_01/haunted_tombstone_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

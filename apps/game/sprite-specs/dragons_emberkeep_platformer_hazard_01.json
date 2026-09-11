@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "dragons_emberkeep_platformer_hazard_01",
+  "name": "Emberkeep Lava",
+  "kind": "hazard",
+  "runtime": "platformer_v1",
+  "themeTags": [
+    "dragons"
+  ],
+  "visualSlot": "hazard",
+  "collision": "hazard",
+  "source": "sprites/dragons_emberkeep_platformer_hazard_01-source.png",
+  "output": "sprites/dragons_emberkeep_platformer_hazard_01.png",
+  "sourceLayout": {
+    "columns": 2,
+    "rows": 2
+  },
+  "sheet": {
+    "columns": 2,
+    "rows": 2,
+    "frameWidth": 64,
+    "frameHeight": 64
+  },
+  "frameLabels": [
+    "lava_low",
+    "lava_rise",
+    "lava_high",
+    "lava_recede"
+  ],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "bottom_center",
+    "anchor": {
+      "x": 32,
+      "y": 64
+    },
+    "contentBox": {
+      "width": 64,
+      "height": 58
+    },
+    "resizeMode": "contain_shared",
+    "frameOffsets": [
+      {
+        "x": 0,
+        "y": 19
+      },
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 0,
+        "y": 0
+      }
+    ]
+  },
+  "animation": {
+    "fps": 8,
+    "loop": true
+  },
+  "validation": {
+    "requiredPadding": 0,
+    "pivotTolerance": 1,
+    "centerDriftWarning": 4
+  },
+  "preview": {
+    "scale": 5
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "assetId": "space_platformer_goal_01",
+  "sheetId": "space_platformer_goal_01",
+  "event": null,
+  "createdAt": "2026-09-10T11:06:49.672649+00:00",
+  "recipe": "sprite-specs/space_platformer_goal_01.json",
+  "recipeBeforeSha256": "b0e80a3979a8787aa471ea4508591913dbfeb8745553ce9d52b0b00bc6b8123e",
+  "recipeAfterSha256": "7e8af01c51f7ac24eeeaffac93f0a48408fc9fdcf76f259e28824f8f9c4a80a1",
+  "adjustments": [
+    {
+      "frameIndex": 0,
+      "x": 0,
+      "y": 3,
+      "resultX": 0,
+      "resultY": 3
+    },
+    {
+      "frameIndex": 1,
+      "x": 0,
+      "y": 3,
+      "resultX": 0,
+      "resultY": 3
+    },
+    {
+      "frameIndex": 2,
+      "x": 0,
+      "y": 3,
+      "resultX": 0,
+      "resultY": 3
+    },
+    {
+      "frameIndex": 3,
+      "x": 0,
+      "y": 4,
+      "resultX": 0,
+      "resultY": 4
+    }
+  ],
+  "frameOffsets": [
+    {
+      "x": 0,
+      "y": 3
+    },
+    {
+      "x": 0,
+      "y": 3
+    },
+    {
+      "x": 0,
+      "y": 3
+    },
+    {
+      "x": 0,
+      "y": 4
+    }
+  ],
+  "candidateImage": "sprite-build/space_platformer_goal_01.png",
+  "candidateSha256": "ed4130edbbd66d2d9dbf87ad27324869da12221a0e6f39549ca7d13174b2b219",
+  "validationReport": "sprite-reports/space_platformer_goal_01/space_platformer_goal_01-report.json"
+}

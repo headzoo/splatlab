@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_boss_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_left_5",
+    "defeated_left_6",
+    "defeated_left_7",
+    "defeated_left_8",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4",
+    "defeated_right_5",
+    "defeated_right_6",
+    "defeated_right_7",
+    "defeated_right_8"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "dragons_emberkeep_boss_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprites/dragons_emberkeep_boss_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          8,
+          1,
+          121,
+          120
+        ],
+        [
+          5,
+          22,
+          123,
+          120
+        ],
+        [
+          5,
+          20,
+          123,
+          120
+        ],
+        [
+          8,
+          12,
+          121,
+          120
+        ],
+        [
+          6,
+          25,
+          121,
+          120
+        ],
+        [
+          4,
+          32,
+          124,
+          120
+        ],
+        [
+          2,
+          41,
+          125,
+          120
+        ],
+        [
+          5,
+          54,
+          123,
+          120
+        ],
+        [
+          6,
+          0,
+          118,
+          120
+        ],
+        [
+          5,
+          21,
+          123,
+          120
+        ],
+        [
+          9,
+          20,
+          122,
+          120
+        ],
+        [
+          8,
+          14,
+          121,
+          120
+        ],
+        [
+          4,
+          33,
+          124,
+          120
+        ],
+        [
+          4,
+          34,
+          124,
+          120
+        ],
+        [
+          2,
+          53,
+          125,
+          120
+        ],
+        [
+          11,
+          57,
+          123,
+          120
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        112,
+        123
+      ],
+      "bboxHeightRange": [
+        63,
+        120
+      ],
+      "bboxCenterXRange": [
+        62.0,
+        67.0
+      ],
+      "bboxCenterYRange": [
+        60.0,
+        88.5
+      ],
+      "bboxBottomRange": [
+        120,
+        120
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_boss_01_defeated/dragons_emberkeep_boss_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_boss_01_defeated/dragons_emberkeep_boss_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

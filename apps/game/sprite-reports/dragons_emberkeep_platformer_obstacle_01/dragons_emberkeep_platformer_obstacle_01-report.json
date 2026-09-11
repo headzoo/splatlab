@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_platformer_obstacle_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_platformer_obstacle_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        286178
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        626.17
+      ],
+      "yCenters": [
+        638.44
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          64
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          32.0,
+          64
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_platformer_obstacle_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/dragons_emberkeep_platformer_obstacle_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        254
+      ],
+      "frameBboxes": [
+        [
+          0,
+          0,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        64,
+        64
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_platformer_obstacle_01/dragons_emberkeep_platformer_obstacle_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_platformer_obstacle_01/dragons_emberkeep_platformer_obstacle_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

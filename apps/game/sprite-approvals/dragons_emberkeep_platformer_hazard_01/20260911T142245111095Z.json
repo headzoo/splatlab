@@ -1,0 +1,8 @@
+{
+  "assetId": "dragons_emberkeep_platformer_hazard_01",
+  "approvedAt": "2026-09-11T14:22:45.111095+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_platformer_hazard_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_platformer_hazard_01.png",
+  "sha256": "875db8d34546b11e85120bca6906fc43300cd601424cf999419153b2e57dc22e",
+  "validationReport": "sprite-reports/dragons_emberkeep_platformer_hazard_01/dragons_emberkeep_platformer_hazard_01-report.json"
+}

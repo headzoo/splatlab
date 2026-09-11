@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_platformer_platform_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_platformer_platform_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        132118
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        631.21
+      ],
+      "yCenters": [
+        612.99
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          30
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          32.0,
+          30
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          -34
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_platformer_platform_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/dragons_emberkeep_platformer_platform_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        254
+      ],
+      "frameBboxes": [
+        [
+          0,
+          0,
+          64,
+          30
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          -34
+        ]
+      ],
+      "intentionallyClippedFrames": [
+        0
+      ],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        30,
+        30
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        15.0,
+        15.0
+      ],
+      "bboxBottomRange": [
+        30,
+        30
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_platformer_platform_01/dragons_emberkeep_platformer_platform_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_platformer_platform_01/dragons_emberkeep_platformer_platform_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

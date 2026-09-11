@@ -1,0 +1,899 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragon_ghost_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": {
+    "source": "sprites/dragon_ghost_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        5997,
+        5981,
+        5956,
+        5873,
+        5800,
+        5793,
+        5780,
+        5777,
+        5771,
+        5735,
+        5637,
+        5630,
+        5573,
+        5571,
+        5568,
+        5518,
+        5517,
+        5505,
+        5475,
+        5470
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        163.09,
+        431.64,
+        699.94,
+        967.74,
+        1233.88
+      ],
+      "yCenters": [
+        143.62,
+        415.0,
+        686.38,
+        957.87
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          297,
+          279
+        ],
+        [
+          297,
+          0,
+          566,
+          279
+        ],
+        [
+          566,
+          0,
+          834,
+          279
+        ],
+        [
+          834,
+          0,
+          1101,
+          279
+        ],
+        [
+          1101,
+          0,
+          1402,
+          279
+        ],
+        [
+          0,
+          279,
+          297,
+          551
+        ],
+        [
+          297,
+          279,
+          566,
+          551
+        ],
+        [
+          566,
+          279,
+          834,
+          551
+        ],
+        [
+          834,
+          279,
+          1101,
+          551
+        ],
+        [
+          1101,
+          279,
+          1402,
+          551
+        ],
+        [
+          0,
+          551,
+          297,
+          822
+        ],
+        [
+          297,
+          551,
+          566,
+          822
+        ],
+        [
+          566,
+          551,
+          834,
+          822
+        ],
+        [
+          834,
+          551,
+          1101,
+          822
+        ],
+        [
+          1101,
+          551,
+          1402,
+          822
+        ],
+        [
+          0,
+          822,
+          297,
+          1122
+        ],
+        [
+          297,
+          822,
+          566,
+          1122
+        ],
+        [
+          566,
+          822,
+          834,
+          1122
+        ],
+        [
+          834,
+          822,
+          1101,
+          1122
+        ],
+        [
+          1101,
+          822,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          38,
+          54
+        ],
+        "paste": [
+          13,
+          2
+        ],
+        "localLandmark": [
+          19.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          19.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          19.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          19.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          56
+        ],
+        "paste": [
+          14,
+          0
+        ],
+        "localLandmark": [
+          17.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          52
+        ],
+        "paste": [
+          14,
+          4
+        ],
+        "localLandmark": [
+          18.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          55
+        ],
+        "paste": [
+          14,
+          1
+        ],
+        "localLandmark": [
+          18.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          52
+        ],
+        "paste": [
+          14,
+          4
+        ],
+        "localLandmark": [
+          18.5,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          55
+        ],
+        "paste": [
+          14,
+          1
+        ],
+        "localLandmark": [
+          18.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          55
+        ],
+        "paste": [
+          14,
+          1
+        ],
+        "localLandmark": [
+          18.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          52
+        ],
+        "paste": [
+          14,
+          4
+        ],
+        "localLandmark": [
+          18.5,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          55
+        ],
+        "paste": [
+          14,
+          1
+        ],
+        "localLandmark": [
+          18.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          52
+        ],
+        "paste": [
+          14,
+          4
+        ],
+        "localLandmark": [
+          18.5,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          55
+        ],
+        "paste": [
+          14,
+          1
+        ],
+        "localLandmark": [
+          18.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          55
+        ],
+        "paste": [
+          12,
+          1
+        ],
+        "localLandmark": [
+          19.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          19.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          55
+        ],
+        "paste": [
+          12,
+          1
+        ],
+        "localLandmark": [
+          20.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          53
+        ],
+        "paste": [
+          12,
+          3
+        ],
+        "localLandmark": [
+          19.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          55
+        ],
+        "paste": [
+          12,
+          1
+        ],
+        "localLandmark": [
+          20.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragon_ghost_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/dragon_ghost_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          13,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          0,
+          51,
+          56
+        ],
+        [
+          12,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          0,
+          52,
+          56
+        ],
+        [
+          14,
+          0,
+          49,
+          56
+        ],
+        [
+          14,
+          4,
+          50,
+          56
+        ],
+        [
+          14,
+          1,
+          50,
+          56
+        ],
+        [
+          14,
+          4,
+          51,
+          56
+        ],
+        [
+          14,
+          1,
+          50,
+          56
+        ],
+        [
+          14,
+          1,
+          51,
+          56
+        ],
+        [
+          14,
+          4,
+          51,
+          56
+        ],
+        [
+          14,
+          1,
+          51,
+          56
+        ],
+        [
+          14,
+          4,
+          51,
+          56
+        ],
+        [
+          14,
+          1,
+          50,
+          56
+        ],
+        [
+          12,
+          1,
+          51,
+          56
+        ],
+        [
+          12,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          1,
+          52,
+          56
+        ],
+        [
+          12,
+          3,
+          51,
+          56
+        ],
+        [
+          12,
+          1,
+          52,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        35,
+        40
+      ],
+      "bboxHeightRange": [
+        52,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        30.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragon_ghost_01/dragon_ghost_01-contact.png",
+    "animationPreview": "sprite-reports/dragon_ghost_01/dragon_ghost_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "haunted_boss_01",
+  "name": "Pumpkin Warden",
+  "kind": "boss",
+  "body": "pumpkin_golem",
+  "runtime": "platformer_v1",
+  "themeTags": ["haunted"],
+  "roles": ["boss"],
+  "collisionProfile": "boss_large_v1",
+  "source": "sprites/haunted_boss_01-source.png",
+  "output": "sprites/haunted_boss_01.png",
+  "sourceLayout": {
+    "columns": 5,
+    "rows": 2,
+    "regions": [
+      [0, 0, 348, 444], [348, 0, 720, 444], [720, 0, 1049, 444], [1049, 0, 1450, 444], [1450, 0, 1774, 444],
+      [0, 444, 336, 887], [336, 444, 711, 887], [711, 444, 1040, 887], [1040, 444, 1437, 887], [1437, 444, 1774, 887]
+    ]
+  },
+  "sheet": { "columns": 5, "rows": 2, "frameWidth": 128, "frameHeight": 128 },
+  "frameLabels": [
+    "idle_left", "walk_left_1", "walk_left_2", "walk_left_3", "walk_left_4",
+    "idle_right", "walk_right_1", "walk_right_2", "walk_right_3", "walk_right_4"
+  ],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 900,
+    "minPrimaryAreaRatio": 0.0015,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "bottom_center",
+    "anchor": { "x": 64, "y": 120 },
+    "contentBox": { "width": 120, "height": 116 },
+    "resizeMode": "contain_shared"
+  },
+  "animation": { "fps": 8, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 2, "centerDriftWarning": 12 },
+  "preview": { "scale": 2 },
+  "eventSheets": {
+    "defeated": {
+      "source": "sprites/haunted_boss_01_defeated-source.png",
+      "output": "sprites/haunted_boss_01_defeated.png",
+      "sourceLayout": {
+        "columns": 8,
+        "rows": 2,
+        "regions": [
+          [0, 0, 279, 366], [279, 0, 562, 378], [562, 0, 830, 386], [830, 0, 1084, 398],
+          [1084, 0, 1345, 423], [1345, 0, 1615, 451], [1615, 0, 1882, 459], [1882, 0, 2172, 453],
+          [0, 366, 283, 724], [283, 378, 562, 724], [562, 386, 828, 724], [828, 398, 1096, 724],
+          [1096, 423, 1368, 724], [1368, 451, 1632, 724], [1632, 459, 1896, 724], [1896, 453, 2172, 724]
+        ]
+      },
+      "sheet": { "columns": 8, "rows": 2, "frameWidth": 128, "frameHeight": 128 },
+      "frameLabels": [
+        "defeated_left_1", "defeated_left_2", "defeated_left_3", "defeated_left_4",
+        "defeated_left_5", "defeated_left_6", "defeated_left_7", "defeated_left_8",
+        "defeated_right_1", "defeated_right_2", "defeated_right_3", "defeated_right_4",
+        "defeated_right_5", "defeated_right_6", "defeated_right_7", "defeated_right_8"
+      ],
+      "detection": {
+        "alphaThreshold": 48,
+        "analysisMaxDimension": 900,
+        "minPrimaryAreaRatio": 0.0008,
+        "ambiguityRatio": 0.45
+      },
+      "alignment": {
+        "mode": "bottom_center",
+        "anchor": { "x": 64, "y": 120 },
+        "contentBox": { "width": 124, "height": 120 },
+        "resizeMode": "contain_shared"
+      },
+      "animation": { "fps": 10, "loop": false },
+      "validation": { "requiredPadding": 0, "pivotTolerance": 3, "centerDriftWarning": 16 },
+      "preview": { "scale": 2 }
+    }
+  }
+}

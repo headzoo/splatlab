@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "assetId": "shared_game_over_01",
+  "frameLabels": [
+    "game_over_game",
+    "game_over_over",
+    "game_over_impact_left",
+    "game_over_impact_right"
+  ],
+  "normalization": {
+    "source": "sprites/shared_game_over_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          627,
+          627
+        ],
+        [
+          627,
+          0,
+          1254,
+          627
+        ],
+        [
+          0,
+          627,
+          627,
+          1254
+        ],
+        [
+          627,
+          627,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          60,
+          21
+        ],
+        "paste": [
+          2,
+          22
+        ],
+        "localLandmark": [
+          30.0,
+          10.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          59,
+          21
+        ],
+        "paste": [
+          2,
+          22
+        ],
+        "localLandmark": [
+          29.5,
+          10.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          48,
+          40
+        ],
+        "paste": [
+          8,
+          12
+        ],
+        "localLandmark": [
+          24.0,
+          20.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          48,
+          40
+        ],
+        "paste": [
+          8,
+          12
+        ],
+        "localLandmark": [
+          24.0,
+          20.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "shared_game_over_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/shared_game_over_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          2,
+          22,
+          62,
+          43
+        ],
+        [
+          2,
+          22,
+          61,
+          43
+        ],
+        [
+          8,
+          12,
+          56,
+          52
+        ],
+        [
+          8,
+          12,
+          56,
+          52
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        48,
+        60
+      ],
+      "bboxHeightRange": [
+        21,
+        40
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.5
+      ],
+      "bboxBottomRange": [
+        43,
+        52
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/shared_game_over_01/shared_game_over_01-contact.png",
+    "animationPreview": "sprite-reports/shared_game_over_01/shared_game_over_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

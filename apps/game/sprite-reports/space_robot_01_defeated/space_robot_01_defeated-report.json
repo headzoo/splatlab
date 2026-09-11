@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_robot_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/space_robot_01_defeated-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "analysisScale": 0.3945885005636979,
+      "selectedComponentAreas": [
+        8069,
+        8018,
+        7922,
+        7893,
+        7315,
+        7046,
+        6956,
+        6674
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        198.21,
+        615.07,
+        1080.39,
+        1540.37
+      ],
+      "yCenters": [
+        318.49,
+        709.19
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          407,
+          514
+        ],
+        [
+          407,
+          0,
+          848,
+          514
+        ],
+        [
+          848,
+          0,
+          1310,
+          514
+        ],
+        [
+          1310,
+          0,
+          1774,
+          514
+        ],
+        [
+          0,
+          514,
+          407,
+          887
+        ],
+        [
+          407,
+          514,
+          848,
+          887
+        ],
+        [
+          848,
+          514,
+          1310,
+          887
+        ],
+        [
+          1310,
+          514,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          32,
+          56
+        ],
+        "paste": [
+          16,
+          0
+        ],
+        "localLandmark": [
+          16.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          38
+        ],
+        "paste": [
+          11,
+          18
+        ],
+        "localLandmark": [
+          21.0,
+          38
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          27
+        ],
+        "paste": [
+          9,
+          29
+        ],
+        "localLandmark": [
+          23.0,
+          27
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          48,
+          24
+        ],
+        "paste": [
+          8,
+          32
+        ],
+        "localLandmark": [
+          24.0,
+          24
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          42
+        ],
+        "paste": [
+          16,
+          14
+        ],
+        "localLandmark": [
+          16.5,
+          42
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          38
+        ],
+        "paste": [
+          11,
+          18
+        ],
+        "localLandmark": [
+          21.0,
+          38
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          47,
+          27
+        ],
+        "paste": [
+          8,
+          29
+        ],
+        "localLandmark": [
+          23.5,
+          27
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          50,
+          24
+        ],
+        "paste": [
+          7,
+          32
+        ],
+        "localLandmark": [
+          25.0,
+          24
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_robot_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_robot_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          16,
+          0,
+          48,
+          56
+        ],
+        [
+          11,
+          18,
+          53,
+          56
+        ],
+        [
+          9,
+          29,
+          55,
+          56
+        ],
+        [
+          8,
+          32,
+          56,
+          56
+        ],
+        [
+          16,
+          14,
+          49,
+          56
+        ],
+        [
+          11,
+          18,
+          53,
+          56
+        ],
+        [
+          8,
+          29,
+          55,
+          56
+        ],
+        [
+          7,
+          32,
+          57,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        32,
+        50
+      ],
+      "bboxHeightRange": [
+        24,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        44.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_robot_01_defeated/space_robot_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/space_robot_01_defeated/space_robot_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

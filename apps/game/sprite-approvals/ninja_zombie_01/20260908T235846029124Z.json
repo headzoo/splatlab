@@ -1,0 +1,8 @@
+{
+  "assetId": "ninja_zombie_01",
+  "approvedAt": "2026-09-08T23:58:46.029124+00:00",
+  "recipe": "sprite-specs/ninja_zombie_01.json",
+  "runtimeImage": "sprites/ninja_zombie_01.png",
+  "sha256": "611995507322768640c07b849a0e055d92c1dd89e997f0ea5da238df49113465",
+  "validationReport": "sprite-reports/ninja_zombie_01/ninja_zombie_01-report.json"
+}

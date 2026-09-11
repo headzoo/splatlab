@@ -1,0 +1,15 @@
+{
+  "assetId": "space_ghost_01",
+  "approvedAt": "2026-09-10T23:28:33.461355+00:00",
+  "recipe": "sprite-specs/space_ghost_01.json",
+  "runtimeImage": "sprites/space_ghost_01.png",
+  "sha256": "dc588c0c2035334cf5c218c72eaacbc7f30b62e912044e2b81b8bd43ba9b200a",
+  "validationReport": "sprite-reports/space_ghost_01/space_ghost_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/space_ghost_01_defeated.png",
+      "sha256": "6606cb51296ef7a185e348f5ac9b17ff4bc12ffdb523f4e52c43ce12aca2aaaf",
+      "validationReport": "sprite-reports/space_ghost_01_defeated/space_ghost_01_defeated-report.json"
+    }
+  }
+}

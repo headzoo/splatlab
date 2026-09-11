@@ -1,0 +1,39 @@
+{
+  "assetId": "space_platformer_checkpoint_01",
+  "sheetId": "space_platformer_checkpoint_01_activated",
+  "event": "activated",
+  "createdAt": "2026-09-10T11:06:03.404970+00:00",
+  "recipe": "sprite-specs/space_platformer_checkpoint_01.json",
+  "recipeBeforeSha256": "fbaa7bf5e0a58dba05c8191de46eb5012d49f11ac11dda3e1ca14a8e6089a52b",
+  "recipeAfterSha256": "54fc4c6e04fbb088893e02d40ef66d839a017e45144f6be143c3030749c2363d",
+  "adjustments": [
+    {
+      "frameIndex": 0,
+      "x": 0,
+      "y": 7,
+      "resultX": 0,
+      "resultY": 7
+    }
+  ],
+  "frameOffsets": [
+    {
+      "x": 0,
+      "y": 7
+    },
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "candidateImage": "sprite-build/space_platformer_checkpoint_01_activated.png",
+  "candidateSha256": "0fa2385050834cbbf5086af3c78e562f7b4137d1ef7360becf108a19c2b869ca",
+  "validationReport": "sprite-reports/space_platformer_checkpoint_01_activated/space_platformer_checkpoint_01_activated-report.json"
+}

@@ -1,0 +1,75 @@
+{
+  "requestId": "20260909T170710640528Z-0ef40fd1",
+  "assetId": "space_platformer_goal_01",
+  "sheetId": "space_platformer_goal_01",
+  "event": null,
+  "createdAt": "2026-09-09T17:07:10.640528+00:00",
+  "status": "pending",
+  "prompt": "The base of the flag is moving around. You can see it in the guides. The base and pole shouldn't move. Only the flag should move.",
+  "recipe": "sprite-specs/space_platformer_goal_01.json",
+  "candidateImage": "sprite-build/space_platformer_goal_01.png",
+  "candidateSha256": "cc5a952acb2fec96ee48b9948f684c6df1843b78182972e7a679a9effad0aecf",
+  "sourceImage": "sprites/space_platformer_goal_01-source.png",
+  "revisionSource": "sprite-revisions/space_platformer_goal_01/20260909T170710640528Z-0ef40fd1/space_platformer_goal_01-source.png",
+  "revisionRecipe": "sprite-revisions/space_platformer_goal_01/20260909T170710640528Z-0ef40fd1/recipe.json",
+  "candidateSnapshot": "sprite-revisions/space_platformer_goal_01/20260909T170710640528Z-0ef40fd1/space_platformer_goal_01-candidate-before.png",
+  "annotatedGuidePreview": "sprite-revisions/space_platformer_goal_01/20260909T170710640528Z-0ef40fd1/space_platformer_goal_01-guide-preview.png",
+  "annotatedGuidePreviewSha256": "8bd76d563777aeea6a6b4dc50f57e53e5116b96809711514fe94698e3122fdc8",
+  "recipeSnapshot": "sprite-revisions/space_platformer_goal_01/20260909T170710640528Z-0ef40fd1/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 2,
+    "frameNumber": 3,
+    "frameLabel": "wave_down",
+    "sequence": "All frames",
+    "sequenceFrameIndices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "event": null
+  },
+  "guides": [
+    {
+      "id": "G1",
+      "orientation": "vertical",
+      "coordinate": 5
+    },
+    {
+      "id": "G2",
+      "orientation": "vertical",
+      "coordinate": 6
+    },
+    {
+      "id": "G3",
+      "orientation": "horizontal",
+      "coordinate": 92
+    },
+    {
+      "id": "G4",
+      "orientation": "vertical",
+      "coordinate": 53
+    },
+    {
+      "id": "G5",
+      "orientation": "vertical",
+      "coordinate": 52
+    },
+    {
+      "id": "G6",
+      "orientation": "horizontal",
+      "coordinate": 95
+    }
+  ],
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "columns": 2,
+    "rows": 2,
+    "anchor": {
+      "x": 32,
+      "y": 96
+    }
+  },
+  "recordPath": "sprite-change-requests/space_platformer_goal_01/20260909T170710640528Z-0ef40fd1.json"
+}

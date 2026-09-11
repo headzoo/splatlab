@@ -1,0 +1,15 @@
+{
+  "assetId": "space_platformer_coin_01",
+  "approvedAt": "2026-09-09T17:04:44.307884+00:00",
+  "recipe": "sprite-specs/space_platformer_coin_01.json",
+  "runtimeImage": "sprites/space_platformer_coin_01.png",
+  "sha256": "03e68b513c56f15f4fa86dd57b8d0d01f313d2044f7e7645497ecd583ac386d5",
+  "validationReport": "sprite-reports/space_platformer_coin_01/space_platformer_coin_01-report.json",
+  "eventSheets": {
+    "collision": {
+      "runtimeImage": "sprites/space_platformer_coin_01_collision.png",
+      "sha256": "dd0154bbec3ad98ee8e1d0b4fdaf47d5071988c22cac4dfe6d12838a17d97a65",
+      "validationReport": "sprite-reports/space_platformer_coin_01_collision/space_platformer_coin_01_collision-report.json"
+    }
+  }
+}

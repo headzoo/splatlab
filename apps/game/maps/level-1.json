@@ -1,0 +1,455 @@
+{
+  "schemaVersion": 1,
+  "id": "green_hills_01",
+  "revision": 1,
+  "runtime": "platformer_v1",
+  "tileSize": 64,
+  "size": {
+    "columns": 88,
+    "rows": 12
+  },
+  "camera": {
+    "columns": 16,
+    "rows": 9
+  },
+  "presentation": {
+    "backgroundId": "neutral_green_hills_01",
+    "victoryEffectId": "shared_victory_burst_01",
+    "gameOverEffectId": "shared_game_over_01",
+    "hud": [
+      {
+        "id": "lives",
+        "type": "lives",
+        "column": 5,
+        "row": 0
+      },
+      {
+        "id": "coins",
+        "type": "coins",
+        "column": 9,
+        "row": 0
+      }
+    ]
+  },
+  "legend": {
+    ".": {
+      "visualSlot": "empty",
+      "collision": "none"
+    },
+    "#": {
+      "visualSlot": "ground",
+      "collision": "solid"
+    },
+    "=": {
+      "visualSlot": "platform",
+      "collision": "solid"
+    },
+    "O": {
+      "visualSlot": "obstacle",
+      "collision": "solid"
+    },
+    "o": {
+      "visualSlot": "obstacle",
+      "collision": "one_way"
+    },
+    "^": {
+      "visualSlot": "hazard",
+      "collision": "hazard"
+    }
+  },
+  "layers": [
+    {
+      "id": "terrain",
+      "rows": [
+        "........................................................................................",
+        "..........................................................................========O.....",
+        "........................................................................................",
+        ".........................................................========.......................",
+        "..........========......................=======.........................................",
+        "......................=======......................................=======..............",
+        "................................O..............O........................................",
+        "....=======......................=======............=======.................=======.....",
+        "...=.......=...................O...................O.......O...............O.......=....",
+        "..=.........O.................O.................OOO.........O.............O.........=...",
+        "..................OO......................====...............O...........O...........=..",
+        "##############^^###################^^^################^^^############^^#########^^######"
+      ],
+      "spriteOverrides": [
+        {
+          "x": 15,
+          "y": 11,
+          "animationStartFrame": 3
+        },
+        {
+          "x": 36,
+          "y": 11,
+          "animationStartFrame": 2
+        },
+        {
+          "x": 37,
+          "y": 11,
+          "animationStartFrame": 3
+        },
+        {
+          "x": 55,
+          "y": 11,
+          "animationStartFrame": 2
+        },
+        {
+          "x": 56,
+          "y": 11,
+          "animationStartFrame": 3
+        },
+        {
+          "x": 70,
+          "y": 11,
+          "animationStartFrame": 3
+        },
+        {
+          "x": 81,
+          "y": 11,
+          "animationStartFrame": 3
+        }
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "spawn_1",
+      "type": "player_spawn",
+      "x": 2,
+      "y": 10
+    },
+    {
+      "id": "coin_1",
+      "type": "collectible",
+      "x": 5,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_2",
+      "type": "collectible",
+      "x": 8,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_3",
+      "type": "collectible",
+      "x": 11,
+      "y": 3,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_4",
+      "type": "collectible",
+      "x": 14,
+      "y": 3,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_5",
+      "type": "collectible",
+      "x": 23,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_6",
+      "type": "collectible",
+      "x": 27,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_1",
+      "type": "enemy_spawn",
+      "x": 24,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "bob",
+          "heightTiles": 0.12,
+          "periodMs": 1600
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "neutral_ghost_01",
+      "direction": "right",
+      "patrolLeftTiles": 3,
+      "patrolRightTiles": 4,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "weapon"
+    },
+    {
+      "id": "coin_7",
+      "type": "collectible",
+      "x": 34,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_8",
+      "type": "collectible",
+      "x": 38,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_9",
+      "type": "collectible",
+      "x": 41,
+      "y": 3,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_10",
+      "type": "collectible",
+      "x": 45,
+      "y": 3,
+      "pointValue": 1
+    },
+    {
+      "id": "checkpoint_1",
+      "type": "checkpoint",
+      "x": 44,
+      "y": 9
+    },
+    {
+      "id": "enemy_2",
+      "type": "enemy_spawn",
+      "x": 49,
+      "y": 10,
+      "role": "enemy",
+      "behavior": "chaser",
+      "assetId": "neutral_robot_01",
+      "direction": "left",
+      "viewLeftTiles": 4,
+      "viewRightTiles": 5,
+      "speedPxPerSecond": 52,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "coin_11",
+      "type": "collectible",
+      "x": 53,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_12",
+      "type": "collectible",
+      "x": 57,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_13",
+      "type": "collectible",
+      "x": 59,
+      "y": 2,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_14",
+      "type": "collectible",
+      "x": 63,
+      "y": 2,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_3",
+      "type": "enemy_spawn",
+      "x": 64,
+      "y": 10,
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "neutral_zombie_01",
+      "direction": "left",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 3,
+      "speedPxPerSecond": 44,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "coin_15",
+      "type": "collectible",
+      "x": 68,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_16",
+      "type": "collectible",
+      "x": 72,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_17",
+      "type": "collectible",
+      "x": 77,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_18",
+      "type": "collectible",
+      "x": 81,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "flying_1",
+      "type": "flying_object",
+      "x": 14,
+      "y": 2,
+      "motion": {
+        "version": 1,
+        "lifecycle": {
+          "trigger": "camera_reaches_spawn",
+          "repeat": "once"
+        },
+        "travel": {
+          "type": "viewport_arc",
+          "entryEdge": "right",
+          "exitEdge": "left",
+          "entryRow": 6,
+          "exitRow": 6,
+          "archDirection": "up",
+          "archHeightTiles": 4,
+          "durationMs": 5000,
+          "offscreenPaddingTiles": 1
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "assetId": "neutral_green_hills_flying_cooper_01"
+    },
+    {
+      "id": "flying_2",
+      "type": "flying_object",
+      "x": 74,
+      "y": 0,
+      "motion": {
+        "version": 1,
+        "lifecycle": {
+          "trigger": "camera_reaches_spawn",
+          "repeat": "once"
+        },
+        "travel": {
+          "type": "viewport_arc",
+          "entryEdge": "right",
+          "exitEdge": "left",
+          "entryRow": 6,
+          "exitRow": 6,
+          "archDirection": "up",
+          "archHeightTiles": 4,
+          "durationMs": 5000,
+          "offscreenPaddingTiles": 1
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "assetId": "neutral_green_hills_flying_cooper_01"
+    },
+    {
+      "id": "flying_3",
+      "type": "flying_object",
+      "x": 37,
+      "y": 8,
+      "motion": {
+        "version": 1,
+        "lifecycle": {
+          "trigger": "camera_reaches_spawn",
+          "repeat": "once"
+        },
+        "travel": {
+          "type": "viewport_arc",
+          "entryEdge": "right",
+          "exitEdge": "left",
+          "entryRow": 6,
+          "exitRow": 6,
+          "archDirection": "up",
+          "archHeightTiles": 4,
+          "durationMs": 5000,
+          "offscreenPaddingTiles": 1
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "assetId": "neutral_green_hills_flying_cooper_01"
+    },
+    {
+      "id": "flying_4",
+      "type": "flying_object",
+      "x": 70,
+      "y": 6,
+      "motion": {
+        "version": 1,
+        "lifecycle": {
+          "trigger": "camera_reaches_spawn",
+          "repeat": "once"
+        },
+        "travel": {
+          "type": "viewport_arc",
+          "entryEdge": "right",
+          "exitEdge": "left",
+          "entryRow": 6,
+          "exitRow": 6,
+          "archDirection": "up",
+          "archHeightTiles": 4,
+          "durationMs": 5000,
+          "offscreenPaddingTiles": 1
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "assetId": "neutral_green_hills_flying_cooper_01"
+    },
+    {
+      "id": "boss_1",
+      "type": "enemy_spawn",
+      "x": 79,
+      "y": 6,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "bob",
+          "heightTiles": 0.12,
+          "periodMs": 1600
+        }
+      },
+      "role": "boss",
+      "behavior": "patroller",
+      "assetId": "neutral_green_hills_boss_01",
+      "direction": "left",
+      "patrolLeftTiles": 4,
+      "patrolRightTiles": 3,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both",
+      "hitsToDefeat": 5
+    }
+  ]
+}

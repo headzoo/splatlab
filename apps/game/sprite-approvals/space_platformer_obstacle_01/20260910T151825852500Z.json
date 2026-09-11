@@ -1,0 +1,8 @@
+{
+  "assetId": "space_platformer_obstacle_01",
+  "approvedAt": "2026-09-10T15:18:25.852500+00:00",
+  "recipe": "sprite-specs/space_platformer_obstacle_01.json",
+  "runtimeImage": "sprites/space_platformer_obstacle_01.png",
+  "sha256": "1c8a0f43038b6058f121f3ae292ffd280a85cfc185802e11c925c85aac977bcf",
+  "validationReport": "sprite-reports/space_platformer_obstacle_01/space_platformer_obstacle_01-report.json"
+}

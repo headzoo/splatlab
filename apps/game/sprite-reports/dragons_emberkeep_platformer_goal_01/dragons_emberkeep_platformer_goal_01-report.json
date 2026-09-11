@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_platformer_goal_01",
+  "frameLabels": [
+    "wave_up",
+    "wave_center_a",
+    "wave_down",
+    "wave_center_b"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_platformer_goal_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        30754,
+        30475,
+        29861,
+        29519
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        326.24,
+        879.26
+      ],
+      "yCenters": [
+        344.47,
+        959.55
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          603,
+          652
+        ],
+        [
+          603,
+          0,
+          1254,
+          652
+        ],
+        [
+          0,
+          652,
+          603,
+          1254
+        ],
+        [
+          603,
+          652,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          54,
+          69
+        ],
+        "paste": [
+          5,
+          27
+        ],
+        "localLandmark": [
+          27.0,
+          69
+        ],
+        "target": [
+          32.0,
+          96.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          56,
+          69
+        ],
+        "paste": [
+          5,
+          27
+        ],
+        "localLandmark": [
+          28.0,
+          69
+        ],
+        "target": [
+          32.0,
+          96.0
+        ],
+        "frameOffset": [
+          1,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          54,
+          69
+        ],
+        "paste": [
+          5,
+          27
+        ],
+        "localLandmark": [
+          27.0,
+          69
+        ],
+        "target": [
+          32.0,
+          96.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          56,
+          69
+        ],
+        "paste": [
+          5,
+          27
+        ],
+        "localLandmark": [
+          28.0,
+          69
+        ],
+        "target": [
+          32.0,
+          96.0
+        ],
+        "frameOffset": [
+          1,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_platformer_goal_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/dragons_emberkeep_platformer_goal_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          5,
+          27,
+          59,
+          96
+        ],
+        [
+          5,
+          27,
+          61,
+          96
+        ],
+        [
+          5,
+          27,
+          59,
+          96
+        ],
+        [
+          5,
+          27,
+          61,
+          96
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        54,
+        56
+      ],
+      "bboxHeightRange": [
+        69,
+        69
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        33.0
+      ],
+      "bboxCenterYRange": [
+        61.5,
+        61.5
+      ],
+      "bboxBottomRange": [
+        96,
+        96
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_platformer_goal_01/dragons_emberkeep_platformer_goal_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_platformer_goal_01/dragons_emberkeep_platformer_goal_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

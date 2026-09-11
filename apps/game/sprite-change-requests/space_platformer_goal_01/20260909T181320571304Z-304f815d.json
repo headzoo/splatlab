@@ -1,0 +1,65 @@
+{
+  "requestId": "20260909T181320571304Z-304f815d",
+  "assetId": "space_platformer_goal_01",
+  "sheetId": "space_platformer_goal_01",
+  "event": null,
+  "createdAt": "2026-09-09T18:13:20.571304+00:00",
+  "status": "pending",
+  "prompt": "The base of the platform is moving from G1 to G3 starting in the 3rd frame.",
+  "recipe": "sprite-specs/space_platformer_goal_01.json",
+  "candidateImage": "sprite-build/space_platformer_goal_01.png",
+  "candidateSha256": "e879441e53a496833417998a0e661f682f987a295e458ac6dd88f6c937882a9e",
+  "sourceImage": "sprite-revisions/space_platformer_goal_01/20260909T175617728292Z-08e352b7/space_platformer_goal_01-source.png",
+  "revisionSource": "sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/space_platformer_goal_01-source.png",
+  "revisionRecipe": "sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/recipe.json",
+  "candidateSnapshot": "sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/space_platformer_goal_01-candidate-before.png",
+  "annotatedGuidePreview": "sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/space_platformer_goal_01-guide-preview.png",
+  "annotatedGuidePreviewSha256": "ebcb3dba00938971807019385257dfbbbc69d96817e762dcde444a3d5163739c",
+  "recipeSnapshot": "sprite-revisions/space_platformer_goal_01/20260909T181320571304Z-304f815d/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 2,
+    "frameNumber": 3,
+    "frameLabel": "wave_down",
+    "sequence": "All frames",
+    "sequenceFrameIndices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "event": null
+  },
+  "guides": [
+    {
+      "id": "G1",
+      "orientation": "horizontal",
+      "coordinate": 92
+    },
+    {
+      "id": "G3",
+      "orientation": "horizontal",
+      "coordinate": 95
+    },
+    {
+      "id": "G4",
+      "orientation": "vertical",
+      "coordinate": 6
+    },
+    {
+      "id": "G5",
+      "orientation": "vertical",
+      "coordinate": 5
+    }
+  ],
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 96,
+    "columns": 2,
+    "rows": 2,
+    "anchor": {
+      "x": 32,
+      "y": 96
+    }
+  },
+  "recordPath": "sprite-change-requests/space_platformer_goal_01/20260909T181320571304Z-304f815d.json"
+}

@@ -1,0 +1,15 @@
+{
+  "assetId": "haunted_boss_01",
+  "approvedAt": "2026-09-11T19:26:33.493642+00:00",
+  "recipe": "sprite-specs/haunted_boss_01.json",
+  "runtimeImage": "sprites/haunted_boss_01.png",
+  "sha256": "5df53d4b37e591c0168d5fde687a25e55eb7c67be8f45f2302ed9485713b5d45",
+  "validationReport": "sprite-reports/haunted_boss_01/haunted_boss_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/haunted_boss_01_defeated.png",
+      "sha256": "0baa9e53dae37b71bf041d46b94d9ce920a0277e389683b2ab93f309d328ff40",
+      "validationReport": "sprite-reports/haunted_boss_01_defeated/haunted_boss_01_defeated-report.json"
+    }
+  }
+}

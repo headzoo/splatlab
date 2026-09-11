@@ -1,0 +1,32 @@
+{
+  "requestId": "20260908T235204268804Z-79556d7f",
+  "assetId": "pirate_ghost_01",
+  "createdAt": "2026-09-08T23:52:04.268804+00:00",
+  "status": "pending",
+  "prompt": "Fix the locomotion cycle in every direction. Use sprites/neutral_ghost_01.png as the approved body-motion reference. This body has no feet: create the same clear four-phase lower-wisp cycle in every row, bending left, passing through center, bending right, then passing through center. Preserve this pirate ghost's exact navy-and-gold coat, red sash, tricorn hat, spectral identity, colors, proportions, three-quarter top-down pixel-art style, 5 by 4 frame order, transparent background, scale, spacing, silhouette envelope, and bottom-center anchor. Keep the bottom-most opaque pixel fixed on the baseline and do not introduce vertical rise, compression, or size changes. Do not alter idle frames.",
+  "recipe": "sprite-specs/pirate_ghost_01.json",
+  "candidateImage": "sprite-build/pirate_ghost_01.png",
+  "candidateSha256": "d0873afe7a3dff7cc256e24343cdbcd6185b96db60df0d392fedfea28ebfb25b",
+  "sourceImage": "sprites/pirate_ghost_01-source.png",
+  "revisionSource": "sprite-revisions/pirate_ghost_01/20260908T235204268804Z-79556d7f/pirate_ghost_01-source.png",
+  "revisionRecipe": "sprite-revisions/pirate_ghost_01/20260908T235204268804Z-79556d7f/recipe.json",
+  "candidateSnapshot": "sprite-revisions/pirate_ghost_01/20260908T235204268804Z-79556d7f/pirate_ghost_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/pirate_ghost_01/20260908T235204268804Z-79556d7f/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 0,
+    "frameNumber": 1,
+    "frameLabel": "idle_down",
+    "sequence": "All frames"
+  },
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 5,
+    "rows": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    }
+  },
+  "recordPath": "sprite-change-requests/pirate_ghost_01/20260908T235204268804Z-79556d7f.json"
+}

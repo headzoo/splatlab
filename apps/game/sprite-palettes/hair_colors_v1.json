@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "hair_colors_v1",
+  "defaultColorId": "hair_03",
+  "colors": [
+    {
+      "id": "hair_01",
+      "label": "Black hair",
+      "colors": ["#151820", "#252a35", "#3a4050", "#596170"]
+    },
+    {
+      "id": "hair_02",
+      "label": "Dark brown hair",
+      "colors": ["#2c1b18", "#452820", "#61382a", "#81503a"]
+    },
+    {
+      "id": "hair_03",
+      "label": "Brown hair",
+      "colors": ["#4a261b", "#713927", "#975038", "#c46f4a"]
+    },
+    {
+      "id": "hair_04",
+      "label": "Auburn hair",
+      "colors": ["#4b1f1a", "#752b20", "#a33f2c", "#d26341"]
+    },
+    {
+      "id": "hair_05",
+      "label": "Red hair",
+      "colors": ["#672516", "#9a381f", "#cc552c", "#f07b42"]
+    },
+    {
+      "id": "hair_06",
+      "label": "Blond hair",
+      "colors": ["#6d4b21", "#9c7130", "#d3a64a", "#f0cf72"]
+    },
+    {
+      "id": "hair_07",
+      "label": "Platinum hair",
+      "colors": ["#6e6870", "#9a9297", "#c8c0bc", "#eee4d8"]
+    },
+    {
+      "id": "hair_08",
+      "label": "Gray hair",
+      "colors": ["#31343a", "#51565f", "#777e87", "#aab0b6"]
+    }
+  ]
+}

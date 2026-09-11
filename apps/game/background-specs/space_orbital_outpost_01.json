@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "space_orbital_outpost_01",
+  "name": "Orbital Outpost",
+  "kind": "platformer_background",
+  "runtime": "platformer_v1",
+  "theme": "space",
+  "description": "A moon-base horizon and distant station structures beneath a bright, starry sky.",
+  "color": "#07091d",
+  "layers": [
+    {
+      "id": "stars_far",
+      "type": "repeat_x",
+      "assetId": "background_space_stars_far_01",
+      "image": "backgrounds/background_space_stars_far_01.png",
+      "parallax": 0.12,
+      "verticalAnchor": "center",
+      "heightRatio": 1,
+      "opacity": 0.72,
+      "mirrorAlternate": true
+    },
+    {
+      "id": "moon_mid",
+      "type": "repeat_x",
+      "assetId": "background_space_moon_mid_01",
+      "image": "backgrounds/background_space_moon_mid_01.png",
+      "parallax": 0.38,
+      "verticalAnchor": "bottom",
+      "heightRatio": 0.94,
+      "opacity": 0.86,
+      "mirrorAlternate": true
+    },
+    {
+      "id": "station_near",
+      "type": "repeat_x",
+      "assetId": "background_space_station_near_01",
+      "image": "backgrounds/background_space_station_near_01.png",
+      "parallax": 0.68,
+      "verticalAnchor": "bottom",
+      "heightRatio": 0.82,
+      "opacity": 0.92,
+      "mirrorAlternate": true
+    }
+  ]
+}

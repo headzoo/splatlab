@@ -1,0 +1,8 @@
+{
+  "assetId": "shared_victory_burst_01",
+  "approvedAt": "2026-09-11T13:31:08.412609+00:00",
+  "recipe": "sprite-specs/shared_victory_burst_01.json",
+  "runtimeImage": "sprites/shared_victory_burst_01.png",
+  "sha256": "b118c1d4f5c2218dfb945b20abcdfb7c96dd1c74c904c2f6ad3dca638dc869b5",
+  "validationReport": "sprite-reports/shared_victory_burst_01/shared_victory_burst_01-report.json"
+}

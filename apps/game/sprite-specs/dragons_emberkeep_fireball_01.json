@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "dragons_emberkeep_fireball_01",
+  "name": "Emberkeep Fireball",
+  "kind": "projectile",
+  "runtime": "platformer_v1",
+  "themeTags": ["dragons"],
+  "visualSlot": "fireball",
+  "collision": "damage",
+  "source": "sprites/dragons_emberkeep_fireball_01-source.png",
+  "output": "sprites/dragons_emberkeep_fireball_01.png",
+  "sourceLayout": { "columns": 2, "rows": 2 },
+  "sheet": { "columns": 2, "rows": 2, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["flicker_1", "flicker_2", "flicker_3", "flicker_4"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.001,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "center",
+    "anchor": { "x": 32, "y": 32 },
+    "contentBox": { "width": 16, "height": 10 },
+    "resizeMode": "contain_shared"
+  },
+  "animation": { "fps": 10, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1, "centerDriftWarning": 4 },
+  "preview": { "scale": 5 }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "space_platformer_goal_01",
+  "kind": "goal",
+  "runtime": "platformer_v1",
+  "themeTags": [
+    "space"
+  ],
+  "visualSlot": "goal",
+  "collision": "goal",
+  "source": "sprite-revisions/space_platformer_goal_01/20260909T183609908449Z-bdd7e601/space_platformer_goal_01-source.png",
+  "output": "sprites/space_platformer_goal_01.png",
+  "sourceLayout": {
+    "columns": 2,
+    "rows": 2
+  },
+  "sheet": {
+    "columns": 2,
+    "rows": 2,
+    "frameWidth": 64,
+    "frameHeight": 96
+  },
+  "frameLabels": [
+    "wave_up",
+    "wave_center_a",
+    "wave_down",
+    "wave_center_b"
+  ],
+  "detection": {
+    "alphaThreshold": 96,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "bottom_center",
+    "anchor": {
+      "x": 32,
+      "y": 96
+    },
+    "contentBox": {
+      "width": 56,
+      "height": 92
+    },
+    "resizeMode": "contain_shared"
+  },
+  "animation": {
+    "fps": 4,
+    "loop": true
+  },
+  "validation": {
+    "requiredPadding": 0,
+    "pivotTolerance": 1,
+    "centerDriftWarning": 4
+  },
+  "preview": {
+    "scale": 4
+  }
+}

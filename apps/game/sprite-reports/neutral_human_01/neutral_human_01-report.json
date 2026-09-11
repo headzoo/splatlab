@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_human_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "neutral_human_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprites/neutral_human_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "skinTone": {
+        "palette": "skin_tones_v1",
+        "toneCount": 6,
+        "mask": "sprite-masks/neutral_human_01-skin-mask.png",
+        "maskedPixels": 3092,
+        "outsideSpritePixels": 0,
+        "shadeValues": [
+          0,
+          85,
+          170,
+          255
+        ],
+        "frameMaskedPixels": [
+          216,
+          235,
+          194,
+          194,
+          202,
+          153,
+          172,
+          150,
+          173,
+          167,
+          171,
+          185,
+          179,
+          182,
+          175,
+          71,
+          67,
+          54,
+          70,
+          82
+        ]
+      },
+      "hairColor": {
+        "palette": "hair_colors_v1",
+        "colorCount": 8,
+        "mask": "sprite-masks/neutral_human_01-hair-mask.png",
+        "maskedPixels": 9637,
+        "outsideSpritePixels": 0,
+        "skinOverlapPixels": 0,
+        "shadeValues": [
+          0,
+          85,
+          170,
+          255
+        ],
+        "frameMaskedPixels": [
+          443,
+          413,
+          428,
+          414,
+          428,
+          449,
+          474,
+          478,
+          466,
+          484,
+          439,
+          456,
+          456,
+          487,
+          488,
+          562,
+          587,
+          598,
+          541,
+          546
+        ]
+      },
+      "frameBboxes": [
+        [
+          16,
+          2,
+          49,
+          56
+        ],
+        [
+          16,
+          1,
+          48,
+          56
+        ],
+        [
+          16,
+          1,
+          49,
+          56
+        ],
+        [
+          16,
+          1,
+          48,
+          56
+        ],
+        [
+          16,
+          1,
+          48,
+          56
+        ],
+        [
+          16,
+          2,
+          48,
+          56
+        ],
+        [
+          16,
+          3,
+          48,
+          56
+        ],
+        [
+          16,
+          2,
+          48,
+          56
+        ],
+        [
+          16,
+          3,
+          48,
+          56
+        ],
+        [
+          16,
+          2,
+          48,
+          56
+        ],
+        [
+          16,
+          2,
+          48,
+          56
+        ],
+        [
+          16,
+          2,
+          48,
+          56
+        ],
+        [
+          16,
+          1,
+          48,
+          56
+        ],
+        [
+          16,
+          1,
+          48,
+          56
+        ],
+        [
+          16,
+          2,
+          48,
+          56
+        ],
+        [
+          16,
+          2,
+          48,
+          56
+        ],
+        [
+          16,
+          0,
+          48,
+          56
+        ],
+        [
+          16,
+          1,
+          48,
+          56
+        ],
+        [
+          16,
+          0,
+          48,
+          56
+        ],
+        [
+          16,
+          0,
+          48,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        32,
+        33
+      ],
+      "bboxHeightRange": [
+        53,
+        56
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        29.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_human_01/neutral_human_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_human_01/neutral_human_01-preview.gif",
+    "skinTonePreview": "sprite-reports/neutral_human_01/neutral_human_01-skin-tones.png",
+    "hairColorPreview": "sprite-reports/neutral_human_01/neutral_human_01-hair-colors.png"
+  },
+  "humanApprovalRequired": true
+}

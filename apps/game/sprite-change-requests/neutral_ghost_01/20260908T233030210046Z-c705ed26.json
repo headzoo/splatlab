@@ -1,0 +1,32 @@
+{
+  "requestId": "20260908T233030210046Z-c705ed26",
+  "assetId": "neutral_ghost_01",
+  "createdAt": "2026-09-08T23:30:30.210046+00:00",
+  "status": "pending",
+  "prompt": "Fix the locomotion cycle in every direction. This ghost has no legs, so use a clear four-phase body-appropriate hover cycle: phase 1 wisp tail sweeps to one side with a slight forward lean, phase 2 tail passes through center with a gentle compression, phase 3 tail sweeps to the opposite side with the opposite lean, phase 4 tail passes back through center with a gentle rise. Make left, right, up, and down sequences visibly animate rather than changing only the arms. Preserve the exact ghost identity, face, palette, proportions, pixel-art style, 5x4 grid, row and frame order, transparent background, spacing, scale, and anchor.",
+  "recipe": "sprite-specs/neutral_ghost_01.json",
+  "candidateImage": "sprites/neutral_ghost_01.png",
+  "candidateSha256": "35c6262f1ac7dbccd94ee881b76bbbcca3ff7be811106988db824d2fa0da5e1d",
+  "sourceImage": "sprites/neutral_ghost_01-source.png",
+  "revisionSource": "sprite-revisions/neutral_ghost_01/20260908T233030210046Z-c705ed26/neutral_ghost_01-source.png",
+  "revisionRecipe": "sprite-revisions/neutral_ghost_01/20260908T233030210046Z-c705ed26/recipe.json",
+  "candidateSnapshot": "sprite-revisions/neutral_ghost_01/20260908T233030210046Z-c705ed26/neutral_ghost_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/neutral_ghost_01/20260908T233030210046Z-c705ed26/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 6,
+    "frameNumber": 7,
+    "frameLabel": "walk_left_1",
+    "sequence": "Walk Left"
+  },
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 5,
+    "rows": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    }
+  },
+  "recordPath": "sprite-change-requests/neutral_ghost_01/20260908T233030210046Z-c705ed26.json"
+}

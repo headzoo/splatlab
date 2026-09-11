@@ -1,0 +1,30 @@
+{
+  "assetId": "space_human_01",
+  "approvedAt": "2026-09-10T23:28:40.290965+00:00",
+  "recipe": "sprite-specs/space_human_01.json",
+  "runtimeImage": "sprites/space_human_01.png",
+  "sha256": "61624d4220598b63a1a857a93145e4073342609f3ed844d4693f9777540a21d2",
+  "validationReport": "sprite-reports/space_human_01/space_human_01-report.json",
+  "eventSheets": {
+    "attack": {
+      "runtimeImage": "sprites/space_human_01_attack.png",
+      "sha256": "b00562c209b6dbb136ed7ed549183f29ee2e10ef10f9f1ea9d6b65df7c8f3041",
+      "validationReport": "sprite-reports/space_human_01_attack/space_human_01_attack-report.json"
+    },
+    "defeated": {
+      "runtimeImage": "sprites/space_human_01_defeated.png",
+      "sha256": "f87eaa8ccd9ee12f770eb16b5e1d02499206e35e55e974346f8989265fcef302",
+      "validationReport": "sprite-reports/space_human_01_defeated/space_human_01_defeated-report.json"
+    }
+  },
+  "skinTone": {
+    "paletteId": "skin_tones_v1",
+    "mask": "sprite-masks/space_human_01-skin-mask.png",
+    "maskSha256": "219eefd998ebb4cb43f152189c23983f70fb1db49883234781b7d8ae2fb5a25e"
+  },
+  "hairColor": {
+    "paletteId": "hair_colors_v1",
+    "mask": "sprite-masks/space_human_01-hair-mask.png",
+    "maskSha256": "49517e1818e36e8c5cc4767b355c231a87f051934d855bc0d25a17b5fb82fc84"
+  }
+}

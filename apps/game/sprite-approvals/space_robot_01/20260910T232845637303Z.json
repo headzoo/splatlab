@@ -1,0 +1,15 @@
+{
+  "assetId": "space_robot_01",
+  "approvedAt": "2026-09-10T23:28:45.637303+00:00",
+  "recipe": "sprite-specs/space_robot_01.json",
+  "runtimeImage": "sprites/space_robot_01.png",
+  "sha256": "eb465257894874fca8d763ed586d3e2d81c0585ab404d06bf35b6f15eb4700a9",
+  "validationReport": "sprite-reports/space_robot_01/space_robot_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/space_robot_01_defeated.png",
+      "sha256": "437343b6931a557dc9605912218b8cf496b80ac1a79b24b70d84e5337b243774",
+      "validationReport": "sprite-reports/space_robot_01_defeated/space_robot_01_defeated-report.json"
+    }
+  }
+}

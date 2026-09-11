@@ -1,0 +1,463 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_boss_01",
+  "frameLabels": [
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/space_boss_01-source.png",
+    "sourceSize": [
+      1983,
+      793
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          407,
+          396
+        ],
+        [
+          407,
+          0,
+          818,
+          396
+        ],
+        [
+          818,
+          0,
+          1189,
+          396
+        ],
+        [
+          1189,
+          0,
+          1604,
+          396
+        ],
+        [
+          1604,
+          0,
+          1983,
+          396
+        ],
+        [
+          0,
+          396,
+          396,
+          793
+        ],
+        [
+          396,
+          396,
+          794,
+          793
+        ],
+        [
+          794,
+          396,
+          1182,
+          793
+        ],
+        [
+          1182,
+          396,
+          1585,
+          793
+        ],
+        [
+          1585,
+          396,
+          1983,
+          793
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          118,
+          114
+        ],
+        "paste": [
+          5,
+          6
+        ],
+        "localLandmark": [
+          59.0,
+          114
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          119,
+          116
+        ],
+        "paste": [
+          4,
+          4
+        ],
+        "localLandmark": [
+          59.5,
+          116
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          107,
+          115
+        ],
+        "paste": [
+          10,
+          5
+        ],
+        "localLandmark": [
+          53.5,
+          115
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          119,
+          116
+        ],
+        "paste": [
+          4,
+          4
+        ],
+        "localLandmark": [
+          59.5,
+          116
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          108,
+          116
+        ],
+        "paste": [
+          10,
+          4
+        ],
+        "localLandmark": [
+          54.0,
+          116
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          114,
+          112
+        ],
+        "paste": [
+          7,
+          8
+        ],
+        "localLandmark": [
+          57.0,
+          112
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          115,
+          113
+        ],
+        "paste": [
+          6,
+          7
+        ],
+        "localLandmark": [
+          57.5,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          112,
+          112
+        ],
+        "paste": [
+          8,
+          8
+        ],
+        "localLandmark": [
+          56.0,
+          112
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          117,
+          113
+        ],
+        "paste": [
+          6,
+          7
+        ],
+        "localLandmark": [
+          58.5,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          116,
+          113
+        ],
+        "paste": [
+          6,
+          7
+        ],
+        "localLandmark": [
+          58.0,
+          113
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_boss_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_boss_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          5,
+          6,
+          123,
+          120
+        ],
+        [
+          4,
+          4,
+          123,
+          120
+        ],
+        [
+          10,
+          5,
+          117,
+          120
+        ],
+        [
+          4,
+          4,
+          123,
+          120
+        ],
+        [
+          10,
+          4,
+          118,
+          120
+        ],
+        [
+          7,
+          8,
+          121,
+          120
+        ],
+        [
+          6,
+          7,
+          121,
+          120
+        ],
+        [
+          8,
+          8,
+          120,
+          120
+        ],
+        [
+          6,
+          7,
+          123,
+          120
+        ],
+        [
+          6,
+          7,
+          122,
+          120
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        107,
+        119
+      ],
+      "bboxHeightRange": [
+        112,
+        116
+      ],
+      "bboxCenterXRange": [
+        63.5,
+        64.5
+      ],
+      "bboxCenterYRange": [
+        62.0,
+        64.0
+      ],
+      "bboxBottomRange": [
+        120,
+        120
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_boss_01/space_boss_01-contact.png",
+    "animationPreview": "sprite-reports/space_boss_01/space_boss_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

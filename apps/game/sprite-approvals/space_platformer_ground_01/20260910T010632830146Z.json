@@ -1,0 +1,8 @@
+{
+  "assetId": "space_platformer_ground_01",
+  "approvedAt": "2026-09-10T01:06:32.830146+00:00",
+  "recipe": "sprite-specs/space_platformer_ground_01.json",
+  "runtimeImage": "sprites/space_platformer_ground_01.png",
+  "sha256": "ac562c86cc186a69f5039e6672bd6da2318c5b6624fce457bf1e42919849e49f",
+  "validationReport": "sprite-reports/space_platformer_ground_01/space_platformer_ground_01-report.json"
+}

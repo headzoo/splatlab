@@ -1,0 +1,27 @@
+{
+  "requestId": "20260908T194732495868Z-1e301af1",
+  "assetId": "ninja_zombie_01",
+  "createdAt": "2026-09-08T19:47:32.495868+00:00",
+  "status": "pending",
+  "prompt": "Replace the inadequate non-down locomotion cycles. For every grounded direction, use four distinct phases: Contact A with one foot forward, Passing A, Contact B with the opposite foot forward, and Passing B. Left and right must visibly reverse the leading leg; up must visibly alternate the advancing foot. Arm swing or body bob alone is not sufficient. A non-legged body must use an equally clear four-phase body-appropriate locomotion cycle. Preserve identity, costume, grid, scale, anchor, and transparency.",
+  "recipe": "sprite-specs/ninja_zombie_01.json",
+  "candidateImage": "sprite-build/ninja_zombie_01.png",
+  "candidateSha256": "eec7c01f43e1a734c2a1cf0f24c5707ae0a13d8f958f1c1daaecd80ac224b1a7",
+  "sourceImage": "sprites/ninja_zombie_01-source.png",
+  "revisionSource": "sprite-revisions/ninja_zombie_01/20260908T194732495868Z-1e301af1/ninja_zombie_01-source.png",
+  "revisionRecipe": "sprite-revisions/ninja_zombie_01/20260908T194732495868Z-1e301af1/recipe.json",
+  "candidateSnapshot": "sprite-revisions/ninja_zombie_01/20260908T194732495868Z-1e301af1/ninja_zombie_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/ninja_zombie_01/20260908T194732495868Z-1e301af1/recipe-before.json",
+  "frameContext": null,
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 5,
+    "rows": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    }
+  },
+  "recordPath": "sprite-change-requests/ninja_zombie_01/20260908T194732495868Z-1e301af1.json"
+}

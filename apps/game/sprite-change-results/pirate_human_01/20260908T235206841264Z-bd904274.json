@@ -1,0 +1,12 @@
+{
+  "requestId": "20260908T235206841264Z-bd904274",
+  "assetId": "pirate_human_01",
+  "finishedAt": "2026-09-08T23:55:40.360722+00:00",
+  "status": "completed",
+  "codexThreadId": "01a0836f-a48c-7230-99cb-af93e3206a11",
+  "agentSummary": "I\u2019m using the image-generation skill because this is a constrained bitmap source edit. I\u2019ll first read the sprite contracts and revision metadata, inspect both images at full detail, then edit only the cloned `pirate_human_01-source.png`.\nThe requested gait correction is within the visual contract: it keeps the human body, perspective, grid, anchor, and costume intact. I\u2019m now grounding the edit against the exact request record, locked recipe, and approved neutral-human motion reference; the idle column will remain unchanged.\nThe source confirms the main defect: several walk frames change arm/coat pose without a clean opposite-foot reversal, especially in the side and rear rows. I\u2019m applying a gait-only edit to the high-resolution revision master, with the runtime candidate used for identity fidelity and `neutral_human_01.png` used only for the four-phase leg logic.\nThe gait edit produced the correct 20-pose structure and clearer alternating boots, but\u2014as the project notes warned\u2014it baked in a checkerboard instead of real transparency. The image-generation skill\u2019s transparency rule requires a targeted cleanup, so I\u2019m removing only that checkerboard before saving the revised source.\nUpdated [pirate_human_01-source.png](/media/sean/work/www/chickensplat/sprite-revisions/pirate_human_01/20260908T235206841264Z-bd904274/pirate_human_01-source.png) using built-in image editing.\n\nThe edit enforces alternating four-phase leg movement in every direction while retaining the 20-frame layout and pirate styling. A second targeted pass removed the generated checkerboard. Verified: `1402\u00d71122`, RGBA, genuine transparency. No recipes, runtime sprites, or project files were changed; promotion was not run.",
+  "candidateImage": "sprite-build/pirate_human_01.png",
+  "candidateSha256": "b533271b06b2c763ca1df35c6624f44f3e7211b00844c243e4db89f2cfe2b60b",
+  "validationReport": "sprite-reports/pirate_human_01/pirate_human_01-report.json",
+  "sourceImage": "sprite-revisions/pirate_human_01/20260908T235206841264Z-bd904274/pirate_human_01-source.png"
+}

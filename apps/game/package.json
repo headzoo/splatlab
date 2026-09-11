@@ -1,0 +1,11 @@
+{
+  "name": "game",
+  "private": true,
+  "scripts": {
+    "test": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests",
+    "audio:validate": "python3 tools/audio.py validate",
+    "physics:validate": "python3 tools/physics.py validate",
+    "sprites:validate": "python3 tools/sprites.py validate",
+    "weapons:validate": "python3 tools/weapons.py validate"
+  }
+}

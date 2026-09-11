@@ -1,0 +1,27 @@
+{
+  "requestId": "20260908T194732504420Z-293d78ad",
+  "assetId": "space_human_01",
+  "createdAt": "2026-09-08T19:47:32.504420+00:00",
+  "status": "pending",
+  "prompt": "Replace the inadequate non-down locomotion cycles. For every grounded direction, use four distinct phases: Contact A with one foot forward, Passing A, Contact B with the opposite foot forward, and Passing B. Left and right must visibly reverse the leading leg; up must visibly alternate the advancing foot. Arm swing or body bob alone is not sufficient. A non-legged body must use an equally clear four-phase body-appropriate locomotion cycle. Preserve identity, costume, grid, scale, anchor, and transparency.",
+  "recipe": "sprite-specs/space_human_01.json",
+  "candidateImage": "sprite-build/space_human_01.png",
+  "candidateSha256": "67811a20b20e6c65afc4c76604b70edbe20973545320877d1752cce34da2b391",
+  "sourceImage": "sprites/space_human_01-source.png",
+  "revisionSource": "sprite-revisions/space_human_01/20260908T194732504420Z-293d78ad/space_human_01-source.png",
+  "revisionRecipe": "sprite-revisions/space_human_01/20260908T194732504420Z-293d78ad/recipe.json",
+  "candidateSnapshot": "sprite-revisions/space_human_01/20260908T194732504420Z-293d78ad/space_human_01-candidate-before.png",
+  "recipeSnapshot": "sprite-revisions/space_human_01/20260908T194732504420Z-293d78ad/recipe-before.json",
+  "frameContext": null,
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 5,
+    "rows": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    }
+  },
+  "recordPath": "sprite-change-requests/space_human_01/20260908T194732504420Z-293d78ad.json"
+}

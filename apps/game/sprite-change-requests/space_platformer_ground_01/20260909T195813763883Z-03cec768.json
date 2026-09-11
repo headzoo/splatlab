@@ -1,0 +1,41 @@
+{
+  "requestId": "20260909T195813763883Z-03cec768",
+  "assetId": "space_platformer_ground_01",
+  "sheetId": "space_platformer_ground_01",
+  "event": null,
+  "createdAt": "2026-09-09T19:58:13.763883+00:00",
+  "status": "pending",
+  "prompt": "The sprite needs to fill the entire 64x64 image or else the players will be floating above the ground. There shouldn't be any empty space above the floor.",
+  "recipe": "sprite-specs/space_platformer_ground_01.json",
+  "candidateImage": "sprite-build/space_platformer_ground_01.png",
+  "candidateSha256": "4dc290afc0560051c267b5d80e82f71202a5e5209bae3f4df6955d997914deac",
+  "sourceImage": "sprite-revisions/space_platformer_ground_01/20260909T190011052402Z-3e9883f2/space_platformer_ground_01-source.png",
+  "revisionSource": "sprite-revisions/space_platformer_ground_01/20260909T195813763883Z-03cec768/space_platformer_ground_01-source.png",
+  "revisionRecipe": "sprite-revisions/space_platformer_ground_01/20260909T195813763883Z-03cec768/recipe.json",
+  "candidateSnapshot": "sprite-revisions/space_platformer_ground_01/20260909T195813763883Z-03cec768/space_platformer_ground_01-candidate-before.png",
+  "annotatedGuidePreview": null,
+  "annotatedGuidePreviewSha256": null,
+  "recipeSnapshot": "sprite-revisions/space_platformer_ground_01/20260909T195813763883Z-03cec768/recipe-before.json",
+  "frameContext": {
+    "frameIndex": 0,
+    "frameNumber": 1,
+    "frameLabel": "static",
+    "sequence": "All frames",
+    "sequenceFrameIndices": [
+      0
+    ],
+    "event": null
+  },
+  "guides": [],
+  "contract": {
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "columns": 1,
+    "rows": 1,
+    "anchor": {
+      "x": 32,
+      "y": 64
+    }
+  },
+  "recordPath": "sprite-change-requests/space_platformer_ground_01/20260909T195813763883Z-03cec768.json"
+}

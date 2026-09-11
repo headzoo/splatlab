@@ -1,0 +1,15 @@
+{
+  "assetId": "neutral_green_hills_boss_01",
+  "approvedAt": "2026-09-11T19:26:56.992951+00:00",
+  "recipe": "sprite-specs/neutral_green_hills_boss_01.json",
+  "runtimeImage": "sprites/neutral_green_hills_boss_01.png",
+  "sha256": "8333999f4350f61815dfa1879caa9651fe8311bf93f47246423f6267aa2a9995",
+  "validationReport": "sprite-reports/neutral_green_hills_boss_01/neutral_green_hills_boss_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/neutral_green_hills_boss_01_defeated.png",
+      "sha256": "bd8f009b32b9a884ff51f312187e069ef61fbf670eee2f3818f8fb80715cd63b",
+      "validationReport": "sprite-reports/neutral_green_hills_boss_01_defeated/neutral_green_hills_boss_01_defeated-report.json"
+    }
+  }
+}

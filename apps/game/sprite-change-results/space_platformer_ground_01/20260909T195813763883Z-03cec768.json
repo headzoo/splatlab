@@ -1,0 +1,8 @@
+{
+  "requestId": "20260909T195813763883Z-03cec768",
+  "assetId": "space_platformer_ground_01",
+  "finishedAt": "2026-09-09T20:01:42.375238+00:00",
+  "status": "error",
+  "codexThreadId": "01a087bf-dfb8-7803-a6e7-e94fe55f900c",
+  "error": "the agent finished, but the generated sprite did not change"
+}

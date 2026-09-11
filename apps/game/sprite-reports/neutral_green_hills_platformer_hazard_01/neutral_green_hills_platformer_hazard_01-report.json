@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_green_hills_platformer_hazard_01",
+  "frameLabels": [
+    "waterfall_flow_1",
+    "waterfall_flow_2",
+    "waterfall_flow_3",
+    "waterfall_flow_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_green_hills_platformer_hazard_01-source.png",
+    "sourceSize": [
+      2112,
+      2112
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          1056,
+          1056
+        ],
+        [
+          1056,
+          0,
+          2112,
+          1056
+        ],
+        [
+          0,
+          1056,
+          1056,
+          2112
+        ],
+        [
+          1056,
+          1056,
+          2112,
+          2112
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          62
+        ],
+        "paste": [
+          0,
+          2
+        ],
+        "localLandmark": [
+          32.0,
+          62
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          63
+        ],
+        "paste": [
+          0,
+          1
+        ],
+        "localLandmark": [
+          32.0,
+          63
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          64
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          32.0,
+          64
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          64
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          32.0,
+          64
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_green_hills_platformer_hazard_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/neutral_green_hills_platformer_hazard_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          0,
+          2,
+          64,
+          64
+        ],
+        [
+          0,
+          1,
+          64,
+          64
+        ],
+        [
+          0,
+          0,
+          64,
+          64
+        ],
+        [
+          0,
+          0,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        62,
+        64
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        33.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_green_hills_platformer_hazard_01/neutral_green_hills_platformer_hazard_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_green_hills_platformer_hazard_01/neutral_green_hills_platformer_hazard_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

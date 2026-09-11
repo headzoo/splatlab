@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "shared_game_over_01",
+  "name": "Game Over impact",
+  "kind": "effect",
+  "runtime": "shared_v1",
+  "themeTags": [
+    "neutral"
+  ],
+  "visualSlot": "game_over",
+  "collision": "none",
+  "source": "sprites/shared_game_over_01-source.png",
+  "output": "sprites/shared_game_over_01.png",
+  "sourceLayout": {
+    "columns": 2,
+    "rows": 2,
+    "regions": [
+      [0, 0, 627, 627],
+      [627, 0, 1254, 627],
+      [0, 627, 627, 1254],
+      [627, 627, 1254, 1254]
+    ]
+  },
+  "sheet": {
+    "columns": 2,
+    "rows": 2,
+    "frameWidth": 64,
+    "frameHeight": 64
+  },
+  "frameLabels": [
+    "game_over_game",
+    "game_over_over",
+    "game_over_impact_left",
+    "game_over_impact_right"
+  ],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.001,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "center",
+    "anchor": {
+      "x": 32,
+      "y": 32
+    },
+    "contentBox": {
+      "width": 60,
+      "height": 50
+    },
+    "resizeMode": "contain_shared"
+  },
+  "animation": {
+    "fps": 1,
+    "loop": false
+  },
+  "validation": {
+    "requiredPadding": 1,
+    "pivotTolerance": 2,
+    "centerDriftWarning": 4
+  },
+  "preview": {
+    "scale": 5
+  }
+}

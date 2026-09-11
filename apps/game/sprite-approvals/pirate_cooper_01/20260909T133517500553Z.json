@@ -1,0 +1,8 @@
+{
+  "assetId": "pirate_cooper_01",
+  "approvedAt": "2026-09-09T13:35:17.500553+00:00",
+  "recipe": "sprite-specs/pirate_cooper_01.json",
+  "runtimeImage": "sprites/pirate_cooper_01.png",
+  "sha256": "7ed00874ffb7fbf43fb6ad1a33fda52a7258e8b6a7d81f7f516fb589d3bccc4b",
+  "validationReport": "sprite-reports/pirate_cooper_01/pirate_cooper_01-report.json"
+}

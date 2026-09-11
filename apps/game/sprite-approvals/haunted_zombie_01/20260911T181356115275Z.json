@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_zombie_01",
+  "approvedAt": "2026-09-11T18:13:56.115275+00:00",
+  "recipe": "sprite-specs/haunted_zombie_01.json",
+  "runtimeImage": "sprites/haunted_zombie_01.png",
+  "sha256": "0d17b7a683b6a4d9bc3e39f578c67da7d9e832cdfe5d1b54602c4fb126f34d6a",
+  "validationReport": "sprite-reports/haunted_zombie_01/haunted_zombie_01-report.json"
+}

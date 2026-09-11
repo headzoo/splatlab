@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "assetId": "shared_victory_burst_01",
+  "frameLabels": [
+    "victory_0",
+    "victory_1",
+    "victory_2",
+    "victory_3",
+    "victory_4",
+    "victory_5",
+    "victory_6",
+    "victory_7"
+  ],
+  "normalization": {
+    "source": "sprites/shared_victory_burst_01-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          443,
+          443
+        ],
+        [
+          443,
+          0,
+          887,
+          443
+        ],
+        [
+          887,
+          0,
+          1330,
+          443
+        ],
+        [
+          1330,
+          0,
+          1774,
+          443
+        ],
+        [
+          0,
+          443,
+          443,
+          887
+        ],
+        [
+          443,
+          443,
+          887,
+          887
+        ],
+        [
+          887,
+          443,
+          1330,
+          887
+        ],
+        [
+          1330,
+          443,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          11,
+          32
+        ],
+        "paste": [
+          26,
+          16
+        ],
+        "localLandmark": [
+          5.5,
+          16.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          25,
+          44
+        ],
+        "paste": [
+          20,
+          10
+        ],
+        "localLandmark": [
+          12.5,
+          22.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          38
+        ],
+        "paste": [
+          14,
+          13
+        ],
+        "localLandmark": [
+          18.5,
+          19.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          50,
+          43
+        ],
+        "paste": [
+          7,
+          10
+        ],
+        "localLandmark": [
+          25.0,
+          21.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          60,
+          58
+        ],
+        "paste": [
+          2,
+          3
+        ],
+        "localLandmark": [
+          30.0,
+          29.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          48,
+          48
+        ],
+        "paste": [
+          8,
+          8
+        ],
+        "localLandmark": [
+          24.0,
+          24.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          35
+        ],
+        "paste": [
+          13,
+          14
+        ],
+        "localLandmark": [
+          19.0,
+          17.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          28,
+          23
+        ],
+        "paste": [
+          18,
+          20
+        ],
+        "localLandmark": [
+          14.0,
+          11.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "shared_victory_burst_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/shared_victory_burst_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        253
+      ],
+      "frameBboxes": [
+        [
+          26,
+          16,
+          37,
+          48
+        ],
+        [
+          20,
+          10,
+          44,
+          54
+        ],
+        [
+          14,
+          13,
+          51,
+          51
+        ],
+        [
+          7,
+          10,
+          57,
+          53
+        ],
+        [
+          2,
+          3,
+          62,
+          61
+        ],
+        [
+          8,
+          8,
+          56,
+          56
+        ],
+        [
+          13,
+          14,
+          51,
+          49
+        ],
+        [
+          18,
+          20,
+          46,
+          43
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        11,
+        60
+      ],
+      "bboxHeightRange": [
+        23,
+        58
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.0
+      ],
+      "bboxBottomRange": [
+        43,
+        61
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/shared_victory_burst_01/shared_victory_burst_01-contact.png",
+    "animationPreview": "sprite-reports/shared_victory_burst_01/shared_victory_burst_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

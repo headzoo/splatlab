@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_green_hills_platformer_ground_01",
+  "approvedAt": "2026-09-11T16:21:51.827544+00:00",
+  "recipe": "sprite-specs/neutral_green_hills_platformer_ground_01.json",
+  "runtimeImage": "sprites/neutral_green_hills_platformer_ground_01.png",
+  "sha256": "94e658f560abc4dc751f48777c3dc5780be1c1fa83bddc8c6cfd69ed767f610e",
+  "validationReport": "sprite-reports/neutral_green_hills_platformer_ground_01/neutral_green_hills_platformer_ground_01-report.json"
+}

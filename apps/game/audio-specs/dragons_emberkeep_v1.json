@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "dragons_emberkeep_v1",
+  "kind": "sound_pack",
+  "name": "Emberkeep Dragons",
+  "themeTags": [
+    "dragons"
+  ],
+  "music": {
+    "gameplay": {
+      "assetId": "dragons_emberkeep_gameplay_loop_01",
+      "path": "audio/dragons_emberkeep_v1/gameplay_loop.wav",
+      "loop": true,
+      "defaultGain": 0.3
+    }
+  },
+  "effects": {
+    "jump": {
+      "path": "audio/dragons_emberkeep_v1/jump.wav",
+      "defaultGain": 0.54,
+      "maxVoices": 2
+    },
+    "land": {
+      "path": "audio/dragons_emberkeep_v1/land.wav",
+      "defaultGain": 0.48,
+      "maxVoices": 2
+    },
+    "collectible": {
+      "path": "audio/dragons_emberkeep_v1/collectible.wav",
+      "defaultGain": 0.52,
+      "maxVoices": 4
+    },
+    "enemy_defeat": {
+      "path": "audio/dragons_emberkeep_v1/enemy_defeat.wav",
+      "defaultGain": 0.58,
+      "maxVoices": 2
+    },
+    "player_damage": {
+      "path": "audio/dragons_emberkeep_v1/player_damage.wav",
+      "defaultGain": 0.54,
+      "maxVoices": 2
+    },
+    "player_death": {
+      "path": "audio/dragons_emberkeep_v1/player_death.wav",
+      "defaultGain": 0.62,
+      "maxVoices": 1
+    },
+    "respawn": {
+      "path": "audio/dragons_emberkeep_v1/respawn.wav",
+      "defaultGain": 0.5,
+      "maxVoices": 1
+    },
+    "weapon_swing": {
+      "path": "audio/dragons_emberkeep_v1/weapon_swing.wav",
+      "defaultGain": 0.46,
+      "maxVoices": 2
+    },
+    "weapon_hit": {
+      "path": "audio/dragons_emberkeep_v1/weapon_hit.wav",
+      "defaultGain": 0.58,
+      "maxVoices": 3
+    },
+    "fire": {
+      "path": "audio/dragons_emberkeep_v1/fire.wav",
+      "defaultGain": 0.56,
+      "maxVoices": 4
+    },
+    "checkpoint": {
+      "path": "audio/dragons_emberkeep_v1/checkpoint.wav",
+      "defaultGain": 0.52,
+      "maxVoices": 1
+    },
+    "goal": {
+      "path": "audio/dragons_emberkeep_v1/goal.wav",
+      "defaultGain": 0.62,
+      "maxVoices": 1
+    }
+  }
+}

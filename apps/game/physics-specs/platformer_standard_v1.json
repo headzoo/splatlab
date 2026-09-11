@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "id": "platformer_standard_v1",
+  "runtime": "platformer_v1",
+  "name": "HackYard platformer movement",
+  "description": "Child-friendly running and one variable-height grounded jump over static solid and one-way tiles.",
+  "units": {
+    "distance": "world_pixel",
+    "time": "second",
+    "tileSizePx": 64
+  },
+  "simulation": {
+    "tickRateHz": 60,
+    "fixedDeltaSeconds": 0.016666666666666666,
+    "maxCatchUpSteps": 5,
+    "maxFrameDeltaSeconds": 0.25,
+    "numericPrecision": "float64"
+  },
+  "coordinates": {
+    "origin": "top_left",
+    "positiveX": "right",
+    "positiveY": "down",
+    "playerPositionReference": "bottom_center"
+  },
+  "player": {
+    "collider": {
+      "shape": "aabb",
+      "widthPx": 32,
+      "heightPx": 48,
+      "offsetFromPositionPx": {
+        "x": -16,
+        "y": -48
+      }
+    },
+    "playersBlockEachOther": false
+  },
+  "movement": {
+    "inputAxes": [
+      "moveX"
+    ],
+    "inputMinimum": -1,
+    "inputMaximum": 1,
+    "maxRunSpeedPxPerSecond": 320,
+    "maxRunSpeedTilesPerSecond": 5,
+    "groundAccelerationPxPerSecondSquared": 2400,
+    "groundDecelerationPxPerSecondSquared": 3000,
+    "airAccelerationPxPerSecondSquared": 1400
+  },
+  "gravity": {
+    "accelerationPxPerSecondSquared": 2000,
+    "maximumFallSpeedPxPerSecond": 1200
+  },
+  "jump": {
+    "pressedInput": "jumpPressed",
+    "heldInput": "jumpHeld",
+    "launchVelocityYPxPerSecond": -760,
+    "requiresGroundedOrCoyoteTime": true,
+    "coyoteTimeTicks": 6,
+    "inputBufferTicks": 7,
+    "earlyReleaseVelocityMultiplier": 0.55,
+    "earlyReleaseApplication": "once_when_released_while_rising",
+    "requiresReleaseBeforeNextJump": true,
+    "maximumAirJumps": 0
+  },
+  "collision": {
+    "source": "map_semantics",
+    "solver": "axis_separated_swept_aabb",
+    "axisOrder": [
+      "x",
+      "y"
+    ],
+    "skinWidthPx": 0.001,
+    "solidSemantics": [
+      "solid"
+    ],
+    "oneWaySemantics": [
+      "one_way"
+    ],
+    "groundedDefinition": "downward_solid_contact_this_step"
+  },
+  "triggers": {
+    "overlapRule": "positive_area",
+    "priorityOrder": [
+      "out_of_bounds",
+      "hazard",
+      "goal",
+      "checkpoint",
+      "collectible"
+    ],
+    "responses": {
+      "collectible": "collect_and_score",
+      "checkpoint": "set_latest_respawn",
+      "goal": "finish_level",
+      "hazard": "respawn",
+      "out_of_bounds": "respawn"
+    },
+    "volumes": {
+      "collectible": {
+        "shape": "aabb",
+        "widthPx": 32,
+        "heightPx": 32,
+        "anchor": "cell_center"
+      },
+      "checkpoint": {
+        "shape": "aabb",
+        "widthPx": 32,
+        "heightPx": 64,
+        "anchor": "cell_bottom_center"
+      },
+      "goal": {
+        "shape": "aabb",
+        "widthPx": 48,
+        "heightPx": 64,
+        "anchor": "cell_bottom_center"
+      },
+      "hazard": {
+        "shape": "aabb",
+        "widthPx": 64,
+        "heightPx": 64,
+        "anchor": "cell_bounds"
+      }
+    }
+  },
+  "respawn": {
+    "checkpointSelection": "latest_checkpoint_or_initial_spawn",
+    "clearVelocity": true,
+    "outOfBoundsMarginPx": 64
+  },
+  "levelDesign": {
+    "maximumCriticalPathGapTiles": 3,
+    "maximumDirectRiseTiles": 2,
+    "preferredLandingWidthTiles": 2,
+    "minimumLandingWidthTiles": 1,
+    "minimumJumpHeightMarginPx": 12,
+    "minimumJumpRangeMarginPx": 32
+  },
+  "unsupported": [
+    "slopes",
+    "moving_platforms",
+    "ladders",
+    "swimming",
+    "wall_jumps",
+    "double_jumps",
+    "bounce_surfaces",
+    "sprite_pixel_collision"
+  ]
+}

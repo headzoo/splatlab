@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "space_basic_v1",
+  "kind": "sound_pack",
+  "name": "Space Basic",
+  "themeTags": [
+    "space"
+  ],
+  "music": {
+    "gameplay": {
+      "assetId": "space_gameplay_loop_01",
+      "path": "audio/space_basic_v1/gameplay_loop.wav",
+      "loop": true,
+      "defaultGain": 0.32
+    }
+  },
+  "effects": {
+    "jump": {
+      "path": "audio/space_basic_v1/jump.wav",
+      "defaultGain": 0.55,
+      "maxVoices": 2
+    },
+    "land": {
+      "path": "audio/space_basic_v1/land.wav",
+      "defaultGain": 0.45,
+      "maxVoices": 2
+    },
+    "collectible": {
+      "path": "audio/space_basic_v1/collectible.wav",
+      "defaultGain": 0.5,
+      "maxVoices": 4
+    },
+    "enemy_defeat": {
+      "path": "audio/space_basic_v1/enemy_defeat.wav",
+      "defaultGain": 0.58,
+      "maxVoices": 2
+    },
+    "player_damage": {
+      "path": "audio/space_basic_v1/player_damage.wav",
+      "defaultGain": 0.52,
+      "maxVoices": 2
+    },
+    "player_death": {
+      "path": "audio/space_basic_v1/player_death.wav",
+      "defaultGain": 0.62,
+      "maxVoices": 1
+    },
+    "respawn": {
+      "path": "audio/space_basic_v1/respawn.wav",
+      "defaultGain": 0.48,
+      "maxVoices": 1
+    },
+    "weapon_swing": {
+      "path": "audio/space_basic_v1/weapon_swing.wav",
+      "defaultGain": 0.46,
+      "maxVoices": 2
+    },
+    "weapon_hit": {
+      "path": "audio/space_basic_v1/weapon_hit.wav",
+      "defaultGain": 0.56,
+      "maxVoices": 3
+    },
+    "fire": {
+      "path": "audio/space_basic_v1/fire.wav",
+      "defaultGain": 0.52,
+      "maxVoices": 4
+    },
+    "checkpoint": {
+      "path": "audio/space_basic_v1/checkpoint.wav",
+      "defaultGain": 0.52,
+      "maxVoices": 1
+    },
+    "goal": {
+      "path": "audio/space_basic_v1/goal.wav",
+      "defaultGain": 0.6,
+      "maxVoices": 1
+    }
+  }
+}

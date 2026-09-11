@@ -1,0 +1,15 @@
+{
+  "assetId": "space_platformer_checkpoint_01",
+  "approvedAt": "2026-09-10T11:06:08.894022+00:00",
+  "recipe": "sprite-specs/space_platformer_checkpoint_01.json",
+  "runtimeImage": "sprites/space_platformer_checkpoint_01.png",
+  "sha256": "a367d030c3294fa110439e7f0082608317c8738e33c90102c888616fbcf5ff3b",
+  "validationReport": "sprite-reports/space_platformer_checkpoint_01/space_platformer_checkpoint_01-report.json",
+  "eventSheets": {
+    "activated": {
+      "runtimeImage": "sprites/space_platformer_checkpoint_01_activated.png",
+      "sha256": "0fa2385050834cbbf5086af3c78e562f7b4137d1ef7360becf108a19c2b869ca",
+      "validationReport": "sprite-reports/space_platformer_checkpoint_01_activated/space_platformer_checkpoint_01_activated-report.json"
+    }
+  }
+}

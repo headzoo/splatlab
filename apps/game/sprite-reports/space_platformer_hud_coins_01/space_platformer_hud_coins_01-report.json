@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_platformer_hud_coins_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/space_platformer_hud_coins_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        166208
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        625.33
+      ],
+      "yCenters": [
+        642.86
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          54,
+          54
+        ],
+        "paste": [
+          5,
+          5
+        ],
+        "localLandmark": [
+          27.0,
+          27.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_platformer_hud_coins_01",
+    "image": "/media/sean/work/www/chickensplat/sprite-build/space_platformer_hud_coins_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          5,
+          5,
+          59,
+          59
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        54,
+        54
+      ],
+      "bboxHeightRange": [
+        54,
+        54
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        59,
+        59
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_platformer_hud_coins_01/space_platformer_hud_coins_01-contact.png",
+    "animationPreview": "sprite-reports/space_platformer_hud_coins_01/space_platformer_hud_coins_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

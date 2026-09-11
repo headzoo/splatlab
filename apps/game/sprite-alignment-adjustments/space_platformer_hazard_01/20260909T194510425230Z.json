@@ -1,0 +1,43 @@
+{
+  "assetId": "space_platformer_hazard_01",
+  "sheetId": "space_platformer_hazard_01",
+  "event": null,
+  "createdAt": "2026-09-09T19:45:10.425230+00:00",
+  "recipe": "sprite-specs/space_platformer_hazard_01.json",
+  "recipeBeforeSha256": "9a8e9dd9f52c856f4e3203d11339797b443951c52188064d3269dc2233cb496f",
+  "recipeAfterSha256": "0a86c8066e7eb3dc5125c6fc093159a2b1310f6191f48d2fb05966dedadd3a5d",
+  "adjustments": [
+    {
+      "frameIndex": 0,
+      "fromX": 0,
+      "fromY": 18,
+      "x": 0,
+      "y": 16,
+      "deltaX": 0,
+      "deltaY": -2,
+      "resultX": 0,
+      "resultY": -2
+    }
+  ],
+  "frameOffsets": [
+    {
+      "x": 0,
+      "y": -2
+    },
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "candidateImage": "sprite-build/space_platformer_hazard_01.png",
+  "candidateSha256": "cba83667c9ba8e537e01e3624db25cdd27adc72dbe5fe77bb1e113c0ec60e934",
+  "validationReport": "sprite-reports/space_platformer_hazard_01/space_platformer_hazard_01-report.json"
+}
