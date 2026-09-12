@@ -208,12 +208,18 @@ class PhysicsProfileTests(unittest.TestCase):
         )
         self.assertEqual(
             platformer["priorityOrder"],
-            ["out_of_bounds", "hazard", "goal", "checkpoint", "collectible"],
+            ["out_of_bounds", "hazard", "goal", "checkpoint", "extra_life", "collectible"],
         )
         self.assertEqual(
             platformer["volumes"],
             {
                 "collectible": {
+                    "shape": "aabb",
+                    "widthPx": 32,
+                    "heightPx": 32,
+                    "anchor": "cell_center",
+                },
+                "extra_life": {
                     "shape": "aabb",
                     "widthPx": 32,
                     "heightPx": 32,

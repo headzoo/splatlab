@@ -11,6 +11,7 @@ export class GameAudio {
     this.activeEffects = new Map();
     this.musicSource = null;
     this.musicGain = null;
+    this.musicCue = null;
   }
 
   async unlock() {
@@ -22,7 +23,10 @@ export class GameAudio {
 
   async preload() {
     if (!this.context) throw new Error("Unlock audio before preloading the sound pack.");
-    const entries = [this.spec.music?.gameplay, ...Object.values(this.spec.effects ?? {})].filter(Boolean);
+    const entries = [
+      ...Object.values(this.spec.music ?? {}),
+      ...Object.values(this.spec.effects ?? {}),
+    ].filter(Boolean);
     await Promise.all(entries.map(async (entry) => {
       if (this.buffers.has(entry.path)) return;
       const response = await fetch(new URL(entry.path, this.baseUrl));
@@ -32,11 +36,13 @@ export class GameAudio {
     }));
   }
 
-  startMusic() {
-    const entry = this.spec.music?.gameplay;
-    if (!this.context || !entry || !this.musicEnabled || this.musicSource) return false;
+  startMusic(cue = "gameplay") {
+    const entry = this.spec.music?.[cue];
+    if (!this.context || !entry || !this.musicEnabled) return false;
+    if (this.musicSource && this.musicCue === cue) return true;
     const buffer = this.buffers.get(entry.path);
     if (!buffer) return false;
+    this.stopMusic();
     const source = this.context.createBufferSource();
     const gain = this.context.createGain();
     source.buffer = buffer;
@@ -44,11 +50,16 @@ export class GameAudio {
     gain.gain.value = entry.defaultGain * this.musicLevel;
     source.connect(gain).connect(this.context.destination);
     source.addEventListener("ended", () => {
-      if (this.musicSource === source) this.musicSource = null;
+      if (this.musicSource === source) {
+        this.musicSource = null;
+        this.musicGain = null;
+        this.musicCue = null;
+      }
     });
     source.start();
     this.musicSource = source;
     this.musicGain = gain;
+    this.musicCue = cue;
     return true;
   }
 
@@ -57,6 +68,7 @@ export class GameAudio {
     this.musicSource.stop();
     this.musicSource = null;
     this.musicGain = null;
+    this.musicCue = null;
   }
 
   play(cue) {
@@ -85,7 +97,7 @@ export class GameAudio {
     if (Number.isFinite(options.effectsLevel)) this.effectsLevel = Math.max(0, Math.min(1, options.effectsLevel));
     if (!this.musicEnabled) this.stopMusic();
     if (this.musicGain) {
-      this.musicGain.gain.value = this.spec.music.gameplay.defaultGain * this.musicLevel;
+      this.musicGain.gain.value = this.spec.music[this.musicCue].defaultGain * this.musicLevel;
     }
   }
 }

@@ -175,6 +175,8 @@ def platformer_map_spec(map_id: str = "test_map_01") -> dict:
         "tileSize": 64,
         "size": {"columns": 16, "rows": 8},
         "camera": {"columns": 8, "rows": 6},
+        "physics": {"gravityScale": 1},
+        "rules": {"respawnDelaySeconds": 2},
         "presentation": {"backgroundId": "space_orbital_outpost_01"},
         "legend": {},
         "layers": [],
@@ -182,7 +184,72 @@ def platformer_map_spec(map_id: str = "test_map_01") -> dict:
     }
 
 
+def maze_map_spec(map_id: str = "maze_test_01") -> dict:
+    return {
+        "schemaVersion": 1,
+        "id": map_id,
+        "revision": 1,
+        "runtime": "top_down_v1",
+        "tileSize": 64,
+        "width": 7,
+        "height": 7,
+        "camera": {"columns": 5, "rows": 5},
+        "legend": {"#": "solid_wall", ".": "floor"},
+        "presentation": {"mazeThemeId": "neutral_green_hills_maze_01"},
+        "tiles": [
+            "#######",
+            "#.....#",
+            "#.###.#",
+            "#.....#",
+            "#.###.#",
+            "#.....#",
+            "#######",
+        ],
+        "objects": [
+            {
+                "id": "spawn_1", "type": "player_spawn", "x": 1, "y": 1,
+                "slot": 1, "speed": 224,
+            },
+            {
+                "id": "spawn_2", "type": "player_spawn", "x": 5, "y": 1,
+                "slot": 2, "speed": 224,
+            },
+            {"id": "key_1", "type": "key", "x": 1, "y": 5},
+            {"id": "exit_1", "type": "exit", "x": 5, "y": 5, "requires": "key_1"},
+        ],
+    }
+
+
 class MapFileTests(unittest.TestCase):
+    def test_saves_bounded_per_map_gravity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = platformer_map_spec()
+            value["physics"]["gravityScale"] = 0.8
+
+            result = save_map_file("test.json", value, Path(directory))
+
+            self.assertEqual(result["map"]["physics"], {"gravityScale": 0.8})
+
+            value["physics"]["gravityScale"] = 0.25
+            with self.assertRaisesRegex(ValueError, "gravityScale must be a number from 0.5 to 2"):
+                save_map_file("test.json", value, Path(directory))
+
+    def test_saves_bounded_per_map_respawn_delay(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = platformer_map_spec()
+            value["rules"]["respawnDelaySeconds"] = 1.5
+
+            result = save_map_file("test.json", value, Path(directory))
+
+            self.assertEqual(result["map"]["rules"], {"respawnDelaySeconds": 1.5})
+
+            value["rules"]["respawnDelaySeconds"] = 0.25
+            with self.assertRaisesRegex(
+                ValueError,
+                "respawnDelaySeconds must be a number from 0.5 to 10",
+            ):
+                save_map_file("test.json", value, Path(directory))
+
     def test_lists_and_loads_platformer_maps_from_maps_directory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -219,11 +286,199 @@ class MapFileTests(unittest.TestCase):
                 save_map_file("../outside.json", platformer_map_spec(), root)
             self.assertFalse((root / "outside.json").exists())
 
-    def test_rejects_non_platformer_map_payload(self) -> None:
+    def test_saves_top_down_maze_map_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+
+            result = save_map_file("maze-test.json", value, Path(directory))
+
+            self.assertEqual(result["filename"], "maze-test.json")
+            self.assertEqual(load_map_file("maze-test.json", Path(directory)), value)
+
+    def test_saves_large_maze_with_bounded_camera(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["width"] = 256
+            value["height"] = 256
+            value["camera"] = {"columns": 24, "rows": 18}
+            value["tiles"] = [
+                "#" * 256 if y in {0, 255} else f"#{'.' * 254}#"
+                for y in range(256)
+            ]
+
+            result = save_map_file("maze-large.json", value, Path(directory))
+
+            self.assertEqual(result["map"]["width"], 256)
+            self.assertEqual(result["map"]["height"], 256)
+            self.assertEqual(result["map"]["camera"], {"columns": 24, "rows": 18})
+
+    def test_rejects_maze_camera_larger_than_map(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["camera"] = {"columns": 8, "rows": 5}
+
+            with self.assertRaisesRegex(ValueError, "camera cannot be larger than the maze"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_rejects_maze_larger_than_256_tiles(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["width"] = 257
+
+            with self.assertRaisesRegex(ValueError, "maze width must be an integer from 5 to 256"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_rejects_maze_without_required_escape_objects(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["objects"] = value["objects"][:2]
+            with self.assertRaisesRegex(ValueError, "exactly one key"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_rejects_unknown_maze_theme(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["presentation"]["mazeThemeId"] = "candy_maze_01"
+            with self.assertRaisesRegex(ValueError, "Green Hills, Space, Graveyard, or Dragon World"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_rejects_maze_with_disconnected_key(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["tiles"][4] = "#######"
+            with self.assertRaisesRegex(ValueError, "unreachable: key, exit"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_saves_bounded_maze_enemy_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            enemy = {
+                "id": "enemy_1",
+                "type": "enemy_spawn",
+                "x": 3,
+                "y": 3,
+                "assetId": "neutral_ghost_01",
+                "behavior": "chaser",
+                "direction": "down",
+                "speed": 70,
+                "detectionRadius": 240,
+                "contactDamage": 1,
+                "target": "nearest_player",
+            }
+            value["objects"].append(enemy)
+
+            save_map_file("maze-test.json", value, Path(directory))
+
+            self.assertEqual(load_map_file("maze-test.json", Path(directory))["objects"][-1], enemy)
+
+    def test_saves_maze_actor_speeds_and_peck_motion(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            for spawn in value["objects"][:2]:
+                spawn["motion"] = {
+                    "version": 1,
+                    "travel": {"type": "controlled"},
+                    "visual": {"type": "peck", "distanceTiles": 0.18, "periodMs": 900},
+                }
+            value["objects"].append({
+                "id": "enemy_1",
+                "type": "enemy_spawn",
+                "x": 3,
+                "y": 3,
+                "assetId": "neutral_ghost_01",
+                "behavior": "chaser",
+                "direction": "down",
+                "speed": 70,
+                "detectionRadius": 240,
+                "contactDamage": 1,
+                "target": "nearest_player",
+                "motion": {
+                    "version": 1,
+                    "travel": {"type": "behavior"},
+                    "visual": {"type": "peck", "distanceTiles": 0.18, "periodMs": 900},
+                },
+            })
+
+            result = save_map_file("maze-test.json", value, Path(directory))
+            self.assertEqual(result["map"]["objects"], value["objects"])
+
+            value["objects"][0]["speed"] = 481
+            with self.assertRaisesRegex(ValueError, "speed must be a number from 64 to 480"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_rejects_invalid_maze_enemy_behavior(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["objects"].append({
+                "id": "enemy_1",
+                "type": "enemy_spawn",
+                "x": 3,
+                "y": 3,
+                "assetId": "neutral_ghost_01",
+                "behavior": "shooter",
+                "direction": "down",
+                "speed": 70,
+                "contactDamage": 1,
+            })
+            with self.assertRaisesRegex(ValueError, "behavior must be chaser or wanderer"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_saves_maze_hazard_and_solid_obstacle_contracts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["objects"].extend([
+                {
+                    "id": "hazard_1",
+                    "type": "hazard",
+                    "x": 3,
+                    "y": 3,
+                    "assetId": "space_platformer_hazard_01",
+                    "effect": "damage",
+                    "damage": 1,
+                    "animationStartFrame": 1,
+                },
+                {
+                    "id": "obstacle_1",
+                    "type": "obstacle",
+                    "x": 3,
+                    "y": 5,
+                    "collision": "solid",
+                },
+            ])
+
+            save_map_file("maze-test.json", value, Path(directory))
+
+            saved = load_map_file("maze-test.json", Path(directory))
+            self.assertEqual(saved["objects"][-2:], value["objects"][-2:])
+
+    def test_rejects_non_solid_maze_obstacle(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["objects"].append({
+                "id": "obstacle_1",
+                "type": "obstacle",
+                "x": 3,
+                "y": 3,
+                "collision": "slow",
+            })
+            with self.assertRaisesRegex(ValueError, "collision must be solid"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_rejects_obstacles_that_disconnect_maze_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["objects"].extend([
+                {"id": "obstacle_1", "type": "obstacle", "x": 1, "y": 3, "collision": "solid"},
+                {"id": "obstacle_2", "type": "obstacle", "x": 5, "y": 3, "collision": "solid"},
+            ])
+            with self.assertRaisesRegex(ValueError, "around solid obstacles; unreachable: key, exit"):
+                save_map_file("maze-test.json", value, Path(directory))
+
+    def test_rejects_unsupported_map_runtime(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             value = platformer_map_spec()
-            value["runtime"] = "top_down_v1"
-            with self.assertRaisesRegex(ValueError, "platformer_v1"):
+            value["runtime"] = "runner_v1"
+            with self.assertRaisesRegex(ValueError, "platformer_v1 or top_down_v1"):
                 save_map_file("test.json", value, Path(directory))
 
     def test_rejects_unsupported_enemy_defeat_mode(self) -> None:
@@ -253,12 +508,27 @@ class MapFileTests(unittest.TestCase):
                     "role": "boss",
                     "hitsToDefeat": 7,
                     "defeatMode": "weapon",
+                    "viewMusicCue": "boss",
                 }
             ]
 
             result = save_map_file("test.json", value, Path(directory))
 
             self.assertEqual(result["map"]["objects"][0]["hitsToDefeat"], 7)
+            self.assertEqual(result["map"]["objects"][0]["viewMusicCue"], "boss")
+
+    def test_rejects_invalid_enemy_view_music_cue(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = platformer_map_spec()
+            value["objects"] = [{
+                "id": "enemy_1",
+                "type": "enemy_spawn",
+                "x": 12,
+                "y": 6,
+                "viewMusicCue": "Boss Theme!",
+            }]
+            with self.assertRaisesRegex(ValueError, "viewMusicCue must be a stable lowercase cue ID"):
+                save_map_file("test.json", value, Path(directory))
 
     def test_rejects_invalid_or_multiple_bosses(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -308,7 +578,83 @@ class MapFileTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "cooldownMs must be an integer from 250"):
                 save_map_file("test.json", value, Path(directory))
 
-    def test_accepts_bobbing_and_flyby_motion_specs(self) -> None:
+            value["objects"][0]["rangedAttack"]["cooldownMs"] = 2000
+            value["objects"][0]["rangedAttack"]["sizeScale"] = 3.5
+            with self.assertRaisesRegex(ValueError, "sizeScale must be a number from 0.5 to 3"):
+                save_map_file("test.json", value, Path(directory))
+
+    def test_accepts_bounded_lobbed_enemy_projectile_settings(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = platformer_map_spec()
+            value["objects"] = [
+                {
+                    "id": "boss_1",
+                    "type": "enemy_spawn",
+                    "x": 12,
+                    "y": 6,
+                    "role": "boss",
+                    "hitsToDefeat": 5,
+                    "rangedAttack": {
+                        "type": "lobbed_projectile",
+                        "projectileAssetId": "haunted_graveyard_flaming_pumpkin_01",
+                        "rangeTiles": 6,
+                        "cooldownMs": 2500,
+                        "arcHeightTiles": 3,
+                    },
+                }
+            ]
+
+            result = save_map_file("test.json", value, Path(directory))
+            self.assertEqual(
+                result["map"]["objects"][0]["rangedAttack"],
+                value["objects"][0]["rangedAttack"],
+            )
+
+            value["objects"][0]["rangedAttack"]["arcHeightTiles"] = 9
+            with self.assertRaisesRegex(ValueError, "arcHeightTiles must be a number from 0.5 to 8"):
+                save_map_file("test.json", value, Path(directory))
+
+    def test_accepts_bounded_continuous_laser_settings(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = platformer_map_spec()
+            value["objects"] = [
+                {
+                    "id": "boss_1",
+                    "type": "enemy_spawn",
+                    "x": 12,
+                    "y": 6,
+                    "role": "boss",
+                    "hitsToDefeat": 5,
+                    "rangedAttack": {
+                        "type": "laser_beam",
+                        "rangeTiles": 6,
+                        "cooldownMs": 3000,
+                        "chargeMs": 1000,
+                        "durationMs": 800,
+                    },
+                }
+            ]
+
+            result = save_map_file("test.json", value, Path(directory))
+            self.assertEqual(
+                result["map"]["objects"][0]["rangedAttack"],
+                value["objects"][0]["rangedAttack"],
+            )
+
+            value["objects"][0]["rangedAttack"]["durationMs"] = 3100
+            with self.assertRaisesRegex(ValueError, "durationMs must be an integer from 100 to 3000"):
+                save_map_file("test.json", value, Path(directory))
+
+            value["objects"][0]["rangedAttack"]["durationMs"] = 800
+            value["objects"][0]["rangedAttack"]["chargeMs"] = 3100
+            with self.assertRaisesRegex(ValueError, "chargeMs must be an integer from 250 to 3000"):
+                save_map_file("test.json", value, Path(directory))
+
+            value["objects"][0]["rangedAttack"]["chargeMs"] = 2500
+            with self.assertRaisesRegex(ValueError, "chargeMs plus durationMs cannot exceed cooldownMs"):
+                save_map_file("test.json", value, Path(directory))
+
+    def test_accepts_bobbing_ramming_and_flyby_motion_specs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             value = platformer_map_spec()
             value["objects"] = [
@@ -325,6 +671,23 @@ class MapFileTests(unittest.TestCase):
                             "heightTiles": 0.12,
                             "periodMs": 1600,
                         },
+                    },
+                },
+                {
+                    "id": "ramming_boss_1",
+                    "type": "enemy_spawn",
+                    "x": 4,
+                    "y": 4,
+                    "role": "boss",
+                    "hitsToDefeat": 5,
+                    "motion": {
+                        "version": 1,
+                        "travel": {
+                            "type": "ramming",
+                            "chargeDelayMs": 1000,
+                            "distanceTiles": 3,
+                        },
+                        "visual": {"type": "none"},
                     },
                 },
                 {
@@ -359,6 +722,56 @@ class MapFileTests(unittest.TestCase):
             result = save_map_file("test.json", value, Path(directory))
 
             self.assertEqual(result["map"]["objects"], value["objects"])
+
+    def test_accepts_bounded_actor_speeds_and_peck_motion(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = platformer_map_spec()
+            value["objects"] = [
+                {
+                    "id": "spawn_1",
+                    "type": "player_spawn",
+                    "x": 1,
+                    "y": 6,
+                    "speedPxPerSecond": 320,
+                    "motion": {
+                        "version": 1,
+                        "travel": {"type": "controlled"},
+                        "visual": {
+                            "type": "peck",
+                            "distanceTiles": 0.18,
+                            "periodMs": 900,
+                        },
+                    },
+                },
+                {
+                    "id": "enemy_1",
+                    "type": "enemy_spawn",
+                    "x": 4,
+                    "y": 6,
+                    "speedPxPerSecond": 48,
+                    "motion": {
+                        "version": 1,
+                        "travel": {"type": "behavior"},
+                        "visual": {
+                            "type": "peck",
+                            "distanceTiles": 0.18,
+                            "periodMs": 900,
+                        },
+                    },
+                },
+            ]
+
+            result = save_map_file("test.json", value, Path(directory))
+            self.assertEqual(result["map"]["objects"], value["objects"])
+
+            value["objects"][0]["speedPxPerSecond"] = 641
+            with self.assertRaisesRegex(ValueError, "speedPxPerSecond must be a number from 64 to 640"):
+                save_map_file("test.json", value, Path(directory))
+
+            value["objects"][0]["speedPxPerSecond"] = 320
+            value["objects"][1]["motion"]["visual"]["distanceTiles"] = 0.75
+            with self.assertRaisesRegex(ValueError, "peck distanceTiles must be a number from 0.05 to 0.5"):
+                save_map_file("test.json", value, Path(directory))
 
     def test_flying_objects_require_a_stable_sprite_asset_id(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -432,12 +845,270 @@ class MapFileTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "exitEdge must be opposite"):
                 save_map_file("test.json", value, Path(directory))
 
+            value["objects"] = [
+                {
+                    "id": "bad_ram",
+                    "type": "enemy_spawn",
+                    "x": 2,
+                    "y": 3,
+                    "motion": {
+                        "version": 1,
+                        "travel": {
+                            "type": "ramming",
+                            "chargeDelayMs": 50,
+                            "distanceTiles": 13,
+                        },
+                        "visual": {"type": "none"},
+                    },
+                }
+            ]
+            with self.assertRaisesRegex(ValueError, "chargeDelayMs must be an integer from 100"):
+                save_map_file("test.json", value, Path(directory))
+            value["objects"][0]["motion"]["travel"]["chargeDelayMs"] = 1000
+            with self.assertRaisesRegex(ValueError, "distanceTiles must be a number from 1 to 12"):
+                save_map_file("test.json", value, Path(directory))
+
     def test_rejects_invalid_game_over_effect_id(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             value = platformer_map_spec()
             value["presentation"]["gameOverEffectId"] = "Bad Game Over ID"
             with self.assertRaisesRegex(ValueError, "game-over effect must be a stable lowercase ID"):
                 save_map_file("test.json", value, Path(directory))
+
+
+class MazeMapEditorTests(unittest.TestCase):
+    def test_map_editors_expose_map_backed_actor_speed_and_peck_motion(self) -> None:
+        platformer_markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+        platformer_source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        maze_markup = (EDITOR_ROOT / "maze.html").read_text(encoding="utf-8")
+        maze_source = (EDITOR_ROOT / "maze-editor.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="map-character-speed-input"', platformer_markup)
+        self.assertIn('id="enemy-speed-input"', platformer_markup)
+        self.assertIn('<option value="peck">Peck and stutter</option>', platformer_markup)
+        self.assertIn("function updateHeroMapSettings(update)", platformer_source)
+        self.assertIn("speedPxPerSecond = value", platformer_source)
+        self.assertIn("visualMotionOffsetTiles", platformer_source)
+
+        self.assertIn('id="maze-character-speed-input"', maze_markup)
+        self.assertIn('id="maze-enemy-speed-input"', maze_markup)
+        self.assertIn('<option value="peck">Peck and stutter</option>', maze_markup)
+        self.assertIn("function updateHeroMapSettings(update)", maze_source)
+        self.assertIn("spawn.speed = value", maze_source)
+        self.assertIn("visualMotionOffsetTiles", maze_source)
+
+        platformer_map = load_map_file("level-1.json")
+        platformer_spawn = next(
+            item for item in platformer_map["objects"] if item["type"] == "player_spawn"
+        )
+        self.assertEqual(platformer_spawn["speedPxPerSecond"], 320)
+        self.assertEqual(platformer_spawn["motion"]["visual"]["type"], "peck")
+        maze_map = load_map_file("maze_green_hills_01.json")
+        maze_spawns = [
+            item for item in maze_map["objects"] if item["type"] == "player_spawn"
+        ]
+        self.assertEqual({item["speed"] for item in maze_spawns}, {224})
+        self.assertEqual({item["motion"]["visual"]["type"] for item in maze_spawns}, {"peck"})
+
+    def test_maze_editor_supports_unstyled_rendering_and_continuous_strokes(self) -> None:
+        markup = (EDITOR_ROOT / "maze.html").read_text(encoding="utf-8")
+        source = (EDITOR_ROOT / "maze-editor.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="maze-unstyled-mode-button"', markup)
+        self.assertIn('id="maze-sprite-mode-button"', markup)
+        self.assertIn('renderStyle: "sprites"', source)
+        self.assertIn('if (state.renderStyle !== "sprites") return false;', source)
+        self.assertIn("function rasterizeGridLine(start, end)", source)
+        self.assertIn("function applyDrawStroke(cell)", source)
+        self.assertIn("state.lastDrawCell = cell", source)
+        self.assertIn("applyDrawStroke(cell) || state.drawChanged", source)
+
+    def test_shared_hole_hazard_is_static_and_theme_neutral(self) -> None:
+        recipe = json.loads(
+            (GAME_ROOT / "sprite-specs/shared_hole_hazard_01.json").read_text(encoding="utf-8")
+        )
+
+        self.assertEqual(recipe["kind"], "hazard")
+        self.assertEqual(recipe["runtime"], "top_down_v1")
+        self.assertEqual(recipe["themeTags"], ["shared"])
+        self.assertEqual(recipe["visualSlot"], "hazard")
+        self.assertEqual(recipe["sheet"], {
+            "columns": 1, "rows": 1, "frameWidth": 64, "frameHeight": 64,
+        })
+        self.assertFalse(recipe["animation"]["loop"])
+
+    def test_checked_in_maze_is_valid_and_matches_the_hackyard_contract(self) -> None:
+        maze = load_map_file("maze_small_01.json")
+
+        self.assertEqual(maze["runtime"], "top_down_v1")
+        self.assertEqual(maze["tileSize"], 64)
+        self.assertEqual(maze["legend"], {"#": "solid_wall", ".": "floor"})
+        self.assertEqual(maze["presentation"]["mazeThemeId"], "neutral_green_hills_maze_01")
+        self.assertEqual(maze["presentation"]["victoryEffectId"], "shared_victory_burst_01")
+        self.assertEqual(
+            [item["slot"] for item in maze["objects"] if item["type"] == "player_spawn"],
+            [1, 2],
+        )
+        self.assertEqual(
+            [item["id"] for item in maze["objects"] if item["type"] == "key"],
+            ["key_1"],
+        )
+        self.assertEqual(
+            [item["requires"] for item in maze["objects"] if item["type"] == "exit"],
+            ["key_1"],
+        )
+        self.assertEqual(
+            [item["assetId"] for item in maze["objects"] if item["type"] == "enemy_spawn"],
+            ["neutral_ghost_01"],
+        )
+        self.assertEqual(
+            [item["effect"] for item in maze["objects"] if item["type"] == "hazard"],
+            ["damage"],
+        )
+        hazard = next(item for item in maze["objects"] if item["type"] == "hazard")
+        self.assertEqual(maze["tiles"][hazard["y"]][hazard["x"] - 1:hazard["x"] + 2], "...")
+        self.assertEqual(
+            [item["collision"] for item in maze["objects"] if item["type"] == "obstacle"],
+            ["solid"],
+        )
+
+        expected_themes = {
+            "maze_green_hills_01.json": "neutral_green_hills_maze_01",
+            "maze_space_01.json": "space_maze_01",
+            "maze_graveyard_01.json": "haunted_graveyard_maze_01",
+            "maze_dragon_world_01.json": "dragons_emberkeep_maze_01",
+        }
+        for filename, theme_id in expected_themes.items():
+            presentation = load_map_file(filename)["presentation"]
+            self.assertEqual(presentation["mazeThemeId"], theme_id)
+            self.assertEqual(presentation["victoryEffectId"], "shared_victory_burst_01")
+
+    def test_maze_editor_exposes_semantic_tools_and_project_file_workflow(self) -> None:
+        markup = (EDITOR_ROOT / "maze.html").read_text(encoding="utf-8")
+        source = (EDITOR_ROOT / "maze-editor.js").read_text(encoding="utf-8")
+        index_markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+        server_source = (EDITOR_ROOT / "server.py").read_text(encoding="utf-8")
+        platformer_source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        canonical_map_source = source[
+            source.index("function canonicalMap"):source.index("function snapshot")
+        ]
+
+        self.assertIn('href="/maze.html">Maze Map Editor</a>', index_markup)
+        self.assertIn('aria-current="page">Maze Map Editor</a>', markup)
+        for tool in (
+            "select", "wall", "floor", "erase", "player_spawn", "key", "exit",
+            "enemy_spawn", "hazard", "obstacle",
+        ):
+            self.assertIn(f'data-maze-tool="{tool}"', markup)
+        self.assertIn('id="maze-character-select"', markup)
+        self.assertIn('id="maze-enemy-character-select"', markup)
+        self.assertIn('id="maze-enemy-behavior-select"', markup)
+        self.assertIn('id="maze-hazard-asset-select"', markup)
+        self.assertIn('id="maze-theme-select"', markup)
+        self.assertIn('id="maze-play-pause-button"', markup)
+        self.assertIn('data-maze-tool="move"', markup)
+        self.assertIn('id="maze-complete-map-tab"', markup)
+        self.assertIn('id="maze-gameplay-map-tab"', markup)
+        self.assertIn('id="maze-view-range"', markup)
+        self.assertIn('id="maze-view-up-button"', markup)
+        self.assertIn('id="maze-view-down-button"', markup)
+        self.assertIn('id="maze-camera-width-input"', markup)
+        self.assertIn('id="maze-camera-height-input"', markup)
+        self.assertIn('id="maze-preview-reset-button"', markup)
+        self.assertIn('id="maze-jump-button"', markup)
+        self.assertIn('aria-label="Space bar: jump over a hazard or enemy"', markup)
+        self.assertIn("Space · Jump", markup)
+        self.assertIn("Press Space to jump forward", markup)
+        self.assertIn('id="maze-audio-pack-select"', markup)
+        self.assertIn('id="maze-play-music"', markup)
+        self.assertIn('id="maze-stop-music"', markup)
+        self.assertIn('class="tool-swatch swatch-maze-obstacle"', markup)
+        self.assertIn('id="maze-project-file-select"', markup)
+        self.assertIn('id="maze-open-button"', markup)
+        self.assertIn('id="maze-save-button"', markup)
+        self.assertIn('id="maze-import-button"', markup)
+        self.assertIn('id="maze-export-button"', markup)
+        self.assertIn('runtime: "top_down_v1"', source)
+        self.assertIn('fetch("/api/maps"', source)
+        self.assertIn('method: "POST"', source)
+        self.assertIn("function reachableFloor(start)", source)
+        self.assertIn("CHARACTER_PREVIEW_STORAGE_KEY", source)
+        self.assertIn("function loadCharacterCatalog()", source)
+        self.assertIn("function drawActor(", source)
+        self.assertIn("function drawHazard(", source)
+        self.assertIn('const DEFAULT_HAZARD_ID = "shared_hole_hazard_01";', source)
+        self.assertIn("function drawMazeSprite(", source)
+        self.assertIn("function wallMaskAt(", source)
+        self.assertIn("function updateEscapePreview(", source)
+        self.assertIn("function escapeDoorFrame(", source)
+        self.assertIn("function stepPreviewSimulation()", source)
+        self.assertIn("function previewCameraTarget()", source)
+        self.assertIn("function stepPreviewCamera()", source)
+        self.assertIn("function activeCameraOrigin()", source)
+        self.assertIn("function renderGameplayViewControls()", source)
+        self.assertIn("function releasePreviewCamera()", source)
+        self.assertIn("const MAX_MAZE_COLUMNS = 256;", source)
+        self.assertIn("const MAX_MAZE_ROWS = 256;", source)
+        self.assertIn('elements.canvas.classList.toggle("move-tool", state.tool === "move")', source)
+        self.assertIn("function stepPreviewEnemy(", source)
+        self.assertIn("function startPreviewDeath(", source)
+        self.assertIn("function stepPreviewDeathLifecycle()", source)
+        self.assertIn("function activePlayerDeathVisual()", source)
+        self.assertIn('state.eventSheetImages.get(`${character.id}:defeated`)', source)
+        self.assertIn('playGameplayCue("player_death")', source)
+        self.assertIn("function startPreviewJump(", source)
+        self.assertIn('completionMessage: jumpBlocked ? "Jump blocked." : "Landed safely."', source)
+        self.assertIn('endX: jumpBlocked ? player.x : landingX', source)
+        self.assertIn('"Jumping forward."', source)
+        self.assertIn("targetEnemyId", source)
+        self.assertIn("function defeatPreviewEnemy(", source)
+        self.assertIn("const STOMP_RADIUS_TILES = 0.86;", source)
+        self.assertIn("const STOMP_FORWARD_REACH_TILES = 1.5;", source)
+        self.assertIn("const STOMP_LATERAL_GRACE_TILES = 0.72;", source)
+        self.assertIn("const STOMP_LANDING_GRACE_MILLISECONDS = 260;", source)
+        self.assertIn("function defeatEnemiesNearJump(player)", source)
+        self.assertIn("progress >= 0.16", source)
+        self.assertIn("simulation.elapsedMilliseconds <= player.stompGraceUntil", source)
+        self.assertIn("enemyId !== targetEnemy?.id", source)
+        self.assertIn('playGameplayCue("enemy_defeat")', source)
+        self.assertIn("function activePlayerJumpScale()", source)
+        self.assertIn("Math.sin(Math.PI * progress) * 0.1", source)
+        self.assertIn('event.code === "Space"', source)
+        self.assertNotIn('event.key === "a" || event.key === "A"', source)
+        self.assertIn("function isFormEntryTarget(target)", source)
+        self.assertIn("document.addEventListener(\"keyup\"", source)
+        self.assertNotIn('a: "left"', source)
+        self.assertIn("function drawVictoryEffect(", source)
+        self.assertIn('fetch("/api/audio-packs"', source)
+        self.assertIn('import("/runtime/audio-engine.js")', source)
+        self.assertIn('const DEFAULT_VICTORY_EFFECT_ID = "shared_victory_burst_01";', source)
+        self.assertIn('sprite.kind === "effect" && sprite.visualSlot === "victory"', source)
+        self.assertIn("object.requires === state.escapePreview.collectedKeyId", source)
+        self.assertIn("state.escapePreview.doorOpenedAt = time", source)
+        self.assertIn("return Math.min(doorFrames - 1", source)
+        self.assertNotIn("Math.floor(time / (1000 / doorFps)) % doorFrames", source)
+        self.assertNotIn("escapePreview", canonical_map_source)
+        self.assertNotIn("previewSimulation", canonical_map_source)
+        self.assertNotIn("audioPreview", canonical_map_source)
+        self.assertIn('visualSlot)', source)
+        for theme_id in (
+            "neutral_green_hills_maze_01", "space_maze_01",
+            "haunted_graveyard_maze_01", "dragons_emberkeep_maze_01",
+        ):
+            self.assertIn(theme_id, source)
+        self.assertIn('sprite.kind === "hazard"', source)
+        self.assertIn('behavior: "chaser"', source)
+        self.assertIn('.filter((mapFile) => mapFile.runtime === "top_down_v1")', source)
+        self.assertIn('.filter((mapFile) => mapFile.runtime === "platformer_v1")', platformer_source)
+        self.assertIn('if path == "/maze.html":', server_source)
+        self.assertIn('"/maze-editor.js",', server_source)
+
+    def test_maze_server_rejects_invalid_victory_effect_id(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = maze_map_spec()
+            value["presentation"]["victoryEffectId"] = "Bad Victory ID"
+            with self.assertRaisesRegex(ValueError, "maze victory effect must be a stable lowercase ID"):
+                save_map_file("maze_test.json", value, Path(directory))
 
 
 class SpriteViewerCatalogTests(unittest.TestCase):
@@ -1027,6 +1698,48 @@ class SpriteViewerCatalogTests(unittest.TestCase):
 
 
 class PlatformerMapEditorAssetTests(unittest.TestCase):
+    def test_map_gravity_is_editable_persisted_and_previewed(self) -> None:
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+
+        self.assertIn('id="map-gravity-input"', markup)
+        self.assertIn('id="map-gravity-output"', markup)
+        self.assertIn('aria-label="Gravity percentage"', markup)
+        self.assertIn("gravityScale: map.gravityScale", source)
+        self.assertIn("value.physics?.gravityScale ?? DEFAULT_GRAVITY_SCALE", source)
+        self.assertIn("simulation.gravityScale = state.map.gravityScale", source)
+        self.assertIn("state.previewSimulation.gravityScale = state.map.gravityScale", source)
+        self.assertIn("PLAYER_GRAVITY_TILES_PER_SECOND_SQUARED\n        * simulation.gravityScale", source)
+        self.assertIn("state.previewSimulation.gravityScale * 100", source)
+        self.assertIn("Changes apply immediately in the gameplay preview.", markup)
+
+        for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json"):
+            map_spec = json.loads((GAME_ROOT / "maps" / filename).read_text(encoding="utf-8"))
+            expected = 0.8 if filename == "level-2.json" else 1
+            self.assertEqual(map_spec["physics"]["gravityScale"], expected, filename)
+
+    def test_respawn_delay_is_editable_persisted_and_previewed(self) -> None:
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+
+        self.assertIn('id="map-respawn-delay-input"', markup)
+        self.assertIn('id="map-respawn-delay-output"', markup)
+        self.assertIn('aria-label="Respawn delay in seconds"', markup)
+        self.assertIn("respawnDelaySeconds: map.respawnDelaySeconds", source)
+        self.assertIn(
+            "value.rules?.respawnDelaySeconds ?? DEFAULT_RESPAWN_DELAY_SECONDS",
+            source,
+        )
+        self.assertIn(
+            "Math.max(duration, state.map.respawnDelaySeconds * 1000)",
+            source,
+        )
+        self.assertIn("respawnDelayEditSnapshot = snapshot()", source)
+
+        for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json"):
+            map_spec = json.loads((GAME_ROOT / "maps" / filename).read_text(encoding="utf-8"))
+            self.assertEqual(map_spec["rules"]["respawnDelaySeconds"], 2, filename)
+
     def test_background_catalog_exposes_validated_platformer_layers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -1145,6 +1858,8 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
 
         for map_path in map_paths:
             map_spec = json.loads(map_path.read_text(encoding="utf-8"))
+            if map_spec["runtime"] != "platformer_v1":
+                continue
             self.assertEqual(
                 map_spec["presentation"]["gameOverEffectId"],
                 "shared_game_over_01",
@@ -1514,6 +2229,114 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
             source,
         )
 
+    def test_graveyard_boss_lobs_recipe_backed_flaming_pumpkins_in_preview(self) -> None:
+        map_spec = json.loads(
+            (GAME_ROOT / "maps/level-3.json").read_text(encoding="utf-8")
+        )
+        boss = next(item for item in map_spec["objects"] if item["id"] == "boss_1")
+        self.assertEqual(
+            boss["rangedAttack"],
+            {
+                "type": "lobbed_projectile",
+                "projectileAssetId": "haunted_graveyard_flaming_pumpkin_01",
+                "rangeTiles": 6,
+                "cooldownMs": 2500,
+                "arcHeightTiles": 3,
+            },
+        )
+
+        recipe = json.loads(
+            (
+                GAME_ROOT
+                / "sprite-specs/haunted_graveyard_flaming_pumpkin_01.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(recipe["kind"], "projectile")
+        self.assertEqual(recipe["runtime"], "platformer_v1")
+        self.assertEqual(
+            recipe["sheet"],
+            {"columns": 2, "rows": 2, "frameWidth": 64, "frameHeight": 64},
+        )
+        with Image.open(
+            GAME_ROOT / "sprite-build/haunted_graveyard_flaming_pumpkin_01.png"
+        ) as candidate:
+            self.assertEqual(candidate.size, (128, 128))
+            self.assertEqual(candidate.mode, "RGBA")
+            self.assertEqual(candidate.getchannel("A").getextrema()[0], 0)
+
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="enemy-projectile-arc-input"', markup)
+        self.assertIn("function characterInsideLobbedProjectileRange", source)
+        self.assertIn("function spawnEnemyLobbedProjectile", source)
+        self.assertIn(
+            "projectile.y = straightY - 4 * projectile.arcHeightTiles * progress * (1 - progress);",
+            source,
+        )
+
+    def test_orbital_sentinel_fires_a_continuous_chest_laser_in_preview(self) -> None:
+        map_spec = json.loads(
+            (GAME_ROOT / "maps/level-2.json").read_text(encoding="utf-8")
+        )
+        boss = next(item for item in map_spec["objects"] if item["id"] == "boss_1")
+        self.assertEqual(boss["assetId"], "space_boss_01")
+        self.assertEqual(
+            boss["rangedAttack"],
+            {
+                "type": "laser_beam",
+                "rangeTiles": 6,
+                "cooldownMs": 3000,
+                "chargeMs": 1000,
+                "durationMs": 800,
+            },
+        )
+
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="enemy-laser-charge-input"', markup)
+        self.assertIn('id="enemy-laser-duration-input"', markup)
+        self.assertIn("LASER_CHARGE_FRAME_COUNT = 6", source)
+        self.assertIn("function characterInsideLaserBeamRange", source)
+        self.assertIn("function spawnEnemyLaserBeam", source)
+        self.assertIn("function resolvePreviewLaserEndX", source)
+        self.assertIn("const laserIsCharging", source)
+        self.assertIn("context.lineTo(beamEndX, beamStartY);", source)
+
+    def test_cindermaw_fires_double_sized_fireballs_in_preview(self) -> None:
+        map_spec = json.loads(
+            (GAME_ROOT / "maps/level-4.json").read_text(encoding="utf-8")
+        )
+        boss = next(item for item in map_spec["objects"] if item["id"] == "boss_1")
+        self.assertEqual(boss["assetId"], "dragons_emberkeep_boss_01")
+        self.assertEqual(
+            boss["rangedAttack"],
+            {
+                "type": "fireball",
+                "projectileAssetId": "dragons_emberkeep_fireball_01",
+                "rangeTiles": 6,
+                "cooldownMs": 2000,
+                "sizeScale": 2,
+            },
+        )
+
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="enemy-fireball-size-input"', markup)
+        self.assertIn('CINDERMAW_CHARACTER_ID = "dragons_emberkeep_boss_01"', source)
+        self.assertIn("CINDERMAW_FIREBALL_SIZE_SCALE = 2", source)
+        self.assertIn(
+            "const defaultRangedAttack = defaultRangedAttackForAsset(assetId);",
+            source,
+        )
+        self.assertIn(
+            "normalized.rangedAttack = defaultRangedAttack;",
+            source,
+        )
+        self.assertIn("function fireballLaunchPoint(enemy, preview)", source)
+        self.assertIn("sizeScale: attack.sizeScale ?? DEFAULT_FIREBALL_SIZE_SCALE", source)
+        self.assertIn("const projectileSize = cellSize", source)
+        self.assertIn("* (projectile.sizeScale ?? DEFAULT_FIREBALL_SIZE_SCALE);", source)
+
     def test_selected_map_objects_and_terrain_can_be_dragged_in_either_map_view(self) -> None:
         root = GAME_ROOT
         source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
@@ -1682,6 +2505,31 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn('Place the lives counter in the gameplay HUD.', source)
         self.assertIn('Place the coins counter in the gameplay HUD.', source)
 
+    def test_platformer_extra_lives_are_placeable_shared_pickups(self) -> None:
+        root = GAME_ROOT
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+        styles = (EDITOR_ROOT / "styles.css").read_text(encoding="utf-8")
+
+        self.assertIn('data-map-tool="extra_life"', markup)
+        self.assertIn('extra_life: "Extra life"', source)
+        self.assertIn('extra_life: "extra_life"', source)
+        self.assertIn('object.type === "extra_life"', source)
+        self.assertIn("simulation.livesRemaining += 1", source)
+        self.assertIn("EXTRA_LIFE_FADE_MILLISECONDS = 400", source)
+        self.assertIn("extraLifeCollectedAtMilliseconds", source)
+        self.assertIn("function drawExtraLifeFireworks", source)
+        self.assertIn("state.victoryEffects.get(DEFAULT_VICTORY_EFFECT_ID)", source)
+        self.assertIn("drawExtraLifeFireworks(startX, startY, cellSize)", source)
+        self.assertIn("space_platformer_hud_lives_01/image", styles)
+
+        for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json"):
+            map_spec = json.loads((root / "maps" / filename).read_text(encoding="utf-8"))
+            extra_lives = [
+                item for item in map_spec["objects"] if item["type"] == "extra_life"
+            ]
+            self.assertEqual(len(extra_lives), 1, filename)
+
     def test_first_platformer_map_has_semantic_enemy_behaviors(self) -> None:
         root = GAME_ROOT
         map_spec = json.loads((root / "maps/level-1.json").read_text(encoding="utf-8"))
@@ -1714,11 +2562,17 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn('id="enemy-character-select"', markup)
         self.assertIn('id="enemy-role-select"', markup)
         self.assertIn('<option value="boss">Boss</option>', markup)
+        self.assertIn('id="enemy-view-music-select"', markup)
+        self.assertIn("Music while in view", markup)
         self.assertIn('id="enemy-hits-to-defeat-input"', markup)
         self.assertIn('id="enemy-behavior-select"', markup)
         self.assertIn('id="motion-settings-panel"', markup)
         self.assertIn('id="motion-travel-select"', markup)
+        self.assertIn('<option value="ramming">Ramming charge</option>', markup)
+        self.assertIn('id="motion-ramming-delay-input"', markup)
+        self.assertIn('id="motion-ramming-distance-input"', markup)
         self.assertIn('<option value="viewport_arc">Fly-by arc</option>', markup)
+        self.assertIn("function stepRamming(enemy, preview, travel)", source)
         self.assertIn('id="motion-visual-select"', markup)
         self.assertIn('<option value="bob">Bob up and down</option>', markup)
         self.assertIn('id="map-character-visual-motion"', markup)
@@ -1786,6 +2640,7 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("normalized.pointValue = integerField", source)
         self.assertIn("normalized.defeatMode = normalizeEnemyDefeatMode", source)
         self.assertIn("normalized.role = normalizeEnemyRole", source)
+        self.assertIn("normalized.viewMusicCue = viewMusicCue", source)
         self.assertIn("normalized.hitsToDefeat = integerField", source)
         self.assertIn("normalized.viewLeftTiles = integerField", source)
         self.assertIn("normalized.viewRightTiles = integerField", source)
@@ -1798,11 +2653,27 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("stepFlybyMotions();", source)
         self.assertIn("visualMotionOffsetTiles", source)
 
+    def test_ramming_motion_controls_and_preview_runtime_are_available(self) -> None:
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+
+        self.assertIn('<option value="ramming">Ramming charge</option>', markup)
+        self.assertIn('id="motion-ramming-delay-input"', markup)
+        self.assertIn('id="motion-ramming-distance-input"', markup)
+        self.assertIn('"ramming", "viewport_arc"', source)
+        self.assertIn("function defaultRammingTravel()", source)
+        self.assertIn("function characterIsInRammingView(enemy, preview)", source)
+        self.assertIn("function stepRamming(enemy, preview, travel)", source)
+        self.assertIn('preview.ramPhase = "windup"', source)
+        self.assertIn("RAMMING_SPEED_TILES_PER_SECOND", source)
+
     def test_every_checked_in_ghost_enemy_uses_bobbing_motion(self) -> None:
         root = GAME_ROOT
         ghosts = []
         for path in (root / "maps").glob("*.json"):
             map_spec = json.loads(path.read_text(encoding="utf-8"))
+            if map_spec["runtime"] != "platformer_v1":
+                continue
             ghosts.extend(
                 item
                 for item in map_spec["objects"]
@@ -1839,6 +2710,7 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
             source,
         )
         self.assertIn("function preferredEnemySpriteId(role)", source)
+        self.assertIn('object.viewMusicCue = DEFAULT_BOSS_VIEW_MUSIC_CUE', source)
         self.assertIn("state.map.backgroundId.includes(theme)", source)
         self.assertIn("function objectLabel(object)", source)
         self.assertIn('object.role === "boss"', source)
@@ -1914,7 +2786,11 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("function stepCharacterSimulation()", source)
         self.assertIn("function stepPreviewCamera()", source)
         self.assertIn("function stepPreviewObjectEvents()", source)
-        self.assertIn("function faceBossTowardPlayer(enemy, preview)", source)
+        self.assertNotIn("function faceBossTowardPlayer(enemy, preview)", source)
+        self.assertNotIn('if (enemy.role !== "boss") preview.direction', source)
+        self.assertIn("elements.enemyDirection.disabled = false", source)
+        self.assertIn('preview.movementDirection = "right";\n      preview.direction = "right";', source)
+        self.assertIn('preview.movementDirection = "left";\n      preview.direction = "left";', source)
         self.assertIn("function stepBossDefeatLifecycle()", source)
         self.assertIn("stepBossDefeatLifecycle();", source)
         self.assertIn('enemy.role === "boss" ? 1 : damage', source)
@@ -1987,6 +2863,14 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("enemy.speedPxPerSecond / TILE_SIZE", source)
         self.assertIn("stepPatroller(enemy, preview, distanceTiles)", source)
         self.assertIn("stepChaser(enemy, preview, distanceTiles)", source)
+        self.assertIn("Patrol and view area", markup)
+        step_chaser_source = source[
+            source.index("function stepChaser"):
+            source.index("function characterIsInRammingView")
+        ]
+        self.assertIn("stepPatroller(", step_chaser_source)
+        self.assertIn("enemy.viewLeftTiles", step_chaser_source)
+        self.assertIn("enemy.viewRightTiles", step_chaser_source)
         self.assertIn("const character = activeCharacterPreview()", source)
         self.assertIn("const targetX = character.x - 0.5", source)
         self.assertIn("targetY >= enemy.y", source)
@@ -2060,6 +2944,10 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         )
         self.assertIn("if (bossHitReactionActive(preview))", source)
         self.assertIn("function bossHitReactionAlpha(", source)
+        self.assertIn("function turnBossTowardAttackerIfHitFromBehind(", source)
+        self.assertIn("turnBossTowardAttackerIfHitFromBehind(preview, character, bossCenterX)", source)
+        self.assertIn("preview.direction = attackerDirection", source)
+        self.assertIn("preview.movementDirection = attackerDirection", source)
         self.assertIn(
             "context.globalAlpha *= bossHitReactionAlpha(object, preview)",
             source,
@@ -2078,9 +2966,11 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
             ["dragons_emberkeep_v1", "space_basic_v1"],
         )
         self.assertIn("dragons_emberkeep_v1:music:gameplay", audio_paths)
+        self.assertIn("dragons_emberkeep_v1:music:boss", audio_paths)
         self.assertIn("dragons_emberkeep_v1:effect:goal", audio_paths)
         self.assertIn("dragons_emberkeep_v1:effect:fire", audio_paths)
         self.assertIn("space_basic_v1:music:gameplay", audio_paths)
+        self.assertIn("space_basic_v1:music:boss", audio_paths)
         self.assertIn("space_basic_v1:effect:jump", audio_paths)
         self.assertIn("space_basic_v1:effect:fire", audio_paths)
         self.assertIn('id="map-play-music"', markup)
@@ -2088,6 +2978,9 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn('id="map-effect-buttons"', markup)
         self.assertIn('fetch("/api/audio-packs"', source)
         self.assertIn('import("/runtime/audio-engine.js")', source)
+        self.assertIn("function syncEnemyViewMusic()", source)
+        self.assertIn("function visibleEnemyViewMusicCue()", source)
+        self.assertIn("audio.startMusic(desiredCue)", source)
         self.assertIn("function toggleSelectedGameplayMusic()", source)
         self.assertIn('path == "/api/audio-packs"', server)
 

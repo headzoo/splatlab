@@ -1,0 +1,8 @@
+{
+  "assetId": "space_maze_wall_01",
+  "approvedAt": "2026-09-12T03:07:32.521203+00:00",
+  "recipe": "sprite-specs/space_maze_wall_01.json",
+  "runtimeImage": "sprites/space_maze_wall_01.png",
+  "sha256": "55e0f5b8f220ff633fbc0f716d94ecd4aecbc956fafbc3aa19acc13afa965c23",
+  "validationReport": "sprite-reports/space_maze_wall_01/space_maze_wall_01-report.json"
+}

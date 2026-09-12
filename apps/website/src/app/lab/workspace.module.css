@@ -1,0 +1,936 @@
+.page {
+  position: relative;
+  min-height: 100svh;
+  padding-bottom: 18px;
+  overflow: hidden;
+  color: #081748;
+  background-color: #36b9ed;
+  background-image:
+    linear-gradient(rgb(42 178 235 / 7%), rgb(19 127 192 / 3%)),
+    url("/brand/homepage/hero-background.png");
+  background-position: center center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+.page::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    rgb(11 139 206 / 8%),
+    transparent 25% 75%,
+    rgb(11 139 206 / 7%)
+  );
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 48px, 1280px);
+  margin: -150px auto 0;
+}
+
+.welcome {
+  position: relative;
+  height: 380px;
+}
+
+.welcomeCopy {
+  position: absolute;
+  top: 209px;
+  right: 25%;
+  left: 25%;
+  z-index: 2;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 3px 0 rgb(26 86 151 / 17%);
+}
+
+.welcomeCopy > span,
+.sectionHeading span,
+.keyCopy > span,
+.dialogKicker {
+  color: #ffd42f;
+  font: 400 19px/1 "Chewy", cursive;
+}
+
+.welcome h1 {
+  margin-top: 6px;
+  font: 400 clamp(50px, 4.3vw, 66px)/0.98 "Chewy", cursive;
+  letter-spacing: 0;
+}
+
+.welcome p {
+  margin-top: 13px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.heroCharacter {
+  position: absolute;
+  top: 0;
+  left: -105px;
+  z-index: 1;
+  width: 500px;
+  height: 380px;
+  pointer-events: none;
+}
+
+.speechBubble {
+  position: absolute;
+  top: 165px;
+  left: 0;
+  width: 205px;
+  height: 162px;
+  overflow: visible;
+  color: #081748;
+  text-align: center;
+  transform: rotate(-2deg);
+}
+
+.speechBubbleShape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 8px 8px rgb(20 84 132 / 12%));
+  transform: scaleX(-1);
+}
+
+.speechBubbleShape path {
+  fill: #fff;
+  stroke: #081748;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+}
+
+.speechBubbleCopy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 129px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 17px 25px 9px;
+  font: 400 21px/0.98 "Chewy", cursive;
+}
+
+.speechBubbleCopy strong {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.speechBubbleSmile {
+  margin-top: 5px;
+  color: #31549c;
+  font: 400 20px/1 Arial, sans-serif;
+}
+
+.cooper {
+  position: absolute;
+  top: 135px;
+  left: 138px;
+  width: 355px;
+  height: auto;
+  filter: drop-shadow(0 12px 8px rgb(19 78 117 / 16%));
+}
+
+.games,
+.labKeyPanel,
+.pageError {
+  width: 100%;
+}
+
+.games {
+  position: relative;
+  z-index: 3;
+  min-height: 330px;
+  padding: 17px 32px 20px;
+  background: rgb(255 255 255 / 96%);
+  border: 3px solid #46baf0;
+  border-radius: 24px;
+  box-shadow:
+    0 8px 0 rgb(20 115 169 / 12%),
+    0 18px 35px rgb(25 108 156 / 14%);
+}
+
+.sectionHeading {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #d8e1ec;
+}
+
+.sectionHeading span {
+  color: #f13d28;
+}
+
+.sectionHeading h2,
+.labKeyPanel h2,
+.emptyState h3,
+.confirmDialog h2,
+.keyDialog h2 {
+  font-family: "Chewy", cursive;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.sectionHeading h2,
+.labKeyPanel h2 {
+  margin-top: 2px;
+  font-size: 38px;
+  line-height: 0.95;
+}
+
+.createButton,
+.keyButton,
+.replaceButton,
+.savedButton {
+  min-height: 56px;
+  padding: 0 30px;
+  color: #0d1b4e;
+  background: linear-gradient(#ffdc37, #ffca24);
+  border: 2px solid #efa90e;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 rgb(204 137 0 / 20%);
+  font: 400 22px/1 "Chewy", cursive;
+  cursor: pointer;
+}
+
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 252px;
+  gap: 8px;
+}
+
+.createButton span {
+  color: #12265d;
+  font-family: Arial, sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.createButton:disabled {
+  cursor: not-allowed;
+}
+
+.emptyState {
+  position: relative;
+  display: grid;
+  min-height: 205px;
+  grid-template-columns: 1fr 1.45fr 1fr;
+  align-items: center;
+  margin-top: 14px;
+  padding: 18px 70px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 75%);
+  border: 2px dashed #adc2dd;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.emptyMessage {
+  position: relative;
+  z-index: 2;
+}
+
+.emptyGlyph {
+  display: block;
+  color: #8b51ec;
+  font-size: 47px;
+  line-height: 0.8;
+}
+
+.emptyState h3 {
+  margin-top: 13px;
+  font-size: 30px;
+}
+
+.emptyState p {
+  margin-top: 11px;
+  color: #53678d;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.savedGamesState {
+  display: block;
+  padding: 20px;
+  text-align: left;
+}
+
+.gameGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.gameCard {
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+  background: #fff;
+  border: 2px solid #b9cce2;
+  border-radius: 14px;
+  box-shadow: 0 4px 0 rgb(34 86 137 / 10%);
+}
+
+.gameCardBody {
+  display: grid;
+  min-height: 104px;
+  grid-template-columns: 50px minmax(0, 1fr);
+  align-content: center;
+  align-items: center;
+  gap: 6px 11px;
+  padding: 18px 42px 10px 18px;
+  color: #0d214f;
+}
+
+.gameCardIcon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  grid-row: 1 / 3;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, #4a72d0, #704bc3);
+  border-radius: 12px;
+  font-size: 27px;
+}
+
+.gameCardBody strong {
+  overflow: hidden;
+  font: 400 19px/1.05 "Chewy", cursive;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gameCardActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.gameCardButton {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+  border-radius: 9px;
+  font: 900 12px/1 "Nunito", sans-serif;
+}
+
+.gameCardPlay {
+  color: #fff;
+  background: #24a846;
+  border-color: #188638;
+}
+
+.gameCardPlay:hover {
+  background: #188f3a;
+}
+
+.gameCardEdit {
+  color: #204b91;
+  background: #edf5ff;
+  border-color: #9cb9dc;
+}
+
+.gameCardEdit:hover {
+  background: #dcecff;
+  border-color: #6d98ca;
+}
+
+.gameCardMeta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  color: #3155a3;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.gameCardMeta small {
+  overflow: hidden;
+  color: #7182a0;
+  font-size: 9px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gameMenu {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 3;
+}
+
+.gameMenu summary {
+  display: grid;
+  width: 34px;
+  height: 32px;
+  place-items: center;
+  color: #345184;
+  background: #edf4fb;
+  border: 1px solid #cad9e9;
+  border-radius: 9px;
+  font: 900 14px/1 Arial, sans-serif;
+  letter-spacing: -1px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.gameMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.gameMenu > div {
+  position: absolute;
+  top: 37px;
+  right: 0;
+  min-width: 112px;
+  padding: 5px;
+  background: #fff;
+  border: 1px solid #bdcce0;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgb(10 33 73 / 18%);
+}
+
+.gameMenu button {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 12px;
+  color: #b62a21;
+  background: #fff4f1;
+  border: 0;
+  border-radius: 7px;
+  font: 900 12px/1 "Nunito", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gameMenu button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.emptyDoodleLeft,
+.emptyDoodleRight {
+  position: relative;
+  height: 154px;
+  color: #9db4d4;
+  opacity: 0.66;
+}
+
+.emptyDoodleLeft img {
+  position: absolute;
+  bottom: -38px;
+  left: 57px;
+  width: 138px;
+  height: auto;
+  filter: grayscale(1) sepia(0.2) hue-rotate(170deg);
+  opacity: 0.6;
+}
+
+.emptyDoodleLeft > span {
+  position: absolute;
+  top: 25px;
+  left: 5px;
+  z-index: 2;
+  padding: 7px;
+  border: 2px solid currentcolor;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  transform: rotate(-8deg);
+}
+
+.emptyDoodleRight {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transform: rotate(-8deg);
+}
+
+.emptyDoodleRight .bulb {
+  width: 72px;
+  height: 88px;
+  overflow: visible;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3px;
+}
+
+.emptyDoodleRight strong {
+  font-size: 17px;
+  line-height: 1.18;
+  text-align: left;
+}
+
+.labKeyPanel {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  min-height: 188px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+  align-items: center;
+  gap: 28px;
+  margin-top: 17px;
+  padding: 20px 35px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 50% 0, rgb(48 93 151 / 35%), transparent 56%),
+    linear-gradient(120deg, #143963, #0b294d 75%);
+  border: 3px solid #5cc9f5;
+  border-radius: 22px;
+  box-shadow:
+    0 7px 0 rgb(7 20 63 / 12%),
+    0 16px 30px rgb(13 74 115 / 20%);
+}
+
+.labKeyPanel::after {
+  position: absolute;
+  top: 15px;
+  right: 13px;
+  color: #ffd42f;
+  content: "⌁";
+  font: 400 44px/1 "Chewy", cursive;
+  transform: rotate(-16deg);
+}
+
+.keyCopy p {
+  max-width: 470px;
+  margin-top: 13px;
+  color: #e5f0ff;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.keyStatus {
+  display: flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  justify-self: center;
+  padding: 0 17px;
+  color: #dceaff;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(133 174 225 / 28%);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.keyLock {
+  color: #66e476;
+  font-size: 20px;
+}
+
+.keyAction {
+  display: grid;
+  min-width: 260px;
+  gap: 12px;
+}
+
+.keyButton {
+  min-height: 50px;
+  padding-inline: 18px;
+  font-size: 18px;
+}
+
+.keyButton::before {
+  margin-right: 9px;
+  content: "↻";
+  font-family: Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.cancelButton,
+.copyButton {
+  min-height: 46px;
+  padding: 0 17px;
+  color: #173269;
+  background: #e9f3ff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(109 145 187 / 15%);
+  font: 800 14px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.keyAction small {
+  color: #d8e8fb;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.keyButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.pageError {
+  margin-top: 10px;
+  padding: 10px 14px;
+  color: #8b1710;
+  background: #fff0e8;
+  border: 2px solid #d84932;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.confirmDialog,
+.keyDialog {
+  width: min(calc(100% - 32px), 500px);
+  margin: auto;
+  padding: 38px;
+  color: #07143f;
+  background: #fffdf8;
+  border: 3px solid #42b8ec;
+  border-radius: 22px;
+  box-shadow: 0 16px 0 rgb(7 20 63 / 18%);
+  text-align: center;
+}
+
+.confirmDialog::backdrop,
+.keyDialog::backdrop {
+  background: rgb(7 20 63 / 70%);
+  backdrop-filter: blur(3px);
+}
+
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  color: #07143f;
+  background: transparent;
+  border: 0;
+  font: 700 29px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.dialogKicker {
+  display: block;
+  color: #ed3f27;
+}
+
+.confirmDialog h2,
+.keyDialog h2 {
+  margin-top: 5px;
+  font-size: 39px;
+  line-height: 1;
+}
+
+.confirmDialog > p,
+.keyDialog > p {
+  max-width: 380px;
+  margin: 13px auto 0;
+  color: #46536a;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.dialogActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.cancelButton,
+.copyButton {
+  background: #fff;
+  border: 2px solid #9aa7ba;
+  box-shadow: none;
+}
+
+.replaceButton {
+  color: #fff;
+  background: #ed3f27;
+  border-color: #c92919;
+  box-shadow: 0 4px 0 rgb(145 28 18 / 19%);
+}
+
+.keyOutput {
+  display: block;
+  margin: 24px 0 14px;
+  padding: 18px 12px;
+  color: #07143f;
+  background: #fff1af;
+  border: 3px solid #efb917;
+  border-radius: 10px;
+  font: 800 23px/1.2 "Nunito", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.copyButton,
+.savedButton {
+  width: 100%;
+}
+
+.savedButton {
+  margin-top: 12px;
+}
+
+.createButton:focus-visible,
+.gameCardButton:focus-visible,
+.gameMenu summary:focus-visible,
+.gameMenu button:focus-visible,
+.keyButton:focus-visible,
+.closeButton:focus-visible,
+.cancelButton:focus-visible,
+.replaceButton:focus-visible,
+.copyButton:focus-visible,
+.savedButton:focus-visible {
+  outline: 3px solid #ffd42f;
+  outline-offset: 3px;
+}
+
+@media (max-width: 1180px) {
+  .welcomeCopy {
+    right: 13%;
+    left: 31%;
+  }
+
+  .heroCharacter {
+    left: -50px;
+  }
+
+  .labKeyPanel {
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 310px);
+    gap: 20px;
+    padding-inline: 26px;
+  }
+}
+
+@media (max-width: 900px) {
+  .page {
+    overflow: visible;
+    background-position: 58% top;
+  }
+
+  .main {
+    margin-top: -128px;
+  }
+
+  .welcome {
+    height: 480px;
+  }
+
+  .welcomeCopy {
+    top: 116px;
+    right: 3%;
+    left: 40%;
+  }
+
+  .welcome h1 {
+    font-size: clamp(45px, 7.5vw, 58px);
+  }
+
+  .welcome p {
+    max-width: 380px;
+    margin-inline: auto;
+    font-size: 17px;
+  }
+
+  .heroCharacter {
+    top: 120px;
+    left: -28px;
+  }
+
+  .games {
+    padding-inline: 24px;
+  }
+
+  .emptyState {
+    grid-template-columns: 1fr;
+  }
+
+  .emptyDoodleLeft,
+  .emptyDoodleRight {
+    display: none;
+  }
+
+  .gameGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .labKeyPanel {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .page {
+    padding-bottom: 14px;
+    background-attachment: scroll;
+    background-position: 65% top;
+  }
+
+  .main {
+    width: min(100% - 20px, 1280px);
+    margin-top: -100px;
+  }
+
+  .welcome {
+    height: 505px;
+  }
+
+  .welcomeCopy {
+    top: 91px;
+    right: 0;
+    left: 0;
+  }
+
+  .welcomeCopy > span {
+    font-size: 17px;
+  }
+
+  .welcome h1 {
+    padding-inline: 18px;
+    font-size: clamp(43px, 13vw, 56px);
+  }
+
+  .welcome p {
+    max-width: 330px;
+    padding-inline: 12px;
+    font-size: 16px;
+  }
+
+  .heroCharacter {
+    top: 226px;
+    left: 50%;
+    width: 370px;
+    height: 275px;
+    transform: translateX(-50%);
+  }
+
+  .cooper {
+    top: 18px;
+    left: 89px;
+    width: 276px;
+  }
+
+  .speechBubble {
+    top: 32px;
+    left: -8px;
+    width: 145px;
+    height: 115px;
+  }
+
+  .speechBubbleCopy {
+    height: 91px;
+    padding: 12px 15px 7px;
+    font-size: 15px;
+  }
+
+  .speechBubbleCopy strong {
+    font-size: 14px;
+  }
+
+  .speechBubbleSmile {
+    margin-top: 3px;
+    font-size: 16px;
+  }
+
+  .games {
+    min-height: 0;
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .sectionHeading {
+    display: block;
+    padding-bottom: 16px;
+  }
+
+  .sectionHeading h2,
+  .labKeyPanel h2 {
+    font-size: 34px;
+  }
+
+  .createButton {
+    width: 100%;
+    min-width: 0;
+    min-height: 50px;
+    margin-top: 15px;
+    font-size: 19px;
+  }
+
+  .emptyState {
+    min-height: 225px;
+    padding: 24px 18px;
+  }
+
+  .emptyState h3 {
+    font-size: 27px;
+  }
+
+  .savedGamesState {
+    padding: 18px;
+  }
+
+  .gameGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .labKeyPanel {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 27px 22px 24px;
+    border-radius: 18px;
+  }
+
+  .keyCopy {
+    grid-column: auto;
+  }
+
+  .keyAction {
+    min-width: 0;
+  }
+
+  .confirmDialog,
+  .keyDialog {
+    padding: 38px 20px 28px;
+  }
+
+  .dialogActions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    background-attachment: scroll;
+  }
+}

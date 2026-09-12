@@ -187,15 +187,17 @@ Run, jump, collect coins, avoid a simple hazard, and reach the goal.
 2. The player can make one conventional grounded jump.
 3. Static platforms and ground tiles are solid.
 4. Collecting coins increases the score.
-5. Touching the goal finishes the level.
-6. Falling out of the level or touching the supported hazard returns the player
+5. Touching an extra-life pickup increases remaining lives by one and fades the
+   pickup from the world.
+6. Touching the goal finishes the level.
+7. Falling out of the level or touching the supported hazard returns the player
    to the latest spawn point.
-7. All four maps contain map-backed enemies using either patroller or chaser
+8. All four maps contain map-backed enemies using either patroller or chaser
    behavior.
-8. Landing on top of the enemy or hitting it with the supported short sword
+9. Landing on top of the enemy or hitting it with the supported short sword
    defeats it; touching a live enemy from the side or below defeats the player
    and returns them to the latest spawn point after the defeat animation.
-9. The enemy's character, behavior, starting direction, and behavior-specific
+10. The enemy's character, behavior, starting direction, and behavior-specific
    left/right distances are configurable per enemy. Character choices are not
    restricted to the map theme; patrol and chaser view distances use whole map
    blocks.
@@ -353,14 +355,20 @@ bypass the sprite pipeline.
 ## Map representation
 
 Maps should be small, deterministic, handcrafted data files. HackYard does not
-need a visual map editor or procedural generation.
+need procedural generation or a child-facing level editor.
 
-The developer-only Platformer Map Editor is pre-HackYard tooling inside
-`game_editor`; building or expanding it is not part of the competition's
-48-hour scope. Maze maps remain simple enough to edit directly as JSON. The
-Platformer editor exists because a continuous side-scrolling level needs faster
-visual iteration for platform spacing, hazards, collectibles, checkpoints, and
-goals.
+The sibling `game_editor` checkout contains developer-only editors for both
+game types. The focused Maze editor paints walls and floors, places the
+two-to-four player spawns, one key, and one locked exit required by the
+HackYard rules, and can author optional bounded chaser or wanderer enemies.
+It can also place optional sprite-backed damage hazards and neutral grey solid
+obstacles while keeping their gameplay meaning semantic in `MapSpec`.
+Its draggable player character is preview-only rather than `MapSpec` data, and
+enemy, hazard, and obstacle authoring does not promote those optional systems
+into the guaranteed Maze runtime scope. The richer Platformer editor exists
+because a continuous side-scrolling level needs faster visual iteration for platform spacing,
+hazards, collectibles, checkpoints, enemies, and goals. Building these tools is
+pre-HackYard support work rather than part of the competition's 48-hour scope.
 
 The Platformer editor has two synchronized presentations of one continuous
 map:
@@ -695,7 +703,7 @@ number of partially implemented systems.
 - Add horizontal movement, gravity, grounded jumping, and static collision.
 - Add bounded directional flight using the same static collision and trigger
   rules.
-- Add coins, one hazard, respawning, the goal, and level completion.
+- Add coins, shared extra-life pickups, one hazard, respawning, the goal, and level completion.
 - Add bounded patroller and chaser enemies, stomp defeat, and side/bottom contact
   defeat on the first Space map.
 - Start `space_basic_v1` after the play interaction and connect semantic audio

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_green_hills_maze_obstacle_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_green_hills_maze_obstacle_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        105001
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        625.02
+      ],
+      "yCenters": [
+        666.4
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          53,
+          56
+        ],
+        "paste": [
+          6,
+          4
+        ],
+        "localLandmark": [
+          26.5,
+          56
+        ],
+        "target": [
+          32.0,
+          60.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_green_hills_maze_obstacle_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_green_hills_maze_obstacle_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          6,
+          4,
+          59,
+          60
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        53,
+        53
+      ],
+      "bboxHeightRange": [
+        56,
+        56
+      ],
+      "bboxCenterXRange": [
+        32.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        60,
+        60
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_green_hills_maze_obstacle_01/neutral_green_hills_maze_obstacle_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_green_hills_maze_obstacle_01/neutral_green_hills_maze_obstacle_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

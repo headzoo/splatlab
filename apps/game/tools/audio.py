@@ -112,17 +112,28 @@ def load_audio_spec(path: Path, repo_root: Path = REPO_ROOT) -> dict[str, Any]:
     ):
         raise AudioSpecError("themeTags must contain stable lowercase IDs")
 
-    gameplay = spec.get("music", {}).get("gameplay")
-    if not isinstance(gameplay, dict):
+    music_entries = spec.get("music")
+    if not isinstance(music_entries, dict) or not isinstance(music_entries.get("gameplay"), dict):
         raise AudioSpecError("music.gameplay must be an object")
-    if gameplay.get("loop") is not True:
-        raise AudioSpecError("music.gameplay.loop must be true")
-    asset_id = gameplay.get("assetId")
-    if not isinstance(asset_id, str) or ASSET_ID.fullmatch(asset_id) is None:
-        raise AudioSpecError("music.gameplay.assetId must be a stable lowercase ID")
-    music_path = _audio_path(gameplay.get("path"), pack_id, repo_root)
-    music = _inspect_wav(music_path, "music.gameplay", 8, 120, repo_root)
-    music["defaultGain"] = _number(gameplay.get("defaultGain"), "music.gameplay.defaultGain", 0, 1)
+    music: dict[str, dict[str, Any]] = {}
+    for cue, entry in music_entries.items():
+        if ASSET_ID.fullmatch(cue) is None or not isinstance(entry, dict):
+            raise AudioSpecError(f"invalid music entry: {cue}")
+        if entry.get("loop") is not True:
+            raise AudioSpecError(f"music.{cue}.loop must be true")
+        asset_id = entry.get("assetId")
+        if not isinstance(asset_id, str) or ASSET_ID.fullmatch(asset_id) is None:
+            raise AudioSpecError(f"music.{cue}.assetId must be a stable lowercase ID")
+        name = entry.get("name", cue.replace("_", " ").title())
+        if not isinstance(name, str) or not name.strip():
+            raise AudioSpecError(f"music.{cue}.name must be a non-empty string")
+        music_path = _audio_path(entry.get("path"), pack_id, repo_root)
+        item = _inspect_wav(music_path, f"music.{cue}", 8, 120, repo_root)
+        item["assetId"] = asset_id
+        item["name"] = name.strip()
+        item["loop"] = True
+        item["defaultGain"] = _number(entry.get("defaultGain"), f"music.{cue}.defaultGain", 0, 1)
+        music[cue] = item
 
     effects = spec.get("effects")
     if not isinstance(effects, dict):
@@ -168,7 +179,7 @@ def main() -> int:
         print(f"Audio validation failed: {exc}")
         return 1
     for pack in packs:
-        print(f"PASS {pack['id']}: 1 music loop, {len(pack['effects'])} effects")
+        print(f"PASS {pack['id']}: {len(pack['music'])} music loops, {len(pack['effects'])} effects")
     return 0
 
 

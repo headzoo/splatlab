@@ -305,7 +305,7 @@ def _validate_spec(spec: dict[str, Any], label: str, *, allow_event_sheets: bool
         content_box = spec["alignment"]["contentBox"]
         if (
             spec.get("kind") not in {"terrain", "obstacle"}
-            or spec.get("visualSlot") not in {"ground", "platform", "obstacle"}
+            or spec.get("visualSlot") not in {"ground", "platform", "obstacle", "maze_floor"}
             or output_count != 1
             or content_box.get("width") != sheet["frameWidth"]
             or content_box.get("height") != sheet["frameHeight"]

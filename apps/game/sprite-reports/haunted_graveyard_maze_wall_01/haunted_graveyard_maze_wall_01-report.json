@@ -1,0 +1,734 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_graveyard_maze_wall_01",
+  "frameLabels": [
+    "mask_0",
+    "mask_1",
+    "mask_2",
+    "mask_3",
+    "mask_4",
+    "mask_5",
+    "mask_6",
+    "mask_7",
+    "mask_8",
+    "mask_9",
+    "mask_10",
+    "mask_11",
+    "mask_12",
+    "mask_13",
+    "mask_14",
+    "mask_15"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_graveyard_maze_wall_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        14253,
+        13727,
+        13139,
+        12701,
+        12357,
+        11910,
+        11814,
+        11698,
+        11246,
+        11104,
+        10936,
+        9935,
+        9709,
+        9591,
+        9242,
+        7276
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        154.01,
+        461.32,
+        791.65,
+        1099.56
+      ],
+      "yCenters": [
+        187.25,
+        487.99,
+        800.5,
+        1086.11
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          308,
+          338
+        ],
+        [
+          308,
+          0,
+          626,
+          338
+        ],
+        [
+          626,
+          0,
+          946,
+          338
+        ],
+        [
+          946,
+          0,
+          1254,
+          338
+        ],
+        [
+          0,
+          338,
+          308,
+          644
+        ],
+        [
+          308,
+          338,
+          626,
+          644
+        ],
+        [
+          626,
+          338,
+          946,
+          644
+        ],
+        [
+          946,
+          338,
+          1254,
+          644
+        ],
+        [
+          0,
+          644,
+          308,
+          943
+        ],
+        [
+          308,
+          644,
+          626,
+          943
+        ],
+        [
+          626,
+          644,
+          946,
+          943
+        ],
+        [
+          946,
+          644,
+          1254,
+          943
+        ],
+        [
+          0,
+          943,
+          308,
+          1254
+        ],
+        [
+          308,
+          943,
+          626,
+          1254
+        ],
+        [
+          626,
+          943,
+          946,
+          1254
+        ],
+        [
+          946,
+          943,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          60
+        ],
+        "paste": [
+          0,
+          2
+        ],
+        "localLandmark": [
+          32.0,
+          30.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          64
+        ],
+        "paste": [
+          14,
+          0
+        ],
+        "localLandmark": [
+          18.5,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          42
+        ],
+        "paste": [
+          0,
+          11
+        ],
+        "localLandmark": [
+          32.0,
+          21.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          52,
+          64
+        ],
+        "paste": [
+          6,
+          0
+        ],
+        "localLandmark": [
+          26.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          49,
+          64
+        ],
+        "paste": [
+          8,
+          0
+        ],
+        "localLandmark": [
+          24.5,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          64
+        ],
+        "paste": [
+          13,
+          0
+        ],
+        "localLandmark": [
+          19.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          59
+        ],
+        "paste": [
+          0,
+          2
+        ],
+        "localLandmark": [
+          32.0,
+          29.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          53,
+          64
+        ],
+        "paste": [
+          6,
+          0
+        ],
+        "localLandmark": [
+          26.5,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          42
+        ],
+        "paste": [
+          0,
+          11
+        ],
+        "localLandmark": [
+          32.0,
+          21.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          63
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          32.0,
+          31.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          31
+        ],
+        "paste": [
+          0,
+          16
+        ],
+        "localLandmark": [
+          32.0,
+          15.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          48
+        ],
+        "paste": [
+          0,
+          8
+        ],
+        "localLandmark": [
+          32.0,
+          24.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          58
+        ],
+        "paste": [
+          0,
+          3
+        ],
+        "localLandmark": [
+          32.0,
+          29.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          54,
+          64
+        ],
+        "paste": [
+          5,
+          0
+        ],
+        "localLandmark": [
+          27.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          46
+        ],
+        "paste": [
+          0,
+          9
+        ],
+        "localLandmark": [
+          32.0,
+          23.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          59
+        ],
+        "paste": [
+          0,
+          2
+        ],
+        "localLandmark": [
+          32.0,
+          29.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_graveyard_maze_wall_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/haunted_graveyard_maze_wall_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          0,
+          2,
+          64,
+          62
+        ],
+        [
+          14,
+          0,
+          51,
+          64
+        ],
+        [
+          0,
+          11,
+          64,
+          53
+        ],
+        [
+          6,
+          0,
+          58,
+          64
+        ],
+        [
+          8,
+          0,
+          57,
+          64
+        ],
+        [
+          13,
+          0,
+          51,
+          64
+        ],
+        [
+          0,
+          2,
+          64,
+          61
+        ],
+        [
+          6,
+          0,
+          59,
+          64
+        ],
+        [
+          0,
+          11,
+          64,
+          53
+        ],
+        [
+          0,
+          0,
+          64,
+          63
+        ],
+        [
+          0,
+          16,
+          61,
+          47
+        ],
+        [
+          0,
+          8,
+          64,
+          56
+        ],
+        [
+          0,
+          3,
+          64,
+          61
+        ],
+        [
+          5,
+          0,
+          59,
+          64
+        ],
+        [
+          0,
+          9,
+          64,
+          55
+        ],
+        [
+          0,
+          2,
+          64,
+          61
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        37,
+        64
+      ],
+      "bboxHeightRange": [
+        31,
+        64
+      ],
+      "bboxCenterXRange": [
+        30.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.0
+      ],
+      "bboxBottomRange": [
+        47,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_graveyard_maze_wall_01/haunted_graveyard_maze_wall_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_graveyard_maze_wall_01/haunted_graveyard_maze_wall_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

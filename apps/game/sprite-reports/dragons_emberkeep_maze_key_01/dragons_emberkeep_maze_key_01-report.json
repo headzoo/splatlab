@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_maze_key_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_maze_key_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        72670
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        677.73
+      ],
+      "yCenters": [
+        575.52
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          42,
+          48
+        ],
+        "paste": [
+          11,
+          8
+        ],
+        "localLandmark": [
+          21.0,
+          24.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_maze_key_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/dragons_emberkeep_maze_key_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          11,
+          8,
+          53,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        42,
+        42
+      ],
+      "bboxHeightRange": [
+        48,
+        48
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_maze_key_01/dragons_emberkeep_maze_key_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_maze_key_01/dragons_emberkeep_maze_key_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

@@ -1,0 +1,18 @@
+{
+  "assetId": "dragon_girl_01",
+  "approvedAt": "2026-09-12T01:22:27.067435+00:00",
+  "recipe": "sprite-specs/dragon_girl_01.json",
+  "runtimeImage": "sprites/dragon_girl_01.png",
+  "sha256": "1c742c4eb3e9112ed2ee4e75cfc1765764969cf121be6dd72795d97b4d2e5228",
+  "validationReport": "sprite-reports/dragon_girl_01/dragon_girl_01-report.json",
+  "skinTone": {
+    "paletteId": "skin_tones_v1",
+    "mask": "sprite-masks/dragon_girl_01-skin-mask.png",
+    "maskSha256": "8fcb2a0bf61f8481e9797f2cbfb07eaee550b8c94735d48ba96f871d08fecc7f"
+  },
+  "hairColor": {
+    "paletteId": "hair_colors_v1",
+    "mask": "sprite-masks/dragon_girl_01-hair-mask.png",
+    "maskSha256": "128e4bc814f88d2275924338ed21d5ce5e81fce618372f93c9a4d756539cb216"
+  }
+}

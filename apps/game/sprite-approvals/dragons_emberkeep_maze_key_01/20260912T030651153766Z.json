@@ -1,0 +1,8 @@
+{
+  "assetId": "dragons_emberkeep_maze_key_01",
+  "approvedAt": "2026-09-12T03:06:51.153766+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_maze_key_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_maze_key_01.png",
+  "sha256": "068a67d1f31240de2239b99cd1491713573a9c4ae5c21a9144a637bd90446a6d",
+  "validationReport": "sprite-reports/dragons_emberkeep_maze_key_01/dragons_emberkeep_maze_key_01-report.json"
+}

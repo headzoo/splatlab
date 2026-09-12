@@ -72,6 +72,20 @@ for the requested zombie world; Cooper remains living and recognizable rather
 than becoming a generic zombie. Cooper does not use human skin-tone or
 hair-color masks.
 
+### Girl character set
+
+The reusable girl character keeps one identity and locomotion cycle across the
+requested neutral and campaign-theme treatments:
+
+1. `neutral_girl_01.png` — practical neutral adventurer with a short low ponytail
+2. `dragon_girl_01.png` — unarmed young knight in silver-blue armor and berry-purple tunic
+3. `space_girl_01.png` — compact astronaut suit with an open helmet
+4. `haunted_girl_01.png` — living haunted-world explorer with a short close-held cape
+
+All four recipes declare `body: "human"` and include independent skin-tone and
+hair-color masks. The three themed sheets use `neutral_girl_01` as their parent
+identity and preserve its exact 20-frame gait.
+
 ### Set 4: complete theme and body matrix
 
 The complete reusable character library contains one sheet for each theme/body combination:
@@ -210,10 +224,14 @@ headwear, or outlines. Skin and hair masks must not overlap. Renderers cache by
 Current and future human sheets covered by this rule include:
 
 - `neutral_human_01`
+- `neutral_girl_01`
 - `pirate_human_01`
 - `ninja_human_01`
 - `dragon_human_01`
 - `space_human_01`
+- `dragon_girl_01`
+- `space_girl_01`
+- `haunted_girl_01`
 - Every later Set 4 human combination
 
 Do not generate or approve another human character until both companion masks
@@ -290,6 +308,32 @@ Required atlases:
 - Floors: graveyard dirt and mansion boards
 - Walls: crypt stone or mansion wall
 - Doors and exits: crypt door and magic portal
+
+### Maze editor starter packs
+
+The initial Maze Map Editor uses focused recipe-backed role assets rather than
+requiring a complete gameplay atlas. It supports exactly four presentation
+themes from the start: Green Hills (`neutral_green_hills`), Space (`space`),
+Graveyard (`haunted_graveyard`), and Dragon World (`dragons_emberkeep`). Each
+pack contains:
+
+- `<theme>_maze_floor_01`: one static `64 x 64` top-down walkable tile.
+- `<theme>_maze_wall_01`: a `4 x 4` sheet of `64 x 64` connected-wall frames in
+  row-major NESW bitmask order (`N=1`, `E=2`, `S=4`, `W=8`).
+- `<theme>_maze_obstacle_01`: one static `64 x 64` solid grey block themed with
+  restrained world accents.
+- `<theme>_maze_key_01`: one static `64 x 64` key pickup.
+- `<theme>_maze_door_01`: a `2 x 2` sheet of `64 x 96` frames ordered closed,
+  opening 1, opening 2, open; 6 FPS, play once, bottom-center anchor `(32, 88)`.
+
+Only the door animates. MapSpec stores the selected pack as the semantic
+`presentation.mazeThemeId`; it does not store colors or temporary sprite paths.
+
+All four maze themes may additionally use `shared_hole_hazard_01`: one static
+`64 x 64` transparent, neutral black-and-charcoal top-down pit. The sprite
+contains no baked floor material so the selected theme remains visible around
+it. Jumping over the hole is runtime behavior and is never inferred from its
+pixels.
 - Solids: tombstone, furniture, dead tree
 - Decorations: candle, pumpkin, cobweb, bones
 - Gameplay items: spirit orb, skeleton key, candy heart, spectral speed, ward shield, wand pickup, ghost bolt

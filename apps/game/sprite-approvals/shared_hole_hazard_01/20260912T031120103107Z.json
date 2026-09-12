@@ -1,0 +1,8 @@
+{
+  "assetId": "shared_hole_hazard_01",
+  "approvedAt": "2026-09-12T03:11:20.103107+00:00",
+  "recipe": "sprite-specs/shared_hole_hazard_01.json",
+  "runtimeImage": "sprites/shared_hole_hazard_01.png",
+  "sha256": "e0b12743250a3195c7e47144b879c8e6ac0a4285f0dd92c9f114b8f2b9efdb71",
+  "validationReport": "sprite-reports/shared_hole_hazard_01/shared_hole_hazard_01-report.json"
+}

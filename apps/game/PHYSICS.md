@@ -29,8 +29,10 @@ Physics resolves in two layers. The runtime registry selects a trusted base
 profile that owns the simulation, collision, collider, and trigger contracts.
 Each saved game then owns a revisioned `GamePhysicsSpec` containing the
 player-facing movement values Cooper may change. Maps, themes, character
-bodies, costumes, and appearance settings do not silently change physics, but
-the game itself may explicitly reference editable physics.
+bodies, costumes, and appearance settings do not silently change physics. A
+platformer map may explicitly set a bounded `physics.gravityScale` so different
+levels can have different gravity while retaining the game's trusted launch
+impulse, movement values, collision, and trigger contracts.
 
 This separation keeps customization real without letting a generated patch
 disable wall collision, change the simulation tick, or derive gameplay from
@@ -75,7 +77,8 @@ Inputs describe player intent rather than raw keys:
 - `moveX` and `moveY` are clamped to `[-1, 1]`.
 - `jumpPressed` is true only on the up-to-down edge of the mapped jump control.
 - `jumpHeld` remains true while that control is held.
-- Maze ignores both jump fields.
+- The current Maze profile ignores both jump fields. A planned profile revision
+  uses `jumpPressed` for the bounded one-cell hazard hop described below.
 - Grounded Platformer ignores `moveY`; Platformer flight uses it for vertical
   intent.
 - Keyboard, touch, and gamepad adapters must produce the same normalized shape.
@@ -169,10 +172,48 @@ The editable values are bounded as follows:
 - Early-release multiplier: `0.1–1`.
 - Flight rise/fall speed: `0.5–10 tiles/s`.
 - Flight acceleration/deceleration times: `0.05–2 s`.
+- Per-map gravity scale: `0.5–2`, where `1` is the resolved game default.
 
 Collider geometry, collision semantics, trigger volumes, tick rate, catch-up
 rules, numerical precision, and protected fields are inherited from the base
 profile and are not Cooper-editable.
+
+### Per-map gravity
+
+Every `platformer_v1` `MapSpec` stores an explicit gravity multiplier:
+
+```json
+{
+  "physics": {
+    "gravityScale": 1
+  }
+}
+```
+
+The runtime multiplies the resolved downward acceleration by this value but
+does not change the shared jump launch velocity. A value below `1` therefore
+creates a higher, longer arc and a slower fall; a value above `1` creates a
+shorter, faster arc. The Game Editor exposes the bounded value as a percentage
+and persists it with the map. Editor preview changes apply immediately; a
+networked room remains pinned to the value with which it started.
+
+### Per-map respawn delay
+
+Every `platformer_v1` `MapSpec` stores the total delay from player defeat to
+respawn as a bounded gameplay rule:
+
+```json
+{
+  "rules": {
+    "respawnDelaySeconds": 2
+  }
+}
+```
+
+The allowed range is `0.5–10` seconds. The death animation plays inside this
+window rather than extending it. The Game Editor persists the setting with the
+map and its gameplay preview uses the same delay. Older imported maps without
+the rule default to `2` seconds.
 
 ## Maze: `top_down_standard_v1`
 
@@ -211,6 +252,20 @@ bottom-center world position, its top-left offset is `(-14, -20)`. Hats, wings,
 weapons, and other visible pixels never expand this collider.
 
 At maximum speed, one tile takes approximately `0.286` second to cross.
+
+### Planned one-cell hazard hop
+
+This traversal rule is recorded for the next `top_down_v1` profile revision;
+it is not implemented by `top_down_standard_v1` yet.
+
+- A hop travels in one cardinal direction over exactly one adjacent hazard cell.
+- It succeeds only when the cell immediately beyond that hazard is walkable
+  floor and contains no solid wall, obstacle, or closed door.
+- A hop cannot travel diagonally, cross multiple hazards, or land on a hazard.
+- The crossed hazard does not fire its overlap effect during a valid hop.
+- An invalid hop does not move the player through the hazard.
+- The authoritative server validates the same takeoff, crossed cell, and
+  landing cell before committing the move in network play.
 
 ## Platformer: `platformer_standard_v1`
 
@@ -319,7 +374,7 @@ In `grounded_jump` mode, every `platformer_v1` tick executes in this order:
    above that tile's top edge. One-way tiles do not block upward movement. Clamp
    to the contacted face and set `vy = 0` on impact. A downward blocking contact
    sets `grounded = true`; no other event may do so.
-9. Evaluate collectible, checkpoint, goal, hazard, and out-of-bounds triggers
+9. Evaluate collectible, extra-life, checkpoint, goal, hazard, and out-of-bounds triggers
    from the resolved position.
 10. Commit the completed state for rendering, snapshots, and prediction replay.
 
@@ -347,7 +402,7 @@ stored jump or stale coyote time.
   `one_way` as blocking only when a descending player's previous bottom edge is
   at or above the tile's top edge, allowing movement through its sides and bottom.
 - HackYard players do not block one another in either runtime.
-- Coins, checkpoints, goals, exits, keys, and hazards are overlap triggers, not
+- Coins, extra lives, checkpoints, goals, exits, keys, and hazards are overlap triggers, not
   physical solids unless their map semantics separately declare a solid tile.
 - A trigger fires only when the player collider and trigger volume overlap with
   positive area. Touching exactly at an edge is not an overlap.
@@ -373,6 +428,7 @@ checking the finish condition.
 Platformer uses these volumes:
 
 - Collectible: centered `32 × 32 px`.
+- Extra life: centered `32 × 32 px`.
 - Checkpoint: bottom-centered `32 × 64 px`.
 - Goal: bottom-centered `48 × 64 px`.
 - Hazard tile: full-cell `64 × 64 px`.
@@ -388,15 +444,16 @@ player position.
 After collision resolution, simultaneous triggers use this priority:
 
 ```text
-out of bounds -> hazard -> goal -> checkpoint -> collectible
+out of bounds -> hazard -> goal -> checkpoint -> extra life -> collectible
 ```
 
 A respawn or successful finish is terminal for trigger processing in that tick.
-If neither occurs, checkpoint and collectible responses may both be committed.
+If neither occurs, checkpoint, extra-life, and collectible responses may all be committed.
 
 Then:
 
 - A collectible overlap collects it once and increments score.
+- An extra-life overlap collects it once and increments remaining lives by one.
 - A checkpoint overlap becomes the latest respawn point.
 - A goal overlap finishes the level.
 - A hazard overlap respawns the player.

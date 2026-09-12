@@ -1,0 +1,18 @@
+{
+  "assetId": "neutral_girl_01",
+  "approvedAt": "2026-09-12T01:22:14.244591+00:00",
+  "recipe": "sprite-specs/neutral_girl_01.json",
+  "runtimeImage": "sprites/neutral_girl_01.png",
+  "sha256": "e48c677bc95bf7f562dbbf08f5524cc495b5fcb2a7d15fd6920a690ced58bb90",
+  "validationReport": "sprite-reports/neutral_girl_01/neutral_girl_01-report.json",
+  "skinTone": {
+    "paletteId": "skin_tones_v1",
+    "mask": "sprite-masks/neutral_girl_01-skin-mask.png",
+    "maskSha256": "8df281b66a4a14d31e4cf360e35a0022125627ec084b256636b24233642e10ce"
+  },
+  "hairColor": {
+    "paletteId": "hair_colors_v1",
+    "mask": "sprite-masks/neutral_girl_01-hair-mask.png",
+    "maskSha256": "047e14a30671e47efbe616a60868453da72d65d06fc019344d921656895e394b"
+  }
+}

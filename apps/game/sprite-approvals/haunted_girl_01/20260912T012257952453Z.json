@@ -1,0 +1,18 @@
+{
+  "assetId": "haunted_girl_01",
+  "approvedAt": "2026-09-12T01:22:57.952453+00:00",
+  "recipe": "sprite-specs/haunted_girl_01.json",
+  "runtimeImage": "sprites/haunted_girl_01.png",
+  "sha256": "1186438fe74e2fd426dc2457ee8bccd692ca20d527e13aacf013127a7c25ec2a",
+  "validationReport": "sprite-reports/haunted_girl_01/haunted_girl_01-report.json",
+  "skinTone": {
+    "paletteId": "skin_tones_v1",
+    "mask": "sprite-masks/haunted_girl_01-skin-mask.png",
+    "maskSha256": "fdb085cae3df46ab5955278fcdaf2236d000939852a3156a20ef2a8f36cb1dd6"
+  },
+  "hairColor": {
+    "paletteId": "hair_colors_v1",
+    "mask": "sprite-masks/haunted_girl_01-hair-mask.png",
+    "maskSha256": "4f22f21059997fcffec8e409a0c6a0df66566c1e7a4004ed6d349d65848bf6bf"
+  }
+}

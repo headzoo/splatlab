@@ -1,0 +1,5 @@
+{
+  "schemaVersion":1,"id":"haunted_graveyard_maze_door_01","name":"Graveyard Maze Door","kind":"door","runtime":"top_down_v1","themeTags":["haunted"],"visualSlot":"maze_door",
+  "source":"sprites/haunted_graveyard_maze_door_01-source.png","output":"sprites/haunted_graveyard_maze_door_01.png","sourceLayout":{"columns":2,"rows":2,"regions":[[0,0,512,768],[512,0,1024,768],[0,768,512,1536],[512,768,1024,1536]]},"sheet":{"columns":2,"rows":2,"frameWidth":64,"frameHeight":96},"frameLabels":["closed","opening_1","opening_2","open"],
+  "detection":{"alphaThreshold":48,"analysisMaxDimension":700,"minPrimaryAreaRatio":0.01,"ambiguityRatio":0.45},"alignment":{"mode":"fixed_envelope","anchor":{"x":32,"y":88},"contentBox":{"width":56,"height":80},"resizeMode":"stretch_each"},"animation":{"fps":6,"loop":false},"validation":{"requiredPadding":0,"pivotTolerance":1,"envelopeTolerance":2,"centerDriftWarning":6},"preview":{"scale":4}
+}

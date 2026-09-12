@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "space_maze_floor_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/space_maze_floor_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        490000
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        626.1
+      ],
+      "yCenters": [
+        626.1
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          64
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          32.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "space_maze_floor_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/space_maze_floor_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        255,
+        255
+      ],
+      "frameBboxes": [
+        [
+          0,
+          0,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        64,
+        64
+      ],
+      "bboxHeightRange": [
+        64,
+        64
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/space_maze_floor_01/space_maze_floor_01-contact.png",
+    "animationPreview": "sprite-reports/space_maze_floor_01/space_maze_floor_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

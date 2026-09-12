@@ -110,6 +110,8 @@ Treasure Rush should be implemented first. It is simple, naturally multiplayer, 
 5. In race mode, the first player to reach the unlocked exit wins.
 6. In cooperative mode, the game is won when every player escapes.
 7. An optional timer can cause the players to lose when it reaches zero.
+8. A character may jump over one hazard cell when the cell immediately beyond
+   it is free walkable ground; blocked landings and diagonal jumps are invalid.
 
 **Required entities:**
 
@@ -517,6 +519,7 @@ This prevents an unusual AI request from breaking the game when an exact sprite 
 Mechanics should use semantic slots. Themes provide the visual skin.
 
 - `collectible_common`: increases score
+- `extra_life`: increases remaining lives by one, fades from the world, and plays one shared firework burst
 - `key`: unlocks a door or exit
 - `health`: restores health
 - `speed_boost`: temporarily increases movement speed
@@ -559,12 +562,15 @@ For the hackathon, behavior parameters should be few and bounded:
 Behavior trees, pathfinding-heavy enemies, arbitrary AI-authored rules, and
 multi-phase boss logic should wait. A bounded Platformer boss is a single
 `enemy_spawn` with `role: "boss"`, one existing trusted behavior, and an integer
-`hitsToDefeat` from 2 through 99. It always turns its left/right artwork toward
-the player independently of its movement direction; bosses never use up/down
-facings. Each weapon hit applies the weapon's bounded knockback away from the
-attacker through normal terrain collision. A surviving boss pauses its authored
+`hitsToDefeat` from 2 through 99. Its left/right artwork follows its current
+movement direction, including when a patrol, chase, or terrain collision makes
+it turn around; bosses never use up/down facings. A strike from behind turns a
+boss toward the attacker and flips its movement direction before its authored
+patrol or chase resumes. Each weapon hit applies the weapon's bounded knockback
+away from the attacker through normal terrain collision. A surviving boss pauses its authored
 movement and blinks its existing sprite for 500 milliseconds; no damage sprite
-is required and the visual effect never changes collision.
+is required and the visual effect never changes collision. Boss movement stays
+on its authored straight horizontal path and never uses cosmetic bobbing.
 
 The planned campaign contains Green Hills, Space, and Haunted world groups plus
 a Dragon/Emberkeep level. Each world group's final level and the Dragon level
@@ -590,6 +596,15 @@ bound reverses its direction. The character choice and these distances remain
 explicit per-enemy map data so a child can change one enemy without affecting
 the others.
 
+Actor speed is also explicit per placed map actor. Platformer player and enemy
+spawns use `speedPxPerSecond`; top-down Maze player and enemy spawns use
+`speed`. The editors apply one hero speed to every player spawn in the map and
+keep each enemy speed independently editable. Platformer hero speed is bounded
+to `64–640` pixels per second and enemy speed to `16–160`; Maze hero speed is
+bounded to `64–480` and enemy speed to `20–240`. Runtimes retain the legacy
+defaults of `320`, `48`, `224`, and `70` respectively when opening older maps
+that do not yet declare the field.
+
 ### MotionSpec: travel, visual motion, and lifecycle
 
 Character art, behavior, and motion remain independent. `behavior` continues to
@@ -605,11 +620,18 @@ Motion has three separate parts:
 - `visual` offsets only the rendered sprite; collision and anchors do not move.
 - `lifecycle` declares when a fly-by begins, repeats, and ends.
 
-The initial vocabulary is intentionally small. `travel.type` is `stationary`,
-`behavior`, or `viewport_arc`; `visual.type` is `none` or `bob`. Behavior travel
-is valid only for enemy characters and delegates to the enemy's bounded
-`patroller` or `chaser` behavior. A viewport arc can be used by any placed map
-object, including a character-backed enemy, collectible, checkpoint, or goal.
+The initial vocabulary is intentionally small. `travel.type` is `controlled`,
+`stationary`, `behavior`, `ramming`, or `viewport_arc`; `visual.type` is `none`,
+`bob`, or `peck`. Controlled travel is valid only for player spawns and uses
+player input at the spawn's authored speed. Behavior and ramming travel are
+valid only for enemy characters and delegate to
+the enemy's bounded `patroller` or `chaser` behavior. Ramming pauses for a
+bounded authored `chargeDelayMs` when the character is ahead of the enemy and
+inside its patrol or chase range, then moves forward by the bounded authored
+`distanceTiles` before resuming the base behavior. It rearms after the character
+leaves the enemy's forward-facing trigger. A viewport arc can be used by any
+placed map object, including a character-backed enemy, collectible, checkpoint,
+or goal.
 
 Platformer maps also expose a dedicated `flying_object` placement. It is a
 non-colliding presentation object with a required stable `assetId`; the map
@@ -632,6 +654,26 @@ A normally patrolling ghost can add cosmetic bobbing without changing combat:
       "type": "bob",
       "heightTiles": 0.12,
       "periodMs": 1600
+    }
+  }
+}
+```
+
+A hero or enemy can instead use `peck` for chicken-like body movement: two
+quick direction-aware lunges followed by a short recoil and pause. Pecking is a
+cosmetic body offset, so it never moves the collider or changes the authored
+map position.
+
+```json
+{
+  "speedPxPerSecond": 320,
+  "motion": {
+    "version": 1,
+    "travel": { "type": "controlled" },
+    "visual": {
+      "type": "peck",
+      "distanceTiles": 0.18,
+      "periodMs": 900
     }
   }
 }
@@ -681,11 +723,12 @@ at runtime. Authors therefore do not need duplicate right-facing artwork for a
 fly-by sprite. Frame animation is independent from the MotionSpec path.
 
 The trusted bounds are: bob height `0.05–1` tile, bob period `250–10000` ms,
+peck distance `0.05–0.5` tile, peck period `250–5000` ms,
 viewport rows inside the configured camera, arc height `0.5–12` tiles, duration
 `500–30000` ms, offscreen padding `0–4` tiles, repeat interval `500–60000` ms,
 and repeat count `2–20`. `entryEdge` and `exitEdge` must be opposite. The server
 owns collision-bearing travel in network play; clients may derive cosmetic bob
-from fixed simulation time and the stable entity ID.
+or peck motion from fixed simulation time and the stable entity ID.
 
 ### Tilesets
 
@@ -781,8 +824,8 @@ sound pack maps those cues to approved audio assets. Physics, scoring, damage,
 and collision must never depend on an audio file finishing or playing
 successfully.
 
-The first reusable pack is `space_basic_v1`. It contains one seamless gameplay
-music loop and these initial effect slots:
+The first reusable pack is `space_basic_v1`. It contains seamless named
+`gameplay` and `boss` music loops plus these initial effect slots:
 
 - `jump`
 - `land`
@@ -798,6 +841,12 @@ Every sound pack declares stable asset IDs, file paths, loop behavior, and
 bounded default gains. The browser runtime owns decoding, preloading, voice
 limits, and clean music-loop transitions. A missing effect is silent and does
 not interrupt play; a missing music track falls back to no music.
+
+An `enemy_spawn` may store a semantic `viewMusicCue`. While that living enemy
+intersects the active camera viewport, the runtime switches to the matching
+named loop from the selected sound pack. Leaving the viewport or defeating the
+enemy restores the prior music state. Boss placement defaults to the `boss`
+cue; no filenames, volume, or playback state enter the map.
 
 Kid-facing configuration should begin with a small safe surface: choose an
 approved music track or sound pack, turn music and effects on or off, and set

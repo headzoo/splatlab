@@ -1,0 +1,8 @@
+{
+  "assetId": "space_maze_key_01",
+  "approvedAt": "2026-09-12T03:07:18.448790+00:00",
+  "recipe": "sprite-specs/space_maze_key_01.json",
+  "runtimeImage": "sprites/space_maze_key_01.png",
+  "sha256": "daeb733ff6a6102e81155ded5c1a1af9eedfbe97d9b174f8e46baf862be404c5",
+  "validationReport": "sprite-reports/space_maze_key_01/space_maze_key_01-report.json"
+}

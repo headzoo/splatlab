@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1, "id": "space_maze_wall_01", "name": "Space Maze Walls", "kind": "terrain", "runtime": "top_down_v1",
+  "themeTags": ["space"], "visualSlot": "maze_wall", "collision": "solid",
+  "source": "sprites/space_maze_wall_01-source.png", "output": "sprites/space_maze_wall_01.png",
+  "sourceLayout": { "columns": 4, "rows": 4, "regions": [[0,0,314,314],[314,0,627,314],[627,0,941,314],[941,0,1254,314],[0,314,314,627],[314,314,627,627],[627,314,941,627],[941,314,1254,627],[0,627,314,941],[314,627,627,941],[627,627,941,941],[941,627,1254,941],[0,941,314,1254],[314,941,627,1254],[627,941,941,1254],[941,941,1254,1254]] },
+  "sheet": { "columns": 4, "rows": 4, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["mask_0","mask_1","mask_2","mask_3","mask_4","mask_5","mask_6","mask_7","mask_8","mask_9","mask_10","mask_11","mask_12","mask_13","mask_14","mask_15"],
+  "detection": { "alphaThreshold": 48, "analysisMaxDimension": 700, "minPrimaryAreaRatio": 0.004, "ambiguityRatio": 0.45 },
+  "alignment": { "mode": "center", "anchor": { "x": 32, "y": 32 }, "contentBox": { "width": 64, "height": 64 }, "resizeMode": "contain_each" },
+  "animation": { "fps": 1, "loop": false }, "validation": { "requiredPadding": 0, "pivotTolerance": 2, "centerDriftWarning": 8 }, "preview": { "scale": 4 }
+}

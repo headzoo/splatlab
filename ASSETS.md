@@ -42,6 +42,10 @@ only when intentionally recreating the full catalog.
   frame, four left frames followed by four right frames, play once.
 - Platformer tiles: usually single `64 x 64` RGBA cells, unless the entry says
   otherwise.
+- Maze floor, obstacle, and key: static `64 x 64` RGBA cells. Maze walls are
+  `4 x 4` connected-wall sheets with `64 x 64` frames in NESW bitmask order
+  (`N=1`, `E=2`, `S=4`, `W=8`). Maze doors are `2 x 2` sheets with `64 x 96`
+  frames ordered closed, opening 1, opening 2, open at 6 FPS, play once.
 
 ## Character Sprites
 
@@ -51,6 +55,7 @@ player, enemy, or NPC by map data.
 | Asset ID | Recreation direction |
 | --- | --- |
 | `neutral_human_01` | Neutral fallback human adventurer, simple practical outfit, friendly readable face, no fixed skin or hair color baked into gameplay. Include skin and hair masks. |
+| `neutral_girl_01` | Neutral girl adventurer with practical teal-green tunic, dark leggings, brown boots, and a short low ponytail. Preserve her identity across themes and include skin and hair masks. |
 | `neutral_zombie_01` | Neutral fallback zombie, kid-safe, greenish undead cues, ragged clothes, shambling gait, no gore. |
 | `neutral_ghost_01` | Neutral fallback ghost, rounded white translucent body, soft wisp tail locomotion, expressive face. |
 | `neutral_dragon_01` | Neutral fallback small dragon, compact wings and horns, readable four-direction stride despite larger creature styling. |
@@ -62,16 +67,19 @@ player, enemy, or NPC by map data.
 | `ninja_human_01` | Ninja-themed human in wrapped clothing, mask/headband, compact stealth silhouette. Include skin mask; hair can be hidden by the hood. |
 | `ninja_zombie_01` | Ninja zombie with wrapped clothing and undead stance, kid-safe, no gore, clear four-direction shamble. |
 | `dragon_human_01` | Dragon-world human, knight or wizard treatment, warm fantasy colors, armor or robe cues. Include skin and hair masks. |
+| `dragon_girl_01` | Dragon-world girl knight derived from `neutral_girl_01`, with practical silver-blue armor, berry-purple tunic, restrained gold trim, and no weapon. Include skin and hair masks. |
 | `dragon_dragon_01` | Dragon-world dragon, heroic small dragon with horns, wings, tail, and clear foot/tail movement in all directions. |
 | `dragon_ghost_01` | Dragon-world ghost with ember or castle-fantasy accents, still visibly a ghost body. |
 | `dragon_cooper_01` | Cooper in blue-and-gold dragon-rider/lab treatment, with goggles, white feathers, red comb, lab assistant identity. |
 | `haunted_human_01` | Haunted-theme human, playful spooky costume or explorer outfit, subdued purples/greens, not frightening. Include skin and hair masks. |
+| `haunted_girl_01` | Haunted-world girl adventurer derived from `neutral_girl_01`, with a deep-purple explorer outfit, short close-held ragged cape, and cyan moonstone clasp; living, friendly, and non-gory. Include skin and hair masks. |
 | `haunted_zombie_01` | Haunted zombie, cartoon-safe undead, ragged clothes, no gore, readable shuffling locomotion. |
 | `haunted_ghost_01` | Haunted ghost with classic sheet-like silhouette, eerie glow, expressive face, wisp locomotion. |
 | `haunted_dragon_01` | Haunted dragon with spooky accents, muted colors, horns/wings/tail, kid-safe rather than horror. |
 | `haunted_robot_01` | Haunted robot with patched metal, tiny spooky charm details, green/purple glow accents, mechanical gait. |
 | `haunted_cooper_01` | Cooper in playful haunted/zombie-world styling without making him undead: goggles, lab coat, white feathers, mild spooky scuffs. |
 | `space_human_01` | Space human astronaut, compact helmet/suit, bright science-fiction colors. Include skin and hair masks; helmet must not hide all expression. |
+| `space_girl_01` | Space girl astronaut derived from `neutral_girl_01`, with a compact white/navy suit, cyan lights, violet accents, and an open helmet that preserves her face and ponytail. Include skin and hair masks. |
 | `space_robot_01` | Space robot with sleek small body, antenna or visor, blue/cyan energy details, clear mechanical stride. |
 | `space_ghost_01` | Space ghost with helmet/jetpack or comet-like cues, spectral body, readable drift cycle. |
 | `space_cooper_01` | Cooper in compact astronaut lab suit, still white chicken with red comb, goggles, lab-coat identity, and scruffy charm. |
@@ -126,7 +134,7 @@ player, enemy, or NPC by map data.
 | `space_platformer_checkpoint_01_activated` | Four-frame activation flash for the checkpoint, ending in activated state. |
 | `space_platformer_goal_01` | Four-frame `2 x 2` `64 x 96` goal beacon/flag, waving, bottom anchored. |
 | `space_platformer_goal_01_level_complete` | Four-frame level-complete version of the goal, celebratory glow, play once. |
-| `space_platformer_hud_lives_01` | Single `64 x 64` HUD lives icon, space/Cooper-friendly, centered, no text baked in. |
+| `space_platformer_hud_lives_01` | Single `64 x 64` lives portrait, space/Cooper-friendly, centered, no text baked in; reused as the shared extra-life pickup on every Platformer map. |
 | `space_platformer_hud_coins_01` | Single `64 x 64` HUD coin counter icon, matches the space coin, centered, no numbers baked in. |
 
 ### Haunted Graveyard
@@ -142,6 +150,7 @@ player, enemy, or NPC by map data.
 | `haunted_magic_portal_01` | Eight-frame `4 x 2` `128 x 128` magic portal, dark central opening, swirling spooky glow, looped. |
 | `haunted_spirit_orb_01` | Four-frame `2 x 2` `48 x 48` glowing spirit orb, pulsing bright core. |
 | `haunted_flying_cooper_bat_01` | Four-frame `2 x 2` flying Cooper bat form, playful costume, centered, looped. |
+| `haunted_graveyard_flaming_pumpkin_01` | Four-frame `2 x 2` flaming jack-o-lantern projectile, Pumpkin Warden orange/brown palette, attached flickering flame, centered in a `64 x 64` frame. Generate the source with the Pumpkin Warden and Emberkeep fireball masters as identity/layout references, then process `sprite-specs/haunted_graveyard_flaming_pumpkin_01.json`; keep the passing result in `sprite-build/` until Sprite Viewer approval. |
 
 ### Dragons Emberkeep
 
@@ -159,11 +168,52 @@ player, enemy, or NPC by map data.
 | `dragons_emberkeep_platformer_goal_01_level_complete` | Four-frame celebratory goal-complete event, ember glow, play once. |
 | `dragons_emberkeep_fireball_01` | Four-frame `2 x 2` small fireball projectile, flickering flame core, centered. |
 
+## Maze Terrain And Escape Objects
+
+These four coordinated packs are the initial Maze Map Editor themes. Generate
+each source as bright chunky pixel art matching the approved platformer theme,
+then process the matching recipe. Floors are quiet, seamless top-down surfaces;
+walls use the 16-frame connected-wall contract; obstacles must read as distinct
+solid grey blocks; keys are oversized readable pickups; doors are the only
+animated maze-specific assets.
+
+| Asset ID | Recreation direction |
+| --- | --- |
+| `neutral_green_hills_maze_floor_01` | Seamless top-down lush short grass in varied fresh greens, with quiet irregular pixel clusters, tiny white, pale-yellow, and light-blue flowers, and only sparse warm-earth flecks. Grass must clearly dominate; avoid large plants, rocks, paths, focal objects, or obvious edge seams. |
+| `neutral_green_hills_maze_wall_01` | Sixteen grass-capped warm fieldstone wall masks, row-major NESW order. Preserve the Graveyard wall atlas silhouette and normalize each source cell independently so every connector reaches its tile edge without hand-positioned offsets. |
+| `neutral_green_hills_maze_obstacle_01` | Static squat grey fieldstone block with moss and one small pale flower. |
+| `neutral_green_hills_maze_key_01` | Static brass trefoil key with a small green leaf accent. |
+| `neutral_green_hills_maze_door_01` | Four-frame rounded fieldstone garden arch with a warm timber door and vines. |
+| `space_maze_floor_01` | Seamless near-black navy deck with broad low-contrast seams and sparse muted rivets; no bright rails, bevels, pipes, or dense machinery. |
+| `space_maze_wall_01` | Sixteen raised silver-white bulkhead masks with cyan edge lights and deep navy shadow, intentionally much brighter than the floor. Preserve the Graveyard wall atlas silhouette. |
+| `space_maze_obstacle_01` | Static matte-grey lunar cargo block with bolts and a cyan status light. |
+| `space_maze_key_01` | Static gold-and-blue circuit access key with a cyan core. |
+| `space_maze_door_01` | Four-frame blue-steel airlock whose panel slides upward into the arch. |
+| `haunted_graveyard_maze_floor_01` | Seamless top-down moonlit grave soil with small flat stones, moss, and cyan flecks. |
+| `haunted_graveyard_maze_wall_01` | Sixteen cracked violet-grey cemetery wall masks with moss and cyan rune flecks. |
+| `haunted_graveyard_maze_obstacle_01` | Static charcoal-grey broken cemetery pedestal with lichen, vine, and rune scratch. |
+| `haunted_graveyard_maze_key_01` | Static tarnished silver-purple trefoil key with a cyan rune gem. |
+| `haunted_graveyard_maze_door_01` | Four-frame gothic cemetery arch with an iron-banded purple door and ghost-light. |
+| `dragons_emberkeep_maze_floor_01` | Seamless low-contrast charcoal-brown flagstone with sparse dim ember flecks; no bright lava network or raised boulders. |
+| `dragons_emberkeep_maze_wall_01` | Sixteen raised warm-grey basalt fortress masks with a continuous orange-red molten outline and deep shadow, intentionally much brighter than the floor. Preserve the Graveyard wall atlas silhouette. |
+| `dragons_emberkeep_maze_obstacle_01` | Static cool-grey forged-stone block with iron bands, scale carving, and one ember crack. |
+| `dragons_emberkeep_maze_key_01` | Static dark-iron dragon-wing key with molten edges and a red ember gem. |
+| `dragons_emberkeep_maze_door_01` | Four-frame black-basalt fortress arch with an iron door and orange dragon crest. |
+| `shared_hole_hazard_01` | Static transparent top-down oval pit with a near-black center and narrow neutral charcoal rim. It contains no floor texture and can be selected in every maze theme; jump behavior comes from the runtime, not the image. |
+
+The high-resolution generated masters live at
+`sprites/<asset-id>-source.png`; passing candidates stay in `sprite-build/`
+until the Sprite Viewer records approval. Door or wall source cleanup may use a
+flat `#FF00FF` chroma background only as a generation intermediate; the stored
+source and candidate must have genuine alpha transparency. A full-frame floor
+source may retain one invisible transparent source pixel so the fail-closed
+normalizer can verify alpha without changing the opaque runtime tile.
+
 ## Shared Effects And Weapons
 
 | Asset ID | Recreation direction |
 | --- | --- |
-| `shared_victory_burst_01` | Eight-frame `4 x 2` neutral victory burst, bright celebratory stars/confetti/energy, theme-neutral. |
+| `shared_victory_burst_01` | Eight-frame `4 x 2` neutral victory burst, bright celebratory stars/confetti/energy, theme-neutral; also plays once at an extra-life pickup when it is collected. |
 | `shared_game_over_01` | Four-frame `2 x 2` game-over impact card pieces: `GAME`, `OVER`, left impact, right impact; neutral theme. |
 | `short_sword_v1` | Single `64 x 64` short sword sprite, neutral/space compatible, grip at `(32, 49)`, clean silhouette for rotation around character hands. |
 
@@ -179,11 +229,15 @@ For every human character, recreate same-size `320 x 256` RGBA masks:
 Mask-bearing assets:
 
 - `neutral_human_01`
+- `neutral_girl_01`
 - `pirate_human_01`
 - `ninja_human_01`
 - `dragon_human_01`
+- `dragon_girl_01`
 - `haunted_human_01`
+- `haunted_girl_01`
 - `space_human_01`
+- `space_girl_01`
 
 Recreate `sprite-palettes/skin_tones_v1.json` with six four-color ramps and
 default `skin_04`. Recreate `sprite-palettes/hair_colors_v1.json` with eight
@@ -214,6 +268,7 @@ the deterministic scripts, then validate:
 ```bash
 python3 tools/generate_audio.py
 python3 tools/generate_emberkeep_audio.py
+python3 tools/generate_boss_music.py
 python3 tools/audio.py validate
 ```
 
@@ -226,6 +281,8 @@ Generate an upbeat compact sci-fi pack:
 
 - `gameplay_loop.wav`: about `17.143s`, seamless 8-bar loop, bright synth lead,
   simple bass, soft pulse percussion.
+- `boss_loop.wav`: exactly `16s`, seamless theme-neutral menace loop with a low
+  minor drone, tritone tension, urgent ostinato, and heavy pulse percussion.
 - `jump.wav`: about `0.240s`, rising synth sweep.
 - `land.wav`: about `0.160s`, soft low thud with filtered noise.
 - `collectible.wav`: about `0.240s`, two-note bright pickup chime.
@@ -245,6 +302,8 @@ Generate a compact minor-key forge-and-castle pack:
 
 - `gameplay_loop.wav`: about `18.462s`, seamless 8-bar loop, warm triangle lead,
   minor fantasy melody, low forge-like pulse.
+- `boss_loop.wav`: the same `16s` reusable menacing boss loop exposed through
+  this pack's semantic `boss` music cue.
 - `jump.wav`: about `0.250s`, earthy rising sweep with slight noise.
 - `land.wav`: about `0.200s`, heavier stone thud.
 - `collectible.wav`: about `0.320s`, three-note gem/ember chime.
@@ -272,6 +331,29 @@ brand/reference art, not as runtime sprite sheets.
 | `brand/app-1.png` | `1448 x 1086` product reference mockup showing the intended kid-friendly game-builder visual direction. |
 | `brand/mock-1.png` | `1024 x 1536` vertical product/art reference mockup for Splat Lab tone and layout. |
 | `brand/mock-2.png` | `1226 x 1283` product/art reference mockup for Splat Lab tone and layout. |
+| `apps/website/public/brand/homepage/hero-background-clean.png` | `1585 x 992` homepage background plate derived from `hero-background.png` with the built-in image editor. Use the annotated homepage screenshot only to identify the outlined scenery; remove the high floating island, right-side floating platforms, coins, slime, ladder, crates, and right foreground terrain, then reconstruct those openings with matching blue sky, soft clouds, distant mountains, waterfalls, forested cliffs, and foliage. Preserve the castle, left terrain, camera, lighting, palette, and polished 3D-cartoon style; exclude text, UI, outlines, new platforms, characters, and watermarks. |
+| `apps/website/public/brand/homepage/hero-parallax-far.png` | `1585 x 992` genuine-alpha full-canvas layer containing only the high floating grass-and-earth island in its original composition. Recreate from `hero-background.png` with the built-in image editor, preserving the island while making every other pixel transparent. If the editor bakes a checkerboard, restore alpha with `python3 apps/game/tools/restore_checker_alpha.py <generated> <output> --minimum-channel 135 --maximum-spread 32 --minimum-component-area 500`, normalize to `1585 x 992`, and verify `opaque=false`. |
+| `apps/website/public/brand/homepage/hero-parallax-mid.png` | `1585 x 992` genuine-alpha full-canvas layer containing only the narrow platform below the castle and the small lower island in their original positions. Derive it from the original extracted layer by clearing the two isolated coin components while preserving every grass and rock pixel; exclude coins and every other scene element. |
+| `apps/website/public/brand/homepage/hero-parallax-coin.png` | `512 x 512` transparent standalone homepage parallax coin generated with the built-in image generator. Use `hero-parallax-far.png` as the authoritative style reference and `hero-parallax-mid.png` only for the scene's gold palette and three-quarter perspective. Prompt for exactly one thick round gold coin with a beveled rim, orange-gold center, and embossed four-point sparkle; require genuine alpha and exclude currency symbols, platforms, grass, dirt, characters, scenery, text, borders, checkerboards, and watermarks. Trim the generated subject, resize it to fit within `512 x 512`, center it on a transparent canvas, and verify `opaque=false`. The homepage reuses this one asset across dedicated mid- and foreground coin tracks. |
+| `apps/website/public/brand/homepage/hero-parallax-builder-materialize.png` | `640 x 512` transparent mid-depth material-preview platform generated with the built-in image generator using the two finished foreground platforms as references. Prompt for one three-block platform whose left half is neutral gray polygonal greybox geometry and whose right half is finished lime grass and warm orange earth, separated by a luminous cyan scan boundary with a few assembling square pixels. Exclude text, characters, coins, cursors, panels, scenery, checkerboards, and watermarks. Preserve the generated transparency, crop away isolated edge artifacts while retaining the scan pixels, trim, fit within `600 x 450`, center on a transparent `640 x 512` canvas, and verify `opaque=false`. |
+| `apps/website/public/brand/homepage/hero-parallax-builder-selected.png` | `640 x 640` transparent foreground editor-state composition generated with the built-in image generator using the finished foreground platforms as references. Prompt for a selected two-block grass-and-earth platform with a thin cyan selection box, four chunky corner handles, a translucent cyan ghost block descending into an empty snap position, dotted alignment guides, and a small red-orange/blue two-axis move gizmo without letters. Exclude text, characters, coins, panels, scenery, and watermarks. If a gray checker is baked in, run `python3 apps/game/tools/restore_checker_alpha.py <generated> <output> --minimum-channel 0 --maximum-spread 32 --minimum-component-area 100`, trim, fit within `600 x 600`, center on a transparent `640 x 640` canvas, and verify `opaque=false`. |
+| `apps/website/public/brand/homepage/hero-parallax-builder-boar.png` | `768 x 512` transparent foreground builder-state cutout generated with the built-in image generator using a single approved frame from `apps/game/sprites/neutral_green_hills_boss_01-source.png` as the Mossback Boar identity reference. Preserve the brown boar's pink snout, ivory tusks, black hooves, expressive eye, leafy green mantle, and white flowers; render the front half completely, transition at mid-torso through a cyan scan seam, and render the rear anatomy and foliage as translucent cyan triangulated CGI construction geometry with glowing nodes. Exclude platforms, coins, scenery, text, UI, checkerboards, black backgrounds, and watermarks. Trim, fit within `720 x 470`, center on a transparent `768 x 512` canvas, and verify `opaque=false`. |
+| `apps/website/public/brand/homepage/hero-parallax-builder-coin.png` | `512 x 512` transparent foreground builder-state coin generated with the built-in image generator using `hero-parallax-coin.png` for the glossy gold shape and sparkle emblem. Render the left/front half as finished gold and the right/rear half as translucent cyan triangulated CGI construction geometry with glowing nodes, joined by a narrow luminous scan seam; keep one continuous circular silhouette and exclude currency symbols, extra coins, platforms, characters, scenery, text, UI, checkerboards, black backgrounds, and watermarks. Trim, fit within `470 x 470`, center on a transparent `512 x 512` canvas, and verify `opaque=false`. |
+| `apps/website/public/brand/homepage/hero-parallax-front-step.png` | `1585 x 992` genuine-alpha full-canvas foreground layer containing a generated stepped floating island at `329 x 283 +1200+300`: a two-block-wide warm-orange earth base, smaller back-right grass block, and one rounded gray stone. Recreate with the built-in image generator using `hero-parallax-far.png` only as a style reference; match its saturated kid-friendly 3D-cartoon rendering, rounded bevels, lime grass, warm highlights, cool shadows, and three-quarter front perspective. Exclude every other object and scenery. Restore checker alpha with the documented `hero-parallax-far.png` command, crop to the subject, resize, place on the full canvas, and verify `opaque=false`. |
+| `apps/website/public/brand/homepage/hero-parallax-front-flowers.png` | `1585 x 992` genuine-alpha full-canvas foreground layer containing a generated `420 x 180 +1070+650` three-block floating platform with lime grass and a few tiny yellow/orange wildflowers. Recreate with the built-in image generator using `hero-parallax-far.png` only as a style reference; match its saturated kid-friendly 3D-cartoon rendering, rounded bevels, warm highlights, cool shadows, and three-quarter front perspective. Exclude characters, coins, ladders, crates, signs, text, and scenery. Restore checker alpha with the documented `hero-parallax-far.png` command, crop to the subject, resize, place on the full canvas, and verify `opaque=false`. |
+| `apps/website/public/brand/homepage/cooper-hero-fixed.png` | `1032 x 1190` transparent homepage Cooper derived from `cooper-hero.png`. Preserve every original pixel except the unintended transparent interiors inside the black-outlined white crown feathers beside the red comb; fill those holes with matching warm white/cream feather color while keeping the exterior transparent. |
+| `apps/website/public/brand/site-header-logo.png` | `2067 x 634` transparent horizontal site-header lockup generated with the built-in image generator in compositing mode. Use the navbar logo crop from `brand/mock-parents.png` as the authoritative character and composition reference, `apps/game/logo-text.png` as the exact wordmark reference, and the previous lockup only as a wide-format guide. Prompt for one unified image with a newly drawn friendly Cooper at the far left (white feathers, red comb, large goggles, cheerful orange beak, one raised wing) and the complete yellow/red `Splat Lab!` wordmark immediately to his right; exclude the frantic hero pose, navbar UI, scenery, extra text, and backgrounds. If transparency is not emitted directly, regenerate onto uniform `#00ff00`, remove that chroma background, trim, and verify genuine RGBA alpha before use. |
+| `apps/website/public/brand/about/cooper-hero.png` | `1399 x 1124` transparent about-page hero cutout. Recreate from the upper hero Cooper in `brand/mock-about.png` with the built-in image editor: preserve his exact spread-wing pose, expression, goggles, patched lab coat, pens, and `Cooper` badge; remove every surrounding page element onto genuine transparent alpha, with no halo or shadow. |
+| `apps/website/public/brand/parents/parents-content-background-source.png` | `1254 x 1254` generated master for the Parents information-section scenery. Recreate with the built-in image generator using `brand/mock-parents.png` only as a visual-style reference: cheerful blue sky, soft clouds, distant blue-green mountains, layered forest cliffs, waterfalls, vivid foliage, tiny flowers, and warm stone in polished kid-friendly 3D-cartoon game art. Exclude text, logos, UI, cards, borders, people, chickens, characters, creatures, signs, coins, buildings, castles, and watermarks. |
+| `apps/website/public/brand/parents/parents-content-background.png` | `1254 x 1254` repeatable Parents-page background derived from the generated master. Wrap the master by half its width and height, repair only the new center wrap lines while preserving the outer border, then composite the original wrapped outer 250-pixel band back over the repaired center with a linear inward feather. Verify a `2 x 2` repeat has no hard horizontal or vertical seam before use. |
+| `apps/website/public/brand/parents/parents-hero-background-source.png` | `1585 x 992` generated Parents hero scenery master. Recreate with the built-in image generator using the previous homepage hero only for wide composition and negative-space guidance and `parents-content-background.png` as the authoritative visual reference. Draw open blue sky and dimensional clouds above matching blue-green mountains, crisp grass-topped warm-orange and slate cliffs, bright waterfalls, saturated foliage, vines, and tiny flowers. Keep the center readable and exclude text, logos, UI, cards, people, chickens, characters, creatures, slime, signs, clipboards, coins, castles, buildings, flags, ladders, crates, and watermarks. |
+| `apps/website/public/brand/parents/parents-hero-background.png` | Optimized runtime copy of the Parents hero scenery master. The page overlays the bottom 180 pixels with the matching repeatable content tile, positioned at that tile's bottom edge and faded in from transparent; the content section then starts at the tile's top edge with the same centered `1254 x 1254` scale so the two regions join continuously. |
+| `apps/website/public/brand/parents/parents-hero-cooper-source.png` | `1337 x 1176` transparent generation master for the friendly Parents hero Cooper. Recreate from the upper hero character in `brand/mock-parents.png`: upright, friendly rounded expression, goggles, cheerful open beak, large left-wing thumbs-up, patched lab coat, pens, `Cooper` badge, and right wing holding a tan clipboard reading `BIG IDEAS / BRIGHTER / KIDS` with a smile. Require genuine transparent alpha and exclude the scratched, frantic, tongue-out homepage pose. |
+| `apps/website/public/brand/parents/parents-hero-cooper.png` | Runtime copy of the friendly Parents hero Cooper cutout. Preserve the genuine alpha channel and the complete thumb, clipboard, comb, and lower coat; do not reconstruct the clipboard in HTML or CSS. |
+| `apps/website/public/brand/parents/parents-footer-background-source.png` | `2172 x 724` generated master for the Parents footer. Recreate with the built-in image generator using the footer crop of `brand/mock-parents.png` only for composition and the Parents content/hero backgrounds for authoritative style. Draw an ultra-wide, shallow, saturated 3D-cartoon landscape with open pale-blue sky in the center, a sunny clearing and warm stone path, lush flower-covered cliffs at the edges, a distant pink-roofed castle on the right, and bright waterfalls. Exclude characters, chickens, text, signs, buttons, UI, coins, logos, and borders. |
+| `apps/website/public/brand/parents/parents-footer-background.png` | Runtime copy of the Parents footer landscape master. Render it as a cover image focused near the lower-middle of the scene. Bridge the content/footer boundary with the repeatable Parents content tile: fade the tile's bottom edge into the end of the content section, then start the footer with the tile's top edge at the identical centered `1254 x 1254` scale and fade it into the footer art. This preserves the tile's verified wrap across the boundary while the footer scenery takes over below. |
+| `apps/website/public/brand/parents/parents-footer-background-with-signs-source.png` | `2172 x 724` generated footer master derived from `parents-footer-background.png` with both mockup signs baked into the scenery. The left four-plank sign reads `PLAY / CREATE / LEARN / GROW` with a smile; the right three-plank sign reads `BIG IDEAS / BRIGHTER / TOMORROWS` with a smile. Keep both at the far edges and vertically centered so a shallow cover crop retains them while leaving the middle clear. |
+| `apps/website/public/brand/parents/parents-footer-background-with-signs.png` | Runtime footer background with both wooden signs painted directly into the raster image. Use it with the same repeat-tile boundary bridge as the sign-free footer master; do not duplicate either sign as HTML or CSS. |
 
 ## Map Placement Notes
 

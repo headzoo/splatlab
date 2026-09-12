@@ -12,6 +12,13 @@
       "path": "audio/space_basic_v1/gameplay_loop.wav",
       "loop": true,
       "defaultGain": 0.32
+    },
+    "boss": {
+      "assetId": "shared_boss_menace_loop_01",
+      "name": "Menacing boss",
+      "path": "audio/space_basic_v1/boss_loop.wav",
+      "loop": true,
+      "defaultGain": 0.38
     }
   },
   "effects": {

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "shared_hole_hazard_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/shared_hole_hazard_01-source.png",
+    "sourceSize": [
+      1430,
+      1100
+    ],
+    "detection": {
+      "analysisScale": 0.48951048951048953,
+      "selectedComponentAreas": [
+        94135
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        711.67
+      ],
+      "yCenters": [
+        554.63
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1430,
+          1100
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          58,
+          36
+        ],
+        "paste": [
+          3,
+          14
+        ],
+        "localLandmark": [
+          29.0,
+          18.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "shared_hole_hazard_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/shared_hole_hazard_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        254
+      ],
+      "frameBboxes": [
+        [
+          3,
+          14,
+          61,
+          50
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        58,
+        58
+      ],
+      "bboxHeightRange": [
+        36,
+        36
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        50,
+        50
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/shared_hole_hazard_01/shared_hole_hazard_01-contact.png",
+    "animationPreview": "sprite-reports/shared_hole_hazard_01/shared_hole_hazard_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

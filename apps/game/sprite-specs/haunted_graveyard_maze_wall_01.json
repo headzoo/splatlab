@@ -1,0 +1,6 @@
+{
+  "schemaVersion":1,"id":"haunted_graveyard_maze_wall_01","name":"Graveyard Maze Walls","kind":"terrain","runtime":"top_down_v1","themeTags":["haunted"],"visualSlot":"maze_wall","collision":"solid",
+  "source":"sprites/haunted_graveyard_maze_wall_01-source.png","output":"sprites/haunted_graveyard_maze_wall_01.png","sourceLayout":{"columns":4,"rows":4},"sheet":{"columns":4,"rows":4,"frameWidth":64,"frameHeight":64},
+  "frameLabels":["mask_0","mask_1","mask_2","mask_3","mask_4","mask_5","mask_6","mask_7","mask_8","mask_9","mask_10","mask_11","mask_12","mask_13","mask_14","mask_15"],
+  "detection":{"alphaThreshold":48,"analysisMaxDimension":700,"minPrimaryAreaRatio":0.004,"ambiguityRatio":0.45},"alignment":{"mode":"center","anchor":{"x":32,"y":32},"contentBox":{"width":64,"height":64},"resizeMode":"contain_each"},"animation":{"fps":1,"loop":false},"validation":{"requiredPadding":0,"pivotTolerance":2,"centerDriftWarning":8},"preview":{"scale":4}
+}

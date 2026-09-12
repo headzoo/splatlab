@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_green_hills_maze_key_01",
+  "approvedAt": "2026-09-12T03:06:21.371654+00:00",
+  "recipe": "sprite-specs/neutral_green_hills_maze_key_01.json",
+  "runtimeImage": "sprites/neutral_green_hills_maze_key_01.png",
+  "sha256": "34d169e9cfd250b7e1cb794d779b8cbaedf9edfcd96649d574dbae37b6f54716",
+  "validationReport": "sprite-reports/neutral_green_hills_maze_key_01/neutral_green_hills_maze_key_01-report.json"
+}

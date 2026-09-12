@@ -1,0 +1,8 @@
+{
+  "assetId": "haunted_graveyard_maze_floor_01",
+  "approvedAt": "2026-09-12T18:17:27.763021+00:00",
+  "recipe": "sprite-specs/haunted_graveyard_maze_floor_01.json",
+  "runtimeImage": "sprites/haunted_graveyard_maze_floor_01.png",
+  "sha256": "332fcf02888b4054bbb750c7342e309dc2fa3ee9de8a8d410a86b90135ac4d1a",
+  "validationReport": "sprite-reports/haunted_graveyard_maze_floor_01/haunted_graveyard_maze_floor_01-report.json"
+}

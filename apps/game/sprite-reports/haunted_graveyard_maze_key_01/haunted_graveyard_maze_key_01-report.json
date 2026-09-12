@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_graveyard_maze_key_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_graveyard_maze_key_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        65371
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        635.73
+      ],
+      "yCenters": [
+        588.05
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          26,
+          48
+        ],
+        "paste": [
+          19,
+          8
+        ],
+        "localLandmark": [
+          13.0,
+          24.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_graveyard_maze_key_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/haunted_graveyard_maze_key_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          19,
+          8,
+          45,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        26,
+        26
+      ],
+      "bboxHeightRange": [
+        48,
+        48
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_graveyard_maze_key_01/haunted_graveyard_maze_key_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_graveyard_maze_key_01/haunted_graveyard_maze_key_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

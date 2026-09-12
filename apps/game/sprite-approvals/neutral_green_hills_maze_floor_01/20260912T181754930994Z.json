@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_green_hills_maze_floor_01",
+  "approvedAt": "2026-09-12T18:17:54.930994+00:00",
+  "recipe": "sprite-specs/neutral_green_hills_maze_floor_01.json",
+  "runtimeImage": "sprites/neutral_green_hills_maze_floor_01.png",
+  "sha256": "73beeca47cbbc6d04ea30a7a1d3b73c9010fad797d79f691a07a4a6f946acb61",
+  "validationReport": "sprite-reports/neutral_green_hills_maze_floor_01/neutral_green_hills_maze_floor_01-report.json"
+}

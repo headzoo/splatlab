@@ -12,6 +12,12 @@
     "columns": 16,
     "rows": 9
   },
+  "physics": {
+    "gravityScale": 1
+  },
+  "rules": {
+    "respawnDelaySeconds": 2
+  },
   "presentation": {
     "backgroundId": "dragons_emberkeep_01",
     "victoryEffectId": "shared_victory_burst_01",
@@ -63,16 +69,58 @@
       "rows": [
         "........................................................................................",
         ".........................................................................======O........",
-        "........................................................................................",
+        "....................=====...............................................................",
         "..........................................................=======.......................",
         "..........=======.......................................................................",
         ".........=................=======...............=======.............======..............",
         "...................................O....................................................",
         ".....======.........======........O..=======............======..............======......",
         "....=............................O.................O...=.............O..................",
-        "...=...............O............O..................O.................O..................",
-        "..................OO...................O..............====.....O...................O....",
+        "...=...OO..........O............O.......O..........O.................O..................",
+        "......OOOO........OO......O............OOO............====.....O........................",
         "##############^#^#################^^^#################^^^^################^^^###########"
+      ],
+      "spriteOverrides": [
+        {
+          "x": 16,
+          "y": 11,
+          "animationStartFrame": 3
+        },
+        {
+          "x": 35,
+          "y": 11,
+          "animationStartFrame": 2
+        },
+        {
+          "x": 36,
+          "y": 11,
+          "animationStartFrame": 3
+        },
+        {
+          "x": 55,
+          "y": 11,
+          "animationStartFrame": 2
+        },
+        {
+          "x": 56,
+          "y": 11,
+          "animationStartFrame": 3
+        },
+        {
+          "x": 57,
+          "y": 11,
+          "animationStartFrame": 4
+        },
+        {
+          "x": 75,
+          "y": 11,
+          "animationStartFrame": 2
+        },
+        {
+          "x": 76,
+          "y": 11,
+          "animationStartFrame": 3
+        }
       ]
     }
   ],
@@ -80,8 +128,9 @@
     {
       "id": "spawn_1",
       "type": "player_spawn",
-      "x": 2,
-      "y": 10
+      "x": 1,
+      "y": 10,
+      "speedPxPerSecond": 320
     },
     {
       "id": "coin_1",
@@ -102,13 +151,6 @@
       "type": "collectible",
       "x": 29,
       "y": 4,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_4",
-      "type": "collectible",
-      "x": 40,
-      "y": 6,
       "pointValue": 1
     },
     {
@@ -159,18 +201,12 @@
       "behavior": "patroller",
       "assetId": "dragon_ghost_01",
       "direction": "left",
-      "patrolLeftTiles": 2,
-      "patrolRightTiles": 3,
+      "patrolLeftTiles": 6,
+      "patrolRightTiles": 4,
       "speedPxPerSecond": 48,
       "contactDamage": 1,
       "pointValue": 5,
       "defeatMode": "both"
-    },
-    {
-      "id": "goal_1",
-      "type": "goal",
-      "x": 86,
-      "y": 10
     },
     {
       "id": "coin_9",
@@ -355,12 +391,6 @@
       "pointValue": 1
     },
     {
-      "id": "checkpoint_2",
-      "type": "checkpoint",
-      "x": 20,
-      "y": 6
-    },
-    {
       "id": "coin_24",
       "type": "collectible",
       "x": 54,
@@ -489,9 +519,418 @@
       "defeatMode": "both",
       "rangedAttack": {
         "type": "fireball",
-        "projectileAssetId": "dragons_emberkeep_fireball_01",
         "rangeTiles": 3,
-        "cooldownMs": 4000
+        "cooldownMs": 4000,
+        "projectileAssetId": "dragons_emberkeep_fireball_01",
+        "sizeScale": 1
+      }
+    },
+    {
+      "id": "coin_51",
+      "type": "collectible",
+      "x": 7,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_52",
+      "type": "collectible",
+      "x": 8,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_53",
+      "type": "collectible",
+      "x": 20,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_3",
+      "type": "enemy_spawn",
+      "x": 11,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "dragon_dragon_01",
+      "direction": "left",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 2,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both",
+      "rangedAttack": {
+        "type": "fireball",
+        "rangeTiles": 4,
+        "cooldownMs": 2000,
+        "projectileAssetId": "dragons_emberkeep_fireball_01",
+        "sizeScale": 1
+      }
+    },
+    {
+      "id": "coin_54",
+      "type": "collectible",
+      "x": 17,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_55",
+      "type": "collectible",
+      "x": 18,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_56",
+      "type": "collectible",
+      "x": 19,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_4",
+      "type": "enemy_spawn",
+      "x": 24,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "bob",
+          "heightTiles": 0.12,
+          "periodMs": 1600
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "dragon_ghost_01",
+      "direction": "left",
+      "patrolLeftTiles": 4,
+      "patrolRightTiles": 4,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "coin_57",
+      "type": "collectible",
+      "x": 24,
+      "y": 1,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_58",
+      "type": "collectible",
+      "x": 23,
+      "y": 1,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_59",
+      "type": "collectible",
+      "x": 22,
+      "y": 1,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_60",
+      "type": "collectible",
+      "x": 21,
+      "y": 1,
+      "pointValue": 1
+    },
+    {
+      "id": "extra_life_2",
+      "type": "extra_life",
+      "x": 20,
+      "y": 1
+    },
+    {
+      "id": "enemy_5",
+      "type": "enemy_spawn",
+      "x": 40,
+      "y": 6,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "dragon_dragon_01",
+      "direction": "left",
+      "patrolLeftTiles": 3,
+      "patrolRightTiles": 3,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both",
+      "rangedAttack": {
+        "type": "fireball",
+        "rangeTiles": 6,
+        "cooldownMs": 2000,
+        "projectileAssetId": "dragons_emberkeep_fireball_01",
+        "sizeScale": 1
+      }
+    },
+    {
+      "id": "coin_4",
+      "type": "collectible",
+      "x": 22,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_61",
+      "type": "collectible",
+      "x": 23,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_62",
+      "type": "collectible",
+      "x": 25,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_63",
+      "type": "collectible",
+      "x": 27,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_64",
+      "type": "collectible",
+      "x": 26,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_65",
+      "type": "collectible",
+      "x": 21,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_66",
+      "type": "collectible",
+      "x": 28,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_67",
+      "type": "collectible",
+      "x": 30,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_68",
+      "type": "collectible",
+      "x": 37,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_69",
+      "type": "collectible",
+      "x": 38,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_70",
+      "type": "collectible",
+      "x": 39,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_71",
+      "type": "collectible",
+      "x": 41,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_72",
+      "type": "collectible",
+      "x": 42,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_74",
+      "type": "collectible",
+      "x": 43,
+      "y": 6,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_73",
+      "type": "collectible",
+      "x": 33,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_75",
+      "type": "collectible",
+      "x": 37,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_76",
+      "type": "collectible",
+      "x": 38,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_78",
+      "type": "collectible",
+      "x": 39,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_79",
+      "type": "collectible",
+      "x": 40,
+      "y": 8,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_80",
+      "type": "collectible",
+      "x": 41,
+      "y": 9,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_81",
+      "type": "collectible",
+      "x": 42,
+      "y": 10,
+      "pointValue": 1
+    },
+    {
+      "id": "enemy_6",
+      "type": "enemy_spawn",
+      "x": 44,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "peck",
+          "distanceTiles": 0.18,
+          "periodMs": 900
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "dragon_cooper_01",
+      "direction": "left",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 2,
+      "speedPxPerSecond": 100,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "enemy_8",
+      "type": "enemy_spawn",
+      "x": 50,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "peck",
+          "distanceTiles": 0.18,
+          "periodMs": 900
+        }
+      },
+      "role": "enemy",
+      "behavior": "patroller",
+      "assetId": "dragon_cooper_01",
+      "direction": "left",
+      "patrolLeftTiles": 2,
+      "patrolRightTiles": 2,
+      "speedPxPerSecond": 100,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both"
+    },
+    {
+      "id": "checkpoint_1",
+      "type": "checkpoint",
+      "x": 26,
+      "y": 9
+    },
+    {
+      "id": "boss_1",
+      "type": "enemy_spawn",
+      "x": 84,
+      "y": 10,
+      "motion": {
+        "version": 1,
+        "travel": {
+          "type": "behavior"
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "role": "boss",
+      "behavior": "patroller",
+      "assetId": "dragons_emberkeep_boss_01",
+      "viewMusicCue": "boss",
+      "direction": "left",
+      "patrolLeftTiles": 6,
+      "patrolRightTiles": 3,
+      "speedPxPerSecond": 48,
+      "contactDamage": 1,
+      "pointValue": 5,
+      "defeatMode": "both",
+      "hitsToDefeat": 5,
+      "rangedAttack": {
+        "type": "fireball",
+        "rangeTiles": 6,
+        "cooldownMs": 2000,
+        "projectileAssetId": "dragons_emberkeep_fireball_01",
+        "sizeScale": 2
       }
     }
   ]

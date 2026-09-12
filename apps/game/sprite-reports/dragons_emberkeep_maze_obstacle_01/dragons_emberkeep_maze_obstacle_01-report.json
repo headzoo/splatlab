@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_maze_obstacle_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_maze_obstacle_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        132923
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        625.82
+      ],
+      "yCenters": [
+        794.5
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          56,
+          55
+        ],
+        "paste": [
+          4,
+          5
+        ],
+        "localLandmark": [
+          28.0,
+          55
+        ],
+        "target": [
+          32.0,
+          60.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_maze_obstacle_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/dragons_emberkeep_maze_obstacle_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          5,
+          60,
+          60
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        56,
+        56
+      ],
+      "bboxHeightRange": [
+        55,
+        55
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        32.5,
+        32.5
+      ],
+      "bboxBottomRange": [
+        60,
+        60
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_maze_obstacle_01/dragons_emberkeep_maze_obstacle_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_maze_obstacle_01/dragons_emberkeep_maze_obstacle_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

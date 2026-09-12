@@ -1,0 +1,462 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+
+import type { SavedGameSummaryDto } from "@/lib/game-contract";
+import { buildGamePath } from "@/lib/game-routes";
+
+import { SiteHeader } from "../site-header";
+
+import styles from "./workspace.module.css";
+
+type Workspace = {
+  workspaceId: string;
+  hasLabKey: boolean;
+  keyVersion: number;
+};
+
+type IssuedKey = {
+  labKey: string;
+  replaced: boolean;
+  keyVersion: number;
+};
+
+function getErrorMessage(payload: unknown, fallback: string) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "message" in payload &&
+    typeof payload.message === "string"
+  ) {
+    return payload.message;
+  }
+
+  return fallback;
+}
+
+export function WorkspaceClient() {
+  const replaceDialogRef = useRef<HTMLDialogElement>(null);
+  const keyDialogRef = useRef<HTMLDialogElement>(null);
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [issuedKey, setIssuedKey] = useState<IssuedKey | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
+  const [games, setGames] = useState<SavedGameSummaryDto[] | null>(null);
+  const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    void fetch("/api/auth/lab-workspace", { cache: "no-store" })
+      .then(async (response) => {
+        const payload: unknown = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(
+            getErrorMessage(payload, "We couldn't load your Lab Workspace."),
+          );
+        }
+
+        if (active) {
+          setWorkspace(payload as Workspace);
+        }
+      })
+      .catch((caught: unknown) => {
+        if (active) {
+          setError(
+            caught instanceof Error
+              ? caught.message
+              : "We couldn't load your Lab Workspace.",
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    void fetch("/api/games", { cache: "no-store" })
+      .then(async (response) => {
+        const payload: unknown = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(getErrorMessage(payload, "We couldn't load your games."));
+        }
+
+        if (active) {
+          setGames((payload as { games: SavedGameSummaryDto[] }).games);
+        }
+      })
+      .catch((caught: unknown) => {
+        if (active) {
+          setGames([]);
+          setError(
+            caught instanceof Error ? caught.message : "We couldn't load your games.",
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (issuedKey) {
+      keyDialogRef.current?.showModal();
+    }
+  }, [issuedKey]);
+
+  async function issueLabKey() {
+    setBusy(true);
+    setError("");
+    replaceDialogRef.current?.close();
+
+    try {
+      const response = await fetch("/api/auth/lab-key/issue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const payload: unknown = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          getErrorMessage(payload, "We couldn't make a Lab Key yet."),
+        );
+      }
+
+      const nextKey = payload as IssuedKey;
+      setWorkspace((current) =>
+        current
+          ? { ...current, hasLabKey: true, keyVersion: nextKey.keyVersion }
+          : current,
+      );
+      setCopied(false);
+      setIssuedKey(nextKey);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "We couldn't make a Lab Key yet.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function requestLabKey() {
+    if (workspace?.hasLabKey) {
+      replaceDialogRef.current?.showModal();
+      return;
+    }
+
+    void issueLabKey();
+  }
+
+  async function copyLabKey() {
+    if (!issuedKey) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(issuedKey.labKey);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  function finishSavingKey() {
+    keyDialogRef.current?.close();
+    setIssuedKey(null);
+    setCopied(false);
+  }
+
+  async function removeGame(game: SavedGameSummaryDto) {
+    if (!window.confirm(`Delete “${game.title}”? This cannot be undone.`)) return;
+
+    setDeletingGameId(game.id);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/games/${encodeURIComponent(game.id)}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const payload: unknown = await response.json().catch(() => null);
+        throw new Error(getErrorMessage(payload, "We couldn't delete that game."));
+      }
+
+      setGames((current) => current?.filter((candidate) => candidate.id !== game.id) ?? []);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "We couldn't delete that game.",
+      );
+    } finally {
+      setDeletingGameId(null);
+    }
+  }
+
+  return (
+    <div className={styles.page}>
+      <SiteHeader />
+
+      <main className={styles.main} id="main-content">
+        <section className={styles.welcome} aria-labelledby="workspace-title">
+          <div className={styles.heroCharacter} aria-hidden="true">
+            <div className={styles.speechBubble}>
+              <svg
+                className={styles.speechBubbleShape}
+                viewBox="0 0 220 174"
+              >
+                <path d="M110 5C52 5 8 30 8 72C8 106 39 131 84 137L68 166L109 139C168 139 212 113 212 72C212 30 168 5 110 5Z" />
+              </svg>
+              <div className={styles.speechBubbleCopy}>
+                <strong>WHAT WILL WE</strong>
+                <span>invent today?</span>
+                <span className={styles.speechBubbleSmile}>☺</span>
+              </div>
+            </div>
+            <Image
+              className={styles.cooper}
+              src="/brand/about/cooper-hero.png"
+              alt=""
+              width={1399}
+              height={1124}
+              priority
+              unoptimized
+            />
+          </div>
+
+          <div className={styles.welcomeCopy}>
+            <span>Your invention table</span>
+            <h1 id="workspace-title">My Lab Workspace</h1>
+            <p>Your games will live here as you make them.</p>
+          </div>
+        </section>
+
+        <section className={styles.games} aria-labelledby="games-title">
+          <div className={styles.sectionHeading}>
+            <div>
+              <span>Projects</span>
+              <h2 id="games-title">My Games</h2>
+            </div>
+            <Link className={styles.createButton} href="/build">
+              <span aria-hidden="true">+</span> Create a Game
+            </Link>
+          </div>
+          <div
+            className={`${styles.emptyState} ${games?.length ? styles.savedGamesState : ""}`}
+          >
+            {games === null ? (
+              <div className={styles.emptyMessage} role="status">
+                <span className={styles.emptyGlyph} aria-hidden="true">✦</span>
+                <h3>Big ideas go here.</h3>
+                <p>Loading your games…</p>
+              </div>
+            ) : games.length === 0 ? (
+              <>
+                <div className={styles.emptyDoodleLeft} aria-hidden="true">
+                  <span>GOOD<br />IDEAS<br />LIVE HERE!</span>
+                  <Image
+                    src="/brand/about/cooper-hero.png"
+                    alt=""
+                    width={1399}
+                    height={1124}
+                    unoptimized
+                  />
+                </div>
+                <div className={styles.emptyMessage}>
+                  <span className={styles.emptyGlyph} aria-hidden="true">✦</span>
+                  <h3>Big ideas go here.</h3>
+                  <p>Your first Splat Lab game will appear in this workspace.</p>
+                </div>
+                <div className={styles.emptyDoodleRight} aria-hidden="true">
+                  <svg className={styles.bulb} viewBox="0 0 72 88">
+                    <path d="M36 7c-16 0-28 12-28 27 0 10 5 17 13 23 4 3 6 7 6 11h18c0-4 2-8 6-11 8-6 13-13 13-23C64 19 52 7 36 7Z" />
+                    <path d="M28 76h16M30 83h12M25 33c2-6 6-10 12-12M36 67V43M29 37l7 7 7-7M36 0v-7M5 9l-6-6M67 9l6-6M0 34h-9M72 34h9" />
+                  </svg>
+                  <strong>IMAGINE<br />BUILD<br />PLAY! ☺</strong>
+                </div>
+              </>
+            ) : (
+              <div className={styles.gameGrid}>
+                {games.map((game) => (
+                  <article className={styles.gameCard} key={game.id}>
+                    <div className={styles.gameCardBody}>
+                      <span className={styles.gameCardIcon} aria-hidden="true">
+                        {game.gameType === "maze" ? "▦" : "🎮"}
+                      </span>
+                      <strong>{game.title}</strong>
+                      <span className={styles.gameCardMeta}>
+                        {game.gameType === "maze" ? "Maze" : "Platformer"}
+                        <small>
+                          Updated {new Date(game.updatedAt).toLocaleDateString()}
+                        </small>
+                      </span>
+                    </div>
+                    <div className={styles.gameCardActions}>
+                      <Link
+                        className={`${styles.gameCardButton} ${styles.gameCardPlay}`}
+                        href={`/play/${encodeURIComponent(game.id)}`}
+                      >
+                        Play
+                      </Link>
+                      <Link
+                        className={`${styles.gameCardButton} ${styles.gameCardEdit}`}
+                        href={buildGamePath(game.id)}
+                      >
+                        Edit
+                      </Link>
+                    </div>
+                    <details className={styles.gameMenu}>
+                      <summary aria-label={`Open menu for ${game.title}`}>•••</summary>
+                      <div>
+                        <button
+                          type="button"
+                          disabled={deletingGameId === game.id}
+                          onClick={() => void removeGame(game)}
+                        >
+                          {deletingGameId === game.id ? "Deleting…" : "Delete"}
+                        </button>
+                      </div>
+                    </details>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className={styles.labKeyPanel} aria-labelledby="lab-key-title">
+          <div className={styles.keyCopy}>
+            <span>Secret entrance</span>
+            <h2 id="lab-key-title">Your Lab Key</h2>
+            {workspace?.hasLabKey ? (
+              <p>
+                Your workspace has a Lab Key. Splat Lab keeps it scrambled and
+                cannot show it again.
+              </p>
+            ) : (
+              <p>
+                Make a secret Lab Key so you can return to this workspace on
+                another device.
+              </p>
+            )}
+          </div>
+
+          <div className={styles.keyAction}>
+            {workspace ? (
+              <span className={styles.keyStatus}>
+                <span className={styles.keyLock} aria-hidden="true">
+                  {workspace.hasLabKey ? "▣" : "□"}
+                </span>
+                {workspace.hasLabKey ? "Lab Key protected" : "No Lab Key yet"}
+              </span>
+            ) : (
+              <span className={styles.keyStatus}>Loading…</span>
+            )}
+            <button
+              className={styles.keyButton}
+              type="button"
+              disabled={!workspace || busy}
+              onClick={requestLabKey}
+            >
+              {busy
+                ? "Making…"
+                : workspace?.hasLabKey
+                  ? "Make a New Lab Key"
+                  : "Make My Lab Key"}
+            </button>
+            <small>Keep your Lab Key private!</small>
+          </div>
+        </section>
+
+        {error ? (
+          <p className={styles.pageError} role="alert">
+            {error}
+          </p>
+        ) : null}
+      </main>
+
+      <dialog
+        className={styles.confirmDialog}
+        ref={replaceDialogRef}
+        aria-labelledby="replace-key-title"
+      >
+        <button
+          className={styles.closeButton}
+          type="button"
+          aria-label="Close"
+          onClick={() => replaceDialogRef.current?.close()}
+        >
+          ×
+        </button>
+        <span className={styles.dialogKicker}>Heads up!</span>
+        <h2 id="replace-key-title">Replace Your Lab Key?</h2>
+        <p>
+          Your old key will stop working right away. This device will stay
+          signed in.
+        </p>
+        <div className={styles.dialogActions}>
+          <button
+            className={styles.cancelButton}
+            type="button"
+            onClick={() => replaceDialogRef.current?.close()}
+          >
+            Keep Old Key
+          </button>
+          <button
+            className={styles.replaceButton}
+            type="button"
+            onClick={() => void issueLabKey()}
+          >
+            Make New Key
+          </button>
+        </div>
+      </dialog>
+
+      <dialog
+        className={styles.keyDialog}
+        ref={keyDialogRef}
+        aria-labelledby="new-key-title"
+        onCancel={(event) => event.preventDefault()}
+      >
+        <span className={styles.dialogKicker}>
+          {issuedKey?.replaced ? "New secret unlocked" : "Secret unlocked"}
+        </span>
+        <h2 id="new-key-title">
+          {issuedKey?.replaced ? "Your New Lab Key" : "Your Lab Key"}
+        </h2>
+        <p>
+          Write it down somewhere safe. After you close this, Splat Lab cannot
+          show it again.
+        </p>
+        <output className={styles.keyOutput}>{issuedKey?.labKey}</output>
+        <button
+          className={styles.copyButton}
+          type="button"
+          onClick={() => void copyLabKey()}
+        >
+          {copied ? "Copied!" : "Copy Lab Key"}
+        </button>
+        <button
+          className={styles.savedButton}
+          type="button"
+          onClick={finishSavingKey}
+        >
+          I Saved It
+        </button>
+      </dialog>
+    </div>
+  );
+}

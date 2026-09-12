@@ -23,6 +23,13 @@ It should be run from that directory and configured with `SPLAT_LAB_GAME_ROOT`
 pointing at this `apps/game` directory so specs, sprites, maps, staged builds,
 approvals, and revision records continue to live here.
 
+Gameplay changes made in the Game Editor must also be implemented and verified
+in the matching site game player under `apps/website` in the same change. The
+editor preview is not the production player. When an editor feature affects
+play, update the shared map contract, the editor preview, and the site runtime,
+then add a site-player test that loads an actual checked-in map used by `/build`.
+Do not consider editor-only gameplay behavior complete.
+
 Every new or regenerated sprite must have a matching recipe in `sprite-specs/<asset-id>.json`. Run the automated pipeline before presenting an asset for approval:
 
 ```bash

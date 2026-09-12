@@ -1,5 +1,8 @@
 import Image from "next/image";
 import styles from "./page.module.css";
+import { SiteHeader } from "./site-header";
+import { AuthAction } from "./auth-flow";
+import { HeroParallax } from "./hero-parallax";
 
 const benefits = [
   {
@@ -81,11 +84,11 @@ const testimonials = [
   },
 ] as const;
 
-function CtaLink({ className = "" }: { className?: string }) {
+function CtaButton({ className = "" }: { className?: string }) {
   return (
-    <a className={`${styles.cta} ${className}`} href="#examples">
+    <AuthAction className={`${styles.cta} ${className}`} mode="start">
       Start Creating Free <span aria-hidden="true">→</span>
-    </a>
+    </AuthAction>
   );
 }
 
@@ -99,7 +102,7 @@ export default function Home() {
       <section className={styles.hero} aria-labelledby="hero-title">
         <Image
           className={styles.heroBackground}
-          src="/brand/homepage/hero-background.png"
+          src="/brand/homepage/hero-background-clean.png"
           alt=""
           fill
           priority
@@ -107,34 +110,9 @@ export default function Home() {
           unoptimized
         />
 
-        <header className={styles.header}>
-          <a className={styles.brand} href="#main-content" aria-label="Splat Lab home">
-            <Image
-              src="/brand/homepage/splat-lab-logo.png"
-              alt="Splat Lab!"
-              width={1254}
-              height={1254}
-              priority
-              unoptimized
-            />
-          </a>
+        <HeroParallax />
 
-          <nav className={styles.nav} aria-label="Primary navigation">
-            <a href="#features">Features</a>
-            <a href="#examples">Examples</a>
-            <a href="#parents">For Parents</a>
-            <a href="#pricing">Pricing</a>
-          </nav>
-
-          <div className={styles.accountLinks}>
-            <a className={styles.signIn} href="#get-started">
-              Sign In
-            </a>
-            <a className={styles.headerCta} href="#get-started">
-              Get Started Free
-            </a>
-          </div>
-        </header>
+        <SiteHeader />
 
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
@@ -146,19 +124,33 @@ export default function Home() {
               Splat Lab! helps kids turn their ideas into playable games with
               the power of AI. No coding. Just imagination.
             </p>
-            <CtaLink className={styles.heroCta} />
-            <small>No credit card required.</small>
+            <CtaButton className={styles.heroCta} />
           </div>
 
           <div className={styles.heroCharacter}>
             <div className={styles.speechBubble}>
-              <strong>BIG IDEAS</strong>
-              make the best games!
-              <span aria-hidden="true">☺</span>
+              <svg
+                className={styles.speechBubbleShape}
+                viewBox="0 0 220 174"
+                aria-hidden="true"
+              >
+                <path d="M110 5C52 5 8 30 8 72C8 106 39 131 84 137L68 166L109 139C168 139 212 113 212 72C212 30 168 5 110 5Z" />
+              </svg>
+              <div className={styles.speechBubbleCopy}>
+                <strong>BIG IDEAS</strong>
+                <span>
+                  make the best
+                  <br />
+                  games!
+                </span>
+                <span className={styles.speechBubbleSmile} aria-hidden="true">
+                  ☺
+                </span>
+              </div>
             </div>
             <Image
               className={styles.cooper}
-              src="/brand/homepage/cooper-hero.png"
+              src="/brand/homepage/cooper-hero-fixed.png"
               alt="Cooper, Splat Lab's enthusiastic chicken scientist"
               width={1032}
               height={1190}
@@ -250,8 +242,7 @@ export default function Home() {
         <div className={styles.footerInner}>
           <p className={styles.footerNote}>Ideas today.<br />Games tomorrow.</p>
           <div className={styles.footerAction}>
-            <CtaLink />
-            <small>No credit card required.</small>
+            <CtaButton />
           </div>
           <p className={`${styles.footerNote} ${styles.footerNoteRight}`}>
             Silly ideas.<br />Serious fun.

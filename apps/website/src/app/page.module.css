@@ -12,6 +12,268 @@
   object-position: center 56%;
 }
 
+.parallaxScene,
+.parallaxLayer,
+.parallaxTrack,
+.parallaxPanel {
+  position: absolute;
+  inset: 0;
+}
+
+.parallaxScene {
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.parallaxPlaying .parallaxTrack,
+.parallaxPlaying .parallaxBuilderAsset {
+  animation-play-state: running;
+}
+
+.parallaxPaused .parallaxTrack,
+.parallaxPaused .parallaxBuilderAsset {
+  animation-play-state: paused;
+}
+
+.parallaxToggle {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  z-index: 6;
+  display: inline-flex;
+  min-width: 96px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  color: #07143f;
+  background: rgb(255 255 255 / 92%);
+  border: 2px solid rgb(7 20 63 / 82%);
+  border-radius: 999px;
+  box-shadow:
+    0 4px 0 rgb(7 20 63 / 18%),
+    0 9px 18px rgb(19 84 125 / 22%);
+  font: 400 20px/1 "Chewy", cursive;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.parallaxToggle:hover {
+  background: #fff5a8;
+  transform: translateY(-1px);
+}
+
+.parallaxToggle:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 3px;
+}
+
+.parallaxTrack {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  animation: heroWorldScroll var(--parallax-duration) linear infinite;
+  will-change: transform;
+}
+
+.parallaxPanel {
+  position: relative;
+  flex: 0 0 50%;
+  height: 100%;
+}
+
+.parallaxImage {
+  object-fit: cover;
+  object-position: center 56%;
+}
+
+.parallaxFar {
+  z-index: 1;
+}
+
+.parallaxMid {
+  z-index: 2;
+}
+
+.parallaxFront {
+  z-index: 4;
+}
+
+.parallaxCoinMid {
+  z-index: 3;
+}
+
+.parallaxCoinFront {
+  z-index: 5;
+}
+
+.parallaxBuilderMid {
+  z-index: 3;
+}
+
+.parallaxBuilderFront {
+  z-index: 5;
+}
+
+.parallaxBuilderAsset {
+  position: absolute;
+  height: auto;
+}
+
+.builderMaterialize {
+  top: 60%;
+  left: 8%;
+  width: clamp(160px, 19vw, 275px);
+  opacity: 0.92;
+  animation: builderMaterializePulse 2800ms ease-in-out infinite;
+}
+
+.builderGhost {
+  top: 14%;
+  left: 33%;
+  width: clamp(126px, 14vw, 210px);
+  opacity: 0.9;
+  filter: drop-shadow(0 9px 10px rgb(19 122 180 / 24%));
+  animation: builderGhostFloat 2400ms ease-in-out infinite;
+}
+
+.builderSelected {
+  top: 32%;
+  left: 78%;
+  width: clamp(150px, 18vw, 260px);
+  opacity: 0.88;
+  animation: builderSelectionHover 1900ms ease-in-out infinite;
+}
+
+@keyframes builderGhostFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+.builderBoar {
+  top: 54%;
+  left: 54%;
+  width: clamp(210px, 23vw, 340px);
+  animation: builderBoarHover 2300ms ease-in-out infinite;
+}
+
+.builderCoin {
+  top: 16%;
+  left: 58%;
+  width: clamp(52px, 6vw, 90px);
+  animation: builderCoinPulse 1700ms ease-in-out infinite;
+}
+
+.parallaxCoin {
+  position: absolute;
+  height: auto;
+  filter: drop-shadow(0 6px 5px rgb(31 90 117 / 20%));
+}
+
+.coinMidOne {
+  top: 18%;
+  left: 31%;
+  width: clamp(42px, 4.5vw, 72px);
+  transform: rotate(-8deg);
+}
+
+.coinMidTwo {
+  top: 43%;
+  left: 69%;
+  width: clamp(38px, 4vw, 64px);
+  transform: rotate(6deg);
+}
+
+.coinMidThree {
+  top: 68%;
+  left: 45%;
+  width: clamp(34px, 3.6vw, 58px);
+  transform: rotate(-4deg);
+}
+
+.coinFrontOne {
+  top: 31%;
+  left: 12%;
+  width: clamp(54px, 6vw, 96px);
+  transform: rotate(5deg);
+}
+
+.coinFrontTwo {
+  top: 61%;
+  left: 82%;
+  width: clamp(50px, 5.5vw, 88px);
+  transform: rotate(-7deg);
+}
+
+@keyframes builderMaterializePulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 7px 6px rgb(29 91 120 / 18%)) brightness(0.98);
+  }
+
+  50% {
+    filter: drop-shadow(0 7px 8px rgb(29 91 120 / 24%)) brightness(1.08);
+  }
+}
+
+@keyframes builderSelectionHover {
+  0%,
+  100% {
+    translate: 0 0;
+    filter: drop-shadow(0 9px 8px rgb(29 91 120 / 22%));
+  }
+
+  50% {
+    translate: 0 -6px;
+    filter: drop-shadow(0 12px 10px rgb(29 91 120 / 28%));
+  }
+}
+
+@keyframes builderBoarHover {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -1deg;
+    filter: drop-shadow(0 10px 9px rgb(29 91 120 / 24%));
+  }
+
+  50% {
+    translate: 0 -7px;
+    rotate: 1deg;
+    filter: drop-shadow(0 14px 12px rgb(29 91 120 / 30%));
+  }
+}
+
+@keyframes builderCoinPulse {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -5deg;
+    scale: 0.96;
+    filter: drop-shadow(0 7px 7px rgb(29 91 120 / 22%));
+  }
+
+  50% {
+    translate: 0 -5px;
+    rotate: 5deg;
+    scale: 1.04;
+    filter: drop-shadow(0 10px 10px rgb(29 91 120 / 30%));
+  }
+}
+
+@keyframes heroWorldScroll {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 .header,
 .heroInner {
   width: min(100% - 64px, 1720px);
@@ -30,52 +292,100 @@
   position: relative;
   z-index: 4;
   display: grid;
-  grid-template-columns: 190px minmax(420px, 1fr) auto;
+  grid-template-columns: auto auto;
   align-items: center;
-  min-height: 126px;
-  gap: 20px;
+  width: min(100% - 32px, 1200px);
+  min-height: 84px;
+  gap: 16px;
+}
+
+.navbarShell {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 7px;
+  background: rgb(255 255 255 / 93%);
+  border: 1px solid rgb(56 144 211 / 18%);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgb(14 85 135 / 16%);
 }
 
 .brand {
-  position: relative;
-  align-self: start;
-  width: 170px;
-  height: 150px;
+  display: flex;
+  width: 190px;
+  height: 58px;
+  align-items: center;
 }
 
 .brand img {
-  position: absolute;
-  top: 8px;
-  left: 0;
-  width: 170px;
-  height: 170px;
+  display: block;
+  width: 100%;
+  height: auto;
   object-fit: contain;
 }
 
 .nav {
   display: flex;
+  width: fit-content;
   align-items: center;
   justify-content: center;
-  gap: 38px;
-  font: 400 19px/1 "Chewy", cursive;
+  gap: 2px;
+  font: 400 28px/1 "Chewy", cursive;
 }
 
-.nav a,
+.nav a {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.nav svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.nav a[aria-current="page"] {
+  color: #1761b7;
+  background: #dceeff;
+}
+
 .signIn {
   padding: 12px 2px;
+  white-space: nowrap;
+}
+
+.signIn {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-shadow:
+    0 3px 0 rgb(255 255 255 / 88%),
+    0 6px 7px rgb(4 48 91 / 36%);
+  cursor: pointer;
 }
 
 .nav a:hover,
 .signIn:hover {
-  color: #e9351f;
+  color: #ffc31a;
 }
 
 .accountLinks {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 18px;
-  font: 400 18px/1 "Chewy", cursive;
+  gap: 12px;
+  font: 400 38px/1 "Chewy", cursive;
 }
 
 .headerCta,
@@ -92,7 +402,21 @@
   box-shadow: 0 4px 0 rgb(204 137 0 / 20%);
   font: 400 20px/1 "Chewy", cursive;
   white-space: nowrap;
+  cursor: pointer;
   transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.headerCta {
+  min-height: 56px;
+  padding-inline: 24px;
+  font-size: 32px;
+}
+
+.headerCta:disabled,
+.cta:disabled,
+.signIn:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .headerCta:hover,
@@ -107,6 +431,7 @@
   z-index: 3;
   display: grid;
   grid-template-columns: minmax(350px, 40%) minmax(0, 60%);
+  max-width: 1200px;
   min-height: 578px;
 }
 
@@ -139,7 +464,7 @@
   max-width: 390px;
   margin-top: 24px;
   font-size: 19px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.32;
 }
 
@@ -179,53 +504,124 @@
   z-index: 2;
   width: min(650px, 104%);
   height: auto;
+  transform-origin: 52% 42%;
   filter: drop-shadow(0 12px 8px rgb(27 66 89 / 18%));
+  transition:
+    filter 180ms ease-out,
+    translate 180ms ease-out,
+    rotate 180ms ease-out,
+    scale 220ms ease-out;
+}
+
+@keyframes cooperWindWiggle {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+
+  18% {
+    translate: -8px -2px;
+    rotate: -3deg;
+  }
+
+  40% {
+    translate: 7px 1px;
+    rotate: 2.6deg;
+  }
+
+  62% {
+    translate: -5px 3px;
+    rotate: -2deg;
+  }
+
+  82% {
+    translate: 4px 2px;
+    rotate: 1.4deg;
+  }
+}
+
+@keyframes cooperFallTowardCamera {
+  from {
+    scale: 1;
+  }
+
+  to {
+    scale: 1.065;
+  }
+}
+
+@keyframes speechBubbleCooperTilt {
+  0%,
+  100% {
+    rotate: -2deg;
+  }
+
+  50% {
+    rotate: 1.25deg;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hero:has(.parallaxPlaying) .cooper:hover {
+    animation:
+      cooperWindWiggle 820ms ease-in-out infinite,
+      cooperFallTowardCamera 1550ms cubic-bezier(0.3, 0, 0.65, 1) forwards;
+    filter: drop-shadow(0 18px 13px rgb(27 66 89 / 24%));
+    will-change: transform;
+  }
 }
 
 .speechBubble {
   position: absolute;
-  top: 58px;
+  top: 52px;
   right: auto;
   left: 54%;
   z-index: 3;
+  width: 220px;
+  height: 174px;
+  transform-origin: 28% 84%;
+  rotate: -2deg;
+}
+
+.speechBubbleShape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 9px 10px rgb(24 68 101 / 14%));
+}
+
+.speechBubbleShape path {
+  fill: #fff;
+  stroke: #07143f;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+}
+
+.speechBubbleCopy {
+  position: relative;
+  z-index: 1;
   display: flex;
-  width: 190px;
-  min-height: 132px;
+  height: 138px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 14px 22px 18px;
+  padding: 18px 28px 12px;
+  font: 400 21px/0.94 "Chewy", cursive;
   text-align: center;
-  background: #fff;
-  border: 3px solid #07143f;
-  border-radius: 50%;
-  font: 400 23px/0.94 "Chewy", cursive;
-  transform: rotate(-3deg);
 }
 
-.speechBubble::after {
-  position: absolute;
-  bottom: -25px;
-  left: 28px;
-  width: 40px;
-  height: 40px;
-  content: "";
-  background: #fff;
-  border-bottom: 3px solid #07143f;
-  border-left: 3px solid #07143f;
-  transform: skew(-34deg) rotate(-25deg);
-}
-
-.speechBubble strong {
+.speechBubbleCopy strong {
   font-size: 23px;
+  line-height: 0.95;
 }
 
-.speechBubble span {
-  display: block;
-  margin-top: 5px;
-  font-family: Arial, sans-serif;
-  font-size: 25px;
-  line-height: 1;
+.speechBubbleSmile {
+  margin-top: 7px;
+  color: #31549c;
+  font: 400 22px/1 Arial, sans-serif;
 }
 
 .features,
@@ -529,29 +925,45 @@
 
 @media (max-width: 1080px) {
   .header {
-    grid-template-columns: 160px minmax(360px, 1fr) auto;
+    grid-template-columns: auto auto;
+    gap: 10px;
   }
 
-  .brand,
-  .brand img {
-    width: 150px;
-    height: 150px;
+  .brand {
+    width: 160px;
+    height: 46px;
+  }
+
+  .navbarShell {
+    gap: 6px;
+    padding: 5px 8px 5px 6px;
   }
 
   .nav {
-    gap: 24px;
-    font-size: 17px;
+    gap: 0;
+    font-size: 20px;
+  }
+
+  .nav a {
+    min-height: 42px;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .nav svg {
+    width: 23px;
+    height: 23px;
   }
 
   .accountLinks {
     gap: 12px;
-    font-size: 16px;
+    font-size: 28px;
   }
 
   .headerCta {
-    min-height: 48px;
+    min-height: 50px;
     padding-inline: 18px;
-    font-size: 17px;
+    font-size: 28px;
   }
 
   .heroCopy h1 {
@@ -570,7 +982,17 @@
   .speechBubble {
     right: -1%;
     left: auto;
-    width: 170px;
+    width: 190px;
+    height: 150px;
+  }
+
+  .speechBubbleCopy {
+    height: 119px;
+    padding: 16px 24px 10px;
+    font-size: 18px;
+  }
+
+  .speechBubbleCopy strong {
     font-size: 20px;
   }
 
@@ -593,14 +1015,13 @@
 
 @media (max-width: 860px) {
   .header {
-    grid-template-columns: 132px 1fr;
-    min-height: 94px;
+    grid-template-columns: auto 1fr;
+    min-height: 72px;
   }
 
-  .brand,
-  .brand img {
-    width: 128px;
-    height: 128px;
+  .brand {
+    width: 160px;
+    height: 46px;
   }
 
   .nav {
@@ -617,6 +1038,15 @@
 
   .heroBackground {
     object-position: 64% center;
+  }
+
+  .parallaxImage {
+    object-position: 64% center;
+  }
+
+  .parallaxToggle {
+    right: 18px;
+    bottom: 18px;
   }
 
   .heroInner {
@@ -708,6 +1138,36 @@
 }
 
 @media (max-width: 620px) {
+  .builderMaterialize {
+    top: 57%;
+    left: -8%;
+    width: 145px;
+  }
+
+  .builderGhost {
+    top: 38%;
+    left: 2%;
+    width: 104px;
+  }
+
+  .builderSelected {
+    top: 37%;
+    left: 66%;
+    width: 145px;
+  }
+
+  .builderBoar {
+    top: 61%;
+    left: 44%;
+    width: 190px;
+  }
+
+  .builderCoin {
+    top: 24%;
+    left: 52%;
+    width: 58px;
+  }
+
   .header,
   .heroInner,
   .featureGrid,
@@ -718,19 +1178,18 @@
   }
 
   .header {
-    grid-template-columns: 102px 1fr;
-    min-height: 82px;
+    grid-template-columns: auto 1fr;
+    min-height: 64px;
     gap: 10px;
   }
 
-  .brand,
-  .brand img {
-    width: 100px;
-    height: 100px;
+  .brand {
+    width: 132px;
+    height: 42px;
   }
 
-  .brand img {
-    top: 4px;
+  .navbarShell {
+    padding: 4px 7px 4px 5px;
   }
 
   .signIn {
@@ -738,9 +1197,9 @@
   }
 
   .headerCta {
-    min-height: 43px;
-    padding-inline: 14px;
-    font-size: 15px;
+    min-height: 48px;
+    padding-inline: 16px;
+    font-size: 30px;
   }
 
   .hero {
@@ -773,6 +1232,15 @@
     font-size: 21px;
   }
 
+  .parallaxToggle {
+    right: 14px;
+    bottom: 14px;
+    min-width: 82px;
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 18px;
+  }
+
   .heroCharacter {
     height: 435px;
   }
@@ -785,22 +1253,23 @@
   .speechBubble {
     top: 18px;
     right: -4px;
-    width: 140px;
-    min-height: 108px;
-    padding: 12px 18px;
+    width: 154px;
+    height: 122px;
+  }
+
+  .speechBubbleCopy {
+    height: 97px;
+    padding: 12px 18px 8px;
+    font-size: 15px;
+  }
+
+  .speechBubbleCopy strong {
     font-size: 17px;
-    border-width: 2px;
   }
 
-  .speechBubble strong {
-    font-size: 18px;
-  }
-
-  .speechBubble::after {
-    bottom: -19px;
-    width: 30px;
-    height: 30px;
-    border-width: 0 0 2px 2px;
+  .speechBubbleSmile {
+    margin-top: 4px;
+    font-size: 17px;
   }
 
   .features {
@@ -871,4 +1340,29 @@
   .skipLink {
     transition: transform 140ms ease-out;
   }
+
+  .hero:has(.parallaxPlaying) .speechBubble {
+    animation: speechBubbleCooperTilt 1100ms ease-in-out infinite;
+    will-change: rotate;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parallaxPaused .parallaxTrack,
+  .parallaxPaused .parallaxBuilderAsset {
+    animation: none;
+    will-change: auto;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

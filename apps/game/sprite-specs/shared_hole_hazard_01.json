@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "shared_hole_hazard_01",
+  "name": "Shared Hole",
+  "kind": "hazard",
+  "runtime": "top_down_v1",
+  "themeTags": ["shared"],
+  "visualSlot": "hazard",
+  "collision": "hazard",
+  "source": "sprites/shared_hole_hazard_01-source.png",
+  "output": "sprites/shared_hole_hazard_01.png",
+  "sourceLayout": { "columns": 1, "rows": 1 },
+  "sheet": { "columns": 1, "rows": 1, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["static"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "center",
+    "anchor": { "x": 32, "y": 32 },
+    "contentBox": { "width": 58, "height": 48 },
+    "resizeMode": "contain_each"
+  },
+  "animation": { "fps": 1, "loop": false },
+  "validation": { "requiredPadding": 2, "pivotTolerance": 1 },
+  "preview": { "scale": 5 }
+}

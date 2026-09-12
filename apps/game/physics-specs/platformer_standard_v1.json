@@ -83,24 +83,32 @@
     "priorityOrder": [
       "out_of_bounds",
       "hazard",
-      "goal",
-      "checkpoint",
-      "collectible"
-    ],
-    "responses": {
-      "collectible": "collect_and_score",
+    "goal",
+    "checkpoint",
+    "extra_life",
+    "collectible"
+  ],
+  "responses": {
+    "collectible": "collect_and_score",
+    "extra_life": "collect_and_add_life",
       "checkpoint": "set_latest_respawn",
       "goal": "finish_level",
       "hazard": "respawn",
       "out_of_bounds": "respawn"
     },
     "volumes": {
-      "collectible": {
+    "collectible": {
         "shape": "aabb",
         "widthPx": 32,
         "heightPx": 32,
-        "anchor": "cell_center"
-      },
+      "anchor": "cell_center"
+    },
+    "extra_life": {
+      "shape": "aabb",
+      "widthPx": 32,
+      "heightPx": 32,
+      "anchor": "cell_center"
+    },
       "checkpoint": {
         "shape": "aabb",
         "widthPx": 32,

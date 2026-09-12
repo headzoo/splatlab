@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_graveyard_flaming_pumpkin_01",
+  "frameLabels": [
+    "flicker_1",
+    "flicker_2",
+    "flicker_3",
+    "flicker_4"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_graveyard_flaming_pumpkin_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        21640,
+        20277,
+        20147,
+        19046
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        393.36,
+        952.93
+      ],
+      "yCenters": [
+        390.98,
+        961.77
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          673,
+          676
+        ],
+        [
+          673,
+          0,
+          1254,
+          676
+        ],
+        [
+          0,
+          676,
+          673,
+          1254
+        ],
+        [
+          673,
+          676,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          44,
+          26
+        ],
+        "paste": [
+          10,
+          19
+        ],
+        "localLandmark": [
+          22.0,
+          13.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          27
+        ],
+        "paste": [
+          12,
+          18
+        ],
+        "localLandmark": [
+          19.5,
+          13.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          28
+        ],
+        "paste": [
+          11,
+          18
+        ],
+        "localLandmark": [
+          21.0,
+          14.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          41,
+          26
+        ],
+        "paste": [
+          12,
+          19
+        ],
+        "localLandmark": [
+          20.5,
+          13.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_graveyard_flaming_pumpkin_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/haunted_graveyard_flaming_pumpkin_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          19,
+          54,
+          45
+        ],
+        [
+          12,
+          18,
+          51,
+          45
+        ],
+        [
+          11,
+          18,
+          53,
+          46
+        ],
+        [
+          12,
+          19,
+          53,
+          45
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        39,
+        44
+      ],
+      "bboxHeightRange": [
+        26,
+        28
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.0
+      ],
+      "bboxBottomRange": [
+        45,
+        46
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_graveyard_flaming_pumpkin_01/haunted_graveyard_flaming_pumpkin_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_graveyard_flaming_pumpkin_01/haunted_graveyard_flaming_pumpkin_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

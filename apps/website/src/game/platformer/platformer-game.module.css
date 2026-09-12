@@ -1,0 +1,328 @@
+.game {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.buttonGroup,
+.touchControls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.toolbar button,
+.touchControls button {
+  min-height: 38px;
+  padding: 0 12px;
+  color: #12234e;
+  background: #fff;
+  border: 1px solid #b6c9df;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
+  cursor: pointer;
+  font: 800 11px/1 "Nunito", sans-serif;
+}
+
+.toolbar button:hover,
+.touchControls button:hover {
+  border-color: #6698cc;
+  background: #f3f9ff;
+}
+
+.toolbar button:focus-visible,
+.touchControls button:focus-visible,
+.controlsDialog button:focus-visible,
+.canvas:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.toolbar .playbackButton {
+  color: #fff;
+  background: #24b947;
+  border-color: #159634;
+}
+
+.toolbar .playbackButton:hover {
+  background: #169d39;
+}
+
+.toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #4dbcf2;
+  border: 3px solid #56b7e3;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 30%);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.stageMessage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: rgb(5 26 61 / 24%);
+}
+
+.stageMessage strong {
+  max-width: min(80%, 390px);
+  padding: 13px 20px;
+  color: #fff;
+  background: rgb(7 20 63 / 88%);
+  border: 3px solid rgb(255 255 255 / 75%);
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgb(5 22 54 / 28%);
+  font: 400 24px/1.1 "Chewy", cursive;
+  text-align: center;
+}
+
+.controlRow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.controlHint {
+  max-width: 340px;
+  margin-left: auto;
+  color: #425d86;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.touchControls button {
+  min-width: 52px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.touchControls .keyboardButton {
+  min-width: 42px;
+  padding-inline: 9px;
+  font-size: 20px;
+}
+
+.touchControls .jumpButton {
+  min-width: 76px;
+  color: #fff;
+  background: #2588f0;
+  border-color: #1772ce;
+}
+
+.touchControls .weaponButton {
+  min-width: 76px;
+  color: #fff;
+  background: #ef704d;
+  border-color: #c64f32;
+}
+
+.touchControls button[data-active="true"] {
+  color: #fff;
+  background: #173f8a;
+  border-color: #102d68;
+  transform: translateY(1px);
+}
+
+.controlsDialog {
+  width: min(calc(100% - 32px), 520px);
+  margin: auto;
+  padding: 28px;
+  color: #12234e;
+  background: #fffdf8;
+  border: 3px solid #173f8a;
+  border-radius: 18px;
+  box-shadow: 0 18px 0 rgb(7 20 63 / 18%);
+}
+
+.controlsDialog::backdrop {
+  background: rgb(7 20 63 / 68%);
+  backdrop-filter: blur(3px);
+}
+
+.dialogCloseButton {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: #12234e;
+  background: transparent;
+  border: 0;
+  font: 700 28px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.dialogHeading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 24px;
+}
+
+.dialogHeading > span {
+  font-size: 34px;
+}
+
+.dialogHeading h2 {
+  margin: 0;
+  font: 400 30px/1 "Chewy", cursive;
+}
+
+.dialogHeading p {
+  margin: 5px 0 0;
+  color: #52698f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.bindingList {
+  display: grid;
+  gap: 9px;
+  margin-top: 22px;
+}
+
+.bindingRow {
+  display: grid;
+  grid-template-columns: minmax(94px, 1fr) 2fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #edf5ff;
+  border-radius: 12px;
+}
+
+.bindingRow h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.bindingKeys {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.bindingKeys button,
+.dialogActions button {
+  min-width: 52px;
+  min-height: 38px;
+  padding: 0 12px;
+  color: #12234e;
+  background: #fff;
+  border: 2px solid #9cb9dc;
+  border-radius: 9px;
+  cursor: pointer;
+  font: 800 12px/1 "Nunito", sans-serif;
+}
+
+.bindingKeys .capturingKey {
+  min-width: 108px;
+  color: #fff;
+  background: #2588f0;
+  border-color: #1772ce;
+}
+
+.controlError {
+  min-height: 18px;
+  margin: 12px 0 0;
+  color: #b43a2a;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 6px;
+}
+
+.dialogActions .doneButton {
+  min-width: 84px;
+  color: #fff;
+  background: #24b947;
+  border-color: #159634;
+}
+
+.srStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 620px) {
+  .toolbar,
+  .controlRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .buttonGroup,
+  .touchControls {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .toolbar button,
+  .touchControls button {
+    min-width: 0;
+    padding-inline: 7px;
+  }
+
+  .touchControls {
+    width: 100%;
+    grid-template-columns: 40px repeat(4, minmax(0, 1fr));
+  }
+
+  .controlHint {
+    max-width: none;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .controlsDialog {
+    padding: 24px 18px 20px;
+  }
+
+  .bindingRow {
+    grid-template-columns: 1fr;
+  }
+
+  .bindingKeys {
+    justify-content: flex-start;
+  }
+}

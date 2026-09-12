@@ -1,0 +1,18 @@
+{
+  "assetId": "space_girl_01",
+  "approvedAt": "2026-09-12T01:22:40.085861+00:00",
+  "recipe": "sprite-specs/space_girl_01.json",
+  "runtimeImage": "sprites/space_girl_01.png",
+  "sha256": "bafcb0478a0ad171689d91f26fdd9dc9e1a5ba41145439fb56d9f1269d09af7d",
+  "validationReport": "sprite-reports/space_girl_01/space_girl_01-report.json",
+  "skinTone": {
+    "paletteId": "skin_tones_v1",
+    "mask": "sprite-masks/space_girl_01-skin-mask.png",
+    "maskSha256": "90b912abcb247895dc5e580713970e495ff6acee9bdf37bb5df18c0193e68f3d"
+  },
+  "hairColor": {
+    "paletteId": "hair_colors_v1",
+    "mask": "sprite-masks/space_girl_01-hair-mask.png",
+    "maskSha256": "1521cdfd6ce15b78ee6d86beb40c928ebc68ef69970edf6d9ab0ec66c7f389ea"
+  }
+}

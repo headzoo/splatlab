@@ -1,0 +1,703 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_maze_wall_01",
+  "frameLabels": [
+    "mask_0",
+    "mask_1",
+    "mask_2",
+    "mask_3",
+    "mask_4",
+    "mask_5",
+    "mask_6",
+    "mask_7",
+    "mask_8",
+    "mask_9",
+    "mask_10",
+    "mask_11",
+    "mask_12",
+    "mask_13",
+    "mask_14",
+    "mask_15"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_maze_wall_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          314,
+          314
+        ],
+        [
+          314,
+          0,
+          627,
+          314
+        ],
+        [
+          627,
+          0,
+          941,
+          314
+        ],
+        [
+          941,
+          0,
+          1254,
+          314
+        ],
+        [
+          0,
+          314,
+          314,
+          627
+        ],
+        [
+          314,
+          314,
+          627,
+          627
+        ],
+        [
+          627,
+          314,
+          941,
+          627
+        ],
+        [
+          941,
+          314,
+          1254,
+          627
+        ],
+        [
+          0,
+          627,
+          314,
+          941
+        ],
+        [
+          314,
+          627,
+          627,
+          941
+        ],
+        [
+          627,
+          627,
+          941,
+          941
+        ],
+        [
+          941,
+          627,
+          1254,
+          941
+        ],
+        [
+          0,
+          941,
+          314,
+          1254
+        ],
+        [
+          314,
+          941,
+          627,
+          1254
+        ],
+        [
+          627,
+          941,
+          941,
+          1254
+        ],
+        [
+          941,
+          941,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          64,
+          62
+        ],
+        "paste": [
+          0,
+          1
+        ],
+        "localLandmark": [
+          32.0,
+          31.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          64
+        ],
+        "paste": [
+          9,
+          0
+        ],
+        "localLandmark": [
+          23.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          44
+        ],
+        "paste": [
+          0,
+          10
+        ],
+        "localLandmark": [
+          32.0,
+          22.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          63,
+          64
+        ],
+        "paste": [
+          0,
+          0
+        ],
+        "localLandmark": [
+          31.5,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          49,
+          64
+        ],
+        "paste": [
+          8,
+          0
+        ],
+        "localLandmark": [
+          24.5,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          64
+        ],
+        "paste": [
+          13,
+          0
+        ],
+        "localLandmark": [
+          19.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          59
+        ],
+        "paste": [
+          0,
+          2
+        ],
+        "localLandmark": [
+          32.0,
+          29.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          52,
+          64
+        ],
+        "paste": [
+          6,
+          0
+        ],
+        "localLandmark": [
+          26.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          59,
+          64
+        ],
+        "paste": [
+          2,
+          0
+        ],
+        "localLandmark": [
+          29.5,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          49,
+          64
+        ],
+        "paste": [
+          8,
+          0
+        ],
+        "localLandmark": [
+          24.5,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          55
+        ],
+        "paste": [
+          0,
+          4
+        ],
+        "localLandmark": [
+          32.0,
+          27.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          62,
+          64
+        ],
+        "paste": [
+          1,
+          0
+        ],
+        "localLandmark": [
+          31.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          60
+        ],
+        "paste": [
+          0,
+          2
+        ],
+        "localLandmark": [
+          32.0,
+          30.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          54,
+          64
+        ],
+        "paste": [
+          5,
+          0
+        ],
+        "localLandmark": [
+          27.0,
+          32.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          46
+        ],
+        "paste": [
+          0,
+          9
+        ],
+        "localLandmark": [
+          32.0,
+          23.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          60
+        ],
+        "paste": [
+          0,
+          2
+        ],
+        "localLandmark": [
+          32.0,
+          30.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_maze_wall_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/dragons_emberkeep_maze_wall_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          0,
+          1,
+          64,
+          63
+        ],
+        [
+          9,
+          0,
+          55,
+          64
+        ],
+        [
+          0,
+          10,
+          64,
+          54
+        ],
+        [
+          0,
+          0,
+          63,
+          64
+        ],
+        [
+          8,
+          0,
+          57,
+          64
+        ],
+        [
+          13,
+          0,
+          51,
+          64
+        ],
+        [
+          0,
+          2,
+          64,
+          61
+        ],
+        [
+          6,
+          0,
+          58,
+          64
+        ],
+        [
+          2,
+          0,
+          61,
+          64
+        ],
+        [
+          8,
+          0,
+          57,
+          64
+        ],
+        [
+          0,
+          4,
+          64,
+          59
+        ],
+        [
+          1,
+          0,
+          63,
+          64
+        ],
+        [
+          0,
+          2,
+          64,
+          62
+        ],
+        [
+          5,
+          0,
+          59,
+          64
+        ],
+        [
+          0,
+          9,
+          64,
+          55
+        ],
+        [
+          0,
+          2,
+          64,
+          62
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        38,
+        64
+      ],
+      "bboxHeightRange": [
+        44,
+        64
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.0
+      ],
+      "bboxBottomRange": [
+        54,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_maze_wall_01/dragons_emberkeep_maze_wall_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_maze_wall_01/dragons_emberkeep_maze_wall_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

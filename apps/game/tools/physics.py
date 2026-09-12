@@ -878,16 +878,18 @@ def _validate_platformer(
                 "hazard",
                 "goal",
                 "checkpoint",
+                "extra_life",
                 "collectible",
             ],
             expected_responses={
                 "collectible": "collect_and_score",
+                "extra_life": "collect_and_add_life",
                 "checkpoint": "set_latest_respawn",
                 "goal": "finish_level",
                 "hazard": "respawn",
                 "out_of_bounds": "respawn",
             },
-            expected_volume_names={"collectible", "checkpoint", "goal", "hazard"},
+            expected_volume_names={"collectible", "extra_life", "checkpoint", "goal", "hazard"},
             tile_size=tile_size,
         )
     )

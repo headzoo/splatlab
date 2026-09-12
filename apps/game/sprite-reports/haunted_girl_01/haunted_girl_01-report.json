@@ -1,0 +1,972 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_girl_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_girl_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        6876,
+        6869,
+        6812,
+        6811,
+        6786,
+        6776,
+        6774,
+        6676,
+        6666,
+        6549,
+        6518,
+        6517,
+        6512,
+        6479,
+        6471,
+        6459,
+        6399,
+        6383,
+        6343,
+        6339
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        168.13,
+        435.35,
+        699.97,
+        964.3,
+        1227.64
+      ],
+      "yCenters": [
+        141.01,
+        414.94,
+        685.3,
+        950.82
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          302,
+          278
+        ],
+        [
+          302,
+          0,
+          568,
+          278
+        ],
+        [
+          568,
+          0,
+          832,
+          278
+        ],
+        [
+          832,
+          0,
+          1096,
+          278
+        ],
+        [
+          1096,
+          0,
+          1402,
+          278
+        ],
+        [
+          0,
+          278,
+          302,
+          550
+        ],
+        [
+          302,
+          278,
+          568,
+          550
+        ],
+        [
+          568,
+          278,
+          832,
+          550
+        ],
+        [
+          832,
+          278,
+          1096,
+          550
+        ],
+        [
+          1096,
+          278,
+          1402,
+          550
+        ],
+        [
+          0,
+          550,
+          302,
+          818
+        ],
+        [
+          302,
+          550,
+          568,
+          818
+        ],
+        [
+          568,
+          550,
+          832,
+          818
+        ],
+        [
+          832,
+          550,
+          1096,
+          818
+        ],
+        [
+          1096,
+          550,
+          1402,
+          818
+        ],
+        [
+          0,
+          818,
+          302,
+          1122
+        ],
+        [
+          302,
+          818,
+          568,
+          1122
+        ],
+        [
+          568,
+          818,
+          832,
+          1122
+        ],
+        [
+          832,
+          818,
+          1096,
+          1122
+        ],
+        [
+          1096,
+          818,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          39,
+          53
+        ],
+        "paste": [
+          12,
+          3
+        ],
+        "localLandmark": [
+          19.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          54
+        ],
+        "paste": [
+          13,
+          2
+        ],
+        "localLandmark": [
+          19.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          18.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          54
+        ],
+        "paste": [
+          13,
+          2
+        ],
+        "localLandmark": [
+          19.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          54
+        ],
+        "paste": [
+          13,
+          2
+        ],
+        "localLandmark": [
+          19.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          18.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          18.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          53
+        ],
+        "paste": [
+          13,
+          3
+        ],
+        "localLandmark": [
+          19.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          53
+        ],
+        "paste": [
+          13,
+          3
+        ],
+        "localLandmark": [
+          19.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          53
+        ],
+        "paste": [
+          13,
+          3
+        ],
+        "localLandmark": [
+          19.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          56
+        ],
+        "paste": [
+          14,
+          0
+        ],
+        "localLandmark": [
+          18.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          55
+        ],
+        "paste": [
+          14,
+          1
+        ],
+        "localLandmark": [
+          18.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          18.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          18.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          20.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          55
+        ],
+        "paste": [
+          13,
+          1
+        ],
+        "localLandmark": [
+          19.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_girl_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/haunted_girl_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "skinTone": {
+        "palette": "skin_tones_v1",
+        "toneCount": 6,
+        "mask": "sprite-masks/haunted_girl_01-skin-mask.png",
+        "maskedPixels": 2991,
+        "outsideSpritePixels": 0,
+        "shadeValues": [
+          0,
+          85,
+          170,
+          255
+        ],
+        "frameMaskedPixels": [
+          214,
+          200,
+          197,
+          186,
+          200,
+          143,
+          148,
+          168,
+          147,
+          175,
+          169,
+          172,
+          179,
+          193,
+          162,
+          72,
+          56,
+          61,
+          72,
+          77
+        ]
+      },
+      "hairColor": {
+        "palette": "hair_colors_v1",
+        "colorCount": 8,
+        "mask": "sprite-masks/haunted_girl_01-hair-mask.png",
+        "maskedPixels": 9675,
+        "outsideSpritePixels": 0,
+        "skinOverlapPixels": 0,
+        "shadeValues": [
+          0,
+          85,
+          170,
+          255
+        ],
+        "frameMaskedPixels": [
+          410,
+          426,
+          410,
+          426,
+          420,
+          494,
+          472,
+          488,
+          489,
+          469,
+          487,
+          488,
+          483,
+          482,
+          503,
+          549,
+          546,
+          554,
+          542,
+          537
+        ]
+      },
+      "frameBboxes": [
+        [
+          12,
+          3,
+          51,
+          56
+        ],
+        [
+          13,
+          2,
+          51,
+          56
+        ],
+        [
+          14,
+          2,
+          51,
+          56
+        ],
+        [
+          13,
+          2,
+          51,
+          56
+        ],
+        [
+          13,
+          2,
+          51,
+          56
+        ],
+        [
+          14,
+          2,
+          50,
+          56
+        ],
+        [
+          14,
+          2,
+          51,
+          56
+        ],
+        [
+          13,
+          3,
+          51,
+          56
+        ],
+        [
+          13,
+          3,
+          51,
+          56
+        ],
+        [
+          13,
+          3,
+          51,
+          56
+        ],
+        [
+          14,
+          0,
+          51,
+          56
+        ],
+        [
+          14,
+          1,
+          51,
+          56
+        ],
+        [
+          14,
+          2,
+          51,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ],
+        [
+          14,
+          2,
+          51,
+          56
+        ],
+        [
+          12,
+          2,
+          52,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ],
+        [
+          13,
+          1,
+          51,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        36,
+        40
+      ],
+      "bboxHeightRange": [
+        53,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        29.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_girl_01/haunted_girl_01-contact.png",
+    "animationPreview": "sprite-reports/haunted_girl_01/haunted_girl_01-preview.gif",
+    "skinTonePreview": "sprite-reports/haunted_girl_01/haunted_girl_01-skin-tones.png",
+    "hairColorPreview": "sprite-reports/haunted_girl_01/haunted_girl_01-hair-colors.png"
+  },
+  "humanApprovalRequired": true
+}

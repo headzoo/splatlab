@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_green_hills_maze_door_01",
+  "frameLabels": [
+    "closed",
+    "opening_1",
+    "opening_2",
+    "open"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_green_hills_maze_door_01-source.png",
+    "sourceSize": [
+      1024,
+      1536
+    ],
+    "detection": {
+      "analysisScale": 0.4557291666666667,
+      "selectedComponentAreas": [
+        54090,
+        53997,
+        53488,
+        53440
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        256.9,
+        769.13
+      ],
+      "yCenters": [
+        403.21,
+        1170.54
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          513,
+          787
+        ],
+        [
+          513,
+          0,
+          1024,
+          787
+        ],
+        [
+          0,
+          787,
+          513,
+          1536
+        ],
+        [
+          513,
+          787,
+          1024,
+          1536
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          56,
+          80
+        ],
+        "paste": [
+          4,
+          8
+        ],
+        "localLandmark": [
+          28.0,
+          80
+        ],
+        "target": [
+          32.0,
+          88.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          56,
+          80
+        ],
+        "paste": [
+          4,
+          8
+        ],
+        "localLandmark": [
+          28.0,
+          80
+        ],
+        "target": [
+          32.0,
+          88.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          56,
+          80
+        ],
+        "paste": [
+          4,
+          8
+        ],
+        "localLandmark": [
+          28.0,
+          80
+        ],
+        "target": [
+          32.0,
+          88.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          56,
+          80
+        ],
+        "paste": [
+          4,
+          8
+        ],
+        "localLandmark": [
+          28.0,
+          80
+        ],
+        "target": [
+          32.0,
+          88.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_green_hills_maze_door_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_green_hills_maze_door_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          8,
+          60,
+          88
+        ],
+        [
+          4,
+          8,
+          60,
+          88
+        ],
+        [
+          4,
+          8,
+          60,
+          88
+        ],
+        [
+          4,
+          8,
+          60,
+          88
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        56,
+        56
+      ],
+      "bboxHeightRange": [
+        80,
+        80
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        48.0,
+        48.0
+      ],
+      "bboxBottomRange": [
+        88,
+        88
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_green_hills_maze_door_01/neutral_green_hills_maze_door_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_green_hills_maze_door_01/neutral_green_hills_maze_door_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

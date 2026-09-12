@@ -17,7 +17,9 @@ class AudioPackTests(unittest.TestCase):
         pack = audio.load_audio_spec(REPO_ROOT / "audio-specs/space_basic_v1.json")
 
         self.assertEqual(pack["id"], "space_basic_v1")
-        self.assertGreaterEqual(pack["music"]["durationSec"], 8)
+        self.assertGreaterEqual(pack["music"]["gameplay"]["durationSec"], 8)
+        self.assertEqual(pack["music"]["boss"]["durationSec"], 16)
+        self.assertEqual(pack["music"]["boss"]["assetId"], "shared_boss_menace_loop_01")
         self.assertEqual(set(pack["effects"]), audio.REQUIRED_EFFECTS)
         self.assertTrue(all(item["durationSec"] <= 3 for item in pack["effects"].values()))
 
@@ -26,7 +28,8 @@ class AudioPackTests(unittest.TestCase):
 
         self.assertEqual(pack["id"], "dragons_emberkeep_v1")
         self.assertEqual(pack["themeTags"], ["dragons"])
-        self.assertGreaterEqual(pack["music"]["durationSec"], 8)
+        self.assertGreaterEqual(pack["music"]["gameplay"]["durationSec"], 8)
+        self.assertEqual(pack["music"]["boss"]["durationSec"], 16)
         self.assertEqual(set(pack["effects"]), audio.REQUIRED_EFFECTS)
         self.assertTrue(all(item["durationSec"] <= 3 for item in pack["effects"].values()))
 
@@ -34,7 +37,8 @@ class AudioPackTests(unittest.TestCase):
         source = (REPO_ROOT / "runtime/audio-engine.js").read_text(encoding="utf-8")
 
         self.assertIn("async unlock()", source)
-        self.assertIn("startMusic()", source)
+        self.assertIn('startMusic(cue = "gameplay")', source)
+        self.assertIn("this.spec.music?.[cue]", source)
         self.assertIn("play(cue)", source)
         self.assertIn("active.size >= entry.maxVoices", source)
         self.assertIn("Math.max(0, Math.min(1, options.musicLevel))", source)

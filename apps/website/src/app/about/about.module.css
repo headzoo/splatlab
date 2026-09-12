@@ -1,0 +1,1577 @@
+.page {
+  min-height: 100vh;
+  overflow: hidden;
+  color: #07143f;
+  background: #5dc9f4;
+}
+
+.skipLink {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 50;
+  padding: 10px 14px;
+  color: #07143f;
+  background: #ffd43b;
+  border: 2px solid #07143f;
+  border-radius: 4px;
+  font-weight: 800;
+  transform: translateY(-180%);
+}
+
+.skipLink:focus {
+  transform: translateY(0);
+}
+
+.hero {
+  position: relative;
+  min-height: 670px;
+  overflow: hidden;
+  background: #55bef1;
+}
+
+.heroBackground,
+.cooperBackdrop,
+.finalBackground {
+  z-index: 0;
+  object-fit: cover;
+}
+
+.heroBackground {
+  object-position: center 64%;
+}
+
+.heroShade,
+.cooperOverlay,
+.finalWash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.heroShade {
+  background: linear-gradient(90deg, rgb(103 203 246 / 8%), rgb(255 255 255 / 12%) 50%, rgb(83 184 234 / 8%));
+}
+
+.heroSeam {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  height: 180px;
+  background-image: url("/brand/parents/parents-content-background.png");
+  background-position: center bottom;
+  background-repeat: repeat-x;
+  background-size: 1254px 1254px;
+  mask-image: linear-gradient(to bottom, transparent, black 88%);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(410px, 0.9fr) minmax(500px, 1.1fr);
+  width: min(100% - 64px, 1360px);
+  min-height: 544px;
+  margin-inline: auto;
+}
+
+.heroCopy {
+  z-index: 3;
+  align-self: center;
+  max-width: 510px;
+  padding: 8px 0 62px 18px;
+}
+
+.titlePlaque,
+.woodHeading {
+  position: relative;
+  display: inline-block;
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 10%), transparent 20% 78%, rgb(56 23 6 / 15%)),
+    linear-gradient(#a65325, #713316);
+  border: 5px solid #512712;
+  border-radius: 9px;
+  box-shadow:
+    inset 0 0 0 3px rgb(255 177 85 / 32%),
+    0 6px 0 #3f210f,
+    0 12px 18px rgb(39 59 76 / 24%);
+  font-family: "Chewy", cursive;
+  text-align: center;
+  text-shadow: 0 3px 0 #4b1f0d;
+  transform: rotate(-2deg);
+}
+
+.titlePlaque {
+  min-width: 300px;
+  padding: 12px 32px 13px;
+}
+
+.titlePlaque::before,
+.titlePlaque::after,
+.woodHeading::before,
+.woodHeading::after {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  content: "";
+  background: #e5a151;
+  border: 2px solid #4e260f;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.titlePlaque::before,
+.woodHeading::before {
+  left: 10px;
+}
+
+.titlePlaque::after,
+.woodHeading::after {
+  right: 10px;
+}
+
+.titlePlaque span {
+  display: block;
+  font-size: 40px;
+  line-height: 0.92;
+}
+
+.titlePlaque h1 {
+  color: #ffd52f;
+  font-size: 70px;
+  font-weight: 400;
+  line-height: 0.82;
+  -webkit-text-stroke: 2px #7f160e;
+  text-shadow:
+    0 3px 0 #bc1d15,
+    0 6px 0 #62130f;
+}
+
+.heroCopy > h2,
+.sectionHeading h2,
+.showcaseCopy h2,
+.finalInner h2 {
+  font-family: "Chewy", cursive;
+  font-weight: 400;
+}
+
+.heroCopy > h2 {
+  max-width: 420px;
+  margin-top: 20px;
+  font-size: 35px;
+  line-height: 1.02;
+  text-align: center;
+}
+
+.heroCopy > p {
+  max-width: 430px;
+  margin-top: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.cta,
+.tryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 0 28px;
+  color: #11172f;
+  background: #ffd43b;
+  border: 2px solid #efb917;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 rgb(204 137 0 / 20%);
+  font: 400 21px/1 "Chewy", cursive;
+  white-space: nowrap;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.cta:not(:disabled),
+.tryLink {
+  cursor: pointer;
+}
+
+.cta:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.cta:hover,
+.tryLink:hover {
+  background: #ffe05c;
+  box-shadow: 0 6px 0 rgb(204 137 0 / 22%);
+  transform: translateY(-2px);
+}
+
+.cta span,
+.tryLink span {
+  margin-left: 10px;
+  font-family: Arial, sans-serif;
+  font-weight: 900;
+}
+
+.heroCta {
+  min-width: 265px;
+  margin-top: 18px;
+}
+
+.heroCopy small,
+.finalCopy small {
+  display: block;
+  width: max-content;
+  margin: 7px 0 0 64px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.heroCharacter {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.cooperHero {
+  position: absolute;
+  right: auto;
+  bottom: -46px;
+  left: 57%;
+  z-index: 2;
+  width: min(720px, 110%);
+  height: auto;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 14px 10px rgb(29 69 91 / 20%));
+}
+
+.speechBubble {
+  position: absolute;
+  top: 34px;
+  right: clamp(72px, 8vw, 150px);
+  z-index: 4;
+  width: 224px;
+  height: 177px;
+  color: #07143f;
+  text-align: center;
+  transform: rotate(-4deg);
+}
+
+.speechBubbleShape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 9px 10px rgb(24 68 101 / 14%));
+}
+
+.speechBubbleShape path {
+  fill: #fff;
+  stroke: #07143f;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+}
+
+.speechBubbleCopy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 141px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 19px 25px 10px;
+  font: 400 24px/0.98 "Chewy", cursive;
+}
+
+.speechBubbleCopy strong {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.speechBubbleSmile {
+  margin-top: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+}
+
+.contentStage {
+  position: relative;
+  z-index: 4;
+  isolation: isolate;
+  overflow: visible;
+  background: #5dc9f4;
+}
+
+.kingdomClip {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.kingdomBackdrop {
+  position: absolute;
+  top: -240px;
+  right: 0;
+  bottom: -240px;
+  left: 0;
+  z-index: 0;
+  background-image: url("/brand/parents/parents-content-background.png");
+  background-position: center 240px;
+  background-repeat: repeat;
+  background-size: 1254px 1254px;
+}
+
+@supports (animation-timeline: scroll()) {
+  .kingdomBackdrop {
+    animation: kingdom-parallax linear both;
+    animation-timeline: scroll(root block);
+    will-change: transform;
+  }
+}
+
+@keyframes kingdom-parallax {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, 240px, 0); }
+}
+
+.contentStage::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  height: 180px;
+  background-image: url("/brand/parents/parents-content-background.png");
+  background-position: center bottom;
+  background-repeat: repeat-x;
+  background-size: 1254px 1254px;
+  content: "";
+  mask-image: linear-gradient(to bottom, transparent, black 88%);
+  pointer-events: none;
+}
+
+.contentBackdrop {
+  position: relative;
+  top: -40px;
+  z-index: 2;
+  display: grid;
+  gap: 18px;
+  margin-top: -6px;
+  margin-bottom: -40px;
+  padding-bottom: 18px;
+}
+
+.panel {
+  position: relative;
+  z-index: 2;
+  width: min(100% - 32px, 1420px);
+  margin-inline: auto;
+  background: rgb(250 253 255 / 97%);
+  border: 5px solid #38afea;
+  border-radius: 23px;
+  box-shadow:
+    inset 0 0 0 4px #fff,
+    0 10px 22px rgb(22 91 126 / 24%);
+}
+
+.process {
+  padding: 16px 18px 22px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 60px;
+  text-align: center;
+}
+
+.sectionHeading h2 {
+  position: relative;
+  font-size: 42px;
+  line-height: 1;
+}
+
+.sectionHeading h2::before,
+.sectionHeading h2::after {
+  position: absolute;
+  top: 50%;
+  color: #ffc31a;
+  content: "⌁";
+  font-family: Arial, sans-serif;
+  font-size: 43px;
+}
+
+.sectionHeading h2::before {
+  right: calc(100% + 15px);
+  transform: translateY(-50%) rotate(60deg);
+}
+
+.sectionHeading h2::after {
+  left: calc(100% + 15px);
+  transform: translateY(-50%) rotate(-60deg);
+}
+
+.sectionHeading > p {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.processGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 14px;
+  list-style: none;
+}
+
+.processCard,
+.reasonCard {
+  min-width: 0;
+  text-align: center;
+  border-radius: 16px;
+}
+
+.processCard {
+  position: relative;
+  min-height: 164px;
+  padding: 10px 15px 14px;
+}
+
+.processCard:not(:last-child)::after {
+  position: absolute;
+  top: 60px;
+  right: -25px;
+  z-index: 2;
+  color: #ffc31a;
+  content: "➜";
+  font-family: Arial, sans-serif;
+  font-size: 31px;
+  -webkit-text-stroke: 1px #e4a800;
+}
+
+.processIcon {
+  display: flex;
+  height: 74px;
+  align-items: center;
+  justify-content: center;
+}
+
+.processIcon img {
+  width: auto;
+  max-width: 88px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.processIcon span {
+  display: inline-flex;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  color: #23a64e;
+  font: 900 56px/1 Arial, sans-serif;
+  text-shadow:
+    -2px -2px 0 #07143f,
+    2px -2px 0 #07143f,
+    -2px 2px 0 #07143f,
+    2px 2px 0 #07143f;
+}
+
+.processCard:nth-child(4) .processIcon span {
+  color: #ad55e5;
+}
+
+.processCard:nth-child(5) .processIcon span {
+  color: #28c36b;
+}
+
+.processCard h3,
+.reasonCard h3,
+.rulesCard h3 {
+  font-family: "Chewy", cursive;
+  font-weight: 400;
+}
+
+.processCard h3 {
+  font-size: 21px;
+  line-height: 1;
+}
+
+.processCard p {
+  max-width: 180px;
+  margin: 5px auto 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.18;
+}
+
+.yellow {
+  background: linear-gradient(145deg, #fffef2, #fff1bc);
+}
+
+.purple {
+  background: linear-gradient(145deg, #f4efff, #ded3fa);
+}
+
+.blue {
+  background: linear-gradient(145deg, #e9f9ff, #c9edff);
+}
+
+.pink {
+  background: linear-gradient(145deg, #fff1f1, #ffd1d2);
+}
+
+.green {
+  background: linear-gradient(145deg, #efffee, #ccefc7);
+}
+
+.cooperSection {
+  position: relative;
+  z-index: 2;
+  width: min(100% - 32px, 1420px);
+  min-height: 420px;
+  margin-inline: auto;
+  overflow: hidden;
+  color: #fff;
+  background: #16334b;
+  border: 6px solid #2d7eb2;
+  border-bottom-color: #275f88;
+  border-radius: 23px;
+  box-shadow: 0 10px 22px rgb(22 91 126 / 24%);
+}
+
+.cooperBackdrop {
+  opacity: 0.28;
+  object-position: center 66%;
+  filter: saturate(0.75) contrast(1.1);
+}
+
+.cooperOverlay {
+  background:
+    radial-gradient(circle at 50% 44%, rgb(255 199 41 / 23%), transparent 28%),
+    linear-gradient(90deg, rgb(11 34 53 / 89%), rgb(18 49 72 / 61%) 45%, rgb(9 28 47 / 88%));
+}
+
+.cooperInner {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(270px, 1fr) minmax(320px, 0.85fr) minmax(300px, 1fr);
+  width: min(100% - 48px, 1270px);
+  min-height: 414px;
+  margin-inline: auto;
+  gap: 24px;
+}
+
+.cooperIntro {
+  align-self: center;
+}
+
+.woodHeading {
+  min-width: 230px;
+  padding: 9px 28px 10px;
+  transform: rotate(-3deg);
+}
+
+.woodHeading span {
+  display: block;
+  font-size: 30px;
+  line-height: 0.8;
+}
+
+.woodHeading h2 {
+  color: #ffd12a;
+  font-size: 56px;
+  font-weight: 400;
+  line-height: 0.9;
+  -webkit-text-stroke: 2px #7f160e;
+  text-shadow:
+    0 3px 0 #bc1d15,
+    0 6px 0 #62130f;
+}
+
+.cooperIntro > p {
+  max-width: 360px;
+  margin-top: 26px;
+  padding: 20px 22px;
+  color: #07143f;
+  background: #fffdf3;
+  border: 4px solid #d9964d;
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgb(0 0 0 / 24%);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  transform: rotate(-1deg);
+}
+
+.cooperPortrait {
+  position: relative;
+  align-self: end;
+  height: 398px;
+  overflow: visible;
+}
+
+.cooperPortrait img {
+  position: absolute;
+  bottom: -124px;
+  left: 50%;
+  width: 405px;
+  max-width: none;
+  height: auto;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 12px 10px rgb(0 0 0 / 25%));
+}
+
+.cooperSide {
+  position: relative;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+}
+
+.rulesCard {
+  align-self: end;
+  min-width: 180px;
+  padding: 18px 18px 16px;
+  color: #25314c;
+  background: #fff4cf;
+  border: 4px solid #d29750;
+  border-radius: 5px;
+  box-shadow: 0 8px 18px rgb(0 0 0 / 22%);
+  transform: rotate(3deg);
+}
+
+.rulesCard h3 {
+  padding-bottom: 8px;
+  font-size: 22px;
+  border-bottom: 2px solid #cc9b57;
+}
+
+.rulesCard ul {
+  margin-top: 8px;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.65;
+}
+
+.rulesCard li::before {
+  margin-right: 6px;
+  color: #1d9e47;
+  content: "☑";
+}
+
+.reasons {
+  padding: 16px 18px 20px;
+}
+
+.reasons .sectionHeading {
+  display: block;
+}
+
+.reasonGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 15px;
+}
+
+.reasonCard {
+  min-height: 142px;
+  padding: 11px 12px 13px;
+}
+
+.reasonIcon {
+  display: flex;
+  height: 49px;
+  align-items: center;
+  justify-content: center;
+  font: 900 38px/1 Arial, sans-serif;
+}
+
+.reasonCard:nth-child(3) .reasonIcon {
+  color: #ffb800;
+  font-size: 55px;
+  -webkit-text-stroke: 1px #e15b20;
+}
+
+.reasonCard:nth-child(4) .reasonIcon {
+  color: #ff4962;
+  -webkit-text-stroke: 2px #07143f;
+}
+
+.reasonCard:nth-child(5) .reasonIcon {
+  color: #ff4364;
+  font-size: 21px;
+  letter-spacing: -2px;
+  -webkit-text-stroke: 1px #07143f;
+}
+
+.reasonCard h3 {
+  font-size: 20px;
+  line-height: 1.05;
+}
+
+.reasonCard p {
+  max-width: 190px;
+  margin: 7px auto 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.22;
+}
+
+.showcase {
+  padding: 12px;
+}
+
+.showcaseGrid {
+  display: grid;
+  grid-template-columns: 0.82fr 1.1fr 1.52fr;
+  min-height: 215px;
+  gap: 12px;
+}
+
+.showcaseCopy {
+  align-self: center;
+  padding: 12px 18px;
+}
+
+.showcaseCopy h2 {
+  font-size: 35px;
+  line-height: 1;
+}
+
+.showcaseCopy p {
+  max-width: 300px;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.28;
+}
+
+.tryLink {
+  min-height: 43px;
+  margin-top: 14px;
+  padding-inline: 27px;
+  font-size: 18px;
+}
+
+.builderMock,
+.previewMock {
+  min-width: 0;
+  overflow: hidden;
+  background: #f7fbff;
+  border: 2px solid #d6e6f4;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+.builderMock {
+  padding: 8px 10px 10px;
+}
+
+.mockHeader {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+}
+
+.mockHeader img {
+  width: 41px;
+  height: 41px;
+  object-fit: contain;
+  object-position: top;
+  border-radius: 50%;
+  background: #d7f4ff;
+}
+
+.chatPrompt,
+.chatReply {
+  padding: 7px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 9px;
+}
+
+.chatPrompt {
+  width: 77%;
+  margin: 4px 0 7px 38px;
+  color: #3853a4;
+  background: #ebf0ff;
+}
+
+.chatReply {
+  margin-top: 7px;
+  color: #3853a4;
+  background: #eef3ff;
+}
+
+.gameTypeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.gameTypeGrid span {
+  display: flex;
+  min-height: 63px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 3px;
+  color: #2d3273;
+  background: #ead9ff;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.gameTypeGrid span:nth-child(3) {
+  background: #ffd9b3;
+}
+
+.gameTypeGrid span:nth-child(4) {
+  background: #d7eaff;
+}
+
+.gameTypeGrid span.selectedGameType {
+  background: #d7f5dc;
+  border-color: #43c564;
+}
+
+.gameTypeGrid b {
+  margin-bottom: 4px;
+  font-size: 23px;
+}
+
+.previewMock {
+  position: relative;
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  background: #60c6f2;
+}
+
+.previewHeader {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 11px;
+  color: #234aa3;
+  background: #effaff;
+  font-size: 12px;
+}
+
+.previewHeader span {
+  padding: 2px 7px;
+  color: #11172f;
+  background: #ffdf29;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.previewMock img {
+  width: 100%;
+  height: 180px;
+  flex: 1 1 auto;
+  object-fit: cover;
+  image-rendering: auto;
+}
+
+.previewMock > p {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  max-width: 142px;
+  padding: 10px 12px;
+  color: #07143f;
+  background: #fff7d6;
+  border: 3px solid #b97831;
+  border-radius: 5px;
+  font: 400 14px/1.05 "Chewy", cursive;
+  text-align: center;
+  transform: rotate(-3deg);
+}
+
+.finalCta {
+  position: relative;
+  isolation: isolate;
+  min-height: 260px;
+  overflow: hidden;
+  background: #58bde9;
+}
+
+.finalBackground {
+  object-position: center 50%;
+}
+
+.finalWash {
+  background: radial-gradient(circle at 50% 36%, rgb(255 255 255 / 34%), transparent 42%);
+}
+
+.finalCta::before {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 126px;
+  background-image: url("/brand/parents/parents-content-background.png");
+  background-position: center top;
+  background-repeat: repeat-x;
+  background-size: 1254px 1254px;
+  content: "";
+  mask-image: linear-gradient(to bottom, black, transparent 94%);
+  pointer-events: none;
+}
+
+.finalInner {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 145px 285px minmax(420px, 1fr) 185px;
+  align-items: center;
+  width: min(100% - 48px, 1280px);
+  min-height: 260px;
+  margin-inline: auto;
+  gap: 18px;
+}
+
+.finalCooper {
+  position: relative;
+  grid-column: 2;
+  align-self: stretch;
+}
+
+.finalCooper img {
+  position: absolute;
+  right: -18px;
+  bottom: -34px;
+  width: 320px;
+  height: auto;
+  filter: drop-shadow(0 9px 7px rgb(13 67 79 / 20%));
+}
+
+.finalCopy {
+  position: relative;
+  z-index: 2;
+  grid-column: 3;
+  text-align: center;
+}
+
+.finalCopy h2 {
+  font: 400 36px/1 "Chewy", cursive;
+}
+
+.finalCopy p {
+  margin: 5px auto 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.finalCopy .cta {
+  min-width: 278px;
+  gap: 12px;
+  padding-inline: 25px;
+  font-size: 22px;
+}
+
+.finalCopy .cta span {
+  margin-left: 0;
+}
+
+.skipLink:focus-visible,
+.cta:focus-visible,
+.tryLink:focus-visible {
+  outline: 3px solid #07143f;
+  outline-offset: 4px;
+}
+
+@media (min-width: 1500px) {
+  .hero {
+    min-height: 740px;
+  }
+
+  .heroInner {
+    min-height: 614px;
+  }
+
+  .heroCopy {
+    transform: scale(1.06);
+    transform-origin: left center;
+  }
+
+  .cooperHero {
+    width: 780px;
+  }
+
+  .finalInner {
+    width: min(100% - 80px, 1440px);
+  }
+}
+
+@media (max-width: 1120px) {
+  .heroInner {
+    grid-template-columns: minmax(360px, 0.88fr) minmax(440px, 1.12fr);
+  }
+
+  .cooperHero {
+    left: 60%;
+    width: min(660px, 110%);
+  }
+
+  .speechBubble {
+    right: 48px;
+    width: 190px;
+    height: 150px;
+  }
+
+  .speechBubbleCopy {
+    height: 119px;
+    padding: 16px 22px 9px;
+    font-size: 21px;
+  }
+
+  .speechBubbleCopy strong {
+    font-size: 21px;
+  }
+
+  .processGrid,
+  .reasonGrid {
+    gap: 12px;
+  }
+
+  .processCard:not(:last-child)::after {
+    right: -20px;
+    font-size: 26px;
+  }
+
+  .cooperInner {
+    grid-template-columns: minmax(240px, 1fr) minmax(280px, 0.78fr) minmax(260px, 1fr);
+    gap: 14px;
+  }
+
+  .cooperSide {
+  }
+
+  .rulesCard {
+    min-width: 160px;
+    padding-inline: 12px;
+  }
+
+  .showcaseGrid {
+    grid-template-columns: 0.8fr 1.15fr 1.3fr;
+  }
+
+  .finalInner {
+    grid-template-columns: 112px 230px minmax(360px, 1fr) 150px;
+    gap: 10px;
+  }
+
+  .finalCooper img {
+    width: 270px;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: 870px;
+  }
+
+  .heroInner {
+    display: block;
+    width: min(100% - 40px, 760px);
+    min-height: 776px;
+  }
+
+  .heroCopy {
+    max-width: 520px;
+    margin-inline: auto;
+    padding: 28px 0 0;
+    text-align: center;
+  }
+
+  .heroCopy > h2,
+  .heroCopy > p {
+    margin-inline: auto;
+  }
+
+  .heroCopy small {
+    margin-inline: auto;
+  }
+
+  .heroCharacter {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    top: auto;
+    height: 475px;
+  }
+
+  .cooperHero {
+    left: auto;
+    right: 50%;
+    bottom: -25px;
+    width: 600px;
+    max-width: none;
+    transform: translateX(50%);
+  }
+
+  .speechBubble {
+    top: 30px;
+    right: max(8%, calc(50% - 220px));
+  }
+
+  .processGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .processCard:not(:last-child)::after {
+    display: none;
+  }
+
+  .processCard:nth-child(4) {
+    grid-column: 1 / 2;
+    margin-left: 50%;
+  }
+
+  .processCard:nth-child(5) {
+    grid-column: 2 / 3;
+    margin-left: 50%;
+  }
+
+  .sectionHeading {
+    display: block;
+  }
+
+  .sectionHeading > p {
+    margin-top: 7px;
+  }
+
+  .cooperSection {
+    min-height: auto;
+  }
+
+  .cooperInner {
+    grid-template-columns: 1fr 1fr;
+    width: min(100% - 40px, 760px);
+    min-height: auto;
+    padding: 48px 0 58px;
+    gap: 18px 28px;
+  }
+
+  .cooperIntro {
+    align-self: center;
+  }
+
+  .cooperIntro > p {
+    margin-top: 22px;
+  }
+
+  .cooperPortrait {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    height: 520px;
+  }
+
+  .cooperPortrait img {
+    bottom: -76px;
+    width: 455px;
+  }
+
+  .cooperSide {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  .rulesCard {
+    min-width: 145px;
+  }
+
+  .reasonGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .reasonCard:nth-child(4) {
+    grid-column: 1 / 2;
+    margin-left: 50%;
+  }
+
+  .reasonCard:nth-child(5) {
+    grid-column: 2 / 3;
+    margin-left: 50%;
+  }
+
+  .showcaseGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .showcaseCopy {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+
+  .showcaseCopy p {
+    margin-inline: auto;
+  }
+
+  .builderMock,
+  .previewMock {
+    min-height: 220px;
+  }
+
+  .finalInner {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .finalCooper {
+    grid-column: 1;
+  }
+
+  .finalCopy {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 660px) {
+  .hero {
+    min-height: 805px;
+  }
+
+  .heroInner {
+    width: min(100% - 28px, 600px);
+    min-height: 723px;
+  }
+
+  .heroCopy {
+    padding-top: 16px;
+  }
+
+  .titlePlaque {
+    min-width: 250px;
+    padding: 10px 25px 12px;
+  }
+
+  .titlePlaque span {
+    font-size: 31px;
+  }
+
+  .titlePlaque h1 {
+    font-size: 56px;
+  }
+
+  .heroCopy > h2 {
+    max-width: 340px;
+    margin-top: 16px;
+    font-size: 29px;
+  }
+
+  .heroCopy > p {
+    max-width: 390px;
+    margin-top: 10px;
+    font-size: 15px;
+  }
+
+  .heroCta {
+    min-width: min(265px, calc(100vw - 48px));
+    margin-top: 14px;
+  }
+
+  .heroCharacter {
+    height: 405px;
+  }
+
+  .cooperHero {
+    bottom: -12px;
+    width: 500px;
+  }
+
+  .speechBubble {
+    top: 12px;
+    right: -5px;
+    width: 145px;
+    height: 115px;
+  }
+
+  .speechBubbleCopy {
+    height: 91px;
+    padding: 12px 14px 7px;
+    font-size: 16px;
+  }
+
+  .speechBubbleCopy strong {
+    font-size: 16px;
+  }
+
+  .speechBubbleSmile {
+    margin-top: 3px;
+    font-size: 18px;
+  }
+
+  .panel {
+    width: min(100% - 18px, 620px);
+    border-width: 4px;
+    border-radius: 18px;
+  }
+
+  .process {
+    padding: 18px 12px;
+  }
+
+  .sectionHeading h2 {
+    font-size: 34px;
+  }
+
+  .sectionHeading h2::before,
+  .sectionHeading h2::after {
+    display: none;
+  }
+
+  .processGrid,
+  .reasonGrid {
+    grid-template-columns: 1fr;
+    gap: 11px;
+  }
+
+  .processCard,
+  .reasonCard {
+    display: grid;
+    grid-template-columns: 86px 1fr;
+    align-items: center;
+    min-height: 104px;
+    padding: 10px 14px;
+    text-align: left;
+  }
+
+  .processCard:nth-child(4),
+  .processCard:nth-child(5),
+  .reasonCard:nth-child(4),
+  .reasonCard:nth-child(5) {
+    grid-column: auto;
+    margin-left: 0;
+  }
+
+  .processIcon,
+  .reasonIcon {
+    grid-row: 1 / 3;
+    height: auto;
+  }
+
+  .processIcon img {
+    max-width: 72px;
+    height: 62px;
+  }
+
+  .processIcon span {
+    width: 58px;
+    height: 58px;
+    font-size: 48px;
+  }
+
+  .processCard h3,
+  .reasonCard h3 {
+    align-self: end;
+    font-size: 21px;
+  }
+
+  .processCard p,
+  .reasonCard p {
+    align-self: start;
+    max-width: none;
+    margin: 5px 0 0;
+    font-size: 14px;
+  }
+
+  .cooperSection {
+    width: min(100% - 18px, 620px);
+    border-width: 4px;
+    border-radius: 18px;
+  }
+
+  .cooperInner {
+    display: flex;
+    width: min(100% - 28px, 500px);
+    flex-direction: column;
+    padding: 42px 0 56px;
+  }
+
+  .cooperIntro {
+    text-align: center;
+  }
+
+  .woodHeading {
+    min-width: 210px;
+  }
+
+  .woodHeading h2 {
+    font-size: 49px;
+  }
+
+  .cooperIntro > p {
+    max-width: 430px;
+    margin-inline: auto;
+    text-align: left;
+  }
+
+  .cooperPortrait {
+    width: 100%;
+    height: 365px;
+    order: 2;
+  }
+
+  .cooperPortrait img {
+    bottom: -88px;
+    width: 370px;
+  }
+
+  .cooperSide {
+    width: min(100%, 410px);
+    margin: -16px auto 0;
+    order: 3;
+  }
+
+  .rulesCard {
+    min-width: 0;
+  }
+
+  .reasons {
+    padding: 18px 12px;
+  }
+
+  .reasonGrid {
+    margin-top: 18px;
+  }
+
+  .reasonIcon {
+    justify-content: center;
+  }
+
+  .showcase {
+    padding: 9px;
+  }
+
+  .showcaseGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .showcaseCopy {
+    grid-column: auto;
+    padding: 18px 12px;
+  }
+
+  .showcaseCopy h2 {
+    font-size: 33px;
+  }
+
+  .builderMock,
+  .previewMock {
+    min-height: 215px;
+  }
+
+  .previewMock img {
+    min-height: 225px;
+  }
+
+  .finalCta,
+  .finalInner {
+    min-height: 310px;
+  }
+
+  .finalInner {
+    display: block;
+    width: min(100% - 24px, 1280px);
+    padding-top: 24px;
+  }
+
+  .finalCooper {
+    position: absolute;
+    right: -44px;
+    bottom: 0;
+    width: 170px;
+    height: 185px;
+    opacity: 0.78;
+  }
+
+  .finalCooper img {
+    right: 0;
+    bottom: -25px;
+    width: 220px;
+  }
+
+  .finalCopy {
+    position: relative;
+    z-index: 2;
+  }
+
+  .finalCopy h2 {
+    font-size: 35px;
+  }
+
+  .finalCopy p {
+    max-width: 290px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero {
+    min-height: 825px;
+  }
+
+  .titlePlaque {
+    min-width: 230px;
+  }
+
+  .titlePlaque h1 {
+    font-size: 50px;
+  }
+
+  .heroCopy > p {
+    max-width: 330px;
+  }
+
+  .cooperHero {
+    width: 445px;
+  }
+
+  .speechBubble {
+    right: -12px;
+  }
+
+  .gameTypeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skipLink {
+    transition: transform 140ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kingdomBackdrop {
+    animation: none;
+    will-change: auto;
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "maze_green_hills_01",
+  "revision": 1,
+  "runtime": "top_down_v1",
+  "tileSize": 64,
+  "width": 15,
+  "height": 11,
+  "camera": { "columns": 9, "rows": 7 },
+  "legend": { "#": "solid_wall", ".": "floor" },
+  "presentation": { "mazeThemeId": "neutral_green_hills_maze_01", "victoryEffectId": "shared_victory_burst_01" },
+  "tiles": [
+    "###############", "#.............#", "#.###.###.###.#", "#...#.....#...#",
+    "###.#.###.#.###", "#...#.#...#...#", "#.###.#.###.#.#", "#.......#.....#",
+    "#.#####.#####.#", "#.............#", "###############"
+  ],
+  "objects": [
+    { "id": "spawn_1", "type": "player_spawn", "x": 1, "y": 1, "slot": 1, "speed": 224, "motion": { "version": 1, "travel": { "type": "controlled" }, "visual": { "type": "peck", "distanceTiles": 0.18, "periodMs": 900 } } },
+    { "id": "spawn_2", "type": "player_spawn", "x": 13, "y": 1, "slot": 2, "speed": 224, "motion": { "version": 1, "travel": { "type": "controlled" }, "visual": { "type": "peck", "distanceTiles": 0.18, "periodMs": 900 } } },
+    { "id": "key_1", "type": "key", "x": 7, "y": 9 },
+    { "id": "exit_1", "type": "exit", "x": 13, "y": 9, "requires": "key_1" },
+    { "id": "enemy_1", "type": "enemy_spawn", "x": 7, "y": 7, "assetId": "neutral_ghost_01", "behavior": "chaser", "direction": "down", "speed": 70, "detectionRadius": 240, "contactDamage": 1, "target": "nearest_player" },
+    { "id": "hazard_1", "type": "hazard", "x": 2, "y": 3, "assetId": "neutral_green_hills_platformer_hazard_01", "effect": "damage", "damage": 1, "animationStartFrame": 1 },
+    { "id": "obstacle_1", "type": "obstacle", "x": 7, "y": 5, "collision": "solid" }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "dragons_emberkeep_maze_door_01",
+  "approvedAt": "2026-09-12T03:06:46.732709+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_maze_door_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_maze_door_01.png",
+  "sha256": "1478b661348ff473868384b2a35a396f5f6a8dc5de7b7fe851c877cae00218d8",
+  "validationReport": "sprite-reports/dragons_emberkeep_maze_door_01/dragons_emberkeep_maze_door_01-report.json"
+}
