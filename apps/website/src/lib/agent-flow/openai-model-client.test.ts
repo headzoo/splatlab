@@ -35,6 +35,8 @@ function mockResponse(status: number, body: unknown): Response {
     ok: status >= 200 && status < 300,
     status,
     json: async () => body,
+    // Read on a failure so the provider's own complaint reaches the log.
+    text: async () => JSON.stringify(body),
   } as Response;
 }
 

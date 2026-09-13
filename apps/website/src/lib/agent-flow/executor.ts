@@ -16,6 +16,8 @@ const VISIBLE_MESSAGE_LIMIT = 500;
  * needs a second read before the write.
  */
 const MAX_TOOL_ROUNDS = 3;
+/** Set AGENT_FLOW_DEBUG=1 to trace each tool call and its result. */
+const DEBUG = process.env.AGENT_FLOW_DEBUG === "1";
 type Action = "proceed" | "reject";
 type Budget = { text: number; conditionAgent: number };
 
@@ -166,7 +168,15 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
         specChange,
       };
     }
-    if (round >= MAX_TOOL_ROUNDS) throw new BuildExecutionError("Build turn exceeded its tool budget", "execution_budget");
+    if (round >= MAX_TOOL_ROUNDS) {
+      console.error(
+        "[agent-flow] tool budget exhausted after",
+        MAX_TOOL_ROUNDS,
+        "rounds; last calls:",
+        turn.toolCalls.map((call) => call.name),
+      );
+      throw new BuildExecutionError("Build turn exceeded its tool budget", "execution_budget");
+    }
     // Tool results are provider history only; they never become kid-visible chat.
     history = turn.items;
     toolOutputs = [];
@@ -177,7 +187,18 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
       const result = await getAgentTool(call.name).execute(parseToolArguments(call.argumentsJson), toolContext);
       physicsDocument = result.physicsDocument ?? physicsDocument;
       specChange = result.specChange ?? specChange;
-      toolOutputs.push({ callId: call.callId, output: JSON.stringify(result.output) });
+      const output = JSON.stringify(result.output);
+      // A refused tool call is not an error: the model is told why and is
+      // expected to recover. It still needs to be visible when a turn goes
+      // wrong, because a silent refusal loop looks like a hang from outside.
+      const refusal = (result.output as { ok?: unknown; reason?: unknown } | null);
+      if (refusal && refusal.ok === false) {
+        console.warn("[agent-flow] tool refused", call.name, refusal.reason);
+      } else if (DEBUG) {
+        console.log("[agent-flow] tool ok", call.name, `${output.length} bytes`);
+      }
+      if (DEBUG) console.log("[agent-flow] tool args", call.name, call.argumentsJson.slice(0, 500));
+      toolOutputs.push({ callId: call.callId, output });
     }
   }
 }

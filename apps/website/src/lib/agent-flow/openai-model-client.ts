@@ -15,6 +15,8 @@ import {
 } from "./model-client";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+/** Set AGENT_FLOW_DEBUG=1 to trace each request and tool call to the console. */
+const DEBUG = process.env.AGENT_FLOW_DEBUG === "1";
 /**
  * Reasoning models bill hidden reasoning against `max_output_tokens` before
  * emitting any text or tool call, so every budget below reserves room for it.
@@ -63,6 +65,9 @@ function assertComplete(payload: ResponsesPayload): void {
   const reason = details && typeof details === "object" && typeof (details as { reason?: unknown }).reason === "string"
     ? (details as { reason: string }).reason
     : "unknown";
+  console.error("[agent-flow] model response truncated", reason, {
+    outputItems: Array.isArray(payload.output) ? payload.output.length : 0,
+  });
   throw new ModelProviderError(`Model response was cut off (${reason})`);
 }
 
@@ -202,6 +207,15 @@ export class OpenAIResponsesModelClient implements ModelClient {
     tools?: readonly unknown[];
     tool_choice?: string;
   }): Promise<ResponsesPayload> {
+    if (DEBUG) {
+      console.log("[agent-flow] model request", {
+        model: this.model,
+        inputItems: options.input.length,
+        maxOutputTokens: options.maxOutputTokens,
+        tools: (options.tools ?? []).map((tool) => (tool as { name?: string }).name),
+        approxInputBytes: JSON.stringify(options.input).length,
+      });
+    }
     const timeoutSignal = AbortSignal.timeout(this.timeoutMs);
     const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
     let response: Response;
@@ -219,10 +233,25 @@ export class OpenAIResponsesModelClient implements ModelClient {
         }),
         signal,
       });
-    } catch {
-      throw new ModelProviderError("Model request failed");
+    } catch (cause) {
+      // Distinguishes a timeout and a caller abort from a network failure,
+      // which all otherwise look identical from the outside.
+      const reason = signal.aborted ? "aborted or timed out" : String(cause);
+      console.error("[agent-flow] model request never completed", reason);
+      throw new ModelProviderError(`Model request failed (${reason})`);
     }
-    if (!response.ok) throw new ModelProviderError(`Model request returned ${response.status}`);
+    if (!response.ok) {
+      // The body carries the provider's actual complaint, such as which tool
+      // schema it rejected. Dropping it leaves a bare status code to debug
+      // from, so it is read and logged before the error is raised.
+      const detail = await response.text().catch(() => "");
+      console.error(
+        "[agent-flow] model request rejected",
+        response.status,
+        detail.slice(0, 2000),
+      );
+      throw new ModelProviderError(`Model request returned ${response.status}`);
+    }
 
     let payload: ResponsesPayload;
     try {
