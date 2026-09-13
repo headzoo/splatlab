@@ -33,6 +33,61 @@ function sameSetupHistory(left: GameDocument, right: GameDocument) {
   );
 }
 
+function sameLevels(left: GameDocument, right: GameDocument) {
+  return (
+    JSON.stringify(left.platformerLevels) === JSON.stringify(right.platformerLevels) &&
+    JSON.stringify(left.mazeLevels) === JSON.stringify(right.mazeLevels)
+  );
+}
+
+function sameTerrainEdits(left: GameDocument, right: GameDocument) {
+  return (
+    left.platformerTerrainEdits.length === right.platformerTerrainEdits.length &&
+    left.platformerTerrainEdits.every((edit, index) => {
+      const other = right.platformerTerrainEdits[index];
+      return (
+        edit.mapSource === other?.mapSource &&
+        edit.x === other.x &&
+        edit.y === other.y &&
+        edit.kind === other.kind
+      );
+    })
+  );
+}
+
+function sameObjectEdits(left: GameDocument, right: GameDocument) {
+  return (
+    left.platformerObjectEdits.length === right.platformerObjectEdits.length &&
+    left.platformerObjectEdits.every((edit, index) => {
+      const other = right.platformerObjectEdits[index];
+      return edit.id === other?.id && edit.mapSource === other.mapSource &&
+        edit.x === other.x && edit.y === other.y && edit.kind === other.kind;
+    })
+  );
+}
+
+function sameObjectRemovals(left: GameDocument, right: GameDocument) {
+  return (
+    left.platformerObjectRemovals.length === right.platformerObjectRemovals.length &&
+    left.platformerObjectRemovals.every((removal, index) => {
+      const other = right.platformerObjectRemovals[index];
+      return removal.mapSource === other?.mapSource && removal.objectId === other.objectId;
+    })
+  );
+}
+
+function sameObjectSettings(left: GameDocument, right: GameDocument) {
+  return (
+    left.platformerObjectSettings.length === right.platformerObjectSettings.length &&
+    left.platformerObjectSettings.every((settings, index) => {
+      const other = right.platformerObjectSettings[index];
+      return settings.mapSource === other?.mapSource &&
+        settings.objectId === other.objectId && settings.assetId === other.assetId &&
+        settings.behavior === other.behavior && settings.direction === other.direction;
+    })
+  );
+}
+
 export function createGameHistory(spec: GameDocument): GameHistory {
   return { past: [], present: spec, future: [] };
 }
@@ -43,12 +98,17 @@ export function sameGameDocument(left: GameDocument, right: GameDocument) {
     left.previewKind === right.previewKind &&
     left.platformerMapSource === right.platformerMapSource &&
     left.mazeMapSource === right.mazeMapSource &&
+    sameLevels(left, right) &&
     left.playerCharacter === right.playerCharacter &&
     left.humanGender === right.humanGender &&
     left.skinTone === right.skinTone &&
     left.hairColor === right.hairColor &&
     left.setupStep === right.setupStep &&
     sameSetupHistory(left, right) &&
+    sameTerrainEdits(left, right) &&
+    sameObjectEdits(left, right) &&
+    sameObjectRemovals(left, right) &&
+    sameObjectSettings(left, right) &&
     sameChatHistory(left.builderChatHistory, right.builderChatHistory)
   );
 }

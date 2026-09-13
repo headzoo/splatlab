@@ -1,0 +1,8 @@
+{
+  "assetId": "ice_world_platformer_platform_01",
+  "approvedAt": "2026-09-13T01:16:21.815444+00:00",
+  "recipe": "sprite-specs/ice_world_platformer_platform_01.json",
+  "runtimeImage": "sprites/ice_world_platformer_platform_01.png",
+  "sha256": "976181a47331ed53887535f6df1d3b98e18261d49ad727c829eeefb5cf7b2c6c",
+  "validationReport": "sprite-reports/ice_world_platformer_platform_01/ice_world_platformer_platform_01-report.json"
+}

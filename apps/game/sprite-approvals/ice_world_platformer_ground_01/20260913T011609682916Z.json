@@ -1,0 +1,8 @@
+{
+  "assetId": "ice_world_platformer_ground_01",
+  "approvedAt": "2026-09-13T01:16:09.682916+00:00",
+  "recipe": "sprite-specs/ice_world_platformer_ground_01.json",
+  "runtimeImage": "sprites/ice_world_platformer_ground_01.png",
+  "sha256": "7cdef1b310ec2bd53dc620c683239e0eeed137ab33956bf3f68644e4fa7c74c1",
+  "validationReport": "sprite-reports/ice_world_platformer_ground_01/ice_world_platformer_ground_01-report.json"
+}

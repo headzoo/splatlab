@@ -1,0 +1,487 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ice_world_boss_01",
+  "frameLabels": [
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/ice_world_boss_01-source.png",
+    "sourceSize": [
+      1882,
+      836
+    ],
+    "detection": {
+      "analysisScale": 0.4782146652497343,
+      "selectedComponentAreas": [
+        17956,
+        17307,
+        17224,
+        17212,
+        17139,
+        16921,
+        16911,
+        16876,
+        16812,
+        16696
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        190.45,
+        563.23,
+        938.0,
+        1324.23,
+        1699.09
+      ],
+      "yCenters": [
+        249.69,
+        619.1
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          377,
+          434
+        ],
+        [
+          377,
+          0,
+          751,
+          434
+        ],
+        [
+          751,
+          0,
+          1131,
+          434
+        ],
+        [
+          1131,
+          0,
+          1512,
+          434
+        ],
+        [
+          1512,
+          0,
+          1882,
+          434
+        ],
+        [
+          0,
+          434,
+          377,
+          836
+        ],
+        [
+          377,
+          434,
+          751,
+          836
+        ],
+        [
+          751,
+          434,
+          1131,
+          836
+        ],
+        [
+          1131,
+          434,
+          1512,
+          836
+        ],
+        [
+          1512,
+          434,
+          1882,
+          836
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          114,
+          102
+        ],
+        "paste": [
+          7,
+          18
+        ],
+        "localLandmark": [
+          57.0,
+          102
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          111,
+          103
+        ],
+        "paste": [
+          8,
+          17
+        ],
+        "localLandmark": [
+          55.5,
+          103
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          115,
+          104
+        ],
+        "paste": [
+          6,
+          16
+        ],
+        "localLandmark": [
+          57.5,
+          104
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          120,
+          101
+        ],
+        "paste": [
+          4,
+          19
+        ],
+        "localLandmark": [
+          60.0,
+          101
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          107,
+          103
+        ],
+        "paste": [
+          10,
+          17
+        ],
+        "localLandmark": [
+          53.5,
+          103
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          112,
+          104
+        ],
+        "paste": [
+          8,
+          16
+        ],
+        "localLandmark": [
+          56.0,
+          104
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          112,
+          103
+        ],
+        "paste": [
+          8,
+          17
+        ],
+        "localLandmark": [
+          56.0,
+          103
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          116,
+          104
+        ],
+        "paste": [
+          6,
+          16
+        ],
+        "localLandmark": [
+          58.0,
+          104
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          117,
+          102
+        ],
+        "paste": [
+          6,
+          18
+        ],
+        "localLandmark": [
+          58.5,
+          102
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          110,
+          104
+        ],
+        "paste": [
+          9,
+          16
+        ],
+        "localLandmark": [
+          55.0,
+          104
+        ],
+        "target": [
+          64.0,
+          120.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "ice_world_boss_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/ice_world_boss_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          7,
+          18,
+          121,
+          120
+        ],
+        [
+          8,
+          17,
+          119,
+          120
+        ],
+        [
+          6,
+          16,
+          121,
+          120
+        ],
+        [
+          4,
+          19,
+          124,
+          120
+        ],
+        [
+          10,
+          17,
+          116,
+          120
+        ],
+        [
+          8,
+          16,
+          120,
+          119
+        ],
+        [
+          8,
+          17,
+          120,
+          120
+        ],
+        [
+          6,
+          16,
+          122,
+          120
+        ],
+        [
+          6,
+          18,
+          123,
+          120
+        ],
+        [
+          9,
+          16,
+          119,
+          120
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        106,
+        120
+      ],
+      "bboxHeightRange": [
+        101,
+        104
+      ],
+      "bboxCenterXRange": [
+        63.0,
+        64.5
+      ],
+      "bboxCenterYRange": [
+        67.5,
+        69.5
+      ],
+      "bboxBottomRange": [
+        119,
+        120
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/ice_world_boss_01/ice_world_boss_01-contact.png",
+    "animationPreview": "sprite-reports/ice_world_boss_01/ice_world_boss_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

@@ -54,10 +54,116 @@ export type SetupChange = {
   >;
 };
 
+export type BuildGameIdentity = {
+  id: string;
+  revision: number;
+};
+
+export type PausedBuildTurn = {
+  feedbackEnabled: boolean;
+};
+
+export type BuildTurnResult = {
+  status: "replied" | "paused";
+  cooperMessage: string;
+  runId: string;
+  revision: number;
+};
+
+export type PersistedBuildTurn = BuildTurnResult & {
+  submittedMessage: string;
+  chatHistory: BuilderChatTurn[];
+};
+
+const MAX_CHAT_TURNS = 50;
+const NON_CHAT_GAME_FIELDS = [
+  "previewKind",
+  "platformerMapSource",
+  "mazeMapSource",
+  "platformerLevels",
+  "mazeLevels",
+  "playerCharacter",
+  "humanGender",
+  "skinTone",
+  "hairColor",
+  "setupStep",
+  "builderSetupHistory",
+  "platformerTerrainEdits",
+  "platformerObjectEdits",
+  "platformerObjectRemovals",
+  "platformerObjectSettings",
+] as const satisfies readonly (keyof GameDocument)[];
+
+export function reconcilePersistedGame(
+  server: GameDocument,
+  saved: GameDocument,
+  local: GameDocument,
+): GameDocument {
+  return NON_CHAT_GAME_FIELDS.reduce<GameDocument>((reconciled, field) => (
+    JSON.stringify(local[field]) !== JSON.stringify(saved[field])
+      ? { ...reconciled, [field]: local[field] }
+      : reconciled
+  ), { ...server });
+}
+
+export function parseBuildTurnResult(
+  body: unknown,
+  revisionHeader: string | null,
+): BuildTurnResult | null {
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !("status" in body) ||
+    !("cooperMessage" in body) ||
+    !("runId" in body) ||
+    !["replied", "paused"].includes(body.status as string) ||
+    typeof body.cooperMessage !== "string" ||
+    !body.cooperMessage.trim() ||
+    body.cooperMessage.length > 500 ||
+    typeof body.runId !== "string" ||
+    !body.runId
+  ) {
+    return null;
+  }
+
+  const revision = Number(revisionHeader);
+  if (!Number.isInteger(revision) || revision < 1) return null;
+
+  return {
+    status: body.status as BuildTurnResult["status"],
+    cooperMessage: body.cooperMessage.trim(),
+    runId: body.runId,
+    revision,
+  };
+}
+
+export function persistedBuildTurn(
+  history: BuilderChatTurn[],
+  submittedMessage: string,
+  result: BuildTurnResult,
+): PersistedBuildTurn {
+  const userTurns = submittedMessage
+    ? [{ role: "user" as const, message: submittedMessage }]
+    : [];
+
+  return {
+    ...result,
+    submittedMessage,
+    chatHistory: [
+      ...history,
+      ...userTurns,
+      { role: "cooper" as const, message: result.cooperMessage },
+    ].slice(-MAX_CHAT_TURNS),
+  };
+}
+
 type BuildSetupContextValue = {
   selections: SetupSelections;
   setupStep: GameSetupStep;
   setupComplete: boolean;
+  gameIdentity: BuildGameIdentity | null;
+  pausedBuildTurn: PausedBuildTurn | null;
+  persistedBuildTurn: PersistedBuildTurn | null;
   requestedSetup: SetupChange | null;
   chatHistory: BuilderChatTurn[];
   setupQuestionHistory: GameSetupQuestion[];
@@ -68,6 +174,8 @@ type BuildSetupContextValue = {
   selectSkinTone: (skinTone: SkinTone, nextStep?: GameSetupStep) => void;
   selectHairColor: (hairColor: HairColor, nextStep?: GameSetupStep) => void;
   saveChatHistory: (turns: BuilderChatTurn[]) => void;
+  publishGameIdentity: (identity: BuildGameIdentity) => void;
+  applyPersistedBuildTurn: (turn: PersistedBuildTurn) => void;
 };
 
 const BuildSetupContext = createContext<BuildSetupContextValue | null>(null);
@@ -143,9 +251,13 @@ export function setupQuestionHistoryFromSpec(
 export function BuildSetupProvider({
   children,
   initialSpec,
+  initialIdentity = null,
+  initialPausedBuildTurn = null,
 }: {
   children: ReactNode;
   initialSpec: GameDocument | null;
+  initialIdentity?: BuildGameIdentity | null;
+  initialPausedBuildTurn?: PausedBuildTurn | null;
 }) {
   const [selections, setSelections] = useState(() =>
     setupSelectionsFromSpec(initialSpec),
@@ -160,6 +272,14 @@ export function BuildSetupProvider({
   const [setupQuestionHistory, setSetupQuestionHistory] = useState<
     GameSetupQuestion[]
   >(() => setupQuestionHistoryFromSpec(initialSpec));
+  const [gameIdentity, setGameIdentity] = useState<BuildGameIdentity | null>(
+    initialIdentity,
+  );
+  const [pausedBuildTurn, setPausedBuildTurn] = useState<PausedBuildTurn | null>(
+    initialPausedBuildTurn,
+  );
+  const [latestPersistedBuildTurn, setLatestPersistedBuildTurn] =
+    useState<PersistedBuildTurn | null>(null);
   const nextRevision = useRef(1);
 
   const requestChange = useCallback((change: SetupChange["change"]) => {
@@ -248,11 +368,33 @@ export function BuildSetupProvider({
     });
   }, []);
 
+  const publishGameIdentity = useCallback((identity: BuildGameIdentity) => {
+    setGameIdentity((current) =>
+      current?.id === identity.id && current.revision === identity.revision
+        ? current
+        : identity,
+    );
+  }, []);
+
+  const applyPersistedBuildTurn = useCallback((turn: PersistedBuildTurn) => {
+    setChatHistory(turn.chatHistory);
+    setGameIdentity((current) =>
+      current ? { ...current, revision: turn.revision } : current,
+    );
+    setPausedBuildTurn(
+      turn.status === "paused" ? { feedbackEnabled: true } : null,
+    );
+    setLatestPersistedBuildTurn(turn);
+  }, []);
+
   const value = useMemo<BuildSetupContextValue>(
     () => ({
       selections,
       setupStep,
       setupComplete: setupStep === "complete",
+      gameIdentity,
+      pausedBuildTurn,
+      persistedBuildTurn: latestPersistedBuildTurn,
       requestedSetup,
       chatHistory,
       setupQuestionHistory,
@@ -263,10 +405,15 @@ export function BuildSetupProvider({
       selectSkinTone,
       selectHairColor,
       saveChatHistory,
+      publishGameIdentity,
+      applyPersistedBuildTurn,
     }),
     [
       requestedSetup,
       chatHistory,
+      gameIdentity,
+      pausedBuildTurn,
+      latestPersistedBuildTurn,
       setupQuestionHistory,
       selectCharacter,
       selectGameType,
@@ -276,6 +423,8 @@ export function BuildSetupProvider({
       selectSkinTone,
       selectTheme,
       saveChatHistory,
+      publishGameIdentity,
+      applyPersistedBuildTurn,
       setupStep,
     ],
   );

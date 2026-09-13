@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "ice_world_platformer_obstacle_01",
+  "name": "Ice World Ice Block",
+  "kind": "terrain",
+  "runtime": "platformer_v1",
+  "themeTags": ["ice_world"],
+  "visualSlot": "obstacle",
+  "collision": "solid",
+  "source": "sprites/ice_world_platformer_obstacle_01-source.png",
+  "output": "sprites/ice_world_platformer_obstacle_01.png",
+  "sourceLayout": { "columns": 1, "rows": 1 },
+  "sheet": { "columns": 1, "rows": 1, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["static"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "bottom_center",
+    "anchor": { "x": 32, "y": 64 },
+    "contentBox": { "width": 64, "height": 64 },
+    "resizeMode": "stretch_each"
+  },
+  "animation": { "fps": 1, "loop": false },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1 },
+  "preview": { "scale": 5 }
+}

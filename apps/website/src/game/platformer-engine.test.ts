@@ -5,6 +5,7 @@ import level from "../../../game/maps/level-1.json";
 import levelTwo from "../../../game/maps/level-2.json";
 import levelThree from "../../../game/maps/level-3.json";
 import levelFour from "../../../game/maps/level-4.json";
+import levelFive from "../../../game/maps/level-5.json";
 import physics from "../../../game/game-physics/platformer_small_01.json";
 import shortSword from "../../../game/weapon-specs/short_sword_v1.json";
 import {
@@ -29,6 +30,7 @@ import {
   resolveEnemyViewMusicCue,
   resolveCollectiblePoofFrame,
   resolvePlatformerCamera,
+  snapPlatformerStateToGrid,
   resolveDeathRespawnDelayTicks,
   resolveWorldBottomBackgroundOffset,
   resolvePhysics,
@@ -52,7 +54,7 @@ import type {
 const map = level as unknown as PlatformerMapSpec;
 const spec = physics as unknown as PlatformerPhysicsSpec;
 const weapon = shortSword as unknown as WeaponSpec;
-const campaignMaps = [level, levelTwo, levelThree, levelFour] as unknown as PlatformerMapSpec[];
+const campaignMaps = [level, levelTwo, levelThree, levelFour, levelFive] as unknown as PlatformerMapSpec[];
 const orbitalMap = campaignMaps[1];
 const graveyardMap = campaignMaps[2];
 const emberkeepMap = campaignMaps[3];
@@ -68,7 +70,8 @@ test("campaign maps advance after the three-second completion window", () => {
   assert.equal(MAP_COMPLETION_DELAY_SECONDS, 3);
   assert.equal(nextCampaignMapIndex(0, campaignMaps.length), 1);
   assert.equal(nextCampaignMapIndex(2, campaignMaps.length), 3);
-  assert.equal(nextCampaignMapIndex(3, campaignMaps.length), null);
+  assert.equal(nextCampaignMapIndex(3, campaignMaps.length), 4);
+  assert.equal(nextCampaignMapIndex(4, campaignMaps.length), null);
 });
 
 test("boss artwork turns with its patrol movement direction", () => {
@@ -443,9 +446,86 @@ test("each map scales gravity without weakening the shared jump impulse", () => 
   const space = resolvePhysics(spec, campaignMaps[1].tileSize, campaignMaps[1].physics.gravityScale);
 
   assert.equal(map.physics.gravityScale, 1);
-  assert.equal(campaignMaps[1].physics.gravityScale, 0.8);
-  assert.ok(Math.abs(space.gravity - normal.gravity * 0.8) < 0.001);
+  assert.equal(campaignMaps[1].physics.gravityScale, 0.5);
+  assert.ok(Math.abs(space.gravity - normal.gravity * 0.5) < 0.001);
   assert.ok(Math.abs(space.jumpVelocity - normal.jumpVelocity) < 0.001);
+});
+
+test("the Ice World map scales grounded acceleration and braking without changing air control", () => {
+  const iceMap = campaignMaps[4];
+  const normalPhysics = resolvePhysics(spec, map.tileSize, 1, 1);
+  const icePhysics = resolvePhysics(
+    spec,
+    iceMap.tileSize,
+    iceMap.physics.gravityScale,
+    iceMap.physics.groundTractionScale,
+  );
+
+  assert.equal(iceMap.physics.groundTractionScale, 0.15);
+  assert.ok(Math.abs(icePhysics.groundAcceleration - normalPhysics.groundAcceleration * 0.15) < 0.001);
+  assert.ok(Math.abs(icePhysics.groundDeceleration - normalPhysics.groundDeceleration * 0.15) < 0.001);
+  assert.equal(icePhysics.airAcceleration, normalPhysics.airAcceleration);
+
+  const movingInput = { ...idleInput, moveX: 1 };
+  const normalStep = stepPlatformer(map, spec, createInitialState(map), movingInput).state;
+  const iceStep = stepPlatformer(iceMap, spec, createInitialState(iceMap), movingInput).state;
+  assert.ok(Math.abs(iceStep.vx - normalStep.vx * 0.15) < 0.001);
+
+  const normalCoast = stepPlatformer(
+    map,
+    spec,
+    { ...createInitialState(map), vx: 320 },
+    idleInput,
+  ).state;
+  const iceCoast = stepPlatformer(
+    iceMap,
+    spec,
+    { ...createInitialState(iceMap), vx: 320 },
+    idleInput,
+  ).state;
+  assert.ok(iceCoast.vx > normalCoast.vx);
+});
+
+test("the checked-in Ice World boss lobs spinning crystal sprites along its authored arc", () => {
+  const iceMap = levelFive as PlatformerMapSpec;
+  const bossObject = iceMap.objects.find((object) => object.id === "boss_1");
+  assert.ok(bossObject);
+  assert.equal(bossObject.assetId, "ice_world_boss_01");
+  assert.deepEqual(bossObject.rangedAttack, {
+    type: "lobbed_projectile",
+    projectileAssetId: "ice_world_crystal_projectile_01",
+    rangeTiles: 6,
+    cooldownMs: 2000,
+    arcHeightTiles: 3,
+  });
+
+  const initial = createInitialState(iceMap);
+  const boss = initial.enemies.find((enemy) => enemy.id === "boss_1");
+  assert.ok(boss);
+  const targetX = boss.x - iceMap.tileSize * 2;
+  const ready: PlatformerState = {
+    ...initial,
+    x: targetX,
+    y: boss.y,
+    previousY: boss.y,
+    enemies: initial.enemies.map((enemy) => (
+      enemy.id === boss.id
+        ? { ...enemy, direction: "left" as const, nextRangedAttackTick: 1 }
+        : enemy
+    )),
+  };
+
+  const result = stepPlatformer(iceMap, spec, ready, idleInput, weapon);
+  const crystal = result.state.projectiles.find((projectile) => projectile.enemyId === boss.id);
+  assert.ok(crystal);
+  assert.equal(crystal.attackType, "lobbed_projectile");
+  assert.equal(crystal.assetId, "ice_world_crystal_projectile_01");
+  assert.equal(crystal.arcHeight, iceMap.tileSize * 3);
+  const halfway = resolveEnemyProjectilePosition({
+    ...crystal,
+    ageTicks: crystal.durationTicks / 2,
+  });
+  assert.equal(halfway.y, (crystal.startY + crystal.targetY) / 2 - crystal.arcHeight);
 });
 
 test("the space map applies its lower gravity during the fixed-step simulation", () => {
@@ -496,6 +576,45 @@ test("render interpolation smooths continuous motion but snaps large state chang
   };
   const snapped = interpolatePlatformerState(moving, knockedBack, 0.25, map.tileSize);
   assert.equal(snapped.enemies[0]?.x, knockedBack.enemies[0]?.x);
+});
+
+test("pausing settles the player and moving actors onto block boundaries", () => {
+  const initial = createInitialState(map);
+  const enemy = initial.enemies[0];
+  const flyingObject = initial.flyingObjects[0];
+  assert.ok(enemy);
+  assert.ok(flyingObject);
+  const moving = {
+    ...initial,
+    x: initial.x + map.tileSize * 0.34,
+    y: initial.y - map.tileSize * 0.42,
+    vx: 218,
+    vy: -91,
+    grounded: false,
+    enemies: initial.enemies.map((candidate, index) => index === 0
+      ? { ...candidate, x: candidate.x + map.tileSize * 0.41, moving: true }
+      : candidate),
+    flyingObjects: initial.flyingObjects.map((candidate, index) => index === 0
+      ? {
+          ...candidate,
+          phase: "active" as const,
+          x: candidate.x + map.tileSize * 0.38,
+          y: candidate.y - map.tileSize * 0.43,
+        }
+      : candidate),
+  };
+
+  const settled = snapPlatformerStateToGrid(map, moving);
+
+  assert.equal((settled.x / map.tileSize) % 1, 0.5);
+  assert.equal(settled.y % map.tileSize, 0);
+  assert.equal(settled.vx, 0);
+  assert.equal(settled.vy, 0);
+  assert.equal((settled.enemies[0].x / map.tileSize) % 1, 0.5);
+  assert.equal(settled.enemies[0].y % map.tileSize, 0);
+  assert.equal(settled.enemies[0].moving, false);
+  assert.equal((settled.flyingObjects[0].x / map.tileSize) % 1, 0.5);
+  assert.equal((settled.flyingObjects[0].y / map.tileSize) % 1, 0.5);
 });
 
 test("camera follows the interpolated render position without a second catch-up timeline", () => {

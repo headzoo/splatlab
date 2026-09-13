@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ice_world_crystal_projectile_01",
+  "frameLabels": [
+    "spin_0",
+    "spin_90",
+    "spin_180",
+    "spin_270"
+  ],
+  "normalization": {
+    "source": "sprites/ice_world_crystal_projectile_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        7602,
+        7538,
+        7344,
+        6721
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        387.83,
+        914.99
+      ],
+      "yCenters": [
+        382.13,
+        925.57
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          651,
+          654
+        ],
+        [
+          651,
+          0,
+          1254,
+          654
+        ],
+        [
+          0,
+          654,
+          651,
+          1254
+        ],
+        [
+          651,
+          654,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          44,
+          15
+        ],
+        "paste": [
+          10,
+          24
+        ],
+        "localLandmark": [
+          22.0,
+          7.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          28,
+          33
+        ],
+        "paste": [
+          18,
+          16
+        ],
+        "localLandmark": [
+          14.0,
+          16.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          16
+        ],
+        "paste": [
+          10,
+          24
+        ],
+        "localLandmark": [
+          22.0,
+          8.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          30,
+          34
+        ],
+        "paste": [
+          17,
+          15
+        ],
+        "localLandmark": [
+          15.0,
+          17.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "ice_world_crystal_projectile_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/ice_world_crystal_projectile_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          24,
+          54,
+          39
+        ],
+        [
+          18,
+          16,
+          46,
+          49
+        ],
+        [
+          10,
+          24,
+          54,
+          40
+        ],
+        [
+          17,
+          15,
+          47,
+          49
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        28,
+        44
+      ],
+      "bboxHeightRange": [
+        15,
+        34
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.5
+      ],
+      "bboxBottomRange": [
+        39,
+        49
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/ice_world_crystal_projectile_01/ice_world_crystal_projectile_01-contact.png",
+    "animationPreview": "sprite-reports/ice_world_crystal_projectile_01/ice_world_crystal_projectile_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

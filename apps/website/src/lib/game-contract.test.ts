@@ -6,6 +6,7 @@ import {
   activeMapSource,
   activePlayerAssetId,
   DEFAULT_GAME_DOCUMENT,
+  defaultGameTitle,
   gameDocumentSchema,
   playerAssetIdFor,
   PLATFORMER_MAP_SOURCES,
@@ -18,6 +19,7 @@ test("platformer maps use the campaign order", () => {
     "level-3.json",
     "level-2.json",
     "level-4.json",
+    "level-5.json",
   ]);
 });
 
@@ -53,6 +55,39 @@ test("older saved game documents default new setup fields safely", () => {
   assert.equal(parsed.setupStep, "complete");
   assert.deepEqual(parsed.builderSetupHistory, []);
   assert.deepEqual(parsed.builderChatHistory, []);
+  assert.deepEqual(parsed.platformerTerrainEdits, []);
+  assert.deepEqual(parsed.platformerObjectEdits, []);
+  assert.deepEqual(parsed.platformerObjectRemovals, []);
+  assert.deepEqual(parsed.platformerObjectSettings, []);
+  assert.deepEqual(parsed.platformerLevels, []);
+  assert.deepEqual(parsed.mazeLevels, []);
+});
+
+test("game documents persist independent levels created from approved templates", () => {
+  const levelId = "custom-platformer-123e4567-e89b-12d3-a456-426614174000";
+  const parsed = gameDocumentSchema.parse({
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerMapSource: levelId,
+    platformerLevels: [{
+      id: levelId,
+      templateSource: "level-2.json",
+      label: "Space 2",
+    }],
+    platformerTerrainEdits: [{
+      mapSource: levelId,
+      x: 3,
+      y: 4,
+      kind: "platform",
+    }],
+  });
+
+  assert.equal(activeGameTheme(parsed), "space");
+  assert.equal(defaultGameTitle(parsed), "Space Platformer");
+  assert.equal(parsed.platformerTerrainEdits[0]?.mapSource, levelId);
+  assert.equal(gameDocumentSchema.safeParse({
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerMapSource: levelId,
+  }).success, false);
 });
 
 test("themes resolve to real maps and theme-specific player sprites", () => {
@@ -133,6 +168,33 @@ test("game documents reject unknown maps and extra executable-looking data", () 
         role: "user",
         message: "Too many turns",
       })),
+    }).success,
+    false,
+  );
+  assert.equal(
+    gameDocumentSchema.safeParse({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerTerrainEdits: [
+        { mapSource: "../../secret.json", x: 1, y: 1, kind: "ground" },
+      ],
+    }).success,
+    false,
+  );
+  assert.equal(
+    gameDocumentSchema.safeParse({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerTerrainEdits: [
+        { mapSource: "level-1.json", x: -1, y: 1, kind: "lava_script" },
+      ],
+    }).success,
+    false,
+  );
+  assert.equal(
+    gameDocumentSchema.safeParse({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerObjectEdits: [
+        { id: "bad", mapSource: "level-1.json", x: 1, y: 1, kind: "script" },
+      ],
     }).success,
     false,
   );

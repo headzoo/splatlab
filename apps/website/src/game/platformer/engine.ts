@@ -23,6 +23,9 @@ export const BOSS_HIT_REACTION_TICKS = FIXED_TICK_RATE / 2;
 export const DEFAULT_DEATH_RESPAWN_DELAY_SECONDS = 2;
 export const MINIMUM_DEATH_RESPAWN_DELAY_SECONDS = 0.5;
 export const MAXIMUM_DEATH_RESPAWN_DELAY_SECONDS = 10;
+export const DEFAULT_GROUND_TRACTION_SCALE = 1;
+export const MINIMUM_GROUND_TRACTION_SCALE = 0.05;
+export const MAXIMUM_GROUND_TRACTION_SCALE = 2;
 export const RAMMING_SPEED_TILES_PER_SECOND = 8;
 export const ENEMY_PROJECTILE_SPEED_TILES_PER_SECOND = 4;
 
@@ -108,6 +111,68 @@ export function resolvePlatformerCamera(
       0,
       Math.max(0, worldHeight - viewportHeight),
     ),
+  };
+}
+
+export function snapPlatformerStateToGrid(
+  map: PlatformerMapSpec,
+  state: PlatformerState,
+): PlatformerState {
+  const tileSize = map.tileSize;
+  const worldWidth = map.size.columns * tileSize;
+  const worldHeight = map.size.rows * tileSize;
+  const { x, y } = nearestPlayerGridPosition(map, state.x, state.y);
+  const footCollision = collisionAt(
+    map,
+    Math.floor(x / tileSize),
+    Math.floor((y + COLLISION_SKIN) / tileSize),
+  );
+
+  return {
+    ...state,
+    x,
+    y,
+    previousY: y,
+    vx: 0,
+    vy: 0,
+    grounded: footCollision === "solid" || footCollision === "one_way",
+    coyoteTicksRemaining: 0,
+    jumpBufferTicksRemaining: 0,
+    enemies: state.enemies.map((enemy) => {
+      const leftTiles = enemy.behavior === "chaser"
+        ? enemy.viewLeftTiles
+        : enemy.patrolLeftTiles;
+      const rightTiles = enemy.behavior === "chaser"
+        ? enemy.viewRightTiles
+        : enemy.patrolRightTiles;
+      return {
+        ...enemy,
+        x: clamp(
+          (Math.round(enemy.x / tileSize - 0.5) + 0.5) * tileSize,
+          enemy.startX - leftTiles * tileSize,
+          enemy.startX + rightTiles * tileSize,
+        ),
+        y: clamp(
+          Math.round(enemy.y / tileSize) * tileSize,
+          ENEMY_HEIGHT,
+          worldHeight,
+        ),
+        moving: false,
+      };
+    }),
+    flyingObjects: state.flyingObjects.map((object) => ({
+      ...object,
+      x: clamp(
+        (Math.round(object.x / tileSize - 0.5) + 0.5) * tileSize,
+        tileSize / 2,
+        worldWidth - tileSize / 2,
+      ),
+      y: clamp(
+        (Math.round(object.y / tileSize - 0.5) + 0.5) * tileSize,
+        tileSize / 2,
+        worldHeight - tileSize / 2,
+      ),
+    })),
   };
 }
 
@@ -299,19 +364,27 @@ export function resolvePhysics(
   physics: PlatformerPhysicsSpec,
   tileSize: number,
   gravityScale = 1,
+  groundTractionScale = DEFAULT_GROUND_TRACTION_SCALE,
   maximumRunSpeedPxPerSecond = physics.movement.maximumRunSpeedTilesPerSecond * tileSize,
 ): ResolvedPhysics {
   const jump = physics.verticalMovement.groundedJump;
   const baseGravity = (2 * jump.jumpHeightTiles * tileSize) / jump.timeToApexSeconds ** 2;
+  const traction = Number.isFinite(groundTractionScale)
+    ? clamp(
+        groundTractionScale,
+        MINIMUM_GROUND_TRACTION_SCALE,
+        MAXIMUM_GROUND_TRACTION_SCALE,
+      )
+    : DEFAULT_GROUND_TRACTION_SCALE;
 
   return {
     maximumRunSpeed: maximumRunSpeedPxPerSecond,
     groundAcceleration:
       maximumRunSpeedPxPerSecond /
-      physics.movement.groundTimeToMaximumSpeedSeconds,
+      physics.movement.groundTimeToMaximumSpeedSeconds * traction,
     groundDeceleration:
       maximumRunSpeedPxPerSecond /
-      physics.movement.groundTimeToStopSeconds,
+      physics.movement.groundTimeToStopSeconds * traction,
     airAcceleration:
       maximumRunSpeedPxPerSecond /
       physics.movement.airTimeToMaximumSpeedSeconds,
@@ -335,6 +408,42 @@ function collisionAt(map: PlatformerMapSpec, column: number, row: number) {
 
 function isSolid(map: PlatformerMapSpec, column: number, row: number) {
   return collisionAt(map, column, row) === "solid";
+}
+
+function nearestPlayerGridPosition(
+  map: PlatformerMapSpec,
+  currentX: number,
+  currentY: number,
+) {
+  const candidates: Array<{ x: number; y: number; distance: number }> = [];
+  for (let row = 1; row <= map.size.rows; row += 1) {
+    const y = row * map.tileSize;
+    for (let column = 0; column < map.size.columns; column += 1) {
+      const x = (column + 0.5) * map.tileSize;
+      candidates.push({
+        x,
+        y,
+        distance: (x - currentX) ** 2 + (y - currentY) ** 2,
+      });
+    }
+  }
+  candidates.sort((left, right) => left.distance - right.distance);
+  return candidates.find(({ x, y }) => {
+    const leftColumn = Math.floor((x - PLAYER_HALF_WIDTH + COLLISION_SKIN) / map.tileSize);
+    const rightColumn = Math.floor((x + PLAYER_HALF_WIDTH - COLLISION_SKIN) / map.tileSize);
+    const topRow = Math.floor((y - PLAYER_HEIGHT + COLLISION_SKIN) / map.tileSize);
+    const bottomRow = Math.floor((y - COLLISION_SKIN) / map.tileSize);
+    for (let row = topRow; row <= bottomRow; row += 1) {
+      for (let column = leftColumn; column <= rightColumn; column += 1) {
+        const collision = collisionAt(map, column, row);
+        if (collision === "solid" || collision === "one_way") return false;
+      }
+    }
+    return true;
+  }) ?? {
+    x: clamp(currentX, map.tileSize / 2, map.size.columns * map.tileSize - map.tileSize / 2),
+    y: clamp(currentY, map.tileSize, map.size.rows * map.tileSize),
+  };
 }
 
 function resolveHorizontal(
@@ -1424,6 +1533,7 @@ export function stepPlatformer(
     physicsSpec,
     map.tileSize,
     map.physics?.gravityScale ?? 1,
+    map.physics?.groundTractionScale ?? DEFAULT_GROUND_TRACTION_SCALE,
     spawn?.speedPxPerSecond,
   );
   const jump = physicsSpec.verticalMovement.groundedJump;

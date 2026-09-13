@@ -1,0 +1,8 @@
+{
+  "assetId": "ice_world_crystal_projectile_01",
+  "approvedAt": "2026-09-13T01:38:22.516760+00:00",
+  "recipe": "sprite-specs/ice_world_crystal_projectile_01.json",
+  "runtimeImage": "sprites/ice_world_crystal_projectile_01.png",
+  "sha256": "92601aec9cd6267784dde464d6f98e27d8dd6f934d601b4e325474a7b443a954",
+  "validationReport": "sprite-reports/ice_world_crystal_projectile_01/ice_world_crystal_projectile_01-report.json"
+}

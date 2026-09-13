@@ -19,6 +19,24 @@ test("the website serves approved coin collection sheets", async () => {
   }
 });
 
+test("the website serves every approved Space character defeated event sheet", async () => {
+  for (const filename of [
+    "space_cooper_01_defeated.png",
+    "space_human_01_defeated.png",
+    "space_ghost_01_defeated.png",
+    "space_robot_01_defeated.png",
+  ]) {
+    const response = await GET(
+      new Request(`http://localhost/game-assets/sprites/${filename}`),
+      { params: Promise.resolve({ asset: ["sprites", filename] }) },
+    );
+
+    assert.equal(response.status, 200, filename);
+    assert.equal(response.headers.get("Content-Type"), "image/png", filename);
+    assert.ok((await response.arrayBuffer()).byteLength > 0, filename);
+  }
+});
+
 test("the website serves setup character, mask, and maze theme assets", async () => {
   for (const asset of [
     ["sprites", "neutral_human_01.png"],
@@ -35,6 +53,9 @@ test("the website serves setup character, mask, and maze theme assets", async ()
     ["sprites", "dragons_emberkeep_maze_door_01.png"],
     ["sprites", "haunted_graveyard_flaming_pumpkin_01.png"],
     ["sprites", "dragons_emberkeep_fireball_01.png"],
+    ["sprites", "ice_world_boss_01.png"],
+    ["sprites", "ice_world_boss_01_defeated.png"],
+    ["sprites", "ice_world_crystal_projectile_01.png"],
   ]) {
     const response = await GET(
       new Request(`http://localhost/game-assets/${asset.join("/")}`),

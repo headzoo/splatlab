@@ -18,6 +18,11 @@
   gap: 7px;
 }
 
+.touchControls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .toolbar button,
 .touchControls button {
   min-height: 38px;
@@ -78,6 +83,53 @@
   touch-action: none;
 }
 
+.canvas[data-editor-tool="select"] {
+  cursor: default;
+}
+
+.canvas[data-editor-tool="move"] {
+  cursor: grab;
+}
+
+.canvas[data-editor-tool="move"][data-panning="true"] {
+  cursor: grabbing;
+}
+
+.canvas[data-editor-tool="erase"],
+.canvas[data-editor-tool="ground"],
+.canvas[data-editor-tool="platform"],
+.canvas[data-editor-tool="obstacle"],
+.canvas[data-editor-tool="hazard"] {
+  cursor: crosshair;
+}
+
+.editorBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  pointer-events: none;
+  color: #fff;
+  background: rgb(7 20 63 / 88%);
+  border: 2px solid rgb(255 255 255 / 72%);
+  border-radius: 10px;
+  box-shadow: 0 5px 14px rgb(5 22 54 / 22%);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.editorBadge strong {
+  padding: 4px 7px;
+  color: #12234e;
+  background: #ffd52e;
+  border-radius: 6px;
+}
+
 .stageMessage {
   position: absolute;
   inset: 0;
@@ -103,7 +155,7 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 10px;
 }
 
@@ -115,6 +167,14 @@
   font-weight: 800;
   line-height: 1.3;
   text-align: right;
+}
+
+.editorHint {
+  margin: 0;
+  color: #3155a3;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
 }
 
 .touchControls button {
@@ -143,7 +203,8 @@
   border-color: #c64f32;
 }
 
-.touchControls button[data-active="true"] {
+.touchControls button[data-active="true"],
+.editorControls button[aria-pressed="true"] {
   color: #fff;
   background: #173f8a;
   border-color: #102d68;
@@ -306,6 +367,10 @@
   .touchControls {
     width: 100%;
     grid-template-columns: 40px repeat(4, minmax(0, 1fr));
+  }
+
+  .touchControls.editorControls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .controlHint {

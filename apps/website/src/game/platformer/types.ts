@@ -69,6 +69,7 @@ export type PlatformerMapSpec = {
   camera: { columns: number; rows: number };
   physics: {
     gravityScale: number;
+    groundTractionScale?: number;
   };
   rules: {
     respawnDelaySeconds: number;

@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ice_world_platformer_hazard_01",
+  "frameLabels": [
+    "crystal_shimmer_1",
+    "crystal_shimmer_2",
+    "crystal_shimmer_3",
+    "crystal_shimmer_4"
+  ],
+  "normalization": {
+    "source": "sprites/ice_world_platformer_hazard_01-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "analysisScale": 0.5582137161084529,
+      "selectedComponentAreas": [
+        45471,
+        28279,
+        26838,
+        20460
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        312.4,
+        940.91
+      ],
+      "yCenters": [
+        543.04,
+        1052.51
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          627,
+          798
+        ],
+        [
+          627,
+          0,
+          1254,
+          798
+        ],
+        [
+          0,
+          798,
+          627,
+          1254
+        ],
+        [
+          627,
+          798,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          63,
+          37
+        ],
+        "paste": [
+          0,
+          46
+        ],
+        "localLandmark": [
+          31.5,
+          37
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          19
+        ],
+        "intentionallyClipped": true
+      },
+      {
+        "size": [
+          64,
+          29
+        ],
+        "paste": [
+          0,
+          35
+        ],
+        "localLandmark": [
+          32.0,
+          29
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          63,
+          37
+        ],
+        "paste": [
+          0,
+          27
+        ],
+        "localLandmark": [
+          31.5,
+          37
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          64,
+          27
+        ],
+        "paste": [
+          0,
+          37
+        ],
+        "localLandmark": [
+          32.0,
+          27
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "ice_world_platformer_hazard_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/ice_world_platformer_hazard_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          0,
+          46,
+          63,
+          64
+        ],
+        [
+          0,
+          35,
+          64,
+          64
+        ],
+        [
+          0,
+          27,
+          63,
+          64
+        ],
+        [
+          0,
+          37,
+          64,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          19
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [
+        0
+      ],
+      "bboxWidthRange": [
+        63,
+        64
+      ],
+      "bboxHeightRange": [
+        18,
+        37
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        45.5,
+        55.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/ice_world_platformer_hazard_01/ice_world_platformer_hazard_01-contact.png",
+    "animationPreview": "sprite-reports/ice_world_platformer_hazard_01/ice_world_platformer_hazard_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

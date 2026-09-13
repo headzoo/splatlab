@@ -124,7 +124,7 @@ At the end of the two days, the demo should allow someone to:
 5. Change the selected character's supported skin tone and hair color and see
    both previews update immediately.
 6. Play and pause the character's complete **All frames** animation.
-7. Start and finish the Maze or any of four short, polished Platformer maps.
+7. Start and finish the Maze or any of five short, polished Platformer maps.
 8. Encounter and defeat the Space ghost on the first Platformer map.
 9. Encounter the new Dragon Ghost and Dragon Dragon 01 on the second
    Platformer map, including Dragon Dragon 01's mouth-height animated fireballs.
@@ -132,10 +132,14 @@ At the end of the two days, the demo should allow someone to:
     Platformer map.
 11. Encounter the Haunted Spirit Orb and Neutral Ghost among the offset
     graveyard-hand hazards on the fourth Haunted Platformer map.
-12. Hear map-appropriate background music and clear feedback for jumps, coins, enemy defeat,
+12. Build speed, coast, and reverse gradually across the fifth Ice World map's
+    frozen terrain using its map-authored traction rule.
+13. Face the Glacier Brute at the end of Ice World and dodge its sharp ice
+    crystals as they arc toward the hero while spinning end over end.
+14. Hear map-appropriate background music and clear feedback for jumps, coins, enemy defeat,
    player defeat, fireballs, checkpoints, and the goal, with visible mute controls.
-13. Create or join an invite-only Maze room and play with another person.
-14. Understand from the **Coming soon** cards that additional game types are
+15. Create or join an invite-only Maze room and play with another person.
+16. Understand from the **Coming soon** cards that additional game types are
    part of the product direction.
 
 The demo does not need to prove that every theme, character, and game type can
@@ -192,7 +196,7 @@ Run, jump, collect coins, avoid a simple hazard, and reach the goal.
 6. Touching the goal finishes the level.
 7. Falling out of the level or touching the supported hazard returns the player
    to the latest spawn point.
-8. All four maps contain map-backed enemies using either patroller or chaser
+8. All five maps contain map-backed enemies using either patroller or chaser
    behavior.
 9. Landing on top of the enemy or hitting it with the supported short sword
    defeats it; touching a live enemy from the side or below defeats the player
@@ -204,9 +208,10 @@ Run, jump, collect coins, avoid a simple hazard, and reach the goal.
 
 ### Required content
 
-- Four short handcrafted levels: the existing Space map, the Emberkeep dragon
+- Five short handcrafted levels: the existing Space map, the Emberkeep dragon
   map, a neutral Green Hills map based on the bright castle-and-waterfalls
-  gameplay treatment in `brand/app-1.png`, and a haunted graveyard map.
+  gameplay treatment in `brand/app-1.png`, a haunted graveyard map, and an Ice
+  World map built around long frozen runways and controlled sliding.
 - Static ground and platform tiles.
 - An Emberkeep-specific ground, platform, solid obstacle, and animated lava
   hazard set for the second map.
@@ -222,6 +227,14 @@ Run, jump, collect coins, avoid a simple hazard, and reach the goal.
   upward. Terrain cells retain semantic collision while selecting obstacle art
   independently, so the stone block and tombstone are interchangeable obstacle
   choices.
+- An Ice World-specific full-cell ice ground treatment, floating ice platforms,
+  frozen blocks, crystal-spike hazards, and a cold mountain or glacier parallax
+  treatment. These use normal recipe-backed assets and the same Sprite Viewer
+  approval flow as every other theme; Ice World has no special drawing path.
+- A large Ice World Glacier Brute boss with crystal spikes and its own four-frame
+  ice-crystal projectile. The map authors a bounded lobbed-projectile attack;
+  the projectile sheet's four rotations create the end-over-end spin while the
+  shared simulation supplies the arc.
 - Coins or one equivalent themed collectible.
 - One checkpoint and one goal treatment per map.
 - Emberkeep-specific coin, checkpoint flag, and goal flag sprites, including
@@ -244,6 +257,14 @@ Run, jump, collect coins, avoid a simple hazard, and reach the goal.
   the second map uses the approved `dragons_emberkeep_01` (**Emberkeep
   dragons**) pack and the third uses `neutral_green_hills_01`.
 - A haunted graveyard background pack for the fourth map.
+- A dedicated three-layer Ice World background pack for the fifth map: snowy
+  mountains and ice palace, frozen cliffs and waterfalls, then crystalline
+  foreground growth.
+- A bounded `physics.groundTractionScale` on every Platformer map. It scales
+  grounded acceleration and braking together, defaults to `1`, and never
+  changes air control. The Ice World map starts at `0.15`, so the player needs
+  time to build speed, continues coasting after input is released, and reverses
+  direction gradually instead of stopping instantly.
 - A per-placement first animation frame for animated map sprites. This value is
   1-based and does not change the shared sprite recipe; neighboring animated
   hazards can use different starting frames to keep their loops out of phase.
@@ -264,12 +285,12 @@ The HackYard platformer does not include:
 - A general-purpose level editor.
 
 The bounded patroller and chaser behaviors and one-hit short-sword combat are
-part of the four-map acceptance path. Behavior trees, combos, blocking,
+part of the five-map acceptance path. Behavior trees, combos, blocking,
 durability, inventories, and general health systems remain out of scope.
 
 ### Post-HackYard nine-level campaign
 
-The original four-map acceptance path above remains the hackathon seed rather
+The five-map acceptance path above remains the hackathon seed rather
 than being retroactively expanded. The follow-on campaign has nine Platformer
 levels in three groups: three Green Hills, three Space, then three Haunted.
 Levels 3, 6, and 9 are boss levels. Each uses the bounded single-boss contract
@@ -280,10 +301,10 @@ health remain outside this campaign contract.
 
 ## Music and sound effects
 
-The HackYard build ships four configurable sound packs: `space_basic_v1` for
+The HackYard build ships five configurable sound packs: `space_basic_v1` for
 the first Platformer map, `dragons_emberkeep_v1` for the second,
-`neutral_green_hills_v1` for the third, and `haunted_graveyard_v1` for the
-fourth.
+`neutral_green_hills_v1` for the third, `haunted_graveyard_v1` for the fourth,
+and `ice_world_v1` for the fifth.
 Each provides one seamless background loop plus short effects for `jump`,
 `land`, `collectible`, `enemy_defeat`, `player_damage`, `player_death`,
 `respawn`, `weapon_swing`, `weapon_hit`, `fire`, `checkpoint`, and `goal`.
@@ -455,7 +476,7 @@ semantic objects such as `coin`, `hazard`, `checkpoint`, and `goal`. Its tile
 grid is interpreted by horizontal movement and gravity rather than top-down
 movement.
 
-For HackYard, create exactly one strong Maze map and four strong Platformer maps.
+For HackYard, create exactly one strong Maze map and five strong Platformer maps.
 The first Platformer map remains the existing Space layout. The second is an
 88-column by 12-row Emberkeep dragons layout with a 16-column by 9-row camera,
 theme-specific terrain and object art, two named enemies, the shared fireworks
@@ -470,6 +491,15 @@ Neutral Ghost enemies, the shared fireworks victory effect, and its own audio
 pack. Map data remains semantic: background
 and victory presentation are referenced by stable IDs, while sound-pack choice
 stays in `GameSpec` or editor preview state rather than `MapSpec`.
+The fifth is an 88-column by 12-row Ice World layout with the same camera,
+long frozen runways, ice platforms, frozen blocks, crystal-spike hazards, a
+checkpoint, a goal, map-backed enemies, and the Glacier Brute boss encounter.
+The boss chases within its bounded view and lobs a four-frame spinning ice
+crystal along the shared parabolic projectile path. It stores
+`physics.groundTractionScale: 0.15`; other maps explicitly store `1`. The
+website runtime and Game Editor preview must apply the same fixed-step grounded
+acceleration and braking scale. Ice presentation comes from the background and
+recipe-backed terrain assets, never from collision-pixel inspection.
 
 ## Runtime architecture
 
@@ -501,7 +531,10 @@ under [`physics-specs/`](./physics-specs/). `GameSpec` also references a
 revisioned document under [`game-physics/`](./game-physics/) containing bounded,
 player-facing tuning such as run speed, jump height, and flight mode. Cooper may
 translate a request into a validated patch to that game-owned document; themes,
-maps, characters, and appearance choices do not change physics implicitly.
+maps, characters, and appearance choices do not change physics implicitly. The
+Ice World is an explicit map-authored rule rather than an inferred theme effect:
+its `groundTractionScale` changes grounded control because the value is present
+in MapSpec.
 
 ## Networking architecture
 
@@ -735,10 +768,26 @@ number of partially implemented systems.
   finish Haunted Human, Ghost, Zombie, Dragon, and Robot character sheets, add
   the haunted sound pack, and trigger `shared_victory_burst_01` when the goal
   completes the level.
+- Add `ice_world_01` as the fifth Platformer map: 88 columns by 12 rows, a
+  16-by-9 camera, long frozen runways, ice platforms and blocks, crystal-spike
+  hazards, approved neutral enemies, one checkpoint, one goal, and the shared
+  fireworks victory effect. Add bounded `physics.groundTractionScale` support
+  to MapSpec, the Game Editor control and preview, and the website player; set
+  this map to 15% traction while all existing maps remain at 100%.
+- Add `ice_world_boss_01` as the map's single large boss and
+  `ice_world_crystal_projectile_01` as its four-frame end-over-end projectile.
+  Configure its range, cooldown, and arc height in the checked-in map through
+  the existing `lobbed_projectile` contract, and expose the same authored
+  behavior in the Game Editor preview and website player.
+- Add the dedicated Ice World background/terrain presentation and
+  `ice_world_v1` sound pack. Ice terrain follows the same recipe, staged
+  candidate, validation, Sprite Viewer approval, and suffix-free runtime-asset
+  path as every other Platformer theme; it has no theme-specific procedural
+  rendering fallback.
 - Polish the parallax background enough that camera movement visibly sells the
   side-scroller.
 - Reuse approved character animations and the strongest available theme art.
-- Polish camera behavior, feedback, and all four handcrafted Platformer levels.
+- Polish camera behavior, feedback, and all five handcrafted Platformer levels.
 
 ### Phase 5: presentation and resilience
 
@@ -751,8 +800,8 @@ number of partially implemented systems.
 
 1. Authoritative Platformer multiplayer with client prediction and
    reconciliation.
-2. A fifth Platformer visual theme or a second Maze visual theme.
-3. An additional approved music or effects pack beyond the three core
+2. A sixth Platformer visual theme or a second Maze visual theme.
+3. An additional approved music or effects pack beyond the five core
    Platformer map packs.
 4. One constrained natural-language `GamePhysicsSpec` patch, such as higher
    jumping or flight mode.

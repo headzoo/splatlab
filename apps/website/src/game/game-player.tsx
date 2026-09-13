@@ -1,5 +1,14 @@
 "use client";
 
+import { useMemo, type ReactNode } from "react";
+
+import {
+  applyPlatformerObjectEdits,
+  applyPlatformerTerrainEdits,
+  type PlatformerEditTool,
+  type PlatformerObjectPlacement,
+  type PlatformerTerrainStrokeCell,
+} from "@/game/platformer/map-editing";
 import { PlatformerGame } from "@/game/platformer/platformer-game";
 import type {
   PlatformerMapSpec,
@@ -12,6 +21,7 @@ import {
   activePlayerAssetId,
   type GameDocument,
 } from "@/lib/game-contract";
+import { gameCampaignMaps, gameMazeMaps } from "./game-levels";
 
 export type CampaignMap = {
   source: GameDocument["platformerMapSource"];
@@ -35,6 +45,15 @@ export type GamePlayerContentProps = {
 type GamePlayerProps = GamePlayerContentProps & {
   spec: GameDocument;
   onPlatformerComplete?: () => void;
+  controlRowLeading?: ReactNode;
+  platformerEditor?: {
+    tool: PlatformerEditTool;
+    onToolChange: (tool: PlatformerEditTool) => void;
+    onTerrainStroke: (stroke: readonly PlatformerTerrainStrokeCell[]) => void;
+    onObjectPlace: (placement: PlatformerObjectPlacement) => void;
+    selectedObjectId: string | null;
+    onObjectSelect: (objectId: string | null) => void;
+  };
 };
 
 export function campaignMapIndex(spec: GameDocument, maps: CampaignMap[]) {
@@ -58,12 +77,39 @@ export function GamePlayer({
   physics,
   weapon,
   onPlatformerComplete,
+  controlRowLeading,
+  platformerEditor,
 }: GamePlayerProps) {
-  const current = maps[campaignMapIndex(spec, maps)];
-  const currentMaze = mazes[mazeMapIndex(spec, mazes)];
+  const campaignMaps = useMemo(() => gameCampaignMaps(spec, maps), [maps, spec]);
+  const availableMazes = useMemo(() => gameMazeMaps(spec, mazes), [mazes, spec]);
+  const current = campaignMaps[campaignMapIndex(spec, campaignMaps)];
+  const currentMaze = availableMazes[mazeMapIndex(spec, availableMazes)];
   const playerAssetId = activePlayerAssetId(spec);
+  const platformerMap = useMemo(
+    () =>
+      current
+        ? applyPlatformerObjectEdits(
+            applyPlatformerTerrainEdits(
+              current.map,
+              current.source,
+              spec.platformerTerrainEdits,
+            ),
+            current.source,
+            spec.platformerObjectEdits,
+            spec.platformerObjectRemovals,
+            spec.platformerObjectSettings,
+          )
+        : null,
+    [
+      current,
+      spec.platformerObjectEdits,
+      spec.platformerObjectRemovals,
+      spec.platformerObjectSettings,
+      spec.platformerTerrainEdits,
+    ],
+  );
 
-  if (!current || !currentMaze) return null;
+  if (!current || !currentMaze || !platformerMap) return null;
 
   return spec.previewKind === "maze" ? (
     <MazeGame
@@ -72,17 +118,25 @@ export function GamePlayer({
       playerAssetId={playerAssetId}
       skinTone={spec.skinTone}
       hairColor={spec.hairColor}
+      controlRowLeading={controlRowLeading}
     />
   ) : (
     <PlatformerGame
       key={`${current.map.id}:${current.map.revision}:${playerAssetId}:${spec.skinTone}:${spec.hairColor}`}
-      map={current.map}
+      map={platformerMap}
       physics={physics}
       weapon={weapon}
       playerAssetId={playerAssetId}
       skinTone={spec.skinTone}
       hairColor={spec.hairColor}
-      autoPlay
+      controlRowLeading={controlRowLeading}
+      autoPlay={!platformerEditor}
+      editorTool={platformerEditor?.tool}
+      onEditorToolChange={platformerEditor?.onToolChange}
+      onTerrainStroke={platformerEditor?.onTerrainStroke}
+      onObjectPlace={platformerEditor?.onObjectPlace}
+      selectedObjectId={platformerEditor?.selectedObjectId}
+      onObjectSelect={platformerEditor?.onObjectSelect}
       onComplete={onPlatformerComplete}
     />
   );

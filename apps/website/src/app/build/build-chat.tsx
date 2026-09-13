@@ -16,7 +16,11 @@ import {
   type SkinTone,
 } from "@/lib/game-contract";
 
-import { useBuildSetup } from "./build-setup";
+import {
+  parseBuildTurnResult,
+  persistedBuildTurn,
+  useBuildSetup,
+} from "./build-setup";
 import styles from "./build.module.css";
 
 const gameTypes = [
@@ -145,18 +149,24 @@ export function BuildChat() {
     selectHumanGender,
     selectSkinTone,
     selectHairColor,
-    saveChatHistory,
+    gameIdentity,
+    pausedBuildTurn,
+    applyPersistedBuildTurn,
   } = useBuildSetup();
   const [currentQuestion, setCurrentQuestion] =
     useState<GameSetupStep>(setupStep);
   const [thinking, setThinking] = useState(false);
   const [draft, setDraft] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [turnError, setTurnError] = useState("");
   const [askedQuestions, setAskedQuestions] =
     useState<GameSetupQuestion[]>(setupQuestionHistory);
   const conversationRef = useRef<HTMLDivElement>(null);
   const thinkingTimeoutRef = useRef<number | null>(null);
   const isTransitioningRef = useRef(false);
-  const chatReady = setupComplete && currentQuestion === "complete" && !thinking;
+  const setupReady = setupComplete && currentQuestion === "complete";
+  const chatReady =
+    setupReady && Boolean(gameIdentity) && !thinking && !pausedBuildTurn;
   const completionTurnCount = chatReady ? 1 : 0;
   const overflowTurns = Math.max(
     0,
@@ -251,17 +261,78 @@ export function BuildChat() {
     selectCharacter(character);
   }
 
+  async function postBuildTurn(
+    input: { message: string } | { action: "proceed" | "reject"; feedback?: string },
+    submittedMessage: string,
+  ) {
+    if (!gameIdentity || thinking) return;
+
+    setThinking(true);
+    setTurnError("");
+    try {
+      const response = await fetch(
+        `/api/games/${encodeURIComponent(gameIdentity.id)}/build-turn`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        },
+      );
+      const body: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        if (response.status === 409) {
+          setTurnError(
+            "Cooper’s build flow changed. Send a fresh message to continue.",
+          );
+        } else {
+          setTurnError(
+            body &&
+              typeof body === "object" &&
+              "message" in body &&
+              typeof body.message === "string"
+              ? body.message
+              : "Cooper couldn’t finish that turn. Try again.",
+          );
+        }
+        return;
+      }
+
+      const result = parseBuildTurnResult(
+        body,
+        response.headers.get("X-Game-Revision"),
+      );
+      if (!result) {
+        setTurnError("Cooper sent an unexpected reply. Please try again.");
+        return;
+      }
+
+      applyPersistedBuildTurn(
+        persistedBuildTurn(chatHistory, submittedMessage, result),
+      );
+      setDraft("");
+      setFeedback("");
+    } catch {
+      setTurnError("Cooper couldn’t connect. Try again.");
+    } finally {
+      setThinking(false);
+    }
+  }
+
   function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!chatReady || !draft.trim()) return;
 
     const message = draft.trim();
-    saveChatHistory([
-      ...chatHistory,
-      { role: "user", message },
-      { role: "cooper", message },
-    ]);
-    setDraft("");
+    void postBuildTurn({ message }, message);
+  }
+
+  function submitPausedAction(action: "proceed" | "reject") {
+    if (!pausedBuildTurn || thinking) return;
+    const trimmedFeedback = feedback.trim();
+    void postBuildTurn(
+      trimmedFeedback ? { action, feedback: trimmedFeedback } : { action },
+      trimmedFeedback,
+    );
   }
 
   return (
@@ -466,6 +537,39 @@ export function BuildChat() {
           </div>
         ) : null}
 
+        {pausedBuildTurn ? (
+          <div className={styles.pausedTurn} aria-label="Cooper needs your decision">
+            <p>Would you like Cooper to continue?</p>
+            {pausedBuildTurn.feedbackEnabled ? (
+              <input
+                type="text"
+                value={feedback}
+                onChange={(event) => setFeedback(event.target.value)}
+                placeholder="Optional feedback for Cooper"
+                aria-label="Feedback for Cooper"
+                maxLength={500}
+                disabled={thinking}
+              />
+            ) : null}
+            <div>
+              <button
+                type="button"
+                onClick={() => submitPausedAction("proceed")}
+                disabled={thinking}
+              >
+                Proceed
+              </button>
+              <button
+                type="button"
+                onClick={() => submitPausedAction("reject")}
+                disabled={thinking}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {completionVisible ? (
           <div className={`${styles.cooperPrompt} ${styles.reply}`}>
             <CooperAvatar />
@@ -501,6 +605,11 @@ export function BuildChat() {
             ),
           )}
         </div>
+        {turnError ? (
+          <p className={styles.chatError} role="alert">
+            {turnError}
+          </p>
+        ) : null}
       </div>
 
       <div className={styles.selectionSummary} aria-label="Current game choices">
@@ -537,9 +646,15 @@ export function BuildChat() {
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={
-            chatReady
+            !setupReady
+              ? "Finish the setup questions to chat…"
+              : !gameIdentity
+                ? "Saving your game before chat…"
+                : pausedBuildTurn
+                  ? "Choose Proceed or Reject first…"
+                  : chatReady
               ? "Tell Cooper something weird…"
-              : "Finish the setup questions to chat…"
+              : "Cooper is thinking…"
           }
           aria-label="Message Cooper"
           maxLength={500}

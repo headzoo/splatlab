@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const gameRuntimeFiles = [
   "../game/audio/space_basic_v1/*.wav",
   "../game/backgrounds/background_neutral_green_hills_*.png",
+  "../game/backgrounds/background_ice_world_*.png",
   "../game/sprites/short_sword_v1.png",
   "../game/sprites/space_cooper_01.png",
   "../game/sprites/space_cooper_01_attack.png",
@@ -32,6 +33,9 @@ const gameRuntimeFiles = [
   "../game/sprites/neutral_green_hills_platformer_hazard_01.png",
   "../game/sprites/neutral_green_hills_platformer_obstacle_01.png",
   "../game/sprites/neutral_green_hills_platformer_platform_01.png",
+  "../game/sprites/ice_world_platformer_*.png",
+  "../game/sprites/ice_world_boss_01*.png",
+  "../game/sprites/ice_world_crystal_projectile_01.png",
   "../game/sprites/shared_game_over_01.png",
   "../game/sprites/shared_victory_burst_01.png",
   "../game/sprites/space_platformer_checkpoint_01.png",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import {
   campaignMapIndex,
@@ -8,11 +8,26 @@ import {
   mazeMapIndex,
   type GamePlayerContentProps,
 } from "@/game/game-player";
+import { gameCampaignMaps, gameMazeMaps } from "@/game/game-levels";
+import {
+  applyPlatformerObjectEdits,
+  erasePlatformerObjectsAtCells,
+  mergePlatformerObjectEdit,
+  mergePlatformerTerrainEdits,
+  type PlatformerEditTool,
+  type PlatformerObjectPlacement,
+  type PlatformerObjectSettingsChange,
+  type PlatformerTerrainStrokeCell,
+  upsertPlatformerObjectSettings,
+} from "@/game/platformer/map-editing";
 import {
   defaultGameTitle,
   DEFAULT_GAME_DOCUMENT,
+  MAZE_MAP_SOURCES,
+  PLATFORMER_MAP_SOURCES,
   type GameDocument,
-  type GamePreviewKind,
+  type MazeLevel,
+  type PlatformerLevel,
   type SavedGameDto,
 } from "@/lib/game-contract";
 import { buildGamePath } from "@/lib/game-routes";
@@ -22,7 +37,9 @@ import {
   sameGameDocument,
 } from "@/lib/game-history";
 
-import { useBuildSetup } from "./build-setup";
+import { reconcilePersistedGame, useBuildSetup } from "./build-setup";
+import { BuildObjectToolbox } from "./build-object-toolbox";
+import { BuildTools } from "./build-tools";
 import styles from "./build.module.css";
 
 type BuildGamePreviewProps = GamePlayerContentProps & {
@@ -32,6 +49,18 @@ type BuildGamePreviewProps = GamePlayerContentProps & {
 type GameIdentity = {
   id: string;
   revision: number;
+};
+
+const WORLD_ICONS: Record<string, string> = {
+  "level-1.json": "🌄",
+  "level-2.json": "🚀",
+  "level-3.json": "👻",
+  "level-4.json": "🐉",
+  "level-5.json": "❄️",
+  "maze_green_hills_01.json": "🌄",
+  "maze_space_01.json": "🚀",
+  "maze_graveyard_01.json": "👻",
+  "maze_dragon_world_01.json": "🐉",
 };
 
 function errorMessage(payload: unknown, fallback: string) {
@@ -54,7 +83,11 @@ export function BuildGamePreview({
   weapon,
   initialGame,
 }: BuildGamePreviewProps) {
-  const { requestedSetup } = useBuildSetup();
+  const {
+    requestedSetup,
+    persistedBuildTurn,
+    publishGameIdentity,
+  } = useBuildSetup();
   const initialSpec = initialGame?.spec ?? DEFAULT_GAME_DOCUMENT;
   const [history, dispatch] = useReducer(
     gameHistoryReducer,
@@ -70,6 +103,10 @@ export function BuildGamePreview({
     initialGame ? "saved" : "saving",
   );
   const [saveError, setSaveError] = useState("");
+  const [activeTool, setActiveTool] = useState<PlatformerEditTool>("select");
+  const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
+  const [levelDialogOpen, setLevelDialogOpen] = useState(false);
+  const levelDialogRef = useRef<HTMLDialogElement>(null);
   const latestSpecRef = useRef(history.present);
   const savedSpecRef = useRef<GameDocument | null>(initialGame?.spec ?? null);
   const savePromiseRef = useRef<Promise<void> | null>(null);
@@ -82,6 +119,8 @@ export function BuildGamePreview({
           | "previewKind"
           | "platformerMapSource"
           | "mazeMapSource"
+          | "platformerLevels"
+          | "mazeLevels"
           | "playerCharacter"
           | "humanGender"
           | "skinTone"
@@ -89,6 +128,10 @@ export function BuildGamePreview({
           | "setupStep"
           | "builderSetupHistory"
           | "builderChatHistory"
+          | "platformerTerrainEdits"
+          | "platformerObjectEdits"
+          | "platformerObjectRemovals"
+          | "platformerObjectSettings"
         >
       >,
     ) => {
@@ -118,6 +161,44 @@ export function BuildGamePreview({
     }
     commit(requestedSetup.change);
   }, [commit, requestedSetup]);
+
+  useEffect(() => {
+    if (!persistedBuildTurn || !identityRef.current) return;
+
+    const identity = identityRef.current;
+    const savedSpec = savedSpecRef.current ?? latestSpecRef.current;
+    const fallbackServerSpec = {
+      ...savedSpec,
+      builderChatHistory: persistedBuildTurn.chatHistory,
+    };
+
+    identityRef.current = { ...identity, revision: persistedBuildTurn.revision };
+    savedSpecRef.current = fallbackServerSpec;
+    latestSpecRef.current = reconcilePersistedGame(
+      fallbackServerSpec,
+      savedSpec,
+      latestSpecRef.current,
+    );
+    dispatch({ type: "chat", turns: fallbackServerSpec.builderChatHistory });
+
+    void (async () => {
+      const response = await fetch(`/api/games/${encodeURIComponent(identity.id)}`, {
+        cache: "no-store",
+      });
+      const payload: unknown = await response.json().catch(() => null);
+      if (!response.ok || !payload || typeof payload !== "object" || !("game" in payload)) return;
+      const game = (payload as { game: SavedGameDto }).game;
+      if (game.id !== identity.id) return;
+
+      const latest = latestSpecRef.current;
+      const persisted = savedSpecRef.current ?? latest;
+      const reconciled = reconcilePersistedGame(game.spec, persisted, latest);
+      identityRef.current = { id: game.id, revision: game.revision };
+      savedSpecRef.current = game.spec;
+      latestSpecRef.current = reconciled;
+      dispatch({ type: "chat", turns: game.spec.builderChatHistory });
+    })();
+  }, [persistedBuildTurn]);
 
   const persistLatest = useCallback(() => {
     if (savePromiseRef.current) return savePromiseRef.current;
@@ -159,6 +240,25 @@ export function BuildGamePreview({
         const payload: unknown = await response.json().catch(() => null);
 
         if (!response.ok) {
+          if (
+            response.status === 409 &&
+            payload &&
+            typeof payload === "object" &&
+            "game" in payload
+          ) {
+            const game = (payload as { game: SavedGameDto }).game;
+            const savedSpec = savedSpecRef.current ?? spec;
+            const reconciled = reconcilePersistedGame(
+              game.spec,
+              savedSpec,
+              latestSpecRef.current,
+            );
+            identityRef.current = { id: game.id, revision: game.revision };
+            savedSpecRef.current = game.spec;
+            latestSpecRef.current = reconciled;
+            dispatch({ type: "chat", turns: game.spec.builderChatHistory });
+            continue;
+          }
           setSaveStatus("error");
           setSaveError(errorMessage(payload, "We couldn't save your game."));
           return;
@@ -168,6 +268,7 @@ export function BuildGamePreview({
         const nextIdentity = { id: savedGame.id, revision: savedGame.revision };
         identityRef.current = nextIdentity;
         savedSpecRef.current = spec;
+        publishGameIdentity(nextIdentity);
 
         if (!identity && window.location.pathname === "/build") {
           window.history.replaceState(
@@ -195,7 +296,11 @@ export function BuildGamePreview({
 
     savePromiseRef.current = savePromise;
     return savePromise;
-  }, []);
+  }, [publishGameIdentity]);
+
+  useEffect(() => {
+    if (identityRef.current) publishGameIdentity(identityRef.current);
+  }, [publishGameIdentity]);
 
   useEffect(() => {
     latestSpecRef.current = history.present;
@@ -247,15 +352,165 @@ export function BuildGamePreview({
     return () => window.removeEventListener("keydown", handleHistoryShortcut);
   }, []);
 
-  const { previewKind } = history.present;
-  const currentMapIndex = campaignMapIndex(history.present, maps);
-  const current = maps[currentMapIndex];
-  const currentMaze = mazes[mazeMapIndex(history.present, mazes)];
+  useEffect(() => {
+    const dialog = levelDialogRef.current;
+    if (!dialog) return;
+    if (levelDialogOpen && !dialog.open) dialog.showModal();
+    if (!levelDialogOpen && dialog.open) dialog.close();
+  }, [levelDialogOpen]);
 
-  if (!current || !currentMaze) return null;
+  const { previewKind } = history.present;
+  const campaignMaps = useMemo(
+    () => gameCampaignMaps(history.present, maps),
+    [history.present, maps],
+  );
+  const availableMazes = useMemo(
+    () => gameMazeMaps(history.present, mazes),
+    [history.present, mazes],
+  );
+  const currentMapIndex = campaignMapIndex(history.present, campaignMaps);
+  const current = campaignMaps[currentMapIndex];
+  const currentMaze = availableMazes[mazeMapIndex(history.present, availableMazes)];
+  const editableObjectMap = useMemo(
+    () => current
+      ? applyPlatformerObjectEdits(
+          current.map,
+          current.source,
+          history.present.platformerObjectEdits,
+          history.present.platformerObjectRemovals,
+          history.present.platformerObjectSettings,
+        )
+      : null,
+    [
+      current,
+      history.present.platformerObjectEdits,
+      history.present.platformerObjectRemovals,
+      history.present.platformerObjectSettings,
+    ],
+  );
+
+  if (!current || !currentMaze || !editableObjectMap) return null;
+  const selectedObject = selectedObjectId
+    ? editableObjectMap.objects.find((object) => object.id === selectedObjectId) ?? null
+    : null;
   const currentSource = previewKind === "maze" ? currentMaze.source : current.source;
-  const changePreview = (kind: GamePreviewKind) => commit({ previewKind: kind });
   const selectedLevel = previewKind === "maze" ? currentMaze : current;
+  const availableLevels = previewKind === "maze" ? availableMazes : campaignMaps;
+  const changeLevel = (source: string) => {
+    setSelectedObjectId(null);
+    if (previewKind === "maze") {
+      const selected = availableMazes.find((candidate) => candidate.source === source);
+      if (selected) commit({ mazeMapSource: selected.source });
+      return;
+    }
+    const selected = campaignMaps.find((candidate) => candidate.source === source);
+    if (selected) commit({ platformerMapSource: selected.source });
+  };
+  const createLevel = (templateSource: string, templateLabel: string) => {
+    setSelectedObjectId(null);
+    if (previewKind === "maze") {
+      if (!MAZE_MAP_SOURCES.includes(templateSource as MazeLevel["templateSource"])) return;
+      const source = templateSource as MazeLevel["templateSource"];
+      const matchingLevels = availableMazes.filter((level) => (
+        level.source === source || history.present.mazeLevels.some(
+          (savedLevel) => savedLevel.id === level.source && savedLevel.templateSource === source,
+        )
+      ));
+      const level: MazeLevel = {
+        id: `custom-maze-${crypto.randomUUID()}`,
+        templateSource: source,
+        label: `${templateLabel} ${matchingLevels.length + 1}`,
+      };
+      commit({
+        mazeLevels: [...history.present.mazeLevels, level],
+        mazeMapSource: level.id,
+      });
+      setLevelDialogOpen(false);
+      return;
+    }
+    if (!PLATFORMER_MAP_SOURCES.includes(templateSource as PlatformerLevel["templateSource"])) return;
+    const source = templateSource as PlatformerLevel["templateSource"];
+    const matchingLevels = campaignMaps.filter((level) => (
+      level.source === source || history.present.platformerLevels.some(
+        (savedLevel) => savedLevel.id === level.source && savedLevel.templateSource === source,
+      )
+    ));
+    const level: PlatformerLevel = {
+      id: `custom-platformer-${crypto.randomUUID()}`,
+      templateSource: source,
+      label: `${templateLabel} ${matchingLevels.length + 1}`,
+    };
+    commit({
+      platformerLevels: [...history.present.platformerLevels, level],
+      platformerMapSource: level.id,
+    });
+    setLevelDialogOpen(false);
+  };
+  const applyTerrainStroke = (stroke: readonly PlatformerTerrainStrokeCell[]) => {
+    const platformerTerrainEdits = mergePlatformerTerrainEdits(
+      history.present.platformerTerrainEdits,
+      current.source,
+      current.map,
+      stroke,
+    );
+    if (stroke.some((cell) => cell.kind === "empty")) {
+      const erased = erasePlatformerObjectsAtCells(
+        current.map,
+        current.source,
+        history.present.platformerObjectEdits,
+        history.present.platformerObjectRemovals,
+        stroke.filter((cell) => cell.kind === "empty"),
+        history.present.platformerObjectSettings,
+      );
+      if (
+        selectedObject &&
+        stroke.some((cell) => (
+          cell.kind === "empty" &&
+          cell.x === Math.floor(selectedObject.x) &&
+          cell.y === Math.floor(selectedObject.y)
+        ))
+      ) setSelectedObjectId(null);
+      commit({
+        platformerTerrainEdits,
+        platformerObjectEdits: erased.edits,
+        platformerObjectRemovals: erased.removals,
+        platformerObjectSettings: erased.settings,
+      });
+      return;
+    }
+    commit({ platformerTerrainEdits });
+  };
+  const applyObjectPlacement = (placement: PlatformerObjectPlacement) => {
+    const platformerObjectEdits = mergePlatformerObjectEdit(
+      history.present.platformerObjectEdits,
+      current.source,
+      current.map,
+      placement,
+    );
+    commit({ platformerObjectEdits });
+    setSelectedObjectId(placement.id);
+  };
+  const changeSelectedObjectSettings = (change: PlatformerObjectSettingsChange) => {
+    if (!selectedObjectId) return;
+    commit({
+      platformerObjectSettings: upsertPlatformerObjectSettings(
+        history.present.platformerObjectSettings,
+        current.source,
+        selectedObjectId,
+        change,
+      ),
+    });
+  };
+  const currentTerrainEditCount = history.present.platformerTerrainEdits.filter(
+    (edit) => edit.mapSource === current.source,
+  ).length;
+  const currentObjectEditCount =
+    history.present.platformerObjectEdits.filter(
+      (edit) => edit.mapSource === current.source,
+    ).length +
+    history.present.platformerObjectRemovals.filter(
+      (removal) => removal.mapSource === current.source,
+    ).length;
 
   return (
     <>
@@ -295,32 +550,6 @@ export function BuildGamePreview({
               Redo ↷
             </button>
           </div>
-          <div className={styles.previewControls} aria-label="Preview game type">
-            <label className={styles.levelSelect}>
-              <span>Level</span>
-              <select
-                key={selectedLevel.source}
-                aria-label="Select level"
-                defaultValue={selectedLevel.source}
-              >
-                <option value={selectedLevel.source}>{selectedLevel.label}</option>
-              </select>
-            </label>
-            <button
-              type="button"
-              aria-pressed={previewKind === "platformer"}
-              onClick={() => changePreview("platformer")}
-            >
-              Platformer
-            </button>
-            <button
-              type="button"
-              aria-pressed={previewKind === "maze"}
-              onClick={() => changePreview("maze")}
-            >
-              Maze
-            </button>
-          </div>
         </div>
       </header>
 
@@ -330,7 +559,92 @@ export function BuildGamePreview({
         mazes={mazes}
         physics={physics}
         weapon={weapon}
+        controlRowLeading={(
+          <div className={styles.levelPicker}>
+            <label className={styles.levelSelect}>
+              <span>Level</span>
+              <select
+                aria-label="Select level"
+                value={selectedLevel.source}
+                onChange={(event) => changeLevel(event.target.value)}
+              >
+                {availableLevels.map((level) => (
+                  <option key={level.source} value={level.source}>{level.label}</option>
+                ))}
+              </select>
+            </label>
+            <button
+              className={styles.addLevelButton}
+              type="button"
+              aria-label="Add a level"
+              title="Add a level"
+              onClick={() => setLevelDialogOpen(true)}
+            >
+              +
+            </button>
+          </div>
+        )}
+        platformerEditor={{
+          tool: activeTool,
+          onToolChange: setActiveTool,
+          onTerrainStroke: applyTerrainStroke,
+          onObjectPlace: applyObjectPlacement,
+          selectedObjectId,
+          onObjectSelect: setSelectedObjectId,
+        }}
       />
+
+      <BuildTools
+        activeTool={activeTool}
+        backgroundId={current.map.presentation.backgroundId}
+        disabled={previewKind !== "platformer"}
+        objectEditCount={currentObjectEditCount}
+        terrainEditCount={currentTerrainEditCount}
+        onToolChange={setActiveTool}
+      />
+
+      <dialog
+        className={styles.levelDialog}
+        ref={levelDialogRef}
+        aria-labelledby="add-level-title"
+        onClose={() => setLevelDialogOpen(false)}
+        onCancel={() => setLevelDialogOpen(false)}
+      >
+        <header>
+          <div>
+            <span>Add a level</span>
+            <h2 id="add-level-title">Choose a world</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Close add level"
+            onClick={() => setLevelDialogOpen(false)}
+          >
+            ×
+          </button>
+        </header>
+        <div className={styles.levelThemeGrid}>
+          {(previewKind === "maze" ? mazes : maps).map((level) => (
+            <button
+              type="button"
+              key={level.source}
+              onClick={() => createLevel(level.source, level.label)}
+            >
+              <span aria-hidden="true">{WORLD_ICONS[level.source] ?? "🗺️"}</span>
+              <strong>{level.label}</strong>
+            </button>
+          ))}
+        </div>
+      </dialog>
+
+      {selectedObject ? (
+        <BuildObjectToolbox
+          backgroundId={current.map.presentation.backgroundId}
+          object={selectedObject}
+          onChange={changeSelectedObjectSettings}
+          onClose={() => setSelectedObjectId(null)}
+        />
+      ) : null}
     </>
   );
 }

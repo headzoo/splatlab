@@ -13,7 +13,8 @@
     "rows": 9
   },
   "physics": {
-    "gravityScale": 1
+    "gravityScale": 1,
+    "groundTractionScale": 1
   },
   "rules": {
     "respawnDelaySeconds": 2
@@ -120,18 +121,16 @@
       "type": "player_spawn",
       "x": 1,
       "y": 10,
-      "speedPxPerSecond": 320,
       "motion": {
         "version": 1,
         "travel": {
           "type": "controlled"
         },
         "visual": {
-          "type": "peck",
-          "distanceTiles": 0.18,
-          "periodMs": 900
+          "type": "none"
         }
-      }
+      },
+      "speedPxPerSecond": 320
     },
     {
       "id": "coin_1",

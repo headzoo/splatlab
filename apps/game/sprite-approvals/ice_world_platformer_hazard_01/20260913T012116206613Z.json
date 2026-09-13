@@ -1,0 +1,8 @@
+{
+  "assetId": "ice_world_platformer_hazard_01",
+  "approvedAt": "2026-09-13T01:21:16.206613+00:00",
+  "recipe": "sprite-specs/ice_world_platformer_hazard_01.json",
+  "runtimeImage": "sprites/ice_world_platformer_hazard_01.png",
+  "sha256": "7059def178f47dbdf597feacca1f40730f96dfb34219b3d7c1e7468adc5333e3",
+  "validationReport": "sprite-reports/ice_world_platformer_hazard_01/ice_world_platformer_hazard_01-report.json"
+}

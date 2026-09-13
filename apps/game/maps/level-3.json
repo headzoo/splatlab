@@ -13,7 +13,8 @@
     "rows": 9
   },
   "physics": {
-    "gravityScale": 1
+    "gravityScale": 1,
+    "groundTractionScale": 1
   },
   "rules": {
     "respawnDelaySeconds": 2

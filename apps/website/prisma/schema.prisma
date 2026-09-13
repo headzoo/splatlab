@@ -20,6 +20,7 @@ model User {
   accounts      Account[]
   labWorkspace  LabWorkspace?
   games         Game[]
+  agentFlowRuns AgentFlowRun[]
 
   @@map("user")
 }
@@ -104,7 +105,44 @@ model Game {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
   owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  agentFlowRuns AgentFlowRun[]
 
   @@index([ownerId, updatedAt(sort: Desc)], map: "game_owner_id_updated_at_idx")
   @@map("game")
+}
+
+enum AgentFlowRunStatus {
+  running
+  paused
+  done
+  failed
+}
+
+model AgentFlowRun {
+  id                String             @id @default(cuid())
+  ownerId           String             @map("owner_id")
+  gameId            String             @map("game_id")
+  flowId            String             @map("flow_id")
+  flowHash          String             @map("flow_hash")
+  status            AgentFlowRunStatus
+  currentNodeId     String             @map("current_node_id")
+  question          String
+  flowState         Json               @map("flow_state") @db.JsonB
+  flowOutput        Json               @map("flow_output") @db.JsonB
+  loopCounts        Json               @map("loop_counts") @db.JsonB
+  pendingHumanInput Json?              @map("pending_human_input") @db.JsonB
+  revision          Int                @default(1)
+  activeKey         String?            @unique @map("active_key")
+  leaseExpiresAt    DateTime?          @map("lease_expires_at") @db.Timestamp(6)
+  startedAt         DateTime           @default(now()) @map("started_at") @db.Timestamp(6)
+  completedAt       DateTime?          @map("completed_at") @db.Timestamp(6)
+  failureCode       String?            @map("failure_code")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamp(6)
+  owner             User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  game              Game               @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, gameId, updatedAt(sort: Desc)], map: "agent_flow_run_owner_game_updated_at_idx")
+  @@index([status, updatedAt(sort: Desc)], map: "agent_flow_run_status_updated_at_idx")
+  @@map("agent_flow_run")
 }

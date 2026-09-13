@@ -1,0 +1,229 @@
+import { FLOW_ID, FlowContractError, branchTarget, deterministicCondition, evaluateCondition, nextNode, type CompiledNode } from "./contract";
+import { interpolate } from "./interpolate";
+import { type ModelClient, type ModelMessage, ModelOutputError } from "./model-client";
+import { getRegisteredFlow } from "./registry";
+import { AgentFlowRunStore, type AgentFlowRun } from "./run-store";
+import type { BuilderChatTurn } from "../game-contract";
+
+const VISIBLE_MESSAGE_LIMIT = 500;
+type Action = "proceed" | "reject";
+type Budget = { text: number; conditionAgent: number };
+
+export type ExecuteBuildMessageInput = Readonly<{ ownerId: string; gameId: string; message: string; signal?: AbortSignal }>;
+export type ResumeBuildTurnInput = Readonly<{ ownerId: string; gameId: string; action: Action; feedback?: string; signal?: AbortSignal }>;
+export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number }>;
+
+export class BuildExecutionError extends Error {
+  constructor(message: string, readonly code: string) {
+    super(message);
+    this.name = "BuildExecutionError";
+  }
+}
+export type BuildExecutorDependencies = Readonly<{ modelClient: ModelClient; runStore?: AgentFlowRunStore }>;
+
+export async function executeBuildMessage(input: ExecuteBuildMessageInput, dependencies: BuildExecutorDependencies): Promise<BuildMessageResult> {
+  const registered = getRegisteredFlow(FLOW_ID);
+  const store = dependencies.runStore ?? new AgentFlowRunStore();
+  const active = await store.loadActive(input.ownerId, input.gameId);
+  if (active?.flowHash !== undefined && active.flowHash !== registered.flowHash) {
+    await store.fail({ ownerId: input.ownerId, gameId: input.gameId, runId: active.id, expectedRevision: active.revision, code: "flow_hash_mismatch" });
+  }
+  const start = registered.flow.nodesById.get(registered.flow.startNodeId);
+  if (!start || start.kind !== "startAgentflow") throw new FlowContractError("Flow Start node is invalid");
+  const message = normalizeVisible(input.message, "Message");
+  const started = await store.startMessage({
+    ownerId: input.ownerId, gameId: input.gameId, flowId: registered.id, flowHash: registered.flowHash, currentNodeId: start.id,
+    question: message, userMessage: message, flowState: stateEntries(start, "startState", message, ""), flowOutput: "", loopCounts: {},
+  });
+  if (started.status === "not_found") throw new BuildExecutionError("Game was not found", "game_not_found");
+  if (started.status === "active_conflict") throw new BuildExecutionError("A build turn is already active", "active_run");
+  if (started.status === "stale_running") throw new BuildExecutionError("Previous build turn expired", "stale_running");
+  try {
+    return await walk(nextRequired(start), started.run, started.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, started.builderChatHistory, input.signal);
+  } catch (error) {
+    await failBestEffort(store, input, started.run, error);
+    throw error;
+  }
+}
+
+export async function resumeBuildTurn(input: ResumeBuildTurnInput, dependencies: BuildExecutorDependencies): Promise<BuildMessageResult> {
+  const registered = getRegisteredFlow(FLOW_ID);
+  const store = dependencies.runStore ?? new AgentFlowRunStore();
+  const active = await store.loadActive(input.ownerId, input.gameId);
+  if (!active || active.status !== "paused") throw new BuildExecutionError("There is no paused build turn", "no_paused_run");
+  if (active.flowId !== registered.id || active.flowHash !== registered.flowHash) {
+    await store.fail({ ownerId: input.ownerId, gameId: input.gameId, runId: active.id, expectedRevision: active.revision, code: "flow_hash_mismatch" });
+    throw new BuildExecutionError("This build helper was updated", "flow_hash_mismatch");
+  }
+  const pause = readPause(active.pendingHumanInput);
+  const pausedNode = registered.flow.nodesById.get(active.currentNodeId);
+  if (!pausedNode || pausedNode.kind !== "humanInputAgentflow" || pause.nodeId !== pausedNode.id) throw new BuildExecutionError("Paused build turn is invalid", "invalid_pause");
+  const label = input.action === "proceed" ? "Proceed" : "Reject";
+  const targetId = pause.branches[label];
+  if (!targetId || pausedNode.branches[label] !== targetId) throw new BuildExecutionError("Paused build action is invalid", "invalid_pause");
+  const claimed = await store.claimPausedAction({
+    ownerId: input.ownerId, gameId: input.gameId, runId: active.id, expectedRevision: active.revision,
+    feedback: input.feedback ? normalizeVisible(input.feedback, "Feedback") : undefined,
+  });
+  if (claimed.status !== "updated") throw transitionError(claimed.status);
+  try {
+    const target = registered.flow.nodesById.get(targetId);
+    if (!target) throw new FlowContractError("Human Input target is missing");
+    return await walk(target, claimed.run, claimed.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, claimed.builderChatHistory ?? [], input.signal);
+  } catch (error) {
+    await failBestEffort(store, input, claimed.run, error);
+    throw error;
+  }
+}
+
+async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, ownerId: string, gameId: string, store: AgentFlowRunStore, client: ModelClient, builderChatHistory: readonly BuilderChatTurn[], signal?: AbortSignal): Promise<BuildMessageResult> {
+  let current: CompiledNode | undefined = node;
+  let flowState = { ...run.flowState };
+  let flowOutput = String(run.flowOutput ?? "");
+  const loopCounts = { ...run.loopCounts };
+  const budget: Budget = { text: 0, conditionAgent: 0 };
+  while (current) {
+    if (current.kind === "agentAgentflow" || current.kind === "llmAgentflow") {
+      if (++budget.text > 1) throw new BuildExecutionError("Build turn exceeded its model budget", "execution_budget");
+      ({ flowOutput, flowState } = await executeText(current, run.question, flowState, flowOutput, client, builderChatHistory, signal));
+      current = nextRequired(current);
+    } else if (current.kind === "conditionAgentAgentflow") {
+      if (++budget.conditionAgent > 1) throw new BuildExecutionError("Build turn exceeded its condition budget", "execution_budget");
+      current = branchFor(current, await executeConditionAgent(current, run.question, flowState, flowOutput, client, signal));
+    } else if (current.kind === "conditionAgentflow") {
+      const condition = deterministicCondition(current.inputs);
+      const values = context(run.question, flowOutput, flowState);
+      current = branchFor(current, evaluateCondition(
+        condition.operation,
+        interpolate(condition.left, values),
+        interpolate(condition.right, values),
+      ) ? "true" : "false");
+    } else if (current.kind === "loopAgentflow") {
+      const maximum = current.inputs.maxLoopCount;
+      if (typeof maximum !== "number" || !Number.isInteger(maximum) || maximum < 1 || maximum > 20 || !current.loopTargetId) throw new FlowContractError(`Loop "${current.id}" is invalid`);
+      const count = loopCounts[current.id] ?? 0;
+      if (count >= maximum) throw new BuildExecutionError("Build revision loop is exhausted", "loop_exhausted");
+      loopCounts[current.id] = count + 1;
+      current = nodeById(current.loopTargetId);
+    } else if (current.kind === "directReplyAgentflow") {
+      const cooperMessage = normalizeVisible(interpolate(requiredInput(current, "directReplyMessage"), context(run.question, flowOutput, flowState)), "Direct Reply");
+      const complete = await store.completeDirectReply({ ownerId, gameId, runId: run.id, expectedRevision: revision, currentNodeId: current.id, flowState, flowOutput, loopCounts, cooperMessage });
+      if (complete.status !== "updated" || complete.gameRevision === undefined) throw transitionError(complete.status);
+      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision };
+    } else if (current.kind === "humanInputAgentflow") {
+      const cooperMessage = normalizeVisible(interpolate(requiredInput(current, "humanInputDescription"), context(run.question, flowOutput, flowState)), "Human Input");
+      const checkpoint = await store.checkpointHumanInput({
+        ownerId, gameId, runId: run.id, expectedRevision: revision, currentNodeId: current.id, flowState, flowOutput, loopCounts, cooperPrompt: cooperMessage,
+        pendingHumanInput: { nodeId: current.id, branches: current.branches, enableFeedback: current.inputs.humanInputEnableFeedback === true },
+      });
+      if (checkpoint.status !== "updated" || checkpoint.gameRevision === undefined) throw transitionError(checkpoint.status);
+      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision };
+    } else {
+      throw new FlowContractError(`Unsupported executable node "${current.kind}"`);
+    }
+  }
+  throw new FlowContractError("Flow ended without a terminal node");
+}
+
+async function executeText(node: CompiledNode, question: string, state: Record<string, string>, priorOutput: string, client: ModelClient, builderChatHistory: readonly BuilderChatTurn[], signal?: AbortSignal) {
+  const prefix = node.kind === "agentAgentflow" ? "agent" : "llm";
+  const messages = modelMessagesForTextNode(node, question, state, priorOutput, builderChatHistory);
+  const flowOutput = normalizeVisible(await client.completeText({ messages, signal }), "Model response");
+  return { flowOutput, flowState: stateEntries(node, `${prefix}UpdateState` as "agentUpdateState" | "llmUpdateState", question, flowOutput, state) };
+}
+
+export function modelMessagesForTextNode(node: CompiledNode, question: string, state: Record<string, string>, priorOutput: string, builderChatHistory: readonly BuilderChatTurn[]) {
+  if (node.kind !== "agentAgentflow" && node.kind !== "llmAgentflow") {
+    throw new FlowContractError(`Node "${node.id}" does not produce text`);
+  }
+  const prefix = node.kind === "agentAgentflow" ? "agent" : "llm";
+  if (node.kind === "llmAgentflow" && Object.entries(node.inputs).some(([key, value]) => /tool/i.test(key) && value !== undefined)) throw new FlowContractError("LLM nodes cannot configure tools");
+  const configured = node.inputs[`${prefix}Messages`];
+  if (!Array.isArray(configured)) throw new FlowContractError(`${prefix} messages are invalid`);
+  const initial = context(question, priorOutput, state);
+  const userMessage = interpolate(requiredInput(node, `${prefix}UserMessage`), initial);
+  const messages: ModelMessage[] = configured.map((item) => {
+    if (!item || typeof item !== "object") throw new FlowContractError(`${prefix} message is invalid`);
+    const message = item as Record<string, unknown>;
+    if (!["system", "developer", "user"].includes(message.role as string) || typeof message.content !== "string") throw new FlowContractError(`${prefix} message is invalid`);
+    return { role: message.role as "system" | "developer" | "user", content: interpolate(message.content, initial) };
+  });
+  if (node.inputs[`${prefix}EnableMemory`] === true) {
+    messages.push(...builderChatHistory
+      .filter((turn) => turn.role !== "user" || turn.message !== userMessage)
+      .map((turn) => ({
+      role: turn.role === "cooper" ? "assistant" as const : "user" as const,
+      content: turn.message,
+      })));
+  }
+  messages.push({ role: "user", content: userMessage });
+  return messages;
+}
+
+async function executeConditionAgent(node: CompiledNode, question: string, state: Record<string, string>, output: string, client: ModelClient, signal?: AbortSignal) {
+  const raw = node.inputs.conditionAgentScenarios;
+  if (!Array.isArray(raw)) throw new FlowContractError("Condition Agent scenarios are invalid");
+  const scenarios = raw.map((item) => item && typeof item === "object" ? (item as Record<string, unknown>).scenario : undefined);
+  if (!scenarios.every((scenario): scenario is string => typeof scenario === "string" && Boolean(scenario))) throw new FlowContractError("Condition Agent scenario is invalid");
+  const selected = await client.selectScenario({ instructions: interpolate(requiredInput(node, "conditionAgentInstructions"), context(question, output, state)), input: interpolate(requiredInput(node, "conditionAgentInput"), context(question, output, state)), scenarios, signal });
+  if (!scenarios.includes(selected)) throw new ModelOutputError("Condition Agent selected an unknown scenario");
+  return selected;
+}
+
+function nextRequired(node: CompiledNode) {
+  const next = nextNode(getRegisteredFlow(FLOW_ID).flow, node.id);
+  if (!next) throw new FlowContractError(`Node "${node.id}" has no successor`);
+  return next;
+}
+function nodeById(id: string) {
+  const node = getRegisteredFlow(FLOW_ID).flow.nodesById.get(id);
+  if (!node) throw new FlowContractError(`Node "${id}" is missing`);
+  return node;
+}
+function branchFor(node: CompiledNode, branch: string) {
+  if (node.branches[branch]) return branchTarget(getRegisteredFlow(FLOW_ID).flow, node.id, branch);
+  const match = Object.keys(node.branches).filter((candidate) => candidate.toLowerCase() === branch.toLowerCase());
+  if (match.length !== 1) throw new FlowContractError(`Node "${node.id}" has no unambiguous branch "${branch}"`);
+  return branchTarget(getRegisteredFlow(FLOW_ID).flow, node.id, match[0]);
+}
+function stateEntries(node: CompiledNode, key: "startState" | "agentUpdateState" | "llmUpdateState", question: string, output: string, initial: Record<string, string> = {}) {
+  const entries = node.inputs[key];
+  if (entries === undefined) return { ...initial };
+  if (!Array.isArray(entries)) throw new FlowContractError(`${key} is invalid`);
+  const state = { ...initial };
+  for (const entry of entries) {
+    if (!entry || typeof entry !== "object") throw new FlowContractError(`${key} entry is invalid`);
+    const item = entry as Record<string, unknown>;
+    if (typeof item.key !== "string" || typeof item.value !== "string") throw new FlowContractError(`${key} entry is invalid`);
+    state[item.key] = interpolate(item.value, context(question, output, state));
+  }
+  return state;
+}
+function readPause(value: unknown): { nodeId: string; branches: Record<string, string> } {
+  if (!value || typeof value !== "object") throw new BuildExecutionError("Paused build turn is invalid", "invalid_pause");
+  const pause = value as Record<string, unknown>;
+  if (typeof pause.nodeId !== "string" || !pause.branches || typeof pause.branches !== "object" || Array.isArray(pause.branches)) throw new BuildExecutionError("Paused build turn is invalid", "invalid_pause");
+  const branches: Record<string, string> = {};
+  for (const [label, target] of Object.entries(pause.branches)) {
+    if (typeof target !== "string") throw new BuildExecutionError("Paused build turn is invalid", "invalid_pause");
+    branches[label] = target;
+  }
+  return { nodeId: pause.nodeId, branches };
+}
+function requiredInput(node: CompiledNode, key: string) {
+  const value = node.inputs[key];
+  if (typeof value !== "string") throw new FlowContractError(`Node "${node.id}" is missing ${key}`);
+  return value;
+}
+function context(question: string, flowOutput: string, flowState: Record<string, string>) { return { question, flowOutput, flowState }; }
+function normalizeVisible(value: unknown, label: string) {
+  if (typeof value !== "string") throw new ModelOutputError(`${label} must be text`);
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) throw new ModelOutputError(`${label} is empty`);
+  return normalized.slice(0, VISIBLE_MESSAGE_LIMIT);
+}
+function transitionError(status: "updated" | "not_found" | "conflict") { return new BuildExecutionError("Build run could not be updated", status); }
+async function failBestEffort(store: AgentFlowRunStore, input: { ownerId: string; gameId: string }, run: AgentFlowRun, error: unknown) {
+  const code = error instanceof BuildExecutionError ? error.code : error instanceof FlowContractError ? "flow_contract" : error instanceof ModelOutputError ? "model_output" : "execution_failure";
+  try { await store.fail({ ownerId: input.ownerId, gameId: input.gameId, runId: run.id, expectedRevision: run.revision, code }); } catch { /* preserve original error */ }
+}

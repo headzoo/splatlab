@@ -107,6 +107,8 @@ player, enemy, or NPC by map data.
 | `haunted_boss_01_defeated` | Pumpkin golem defeated sequence, eight left and eight right frames, crumbles or bursts into harmless spooky light. |
 | `dragons_emberkeep_boss_01` | Large Emberkeep dragon boss, volcanic castle palette, wings/horns/tail, left/right idle and walk cycle. |
 | `dragons_emberkeep_boss_01_defeated` | Emberkeep dragon boss defeated sequence, eight left and eight right frames with smoke/embers and cartoon daze. |
+| `ice_world_boss_01` | Glacier Brute, a large humanoid ice boss with a broad crystalline body and sharp shoulder, back, and forearm crystals. Recreate the `5 x 2` source from `sprites/ice_world_boss_01-source.png`, preserving left/right idle plus four walk phases, then process `sprite-specs/ice_world_boss_01.json`; keep the candidate and its defeated event sheet staged until Sprite Viewer approval. |
+| `ice_world_boss_01_defeated` | Glacier Brute's `8 x 2` non-looping defeat sequence, progressively cracking and collapsing into harmless ice chunks and frost. It is the required `defeated` event sheet owned by the `ice_world_boss_01` recipe. |
 
 ## Platformer Terrain And Objects
 
@@ -167,6 +169,16 @@ player, enemy, or NPC by map data.
 | `dragons_emberkeep_platformer_goal_01` | Four-frame `2 x 2` `64 x 96` goal banner/gate marker, volcanic castle styling. |
 | `dragons_emberkeep_platformer_goal_01_level_complete` | Four-frame celebratory goal-complete event, ember glow, play once. |
 | `dragons_emberkeep_fireball_01` | Four-frame `2 x 2` small fireball projectile, flickering flame core, centered. |
+
+### Ice World
+
+| Asset ID | Recreation direction |
+| --- | --- |
+| `ice_world_platformer_ground_01` | Single full-cell glacial ground tile with a snowy top edge, chunky blue ice and rock facets, and clean repeatable left/right edges. Recreate from `sprites/ice_world_platformer_ground_01-source.png`, then process its matching recipe. |
+| `ice_world_platformer_platform_01` | Single full-cell floating ice platform tile with a snowy upper ledge and deeper blue lower facets. Recreate from `sprites/ice_world_platformer_platform_01-source.png`, then process its matching recipe. |
+| `ice_world_platformer_obstacle_01` | Single square translucent ice-block obstacle with a dark-blue outline, crossed internal braces/cracks, and solid collision. Recreate from `sprites/ice_world_platformer_obstacle_01-source.png`, then process its matching recipe. |
+| `ice_world_platformer_hazard_01` | Four-frame `2 x 2` animated crystal-spike hazard with low, rising, high, and receding silhouettes plus restrained frost particles. Recreate from `sprites/ice_world_platformer_hazard_01-source.png`, then process its matching recipe at 8 FPS. |
+| `ice_world_crystal_projectile_01` | Four-frame `2 x 2` sharp ice-crystal projectile with the same crystal centered at successive end-over-end rotations. Recreate from `sprites/ice_world_crystal_projectile_01-source.png`, then process its matching 10 FPS recipe; the map's `lobbed_projectile` path supplies the arc. |
 
 ## Maze Terrain And Escape Objects
 
@@ -259,6 +271,7 @@ repeat-x PNG at `2172 x 724` RGBA. Layers must tile horizontally, support
 | `space_orbital_outpost_01` | Base color `#07091d`. `background_space_stars_far_01`: bright starry sky, parallax `0.12`, center anchored. `background_space_moon_mid_01`: moon-base horizon, parallax `0.38`, bottom anchored. `background_space_station_near_01`: station structures and outpost foreground, parallax `0.68`, bottom anchored. |
 | `haunted_graveyard_01` | Base color `#17143f`. `background_haunted_graveyard_01`: single repeat-x moonlit graveyard layer with crooked castle shapes, bare trees, iron fences, old stones, subdued pumpkin-orange accents, parallax `0.24`, bottom anchored. |
 | `dragons_emberkeep_01` | Base color `#241225`. `background_dragons_ash_far_01`: drifting ash and distant volcanic atmosphere, parallax `0.10`, center anchored. `background_dragons_volcano_mid_01`: lava peaks and ember sky, parallax `0.34`, bottom anchored. `background_dragons_ruins_near_01`: ruined battlements/stronghold silhouettes, parallax `0.66`, bottom anchored. |
+| `ice_world_01` | Base color `#bcecff`. `background_ice_world_mountains_far_01`: snowy mountains and distant crystalline palace, parallax `0.10`, center anchored. `background_ice_world_glaciers_mid_01`: glacial cliffs, frozen waterfalls, frosted firs, and cold mist, parallax `0.34`, bottom anchored. `background_ice_world_crystals_near_01`: snowbanks, frosted branches, icicles, and turquoise crystals, parallax `0.66`, bottom anchored. Recreate all three as `2172 x 724` RGBA repeat-x layers with genuine transparency and `mirrorAlternate` support. |
 
 ## Audio Packs
 

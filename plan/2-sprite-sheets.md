@@ -552,7 +552,7 @@ user approves each complete parent package in the Sprite Viewer.
 
 ### Platformer campaign boss set
 
-The campaign uses one large boss package for each of its four boss themes:
+The campaign uses one large boss package for each of its five boss themes:
 
 - `sprites/neutral_green_hills_boss_01-source.png` -> `sprite-build/neutral_green_hills_boss_01.png`
 - `sprites/neutral_green_hills_boss_01_defeated-source.png` -> `sprite-build/neutral_green_hills_boss_01_defeated.png`
@@ -562,12 +562,17 @@ The campaign uses one large boss package for each of its four boss themes:
 - `sprites/haunted_boss_01_defeated-source.png` -> `sprite-build/haunted_boss_01_defeated.png`
 - `sprites/dragons_emberkeep_boss_01-source.png` -> `sprite-build/dragons_emberkeep_boss_01.png`
 - `sprites/dragons_emberkeep_boss_01_defeated-source.png` -> `sprite-build/dragons_emberkeep_boss_01_defeated.png`
+- `sprites/ice_world_boss_01-source.png` -> `sprite-build/ice_world_boss_01.png`
+- `sprites/ice_world_boss_01_defeated-source.png` -> `sprite-build/ice_world_boss_01_defeated.png`
+- `sprites/ice_world_crystal_projectile_01-source.png` -> `sprite-build/ice_world_crystal_projectile_01.png`
 
 Green Hills uses the Mossback Boar, Space uses the Orbital Sentinel, and
 Haunted uses the Pumpkin Warden. Dragon/Emberkeep uses Cindermaw, a grounded
-elder dragon with basalt armor and ember-lit cracks. All four locomotion and
-`defeated` sheets pass the automated pipeline and have clean reviewed contact
-sheets. They remain staged as four pending parent packages until the user
+elder dragon with basalt armor and ember-lit cracks. Ice World uses the Glacier
+Brute, a broad humanoid ice boss whose separate four-frame crystal projectile
+rotates end over end while following the map-authored lobbed-projectile arc.
+All five locomotion and `defeated` sheets pass the automated pipeline and have
+clean reviewed contact sheets. They remain staged as pending parent packages until the user
 approves their animation playback in the external `game_editor` Sprite Viewer
 (`../../../game_editor` from this app). Health bars, hit counts, facing
 behavior, attack range, and movement stay in game and map data rather than in

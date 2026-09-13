@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import {
   createInitialMazeState,
@@ -30,6 +37,7 @@ type MazeGameProps = {
   skinTone?: SkinTone;
   hairColor?: HairColor;
   className?: string;
+  controlRowLeading?: ReactNode;
 };
 
 type InputState = { left: boolean; right: boolean; up: boolean; down: boolean };
@@ -280,6 +288,7 @@ export function MazeGame({
   skinTone = "skin_04",
   hairColor = "hair_03",
   className,
+  controlRowLeading,
 }: MazeGameProps) {
   const initialState = useMemo(() => createInitialMazeState(map), [map]);
   const [playing, setPlaying] = useState(false);
@@ -513,6 +522,7 @@ export function MazeGame({
       </div>
 
       <div className={styles.controlRow}>
+        {controlRowLeading}
         <div className={styles.touchControls} aria-label="On-screen maze movement controls">
           {(["left", "up", "down", "right"] as const).map((action) => (
             <button

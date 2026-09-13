@@ -85,6 +85,56 @@ test("hero appearance changes participate in history", () => {
   assert.deepEqual(gameHistoryReducer(changed, { type: "undo" }).present, DEFAULT_GAME_DOCUMENT);
 });
 
+test("terrain paint strokes participate in history as one edit", () => {
+  const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
+  const painted = {
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerTerrainEdits: [
+      { mapSource: "level-1.json" as const, x: 2, y: 9, kind: "ground" as const },
+      { mapSource: "level-1.json" as const, x: 3, y: 9, kind: "ground" as const },
+    ],
+  };
+  const changed = gameHistoryReducer(initial, { type: "edit", spec: painted });
+
+  assert.equal(changed.past.length, 1);
+  assert.deepEqual(changed.present.platformerTerrainEdits, painted.platformerTerrainEdits);
+  assert.deepEqual(
+    gameHistoryReducer(changed, { type: "undo" }).present.platformerTerrainEdits,
+    [],
+  );
+});
+
+test("object placements participate in undo history", () => {
+  const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
+  const placed = {
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerObjectEdits: [
+      { id: "build-coin-1", mapSource: "level-1.json" as const, x: 2, y: 8, kind: "coin" as const },
+    ],
+    platformerObjectRemovals: [
+      { mapSource: "level-1.json" as const, objectId: "coin_1" },
+    ],
+    platformerObjectSettings: [
+      {
+        mapSource: "level-1.json" as const,
+        objectId: "build-coin-1",
+        assetId: "neutral_ghost_01",
+        behavior: "chaser" as const,
+        direction: "right" as const,
+      },
+    ],
+  };
+  const changed = gameHistoryReducer(initial, { type: "edit", spec: placed });
+
+  assert.equal(changed.past.length, 1);
+  assert.deepEqual(changed.present.platformerObjectEdits, placed.platformerObjectEdits);
+  assert.deepEqual(changed.present.platformerObjectRemovals, placed.platformerObjectRemovals);
+  assert.deepEqual(changed.present.platformerObjectSettings, placed.platformerObjectSettings);
+  assert.deepEqual(gameHistoryReducer(changed, { type: "undo" }).present.platformerObjectEdits, []);
+  assert.deepEqual(gameHistoryReducer(changed, { type: "undo" }).present.platformerObjectRemovals, []);
+  assert.deepEqual(gameHistoryReducer(changed, { type: "undo" }).present.platformerObjectSettings, []);
+});
+
 test("chat turns save without becoming game undo entries", () => {
   const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
   const edited = gameHistoryReducer(initial, {

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "ice_world_01",
+  "name": "Ice World",
+  "kind": "platformer_background",
+  "runtime": "platformer_v1",
+  "theme": "ice_world",
+  "description": "A bright frozen world with snowy mountains, an ice palace, frozen waterfalls, glacial cliffs, frosted trees, and crystalline foreground growth.",
+  "color": "#bcecff",
+  "layers": [
+    {
+      "id": "mountains_far",
+      "type": "repeat_x",
+      "assetId": "background_ice_world_mountains_far_01",
+      "image": "backgrounds/background_ice_world_mountains_far_01.png",
+      "parallax": 0.1,
+      "verticalAnchor": "center",
+      "heightRatio": 1,
+      "opacity": 0.78,
+      "mirrorAlternate": true
+    },
+    {
+      "id": "glaciers_mid",
+      "type": "repeat_x",
+      "assetId": "background_ice_world_glaciers_mid_01",
+      "image": "backgrounds/background_ice_world_glaciers_mid_01.png",
+      "parallax": 0.34,
+      "verticalAnchor": "bottom",
+      "heightRatio": 0.94,
+      "opacity": 0.88,
+      "mirrorAlternate": true
+    },
+    {
+      "id": "crystals_near",
+      "type": "repeat_x",
+      "assetId": "background_ice_world_crystals_near_01",
+      "image": "backgrounds/background_ice_world_crystals_near_01.png",
+      "parallax": 0.66,
+      "verticalAnchor": "bottom",
+      "heightRatio": 0.82,
+      "opacity": 0.94,
+      "mirrorAlternate": true
+    }
+  ]
+}

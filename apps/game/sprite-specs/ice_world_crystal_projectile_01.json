@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "ice_world_crystal_projectile_01",
+  "name": "Spinning Ice Crystal",
+  "kind": "projectile",
+  "runtime": "platformer_v1",
+  "themeTags": ["ice_world"],
+  "visualSlot": "ice_crystal",
+  "collision": "damage",
+  "source": "sprites/ice_world_crystal_projectile_01-source.png",
+  "output": "sprites/ice_world_crystal_projectile_01.png",
+  "sourceLayout": { "columns": 2, "rows": 2 },
+  "sheet": { "columns": 2, "rows": 2, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["spin_0", "spin_90", "spin_180", "spin_270"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.001,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "center",
+    "anchor": { "x": 32, "y": 32 },
+    "contentBox": { "width": 44, "height": 44 },
+    "resizeMode": "contain_shared"
+  },
+  "animation": { "fps": 10, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1, "centerDriftWarning": 4 },
+  "preview": { "scale": 5 }
+}

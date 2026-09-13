@@ -2,6 +2,7 @@ import levelOne from "../../../game/maps/level-1.json";
 import levelTwo from "../../../game/maps/level-2.json";
 import levelThree from "../../../game/maps/level-3.json";
 import levelFour from "../../../game/maps/level-4.json";
+import levelFive from "../../../game/maps/level-5.json";
 import mazeGreenHills from "../../../game/maps/maze_green_hills_01.json";
 import mazeSpace from "../../../game/maps/maze_space_01.json";
 import mazeGraveyard from "../../../game/maps/maze_graveyard_01.json";
@@ -23,6 +24,7 @@ export const GAME_PLAYER_CONTENT = {
     { source: "level-3.json", label: "Graveyard", map: levelThree as unknown as PlatformerMapSpec },
     { source: "level-2.json", label: "Space", map: levelTwo as unknown as PlatformerMapSpec },
     { source: "level-4.json", label: "Dragon World", map: levelFour as unknown as PlatformerMapSpec },
+    { source: "level-5.json", label: "Ice World", map: levelFive as unknown as PlatformerMapSpec },
   ],
   mazes: [
     { source: "maze_green_hills_01.json", label: "Green Hills", map: mazeGreenHills as unknown as MazeMapSpec },

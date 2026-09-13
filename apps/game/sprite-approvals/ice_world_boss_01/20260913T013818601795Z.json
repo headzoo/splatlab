@@ -1,0 +1,15 @@
+{
+  "assetId": "ice_world_boss_01",
+  "approvedAt": "2026-09-13T01:38:18.601795+00:00",
+  "recipe": "sprite-specs/ice_world_boss_01.json",
+  "runtimeImage": "sprites/ice_world_boss_01.png",
+  "sha256": "802f7ae6b94cdbe301a481655c66c12e8f0349b8823443907f838f6b8cdd2893",
+  "validationReport": "sprite-reports/ice_world_boss_01/ice_world_boss_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/ice_world_boss_01_defeated.png",
+      "sha256": "e1327728e208ae8702d6c0e8baab98ba4a06c531922fb3b58b9debe388f43880",
+      "validationReport": "sprite-reports/ice_world_boss_01_defeated/ice_world_boss_01_defeated-report.json"
+    }
+  }
+}

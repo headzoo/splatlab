@@ -431,6 +431,66 @@
   overflow-wrap: anywhere;
 }
 
+.pausedTurn {
+  margin: 10px 0;
+  padding: 12px;
+  background: #fff7d7;
+  border: 2px solid #f0c74e;
+  border-radius: 14px;
+}
+
+.pausedTurn p {
+  margin: 0 0 8px;
+  color: #5b4614;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pausedTurn input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 11px;
+  color: #172056;
+  background: #fff;
+  border: 2px solid #d7bd68;
+  border-radius: 10px;
+  font: 700 13px/1 "Nunito", sans-serif;
+}
+
+.pausedTurn > div {
+  display: flex;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.pausedTurn button {
+  min-height: 36px;
+  padding: 0 14px;
+  color: #fff;
+  background: #2588f0;
+  border: 0;
+  border-radius: 10px;
+  font: 400 16px/1 "Chewy", cursive;
+  cursor: pointer;
+}
+
+.pausedTurn button:last-child {
+  background: #7b638e;
+}
+
+.pausedTurn button:disabled,
+.pausedTurn input:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.chatError {
+  margin: 0 14px 9px;
+  color: #a62727;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .selectionSummary {
   display: flex;
   min-height: 54px;
@@ -528,7 +588,6 @@
 }
 
 .chatComposer :disabled,
-.previewControls button:disabled,
 .historyControls button:disabled,
 .worldName button:disabled {
   cursor: not-allowed;
@@ -601,7 +660,6 @@
   gap: 5px;
 }
 
-.previewControls,
 .historyControls {
   display: flex;
   gap: 7px;
@@ -635,7 +693,129 @@
   cursor: pointer;
 }
 
-.previewControls button,
+.levelPicker {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  gap: 7px;
+}
+
+.addLevelButton {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+  color: #fff;
+  background: #2588f0;
+  border: 1px solid #1772ce;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
+  font: 1000 22px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.addLevelButton:hover {
+  background: #176fce;
+}
+
+.addLevelButton:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.levelDialog {
+  width: min(calc(100% - 32px), 590px);
+  margin: auto;
+  padding: 0;
+  color: #12234e;
+  background: #f8fcff;
+  border: 4px solid #4bb9ed;
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 3px #fff, 0 18px 40px rgb(7 20 63 / 32%);
+}
+
+.levelDialog::backdrop {
+  background: rgb(7 20 63 / 64%);
+  backdrop-filter: blur(3px);
+}
+
+.levelDialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 16px;
+  background: linear-gradient(120deg, #fff7b1, #ffda4e);
+  border-bottom: 2px solid #e9b92a;
+}
+
+.levelDialog header span {
+  color: #6f3f00;
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.levelDialog h2 {
+  margin-top: 3px;
+  font: 400 28px/1 "Chewy", cursive;
+}
+
+.levelDialog header button {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: #173f8a;
+  background: rgb(255 255 255 / 74%);
+  border: 1px solid rgb(111 63 0 / 20%);
+  border-radius: 10px;
+  font: 1000 22px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.levelThemeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 18px;
+}
+
+.levelThemeGrid button {
+  display: grid;
+  min-height: 118px;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 12px 8px;
+  color: #172056;
+  background: #e7f3ff;
+  border: 3px solid #c9def2;
+  border-radius: 15px;
+  box-shadow: 0 3px 6px rgb(42 73 129 / 10%);
+  cursor: pointer;
+}
+
+.levelThemeGrid button:hover {
+  background: #fff7c6;
+  border-color: #efb900;
+  transform: translateY(-1px);
+}
+
+.levelThemeGrid button:focus-visible,
+.levelDialog header button:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.levelThemeGrid button span {
+  font-size: 42px;
+  line-height: 1;
+}
+
+.levelThemeGrid button strong {
+  font: 400 17px/1 "Chewy", cursive;
+}
+
 .historyControls button {
   min-height: 38px;
   padding: 0 12px;
@@ -661,13 +841,6 @@
   opacity: 0.48;
 }
 
-.previewControls button[aria-pressed="true"] {
-  color: #fff;
-  background: #3155a3;
-  border-color: #244580;
-}
-
-.previewControls button:focus-visible,
 .historyControls button:focus-visible,
 .levelSelect select:focus-visible {
   outline: 4px solid #ffd52e;
@@ -766,9 +939,9 @@
   transform: rotate(-4deg);
 }
 
-.inspectorGrid {
+.buildTools {
   display: grid;
-  grid-template-columns: 0.86fr 1.02fr 1.2fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 10px;
   overflow: hidden;
   background: #fff;
@@ -776,32 +949,33 @@
   border-radius: 13px;
 }
 
-.settingsCard,
-.worldCard,
-.objectsCard {
+.buildToolSection {
   min-width: 0;
-  padding: 11px 13px;
+  padding: 11px 13px 12px;
 }
 
-.settingsCard,
-.worldCard {
+.terrainToolSection {
   border-right: 1px solid #d6e4f2;
 }
 
-.inspectorGrid header {
+.buildToolSection header {
   display: flex;
-  min-height: 27px;
+  min-height: 22px;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
 }
 
-.inspectorGrid h3 {
-  font: 400 15px/1 "Chewy", cursive;
+.buildToolSection h3 {
+  color: #52698f;
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.inspectorGrid header span {
+.buildToolSection header span {
   padding: 3px 7px;
   color: #355596;
   background: #e7effb;
@@ -811,119 +985,244 @@
   text-transform: uppercase;
 }
 
-.settingsCard dl {
+.mapToolGrid {
   display: grid;
-  gap: 6px;
-}
-
-.settingsCard dl div {
-  display: grid;
-  grid-template-columns: 60px 1fr;
-  align-items: center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 7px;
 }
 
-.settingsCard dt {
-  font-size: 10px;
-  font-weight: 800;
+.terrainToolSection .mapToolGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.settingsCard dd {
-  margin: 0;
-  padding: 5px 9px;
-  background: #d5f1d6;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
+.objectToolSection .mapToolGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.settingsCard dl div:nth-child(2) dd {
-  background: #ffd6cf;
-}
-
-.settingsCard dl div:nth-child(3) dd {
-  background: #fff0bc;
-}
-
-.worldName {
-  display: grid;
-  grid-template-columns: 48px 1fr auto;
-  align-items: center;
-  gap: 8px;
-}
-
-.worldThumb,
-.worldChoices span {
-  display: grid;
-  place-items: center;
-  background: #d7effd;
-  border-radius: 8px;
-}
-
-.worldThumb {
-  width: 48px;
-  height: 48px;
-  font-size: 27px;
-}
-
-.worldName strong {
-  font-size: 11px;
-}
-
-.worldName button {
-  min-height: 27px;
-  padding-inline: 9px;
-  color: #244784;
-  background: #fff;
-  border: 1px solid #b7c9df;
-  border-radius: 8px;
-  font-size: 9px;
-  font-weight: 900;
-}
-
-.worldChoices {
-  display: flex;
-  gap: 5px;
-  margin-top: 8px;
-}
-
-.worldChoices span {
-  width: 34px;
-  height: 34px;
-  border: 2px solid transparent;
-  font-size: 18px;
-}
-
-.worldChoices .activeWorld {
-  border-color: #34bd5b;
-}
-
-.objectGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.objectGrid span {
+.mapTool {
   display: flex;
   min-width: 0;
-  flex-direction: column;
+  min-height: 47px;
   align-items: center;
-  gap: 3px;
+  justify-content: flex-start;
+  gap: 7px;
+  padding: 5px 7px;
   color: #344b72;
-  font-size: 8px;
-  font-weight: 800;
+  background: #f8fbff;
+  border: 2px solid #d5e2f1;
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: "Nunito", sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: left;
+}
+
+.mapTool:hover:not(:disabled) {
+  color: #172056;
+  background: #edf6ff;
+  border-color: #76a7da;
+}
+
+.mapTool[aria-pressed="true"] {
+  color: #172056;
+  background: #fff7c6;
+  border-color: #efb900;
+  box-shadow: 0 0 0 2px rgb(255 213 46 / 35%);
+}
+
+.mapTool:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.mapTool:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.toolSwatch {
+  display: grid;
+  width: 33px;
+  height: 33px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  background: #3e5b84;
+  border: 1px solid rgb(8 31 73 / 20%);
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 1000;
+}
+
+.terrainSwatch {
+  background-color: #173f8a;
+  background-image: var(--tool-swatch-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  image-rendering: pixelated;
+}
+
+.hazardSwatch {
+  background-position: left top;
+  background-size: auto 200%;
+}
+
+.objectSwatch {
+  color: #fff;
+  background: #3279d5;
+  border-color: #1754a1;
+  border-radius: 50%;
+}
+
+.mapTool:nth-child(3n + 2) .objectSwatch {
+  background: #7d49c8;
+}
+
+.mapTool:nth-child(3n) .objectSwatch {
+  background: #ef7c32;
+}
+
+.toolInstructions {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 7px 13px;
+  color: #3155a3;
+  background: #edf5ff;
+  border-top: 1px solid #d6e4f2;
+  font-size: 10px;
+  font-weight: 900;
   text-align: center;
 }
 
-.objectGrid b {
-  display: grid;
-  width: 38px;
-  height: 34px;
-  place-items: center;
-  background: #edf4fb;
-  border-radius: 7px;
+.objectToolbox {
+  position: fixed;
+  z-index: 30;
+  top: 150px;
+  right: 24px;
+  width: min(330px, calc(100vw - 16px));
+  overflow: hidden;
+  color: #243657;
+  background: #fff;
+  border: 2px solid #8fb5df;
+  border-radius: 13px;
+  box-shadow: 0 12px 30px rgb(20 53 94 / 24%);
+}
+
+.objectToolboxHandle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 11px 9px 14px;
+  color: #fff;
+  background: #315f9e;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.objectToolboxHandle:active {
+  cursor: grabbing;
+}
+
+.objectToolboxHandle span {
+  display: block;
+  margin-bottom: 2px;
+  color: #cae1ff;
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.objectToolboxHandle h3 {
+  font-family: "Chewy", cursive;
   font-size: 21px;
+  font-weight: 400;
+  text-transform: capitalize;
+}
+
+.objectToolboxHandle button {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #fff;
+  background: rgb(255 255 255 / 14%);
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 21px;
+}
+
+.objectToolboxBody {
+  padding: 13px 14px 15px;
+}
+
+.objectSummary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0 0 13px;
+}
+
+.objectSummary div {
+  min-width: 0;
+  padding: 7px 9px;
+  background: #edf5ff;
+  border-radius: 8px;
+}
+
+.objectSummary dt,
+.objectSettingsFields span {
+  display: block;
+  margin-bottom: 3px;
+  color: #667b9e;
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.objectSummary dd {
+  overflow: hidden;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.objectSettingsFields {
+  display: grid;
+  gap: 10px;
+}
+
+.objectSettingsFields select {
+  width: 100%;
+  padding: 9px 10px;
+  color: #243657;
+  background: #fff;
+  border: 2px solid #cad9e9;
+  border-radius: 8px;
+  font: 800 12px/1.2 "Nunito", sans-serif;
+}
+
+.objectSettingsFields select:focus-visible,
+.objectToolboxHandle button:focus-visible {
+  outline: 3px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.objectSettingsEmpty {
+  margin: 0;
+  color: #667b9e;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 @media (min-width: 1700px) {
@@ -970,17 +1269,8 @@
     display: none;
   }
 
-  .previewControls button {
-    padding-inline: 9px;
-  }
-
-  .inspectorGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .objectsCard {
-    grid-column: 1 / -1;
-    border-top: 1px solid #d6e4f2;
+  .buildTools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1087,10 +1377,6 @@
     padding: 4px 3px 8px;
   }
 
-  .previewControls {
-    margin-top: 10px;
-  }
-
   .previewActions {
     justify-items: stretch;
   }
@@ -1099,7 +1385,6 @@
     margin-top: 10px;
   }
 
-  .previewControls button,
   .historyControls button {
     min-width: 0;
     flex: 1;
@@ -1107,11 +1392,11 @@
     font-size: 9px;
   }
 
-  .previewControls {
-    flex-wrap: wrap;
+  .levelSelect {
+    flex: 1;
   }
 
-  .levelSelect {
+  .levelPicker {
     width: 100%;
   }
 
@@ -1119,6 +1404,10 @@
     min-width: 0;
     max-width: none;
     flex: 1;
+  }
+
+  .levelThemeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .gameStage {
@@ -1161,18 +1450,17 @@
     font-size: 13px;
   }
 
-  .inspectorGrid {
+  .buildTools {
     grid-template-columns: 1fr;
   }
 
-  .settingsCard,
-  .worldCard {
+  .terrainToolSection {
     border-right: 0;
     border-bottom: 1px solid #d6e4f2;
   }
 
-  .objectsCard {
-    grid-column: auto;
-    border-top: 0;
+  .terrainToolSection .mapToolGrid,
+  .objectToolSection .mapToolGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

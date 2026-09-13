@@ -175,7 +175,7 @@ def platformer_map_spec(map_id: str = "test_map_01") -> dict:
         "tileSize": 64,
         "size": {"columns": 16, "rows": 8},
         "camera": {"columns": 8, "rows": 6},
-        "physics": {"gravityScale": 1},
+        "physics": {"gravityScale": 1, "groundTractionScale": 1},
         "rules": {"respawnDelaySeconds": 2},
         "presentation": {"backgroundId": "space_orbital_outpost_01"},
         "legend": {},
@@ -228,10 +228,29 @@ class MapFileTests(unittest.TestCase):
 
             result = save_map_file("test.json", value, Path(directory))
 
-            self.assertEqual(result["map"]["physics"], {"gravityScale": 0.8})
+            self.assertEqual(
+                result["map"]["physics"],
+                {"gravityScale": 0.8, "groundTractionScale": 1},
+            )
 
             value["physics"]["gravityScale"] = 0.25
             with self.assertRaisesRegex(ValueError, "gravityScale must be a number from 0.5 to 2"):
+                save_map_file("test.json", value, Path(directory))
+
+    def test_saves_bounded_per_map_ground_traction(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            value = platformer_map_spec()
+            value["physics"]["groundTractionScale"] = 0.15
+
+            result = save_map_file("test.json", value, Path(directory))
+
+            self.assertEqual(result["map"]["physics"]["groundTractionScale"], 0.15)
+
+            value["physics"]["groundTractionScale"] = 0.01
+            with self.assertRaisesRegex(
+                ValueError,
+                "groundTractionScale must be a number from 0.05 to 2",
+            ):
                 save_map_file("test.json", value, Path(directory))
 
     def test_saves_bounded_per_map_respawn_delay(self) -> None:
@@ -1698,6 +1717,98 @@ class SpriteViewerCatalogTests(unittest.TestCase):
 
 
 class PlatformerMapEditorAssetTests(unittest.TestCase):
+    def test_ice_world_map_uses_bounded_traction_and_recipe_backed_assets(self) -> None:
+        map_spec = load_map_file("level-5.json")
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        website_source = (GAME_ROOT.parent / "website" / "src" / "game" / "platformer" / "platformer-game.tsx").read_text(encoding="utf-8")
+        background = json.loads(
+            (GAME_ROOT / "background-specs/ice_world_01.json").read_text(encoding="utf-8")
+        )
+
+        self.assertEqual(map_spec["id"], "ice_world_01")
+        self.assertEqual(map_spec["size"], {"columns": 88, "rows": 12})
+        self.assertEqual(map_spec["camera"], {"columns": 16, "rows": 9})
+        self.assertEqual(map_spec["physics"]["gravityScale"], 1)
+        self.assertEqual(map_spec["physics"]["groundTractionScale"], 0.15)
+        self.assertEqual(map_spec["presentation"]["backgroundId"], "ice_world_01")
+        self.assertNotIn("function drawIceTerrainCell", source)
+        self.assertNotIn('state.map.backgroundId === "ice_world_01"', source)
+        self.assertNotIn("function drawIceTerrainTile", website_source)
+        self.assertNotIn('terrainStyle: "ice"', website_source)
+        for asset_key in ("iceGround", "icePlatform", "iceObstacle", "iceHazard"):
+            self.assertIn(f'{asset_key}: assetUrl("sprites/ice_world_', website_source)
+        self.assertEqual(background["theme"], "ice_world")
+        self.assertEqual(
+            [layer["assetId"] for layer in background["layers"]],
+            [
+                "background_ice_world_mountains_far_01",
+                "background_ice_world_glaciers_mid_01",
+                "background_ice_world_crystals_near_01",
+            ],
+        )
+        for visual_slot in ("ground", "platform", "obstacle", "hazard"):
+            recipe_path = GAME_ROOT / "sprite-specs" / f"ice_world_platformer_{visual_slot}_01.json"
+            candidate_path = GAME_ROOT / "sprite-build" / f"ice_world_platformer_{visual_slot}_01.png"
+            self.assertTrue(recipe_path.is_file())
+            self.assertTrue(candidate_path.is_file())
+
+    def test_ice_world_boss_lobs_a_recipe_backed_spinning_crystal(self) -> None:
+        map_spec = load_map_file("level-5.json")
+        boss = next(item for item in map_spec["objects"] if item["id"] == "boss_1")
+        self.assertEqual(boss["role"], "boss")
+        self.assertEqual(boss["assetId"], "ice_world_boss_01")
+        self.assertEqual(boss["behavior"], "chaser")
+        self.assertEqual(boss["defeatMode"], "both")
+        self.assertEqual(boss["hitsToDefeat"], 5)
+        self.assertEqual(
+            boss["rangedAttack"],
+            {
+                "type": "lobbed_projectile",
+                "projectileAssetId": "ice_world_crystal_projectile_01",
+                "rangeTiles": 6,
+                "cooldownMs": 2000,
+                "arcHeightTiles": 3,
+            },
+        )
+
+        boss_recipe = json.loads(
+            (GAME_ROOT / "sprite-specs/ice_world_boss_01.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(boss_recipe["kind"], "boss")
+        self.assertEqual(boss_recipe["collisionProfile"], "boss_large_v1")
+        self.assertIn("defeated", boss_recipe["eventSheets"])
+        self.assertTrue((GAME_ROOT / "sprite-build/ice_world_boss_01.png").is_file())
+        self.assertTrue((GAME_ROOT / "sprite-build/ice_world_boss_01_defeated.png").is_file())
+
+        projectile_recipe = json.loads(
+            (GAME_ROOT / "sprite-specs/ice_world_crystal_projectile_01.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(projectile_recipe["kind"], "projectile")
+        self.assertEqual(projectile_recipe["runtime"], "platformer_v1")
+        self.assertEqual(
+            projectile_recipe["frameLabels"],
+            ["spin_0", "spin_90", "spin_180", "spin_270"],
+        )
+        self.assertEqual(projectile_recipe["animation"], {"fps": 10, "loop": True})
+        with Image.open(GAME_ROOT / "sprite-build/ice_world_crystal_projectile_01.png") as candidate:
+            self.assertEqual(candidate.size, (128, 128))
+            self.assertEqual(candidate.mode, "RGBA")
+            self.assertEqual(candidate.getchannel("A").getextrema()[0], 0)
+
+        editor_source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        website_source = (
+            GAME_ROOT.parent / "website" / "src" / "game" / "platformer" / "platformer-game.tsx"
+        ).read_text(encoding="utf-8")
+        self.assertIn('const ICE_WORLD_BOSS_CHARACTER_ID = "ice_world_boss_01";', editor_source)
+        self.assertIn('const DEFAULT_ICE_CRYSTAL_PROJECTILE_ASSET_ID = "ice_world_crystal_projectile_01";', editor_source)
+        self.assertIn('? "Lobbed projectile attack"', editor_source)
+        self.assertNotIn("Lobs a flaming pumpkin", editor_source)
+        self.assertIn("ice_world_boss_01: assetUrl", website_source)
+        self.assertIn("ice_world_crystal_projectile_01: assetUrl", website_source)
+        self.assertNotIn("!projectileDrawn && projectile.attackType", website_source)
+
     def test_map_gravity_is_editable_persisted_and_previewed(self) -> None:
         source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
         markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
@@ -1713,10 +1824,48 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("state.previewSimulation.gravityScale * 100", source)
         self.assertIn("Changes apply immediately in the gameplay preview.", markup)
 
-        for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json"):
+        for filename in (
+            "level-1.json",
+            "level-2.json",
+            "level-3.json",
+            "level-4.json",
+            "level-5.json",
+        ):
             map_spec = json.loads((GAME_ROOT / "maps" / filename).read_text(encoding="utf-8"))
-            expected = 0.8 if filename == "level-2.json" else 1
+            expected = 0.5 if filename == "level-2.json" else 1
             self.assertEqual(map_spec["physics"]["gravityScale"], expected, filename)
+
+    def test_map_ground_traction_is_editable_persisted_and_previewed(self) -> None:
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+
+        self.assertIn('id="map-ground-traction-input"', markup)
+        self.assertIn('id="map-ground-traction-output"', markup)
+        self.assertIn('aria-label="Ground traction percentage"', markup)
+        self.assertIn("groundTractionScale: map.groundTractionScale", source)
+        self.assertIn(
+            "value.physics?.groundTractionScale ?? DEFAULT_GROUND_TRACTION_SCALE",
+            source,
+        )
+        self.assertIn(
+            "simulation.groundTractionScale = state.map.groundTractionScale",
+            source,
+        )
+        self.assertIn(
+            "* (wasGrounded ? simulation.groundTractionScale : 1)",
+            source,
+        )
+
+        for filename in (
+            "level-1.json",
+            "level-2.json",
+            "level-3.json",
+            "level-4.json",
+            "level-5.json",
+        ):
+            map_spec = json.loads((GAME_ROOT / "maps" / filename).read_text(encoding="utf-8"))
+            expected = 0.15 if filename == "level-5.json" else 1
+            self.assertEqual(map_spec["physics"]["groundTractionScale"], expected, filename)
 
     def test_respawn_delay_is_editable_persisted_and_previewed(self) -> None:
         source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
@@ -1736,7 +1885,7 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         )
         self.assertIn("respawnDelayEditSnapshot = snapshot()", source)
 
-        for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json"):
+        for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json", "level-5.json"):
             map_spec = json.loads((GAME_ROOT / "maps" / filename).read_text(encoding="utf-8"))
             self.assertEqual(map_spec["rules"]["respawnDelaySeconds"], 2, filename)
 
@@ -2523,7 +2672,7 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("drawExtraLifeFireworks(startX, startY, cellSize)", source)
         self.assertIn("space_platformer_hud_lives_01/image", styles)
 
-        for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json"):
+        for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json", "level-5.json"):
             map_spec = json.loads((root / "maps" / filename).read_text(encoding="utf-8"))
             extra_lives = [
                 item for item in map_spec["objects"] if item["type"] == "extra_life"

@@ -5,6 +5,7 @@ export const PLATFORMER_MAP_SOURCES = [
   "level-3.json",
   "level-2.json",
   "level-4.json",
+  "level-5.json",
 ] as const;
 
 export const MAZE_MAP_SOURCES = [
@@ -51,6 +52,25 @@ export const HAIR_COLORS = [
   "hair_08",
 ] as const;
 
+export const PLATFORMER_TERRAIN_KINDS = [
+  "empty",
+  "ground",
+  "platform",
+  "obstacle",
+  "hazard",
+] as const;
+
+export const PLATFORMER_OBJECT_KINDS = [
+  "spawn",
+  "coin",
+  "extra_life",
+  "enemy",
+  "boss",
+  "flying_object",
+  "checkpoint",
+  "goal",
+] as const;
+
 export type GameTheme = (typeof GAME_THEMES)[number];
 export type PlayerCharacter = (typeof PLAYER_CHARACTERS)[number];
 export type HumanGender = (typeof HUMAN_GENDERS)[number];
@@ -58,6 +78,84 @@ export type GameSetupQuestion = (typeof GAME_SETUP_QUESTIONS)[number];
 export type GameSetupStep = (typeof GAME_SETUP_STEPS)[number];
 export type SkinTone = (typeof SKIN_TONES)[number];
 export type HairColor = (typeof HAIR_COLORS)[number];
+export type PlatformerTerrainKind = (typeof PLATFORMER_TERRAIN_KINDS)[number];
+export type PlatformerObjectKind = (typeof PLATFORMER_OBJECT_KINDS)[number];
+
+const customPlatformerLevelIdSchema = z
+  .string()
+  .regex(/^custom-platformer-[a-z0-9-]{1,80}$/);
+const customMazeLevelIdSchema = z
+  .string()
+  .regex(/^custom-maze-[a-z0-9-]{1,80}$/);
+export const platformerMapSourceSchema = z.union([
+  z.enum(PLATFORMER_MAP_SOURCES),
+  customPlatformerLevelIdSchema,
+]);
+export const mazeMapSourceSchema = z.union([
+  z.enum(MAZE_MAP_SOURCES),
+  customMazeLevelIdSchema,
+]);
+export type PlatformerMapSource = z.infer<typeof platformerMapSourceSchema>;
+export type MazeMapSource = z.infer<typeof mazeMapSourceSchema>;
+
+export const platformerLevelSchema = z.object({
+  id: customPlatformerLevelIdSchema,
+  templateSource: z.enum(PLATFORMER_MAP_SOURCES),
+  label: z.string().trim().min(1).max(40),
+}).strict();
+
+export const mazeLevelSchema = z.object({
+  id: customMazeLevelIdSchema,
+  templateSource: z.enum(MAZE_MAP_SOURCES),
+  label: z.string().trim().min(1).max(40),
+}).strict();
+
+export type PlatformerLevel = z.infer<typeof platformerLevelSchema>;
+export type MazeLevel = z.infer<typeof mazeLevelSchema>;
+
+export const platformerTerrainEditSchema = z
+  .object({
+    mapSource: platformerMapSourceSchema,
+    x: z.number().int().min(0).max(255),
+    y: z.number().int().min(0).max(63),
+    kind: z.enum(PLATFORMER_TERRAIN_KINDS),
+  })
+  .strict();
+
+export type PlatformerTerrainEdit = z.infer<typeof platformerTerrainEditSchema>;
+
+export const platformerObjectEditSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+    mapSource: platformerMapSourceSchema,
+    x: z.number().int().min(0).max(255),
+    y: z.number().int().min(0).max(63),
+    kind: z.enum(PLATFORMER_OBJECT_KINDS),
+  })
+  .strict();
+
+export type PlatformerObjectEdit = z.infer<typeof platformerObjectEditSchema>;
+
+export const platformerObjectRemovalSchema = z
+  .object({
+    mapSource: platformerMapSourceSchema,
+    objectId: z.string().trim().min(1).max(100),
+  })
+  .strict();
+
+export type PlatformerObjectRemoval = z.infer<typeof platformerObjectRemovalSchema>;
+
+export const platformerObjectSettingsSchema = z
+  .object({
+    mapSource: platformerMapSourceSchema,
+    objectId: z.string().trim().min(1).max(100),
+    assetId: z.string().trim().min(1).max(100),
+    behavior: z.enum(["patroller", "chaser"]),
+    direction: z.enum(["left", "right"]),
+  })
+  .strict();
+
+export type PlatformerObjectSettings = z.infer<typeof platformerObjectSettingsSchema>;
 
 export const builderChatTurnSchema = z
   .object({
@@ -135,8 +233,10 @@ export const gameDocumentSchema = z
   .object({
     schemaVersion: z.literal(1),
     previewKind: z.enum(["platformer", "maze"]),
-    platformerMapSource: z.enum(PLATFORMER_MAP_SOURCES),
-    mazeMapSource: z.enum(MAZE_MAP_SOURCES).default(MAZE_MAP_SOURCES[0]),
+    platformerMapSource: platformerMapSourceSchema,
+    mazeMapSource: mazeMapSourceSchema.default(MAZE_MAP_SOURCES[0]),
+    platformerLevels: z.array(platformerLevelSchema).max(20).default([]),
+    mazeLevels: z.array(mazeLevelSchema).max(20).default([]),
     playerCharacter: z.enum(PLAYER_CHARACTERS).default("cooper"),
     humanGender: z.enum(HUMAN_GENDERS).default("boy"),
     skinTone: z.enum(SKIN_TONES).default("skin_04"),
@@ -147,8 +247,62 @@ export const gameDocumentSchema = z
       .max(GAME_SETUP_QUESTIONS.length)
       .default([]),
     builderChatHistory: z.array(builderChatTurnSchema).max(50).default([]),
+    platformerTerrainEdits: z
+      .array(platformerTerrainEditSchema)
+      .max(5000)
+      .default([]),
+    platformerObjectEdits: z
+      .array(platformerObjectEditSchema)
+      .max(1000)
+      .default([]),
+    platformerObjectRemovals: z
+      .array(platformerObjectRemovalSchema)
+      .max(1000)
+      .default([]),
+    platformerObjectSettings: z
+      .array(platformerObjectSettingsSchema)
+      .max(1000)
+      .default([]),
   })
-  .strict();
+  .strict()
+  .superRefine((document, context) => {
+    const platformerIds = document.platformerLevels.map((level) => level.id);
+    const mazeIds = document.mazeLevels.map((level) => level.id);
+    if (new Set(platformerIds).size !== platformerIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["platformerLevels"],
+        message: "Platformer level IDs must be unique.",
+      });
+    }
+    if (new Set(mazeIds).size !== mazeIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["mazeLevels"],
+        message: "Maze level IDs must be unique.",
+      });
+    }
+    if (
+      document.platformerMapSource.startsWith("custom-platformer-") &&
+      !platformerIds.includes(document.platformerMapSource)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["platformerMapSource"],
+        message: "The selected platformer level must exist in this game.",
+      });
+    }
+    if (
+      document.mazeMapSource.startsWith("custom-maze-") &&
+      !mazeIds.includes(document.mazeMapSource)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["mazeMapSource"],
+        message: "The selected maze level must exist in this game.",
+      });
+    }
+  });
 
 export type GameDocument = z.infer<typeof gameDocumentSchema>;
 export type GamePreviewKind = GameDocument["previewKind"];
@@ -158,6 +312,8 @@ export const DEFAULT_GAME_DOCUMENT: GameDocument = {
   previewKind: "platformer",
   platformerMapSource: PLATFORMER_MAP_SOURCES[0],
   mazeMapSource: MAZE_MAP_SOURCES[0],
+  platformerLevels: [],
+  mazeLevels: [],
   playerCharacter: "cooper",
   humanGender: "boy",
   skinTone: "skin_04",
@@ -165,6 +321,10 @@ export const DEFAULT_GAME_DOCUMENT: GameDocument = {
   setupStep: "gameType",
   builderSetupHistory: ["gameType"],
   builderChatHistory: [],
+  platformerTerrainEdits: [],
+  platformerObjectEdits: [],
+  platformerObjectRemovals: [],
+  platformerObjectSettings: [],
 };
 
 export const createGameInputSchema = z
@@ -187,6 +347,7 @@ const PLATFORMER_TITLES: Record<(typeof PLATFORMER_MAP_SOURCES)[number], string>
   "level-2.json": "Space Platformer",
   "level-3.json": "Haunted Platformer",
   "level-4.json": "Dragon Platformer",
+  "level-5.json": "Ice World Platformer",
 };
 
 const MAZE_TITLES: Record<(typeof MAZE_MAP_SOURCES)[number], string> = {
@@ -201,7 +362,12 @@ export function activeMapSource(spec: GameDocument) {
 }
 
 export function activeGameTheme(spec: GameDocument): GameTheme {
-  const source = activeMapSource(spec);
+  const activeSource = activeMapSource(spec);
+  const source = spec.previewKind === "maze"
+    ? spec.mazeLevels.find((level) => level.id === activeSource)?.templateSource
+      ?? activeSource
+    : spec.platformerLevels.find((level) => level.id === activeSource)?.templateSource
+      ?? activeSource;
   const match = GAME_THEMES.find((theme) => {
     const themeSources = THEME_MAP_SOURCES[theme];
     return source === themeSources.platformerMapSource || source === themeSources.mazeMapSource;
@@ -229,9 +395,16 @@ export function activePlayerAssetId(spec: GameDocument): PlayerAssetId {
 }
 
 export function defaultGameTitle(spec: GameDocument) {
+  const platformerSource = spec.platformerLevels.find(
+    (level) => level.id === spec.platformerMapSource,
+  )?.templateSource ?? spec.platformerMapSource;
+  const mazeSource = spec.mazeLevels.find(
+    (level) => level.id === spec.mazeMapSource,
+  )?.templateSource ?? spec.mazeMapSource;
   return spec.previewKind === "maze"
-    ? MAZE_TITLES[spec.mazeMapSource]
-    : PLATFORMER_TITLES[spec.platformerMapSource];
+    ? MAZE_TITLES[mazeSource as keyof typeof MAZE_TITLES] ?? "Maze Game"
+    : PLATFORMER_TITLES[platformerSource as keyof typeof PLATFORMER_TITLES]
+      ?? "Platformer Game";
 }
 
 export type SavedGameDto = {

@@ -1,0 +1,39 @@
+{
+  "assetId": "ice_world_platformer_hazard_01",
+  "sheetId": "ice_world_platformer_hazard_01",
+  "event": null,
+  "createdAt": "2026-09-13T01:18:47.970102+00:00",
+  "recipe": "sprite-specs/ice_world_platformer_hazard_01.json",
+  "recipeBeforeSha256": "27af8a738314726a8ae89c902c36e5721bfa4b854ec8faef1fc8d5839c23bfc8",
+  "recipeAfterSha256": "9f637f01984e7cc4fde37aaa53b389f4631a0359bc631fd43d91b3636e7e9994",
+  "adjustments": [
+    {
+      "frameIndex": 0,
+      "x": 0,
+      "y": 19,
+      "resultX": 0,
+      "resultY": 19
+    }
+  ],
+  "frameOffsets": [
+    {
+      "x": 0,
+      "y": 19
+    },
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "candidateImage": "sprite-build/ice_world_platformer_hazard_01.png",
+  "candidateSha256": "7059def178f47dbdf597feacca1f40730f96dfb34219b3d7c1e7468adc5333e3",
+  "validationReport": "sprite-reports/ice_world_platformer_hazard_01/ice_world_platformer_hazard_01-report.json"
+}

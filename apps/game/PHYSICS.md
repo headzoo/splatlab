@@ -197,6 +197,29 @@ shorter, faster arc. The Game Editor exposes the bounded value as a percentage
 and persists it with the map. Editor preview changes apply immediately; a
 networked room remains pinned to the value with which it started.
 
+### Per-map ground traction
+
+Every `platformer_v1` `MapSpec` stores an explicit grounded-control multiplier:
+
+```json
+{
+  "physics": {
+    "groundTractionScale": 1
+  }
+}
+```
+
+The allowed range is `0.05–2`, where `1` preserves the resolved game profile.
+The runtime multiplies both grounded acceleration and grounded zero-input
+deceleration by this value. It does not change maximum run speed, air control,
+gravity, or jump launch velocity. Low values therefore make a character take
+longer to build speed, coast after input is released, and take longer to reverse
+direction. Ice World uses `0.15`; ordinary maps use `1`.
+
+The Game Editor exposes the value as a percentage, persists it in MapSpec, and
+applies it to the fixed-step preview immediately. Active network rooms remain
+pinned to the value with which they started.
+
 ### Per-map respawn delay
 
 Every `platformer_v1` `MapSpec` stores the total delay from player defeat to

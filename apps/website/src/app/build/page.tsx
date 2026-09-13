@@ -4,12 +4,12 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
+import { AgentFlowRunStore } from "@/lib/agent-flow/run-store";
 import { getGame } from "@/lib/games";
 import { GAME_PLAYER_CONTENT } from "@/game/game-player-content";
 import { SiteHeader } from "../site-header";
 import { BuildChat } from "./build-chat";
 import { BuildGamePreview } from "./build-game-preview";
-import { BuildInspector } from "./build-inspector";
 import { BuildSetupProvider } from "./build-setup";
 
 import styles from "./build.module.css";
@@ -39,6 +39,20 @@ export default async function BuildPage({ searchParams }: BuildPageProps) {
   if (gameId && !initialGame) {
     redirect("/lab");
   }
+  const activeRun = initialGame
+    ? await new AgentFlowRunStore().loadActive(session.user.id, initialGame.id)
+    : null;
+  const initialPausedBuildTurn =
+    activeRun?.status === "paused"
+      ? {
+          feedbackEnabled:
+            (() => {
+              const pending = activeRun.pendingHumanInput;
+              if (!pending || typeof pending !== "object") return false;
+              return "enableFeedback" in pending && pending.enableFeedback === true;
+            })(),
+        }
+      : null;
 
   return (
     <main className={styles.page} id="main-content">
@@ -54,7 +68,15 @@ export default async function BuildPage({ searchParams }: BuildPageProps) {
       <div className={styles.pageWash} />
       <SiteHeader />
 
-      <BuildSetupProvider initialSpec={initialGame?.spec ?? null}>
+      <BuildSetupProvider
+        initialSpec={initialGame?.spec ?? null}
+        initialIdentity={
+          initialGame
+            ? { id: initialGame.id, revision: initialGame.revision }
+            : null
+        }
+        initialPausedBuildTurn={initialPausedBuildTurn}
+      >
         <div className={styles.workspace}>
           <section className={styles.builderPanel} aria-labelledby="builder-title">
             <header className={styles.builderHeading}>
@@ -82,7 +104,6 @@ export default async function BuildPage({ searchParams }: BuildPageProps) {
               {...GAME_PLAYER_CONTENT}
               initialGame={initialGame}
             />
-            <BuildInspector />
           </section>
         </div>
       </BuildSetupProvider>

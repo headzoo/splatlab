@@ -10,7 +10,7 @@ import {
 } from "./game-contract";
 import { getPrisma, hasDatabase } from "./prisma";
 
-type StoredGame = {
+export type StoredGame = {
   id: string;
   ownerId: string;
   title: string;
@@ -26,7 +26,7 @@ declare global {
   var splatLabGamesMemory: StoredGame[] | undefined;
 }
 
-function memoryGames() {
+export function memoryGames() {
   globalThis.splatLabGamesMemory ??= [];
   return globalThis.splatLabGamesMemory;
 }

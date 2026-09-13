@@ -7,6 +7,8 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
 } from "react";
 
 import { MAP_COMPLETION_DELAY_SECONDS } from "./campaign";
@@ -23,6 +25,7 @@ import {
   resolveExtraLifeFireworkFrame,
   resolveExtraLifeOpacity,
   resolvePlatformerCamera,
+  snapPlatformerStateToGrid,
   resolveVisualMotionOffset,
   resolveWorldBottomBackgroundOffset,
   stepPlatformer,
@@ -43,9 +46,23 @@ import {
 } from "@/game/player-appearance";
 import type {
   HairColor,
+  PlatformerTerrainKind,
   PlayerAssetId,
   SkinTone,
 } from "@/lib/game-contract";
+import {
+  PLATFORMER_OBJECT_TOOLS,
+  platformerObjectAtPreviewCell,
+  platformerPreviewCellForObject,
+  platformerTerrainKindAt,
+  type PlatformerEditTool,
+  type PlatformerObjectPlacement,
+  type PlatformerTerrainStrokeCell,
+} from "./map-editing";
+import {
+  playerDefeatedEventSheet,
+  playerDefeatedEventVisual,
+} from "./player-death";
 import styles from "./platformer-game.module.css";
 
 type PlatformerGameProps = {
@@ -56,13 +73,33 @@ type PlatformerGameProps = {
   skinTone?: SkinTone;
   hairColor?: HairColor;
   className?: string;
+  controlRowLeading?: ReactNode;
   autoPlay?: boolean;
+  editorTool?: PlatformerEditTool;
+  onEditorToolChange?: (tool: PlatformerEditTool) => void;
+  onTerrainStroke?: (stroke: readonly PlatformerTerrainStrokeCell[]) => void;
+  onObjectPlace?: (placement: PlatformerObjectPlacement) => void;
+  selectedObjectId?: string | null;
+  onObjectSelect?: (objectId: string | null) => void;
   onComplete?: () => void;
 };
 
 type ControlAction = "left" | "right" | "down" | "jump" | "weapon";
 type ControlBindings = Record<ControlAction, string[]>;
 type CapturingBinding = { action: ControlAction; index: number } | null;
+type EditorCell = { x: number; y: number };
+type EditorPaintStroke = {
+  pointerId: number;
+  kind: PlatformerTerrainKind;
+  cells: Map<string, PlatformerTerrainStrokeCell>;
+  lastCell: EditorCell;
+};
+type EditorPan = {
+  pointerId: number;
+  clientX: number;
+  clientY: number;
+  camera: PlatformerCamera;
+};
 
 const CONTROL_BINDINGS_STORAGE_KEY = "splat-lab.game-controls.v1";
 const CONTROL_ACTIONS: ControlAction[] = ["left", "right", "down", "jump", "weapon"];
@@ -145,6 +182,9 @@ const IMAGE_URLS = {
   dragonsBackgroundFar: assetUrl("backgrounds/background_dragons_ash_far_01.png"),
   dragonsBackgroundMid: assetUrl("backgrounds/background_dragons_volcano_mid_01.png"),
   dragonsBackgroundNear: assetUrl("backgrounds/background_dragons_ruins_near_01.png"),
+  iceBackgroundFar: assetUrl("backgrounds/background_ice_world_mountains_far_01.png"),
+  iceBackgroundMid: assetUrl("backgrounds/background_ice_world_glaciers_mid_01.png"),
+  iceBackgroundNear: assetUrl("backgrounds/background_ice_world_crystals_near_01.png"),
   greenGround: assetUrl("sprites/neutral_green_hills_platformer_ground_01.png"),
   greenPlatform: assetUrl("sprites/neutral_green_hills_platformer_platform_01.png"),
   greenObstacle: assetUrl("sprites/neutral_green_hills_platformer_obstacle_01.png"),
@@ -161,6 +201,10 @@ const IMAGE_URLS = {
   dragonsPlatform: assetUrl("sprites/dragons_emberkeep_platformer_platform_01.png"),
   dragonsObstacle: assetUrl("sprites/dragons_emberkeep_platformer_obstacle_01.png"),
   dragonsHazard: assetUrl("sprites/dragons_emberkeep_platformer_hazard_01.png"),
+  iceGround: assetUrl("sprites/ice_world_platformer_ground_01.png"),
+  icePlatform: assetUrl("sprites/ice_world_platformer_platform_01.png"),
+  iceObstacle: assetUrl("sprites/ice_world_platformer_obstacle_01.png"),
+  iceHazard: assetUrl("sprites/ice_world_platformer_hazard_01.png"),
   neutral_cooper_01: assetUrl("sprites/neutral_cooper_01.png"),
   neutral_human_01: assetUrl("sprites/neutral_human_01.png"),
   neutral_girl_01: assetUrl("sprites/neutral_girl_01.png"),
@@ -181,7 +225,10 @@ const IMAGE_URLS = {
   dragon_girl_01: assetUrl("sprites/dragon_girl_01.png"),
   dragon_ghost_01: assetUrl("sprites/dragon_ghost_01.png"),
   playerAttack: assetUrl("sprites/space_cooper_01_attack.png"),
-  playerDefeated: assetUrl("sprites/space_cooper_01_defeated.png"),
+  space_cooper_01_defeated: assetUrl("sprites/space_cooper_01_defeated.png"),
+  space_human_01_defeated: assetUrl("sprites/space_human_01_defeated.png"),
+  space_ghost_01_defeated: assetUrl("sprites/space_ghost_01_defeated.png"),
+  space_robot_01_defeated: assetUrl("sprites/space_robot_01_defeated.png"),
   weapon: assetUrl("sprites/short_sword_v1.png"),
   spaceCoin: assetUrl("sprites/space_platformer_coin_01.png"),
   spaceCoinCollected: assetUrl("sprites/space_platformer_coin_01_collected.png"),
@@ -206,6 +253,8 @@ const IMAGE_URLS = {
   dragon_dragon_01: assetUrl("sprites/dragon_dragon_01.png"),
   dragons_emberkeep_fireball_01: assetUrl("sprites/dragons_emberkeep_fireball_01.png"),
   dragons_emberkeep_boss_01: assetUrl("sprites/dragons_emberkeep_boss_01.png"),
+  ice_world_boss_01: assetUrl("sprites/ice_world_boss_01.png"),
+  ice_world_crystal_projectile_01: assetUrl("sprites/ice_world_crystal_projectile_01.png"),
 } as const;
 
 type ImageKey = keyof typeof IMAGE_URLS;
@@ -304,6 +353,24 @@ const MAP_VISUALS: Record<string, MapVisualProfile> = {
     checkpoint: "dragonsCheckpoint",
     goal: "dragonsGoal",
   },
+  ice_world_01: {
+    color: "#bcecff",
+    backgroundLayers: [
+      { image: "iceBackgroundFar", parallax: 0.1, heightRatio: 1, opacity: 0.78, verticalAnchor: "center" },
+      { image: "iceBackgroundMid", parallax: 0.34, heightRatio: 0.94, opacity: 0.88, verticalAnchor: "bottom" },
+      { image: "iceBackgroundNear", parallax: 0.66, heightRatio: 0.82, opacity: 0.94, verticalAnchor: "bottom" },
+    ],
+    ground: "iceGround",
+    platform: "icePlatform",
+    obstacle: "iceObstacle",
+    hazard: "iceHazard",
+    hazardColumns: 2,
+    hazardFrames: 4,
+    coin: "spaceCoin",
+    coinCollected: "spaceCoinCollected",
+    checkpoint: "spaceCheckpoint",
+    goal: "spaceGoal",
+  },
 };
 
 const MUSIC_URLS = {
@@ -385,6 +452,158 @@ const EXTRA_LIFE_FIREWORK_SIZE = 112;
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.max(minimum, Math.min(maximum, value));
+}
+
+const EDITOR_TERRAIN_COLORS: Record<PlatformerTerrainKind, string> = {
+  empty: "rgb(255 105 94 / 42%)",
+  ground: "rgb(40 127 224 / 42%)",
+  platform: "rgb(140 220 255 / 48%)",
+  obstacle: "rgb(255 201 69 / 46%)",
+  hazard: "rgb(238 68 68 / 48%)",
+};
+
+const EDITOR_TOOL_LABELS: Record<PlatformerEditTool, string> = {
+  select: "Select",
+  move: "Move",
+  erase: "Erase",
+  ground: "Ground",
+  platform: "Platform",
+  obstacle: "Obstacle",
+  hazard: "Hazard",
+  spawn: "Spawn",
+  coin: "Coin",
+  extra_life: "Extra life",
+  enemy: "Enemy",
+  boss: "Boss",
+  flying_object: "Flying object",
+  checkpoint: "Checkpoint",
+  goal: "Goal",
+};
+
+function editorPaintKind(
+  tool: PlatformerEditTool | undefined,
+): PlatformerTerrainKind | null {
+  if (!tool || tool === "select" || tool === "move") return null;
+  if (PLATFORMER_OBJECT_TOOLS.includes(tool as (typeof PLATFORMER_OBJECT_TOOLS)[number])) {
+    return null;
+  }
+  return tool === "erase"
+    ? "empty"
+    : tool as Exclude<PlatformerTerrainKind, "empty">;
+}
+
+function clampEditorCamera(
+  map: PlatformerMapSpec,
+  camera: PlatformerCamera,
+): PlatformerCamera {
+  const viewportWidth = map.camera.columns * map.tileSize;
+  const viewportHeight = map.camera.rows * map.tileSize;
+  return {
+    x: clamp(
+      camera.x,
+      0,
+      Math.max(0, map.size.columns * map.tileSize - viewportWidth),
+    ),
+    y: clamp(
+      camera.y,
+      0,
+      Math.max(0, map.size.rows * map.tileSize - viewportHeight),
+    ),
+  };
+}
+
+function cellsAlongLine(from: EditorCell, to: EditorCell): EditorCell[] {
+  const deltaX = to.x - from.x;
+  const deltaY = to.y - from.y;
+  const steps = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+  if (steps === 0) return [to];
+
+  const cells = new Map<string, EditorCell>();
+  for (let step = 0; step <= steps; step += 1) {
+    const x = Math.round(from.x + (deltaX * step) / steps);
+    const y = Math.round(from.y + (deltaY * step) / steps);
+    cells.set(`${x}:${y}`, { x, y });
+  }
+  return [...cells.values()];
+}
+
+function drawEditorOverlay(
+  context: CanvasRenderingContext2D,
+  map: PlatformerMapSpec,
+  camera: PlatformerCamera,
+  cursor: EditorCell | null,
+  selected: EditorCell | null,
+  pending: ReadonlyMap<string, PlatformerTerrainStrokeCell>,
+) {
+  const viewportWidth = map.camera.columns * map.tileSize;
+  const viewportHeight = map.camera.rows * map.tileSize;
+  const firstColumn = Math.max(0, Math.floor(camera.x / map.tileSize));
+  const lastColumn = Math.min(
+    map.size.columns,
+    Math.ceil((camera.x + viewportWidth) / map.tileSize),
+  );
+  const firstRow = Math.max(0, Math.floor(camera.y / map.tileSize));
+  const lastRow = Math.min(
+    map.size.rows,
+    Math.ceil((camera.y + viewportHeight) / map.tileSize),
+  );
+
+  context.save();
+  context.strokeStyle = "rgb(255 255 255 / 28%)";
+  context.lineWidth = 1;
+  context.beginPath();
+  for (let column = firstColumn; column <= lastColumn; column += 1) {
+    const x = column * map.tileSize - camera.x;
+    context.moveTo(x, 0);
+    context.lineTo(x, viewportHeight);
+  }
+  for (let row = firstRow; row <= lastRow; row += 1) {
+    const y = row * map.tileSize - camera.y;
+    context.moveTo(0, y);
+    context.lineTo(viewportWidth, y);
+  }
+  context.stroke();
+
+  for (const cell of pending.values()) {
+    const x = cell.x * map.tileSize - camera.x;
+    const y = cell.y * map.tileSize - camera.y;
+    context.fillStyle = EDITOR_TERRAIN_COLORS[cell.kind];
+    context.fillRect(x + 2, y + 2, map.tileSize - 4, map.tileSize - 4);
+    if (cell.kind === "empty") {
+      context.strokeStyle = "rgb(255 255 255 / 88%)";
+      context.lineWidth = 4;
+      context.beginPath();
+      context.moveTo(x + 18, y + 18);
+      context.lineTo(x + map.tileSize - 18, y + map.tileSize - 18);
+      context.moveTo(x + map.tileSize - 18, y + 18);
+      context.lineTo(x + 18, y + map.tileSize - 18);
+      context.stroke();
+    }
+  }
+
+  if (selected) {
+    context.strokeStyle = "#ffd52e";
+    context.lineWidth = 5;
+    context.strokeRect(
+      selected.x * map.tileSize - camera.x + 3,
+      selected.y * map.tileSize - camera.y + 3,
+      map.tileSize - 6,
+      map.tileSize - 6,
+    );
+  }
+
+  if (cursor) {
+    context.strokeStyle = "rgb(255 255 255 / 95%)";
+    context.lineWidth = 3;
+    context.setLineDash([8, 5]);
+    context.strokeRect(
+      cursor.x * map.tileSize - camera.x + 2,
+      cursor.y * map.tileSize - camera.y + 2,
+      map.tileSize - 4,
+      map.tileSize - 4,
+    );
+  }
+  context.restore();
 }
 
 function drawSheetFrame(
@@ -610,12 +829,12 @@ function drawWorld(
       if (!slot || slot === "empty") continue;
       const x = column * map.tileSize;
       const y = row * map.tileSize;
+      const overrideAssetId = overrides.get(`${column},${row}`)?.assetId as ImageKey | undefined;
       if (slot === "hazard") {
         const startFrame = overrides.get(`${column},${row}`)?.animationStartFrame ?? 1;
         const frame = (startFrame - 1 + Math.floor(elapsedSeconds * 8)) % visuals.hazardFrames;
         drawSheetFrame(context, images[visuals.hazard], visuals.hazardColumns, 64, 64, frame, x, y);
       } else {
-        const overrideAssetId = overrides.get(`${column},${row}`)?.assetId as ImageKey | undefined;
         const imageKey = slot === "ground"
           ? visuals.ground
           : slot === "platform"
@@ -813,7 +1032,7 @@ function drawWorld(
     context.translate(projectile.x, projectile.y);
     if (projectile.direction === "left") context.scale(-1, 1);
     const projectileSize = 64 * projectile.sizeScale;
-    const projectileDrawn = drawSheetFrame(
+    drawSheetFrame(
       context,
       image,
       2,
@@ -825,35 +1044,6 @@ function drawWorld(
       projectileSize,
       projectileSize,
     );
-    if (!projectileDrawn && projectile.attackType === "lobbed_projectile") {
-      context.fillStyle = "#ff5a19";
-      context.beginPath();
-      context.moveTo(-28, 0);
-      context.quadraticCurveTo(-18, -18, -6, -10);
-      context.quadraticCurveTo(-14, 0, -6, 10);
-      context.quadraticCurveTo(-18, 18, -28, 0);
-      context.fill();
-      context.fillStyle = "#ff9c24";
-      context.beginPath();
-      context.arc(7, 1, 18, 0, Math.PI * 2);
-      context.fill();
-      context.strokeStyle = "#3b1c22";
-      context.lineWidth = 4;
-      context.stroke();
-      context.fillStyle = "#4a2b1d";
-      context.fillRect(4, -22, 7, 8);
-      context.fillStyle = "#fff46b";
-      context.beginPath();
-      context.moveTo(-2, -4);
-      context.lineTo(4, -8);
-      context.lineTo(3, 0);
-      context.closePath();
-      context.moveTo(11, -7);
-      context.lineTo(17, -3);
-      context.lineTo(11, 1);
-      context.closePath();
-      context.fill();
-    }
     context.restore();
   }
 
@@ -873,24 +1063,25 @@ function drawWorld(
   let playerDrawn = false;
   if (state.status === "dying") {
     const elapsedDeathTicks = state.deathTicksTotal - state.deathTicksRemaining;
-    const deathFrame = clamp(
-      Math.floor((elapsedDeathTicks * 4) / state.deathAnimationTicksTotal),
-      0,
-      3,
+    const eventVisual = playerDefeatedEventVisual(
+      playerAssetId,
+      state.facing,
+      elapsedDeathTicks * FIXED_DELTA_SECONDS * 1000,
     );
-    const deathRow = state.facing === "left" ? 0 : 1;
-    playerDrawn = playerAssetId === "space_cooper_01"
-      ? drawSheetFrame(
-          context,
-          images.playerDefeated,
-          4,
-          64,
-          64,
-          deathRow * 4 + deathFrame,
-          visualPlayerState.x - 32,
-          visualPlayerState.y - 56,
-        )
-      : drawSheetFrame(
+    if (eventVisual) {
+      const { eventSheet } = eventVisual;
+      playerDrawn = drawSheetFrame(
+        context,
+        images[eventSheet.imageAssetId],
+        eventSheet.columns,
+        eventSheet.frameWidth,
+        eventSheet.frameHeight,
+        eventVisual.frameIndex,
+        visualPlayerState.x - eventSheet.anchor.x,
+        visualPlayerState.y - eventSheet.anchor.y,
+      );
+      if (!playerDrawn) {
+        playerDrawn = drawSheetFrame(
           context,
           playerImage,
           5,
@@ -900,6 +1091,21 @@ function drawWorld(
           visualPlayerState.x - 32,
           visualPlayerState.y - 56,
         );
+      }
+    } else {
+      // Keep characters without compatible event art visible in their base
+      // pose. This is the safe no-animation fallback, not a fabricated motion.
+      playerDrawn = drawSheetFrame(
+        context,
+        playerImage,
+        5,
+        64,
+        64,
+        (state.facing === "left" ? 1 : 2) * 5,
+        visualPlayerState.x - 32,
+        visualPlayerState.y - 56,
+      );
+    }
   } else if (state.attackTicksRemaining > 0) {
     const durationTicks = Math.max(
       1,
@@ -1017,7 +1223,14 @@ export function PlatformerGame({
   skinTone = "skin_04",
   hairColor = "hair_03",
   className,
+  controlRowLeading,
   autoPlay = false,
+  editorTool,
+  onEditorToolChange,
+  onTerrainStroke,
+  onObjectPlace,
+  selectedObjectId,
+  onObjectSelect,
   onComplete,
 }: PlatformerGameProps) {
   const initialState = useMemo(() => createInitialState(map), [map]);
@@ -1035,6 +1248,16 @@ export function PlatformerGame({
   const stateRef = useRef(initialState);
   const previousStateRef = useRef(initialState);
   const cameraRef = useRef<PlatformerCamera | null>(null);
+  const editorCameraRef = useRef<PlatformerCamera | null>(null);
+  const editorCursorRef = useRef<EditorCell | null>(
+    map.objects.find((object) => object.type === "player_spawn") ?? { x: 0, y: 0 },
+  );
+  const editorHoverRef = useRef<EditorCell | null>(null);
+  const editorSelectionRef = useRef<EditorCell | null>(null);
+  const editorStrokeRef = useRef<EditorPaintStroke | null>(null);
+  const editorPanRef = useRef<EditorPan | null>(null);
+  const renderedMapRef = useRef(map);
+  const previousEditorToolRef = useRef(editorTool);
   const victoryStartedAtRef = useRef<number | null>(null);
   const completionNotifiedRef = useRef(false);
   const autoPlayStartedRef = useRef(false);
@@ -1052,6 +1275,14 @@ export function PlatformerGame({
       game.dataset.runtimeTick = String(state.tick);
       game.dataset.attackTicks = String(state.attackTicksRemaining);
       game.dataset.deathTicks = String(state.deathTicksRemaining);
+      const defeatedEventSheet = state.status === "dying"
+        ? playerDefeatedEventSheet(playerAssetId)
+        : null;
+      if (defeatedEventSheet) {
+        game.dataset.playerEventSheet = defeatedEventSheet.imageAssetId;
+      } else {
+        delete game.dataset.playerEventSheet;
+      }
       if (cameraRef.current) {
         game.dataset.cameraX = cameraRef.current.x.toFixed(2);
         game.dataset.cameraY = cameraRef.current.y.toFixed(2);
@@ -1069,7 +1300,7 @@ export function PlatformerGame({
     if (srStatus && srStatus.textContent !== announcement) {
       srStatus.textContent = announcement;
     }
-  }, []);
+  }, [playerAssetId]);
 
   useEffect(() => {
     audioRef.current = new RuntimeAudio();
@@ -1143,7 +1374,11 @@ export function PlatformerGame({
     if (!context) return;
     const logicalWidth = map.camera.columns * map.tileSize;
     const logicalHeight = map.camera.rows * map.tileSize;
-    const camera = resolvePlatformerCamera(map, renderedState);
+    const runtimeCamera = resolvePlatformerCamera(map, renderedState);
+    const camera = editorTool && !playing
+      ? clampEditorCamera(map, editorCameraRef.current ?? runtimeCamera)
+      : runtimeCamera;
+    if (editorTool && !playing) editorCameraRef.current = camera;
     cameraRef.current = camera;
     context.setTransform(canvas.width / logicalWidth, 0, 0, canvas.height / logicalHeight, 0, 0);
     context.imageSmoothingEnabled = true;
@@ -1161,7 +1396,22 @@ export function PlatformerGame({
         ? null
         : elapsedSeconds - victoryStartedAtRef.current,
     );
-  }, [map, playerAssetId, weapon]);
+    if (editorTool && !playing) {
+      const selectedObject = selectedObjectId
+        ? map.objects.find((object) => object.id === selectedObjectId)
+        : null;
+      drawEditorOverlay(
+        context,
+        map,
+        camera,
+        editorHoverRef.current ?? editorCursorRef.current,
+        selectedObject
+          ? platformerPreviewCellForObject(map, renderedState, selectedObject)
+          : editorSelectionRef.current,
+        editorStrokeRef.current?.cells ?? new Map(),
+      );
+    }
+  }, [editorTool, map, playerAssetId, playing, selectedObjectId, weapon]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1186,6 +1436,49 @@ export function PlatformerGame({
   useEffect(() => {
     render(performance.now() / 1000);
   }, [assetsReady, render]);
+
+  useEffect(() => {
+    if (renderedMapRef.current === map) return;
+    renderedMapRef.current = map;
+    const nextState = createInitialState(map);
+    stateRef.current = nextState;
+    previousStateRef.current = nextState;
+    editorCameraRef.current = clampEditorCamera(
+      map,
+      editorCameraRef.current ?? resolvePlatformerCamera(map, nextState),
+    );
+    editorSelectionRef.current = null;
+    editorStrokeRef.current = null;
+    editorPanRef.current = null;
+    victoryStartedAtRef.current = null;
+    completionNotifiedRef.current = false;
+    inputRef.current = emptyInput();
+    setTerminalStatus("playing");
+    setPlaying(false);
+    audioRef.current?.pauseMusic();
+    syncRuntimeDom(nextState);
+    render(performance.now() / 1000, nextState);
+  }, [map, render, syncRuntimeDom]);
+
+  useEffect(() => {
+    if (previousEditorToolRef.current === editorTool) return;
+    previousEditorToolRef.current = editorTool;
+    editorSelectionRef.current = null;
+    editorStrokeRef.current = null;
+    editorPanRef.current = null;
+    inputRef.current = emptyInput();
+    if (editorTool) {
+      editorCameraRef.current = clampEditorCamera(
+        map,
+        cameraRef.current ?? resolvePlatformerCamera(map, stateRef.current),
+      );
+      audioRef.current?.pauseMusic();
+      const stopPlayback = window.setTimeout(() => setPlaying(false), 0);
+      render(performance.now() / 1000);
+      return () => window.clearTimeout(stopPlayback);
+    }
+    render(performance.now() / 1000);
+  }, [editorTool, map, render]);
 
   useEffect(() => {
     if (!playing) return;
@@ -1291,6 +1584,7 @@ export function PlatformerGame({
       return null;
     };
     const onKeyDown = (event: KeyboardEvent) => {
+      if (editorTool && !playing) return;
       const action = keyAction(event.key);
       if (!action || !gameHasFocus()) return;
       event.preventDefault();
@@ -1322,9 +1616,11 @@ export function PlatformerGame({
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", clearInput);
     };
-  }, [controlBindings]);
+  }, [controlBindings, editorTool, playing]);
 
   const start = useCallback(() => {
+    editorStrokeRef.current = null;
+    editorPanRef.current = null;
     if (stateRef.current.status === "won" || stateRef.current.status === "game_over") {
       stateRef.current = createInitialState(map);
       cameraRef.current = null;
@@ -1342,6 +1638,232 @@ export function PlatformerGame({
     canvasRef.current?.focus();
   }, [map, syncRuntimeDom]);
 
+  const announceEditor = (message: string) => {
+    if (srStatusRef.current) srStatusRef.current.textContent = message;
+  };
+
+  const editorCellFromClientPoint = (
+    clientX: number,
+    clientY: number,
+  ): EditorCell | null => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const bounds = canvas.getBoundingClientRect();
+    if (
+      bounds.width <= 0 ||
+      bounds.height <= 0 ||
+      clientX < bounds.left ||
+      clientX > bounds.right ||
+      clientY < bounds.top ||
+      clientY > bounds.bottom
+    ) {
+      return null;
+    }
+    const camera = editorCameraRef.current
+      ?? cameraRef.current
+      ?? resolvePlatformerCamera(map, stateRef.current);
+    const viewportWidth = map.camera.columns * map.tileSize;
+    const viewportHeight = map.camera.rows * map.tileSize;
+    const x = Math.floor(
+      (camera.x + ((clientX - bounds.left) / bounds.width) * viewportWidth) /
+        map.tileSize,
+    );
+    const y = Math.floor(
+      (camera.y + ((clientY - bounds.top) / bounds.height) * viewportHeight) /
+        map.tileSize,
+    );
+    if (x < 0 || y < 0 || x >= map.size.columns || y >= map.size.rows) {
+      return null;
+    }
+    return { x, y };
+  };
+
+  const keepEditorCellVisible = (cell: EditorCell) => {
+    const viewportWidth = map.camera.columns * map.tileSize;
+    const viewportHeight = map.camera.rows * map.tileSize;
+    const current = editorCameraRef.current
+      ?? cameraRef.current
+      ?? resolvePlatformerCamera(map, stateRef.current);
+    let x = current.x;
+    let y = current.y;
+    const cellLeft = cell.x * map.tileSize;
+    const cellRight = cellLeft + map.tileSize;
+    const cellTop = cell.y * map.tileSize;
+    const cellBottom = cellTop + map.tileSize;
+    if (cellLeft < x) x = cellLeft;
+    else if (cellRight > x + viewportWidth) x = cellRight - viewportWidth;
+    if (cellTop < y) y = cellTop;
+    else if (cellBottom > y + viewportHeight) y = cellBottom - viewportHeight;
+    editorCameraRef.current = clampEditorCamera(map, { x, y });
+  };
+
+  const addCellsToEditorStroke = (
+    stroke: EditorPaintStroke,
+    nextCell: EditorCell,
+  ) => {
+    for (const cell of cellsAlongLine(stroke.lastCell, nextCell)) {
+      stroke.cells.set(`${cell.x}:${cell.y}`, { ...cell, kind: stroke.kind });
+    }
+    stroke.lastCell = nextCell;
+    editorCursorRef.current = nextCell;
+    editorHoverRef.current = nextCell;
+    render(performance.now() / 1000);
+  };
+
+  const handleEditorPointerDown = (
+    event: ReactPointerEvent<HTMLCanvasElement>,
+  ) => {
+    if (!editorTool || playing) {
+      event.currentTarget.focus();
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.focus({ preventScroll: true });
+    inputRef.current = emptyInput();
+
+    if (editorTool === "move") {
+      const camera = editorCameraRef.current
+        ?? cameraRef.current
+        ?? resolvePlatformerCamera(map, stateRef.current);
+      editorPanRef.current = {
+        pointerId: event.pointerId,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        camera,
+      };
+      event.currentTarget.dataset.panning = "true";
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
+
+    const cell = editorCellFromClientPoint(event.clientX, event.clientY);
+    if (!cell) return;
+    editorCursorRef.current = cell;
+    editorHoverRef.current = cell;
+
+    if (editorTool === "select") {
+      const object = platformerObjectAtPreviewCell(
+        map,
+        stateRef.current,
+        cell.x,
+        cell.y,
+      );
+      if (object) {
+        editorSelectionRef.current = cell;
+        onObjectSelect?.(object.id);
+        announceEditor(`Selected ${object.id} at column ${cell.x + 1}, row ${cell.y + 1}.`);
+        render(performance.now() / 1000);
+        return;
+      }
+      const kind = platformerTerrainKindAt(map, cell.x, cell.y);
+      editorSelectionRef.current = kind === "empty" ? null : cell;
+      onObjectSelect?.(null);
+      announceEditor(
+        kind === "empty"
+          ? `Column ${cell.x + 1}, row ${cell.y + 1} is empty.`
+          : `Selected ${kind} at column ${cell.x + 1}, row ${cell.y + 1}.`,
+      );
+      render(performance.now() / 1000);
+      return;
+    }
+
+    if (PLATFORMER_OBJECT_TOOLS.includes(editorTool as (typeof PLATFORMER_OBJECT_TOOLS)[number])) {
+      onObjectPlace?.({
+        id: `build-${editorTool}-${Date.now().toString(36)}`,
+        x: cell.x,
+        y: cell.y,
+        kind: editorTool as PlatformerObjectPlacement["kind"],
+      });
+      editorSelectionRef.current = cell;
+      announceEditor(`Added ${EDITOR_TOOL_LABELS[editorTool]} at column ${cell.x + 1}, row ${cell.y + 1}.`);
+      return;
+    }
+
+    const kind = editorPaintKind(editorTool);
+    if (!kind) return;
+    editorSelectionRef.current = null;
+    const stroke: EditorPaintStroke = {
+      pointerId: event.pointerId,
+      kind,
+      cells: new Map(),
+      lastCell: cell,
+    };
+    editorStrokeRef.current = stroke;
+    addCellsToEditorStroke(stroke, cell);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleEditorPointerMove = (
+    event: ReactPointerEvent<HTMLCanvasElement>,
+  ) => {
+    if (!editorTool || playing) return;
+    const pan = editorPanRef.current;
+    if (pan?.pointerId === event.pointerId) {
+      event.preventDefault();
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const viewportWidth = map.camera.columns * map.tileSize;
+      const viewportHeight = map.camera.rows * map.tileSize;
+      editorCameraRef.current = clampEditorCamera(map, {
+        x: pan.camera.x -
+          ((event.clientX - pan.clientX) / Math.max(1, bounds.width)) * viewportWidth,
+        y: pan.camera.y -
+          ((event.clientY - pan.clientY) / Math.max(1, bounds.height)) * viewportHeight,
+      });
+      editorHoverRef.current = null;
+      render(performance.now() / 1000);
+      return;
+    }
+
+    const cell = editorCellFromClientPoint(event.clientX, event.clientY);
+    const stroke = editorStrokeRef.current;
+    if (stroke?.pointerId === event.pointerId && cell) {
+      event.preventDefault();
+      addCellsToEditorStroke(stroke, cell);
+      return;
+    }
+    editorHoverRef.current = cell;
+    if (cell) editorCursorRef.current = cell;
+    render(performance.now() / 1000);
+  };
+
+  const finishEditorPointer = (
+    event: ReactPointerEvent<HTMLCanvasElement>,
+  ) => {
+    const pan = editorPanRef.current;
+    if (pan?.pointerId === event.pointerId) {
+      editorPanRef.current = null;
+      delete event.currentTarget.dataset.panning;
+      announceEditor("Map moved. Choose a block to keep building.");
+    }
+
+    const stroke = editorStrokeRef.current;
+    if (stroke?.pointerId === event.pointerId) {
+      const cells = [...stroke.cells.values()];
+      editorStrokeRef.current = null;
+      if (cells.length > 0) {
+        onTerrainStroke?.(cells);
+        const label = stroke.kind === "empty" ? "block" : stroke.kind;
+        announceEditor(
+          stroke.kind === "empty"
+            ? `Erased ${cells.length} ${cells.length === 1 ? "block" : "blocks"}.`
+            : `Added ${cells.length} ${label} ${cells.length === 1 ? "block" : "blocks"}.`,
+        );
+      }
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    render(performance.now() / 1000);
+  };
+
+  const handleEditorPointerLeave = () => {
+    if (editorPanRef.current || editorStrokeRef.current) return;
+    editorHoverRef.current = null;
+    render(performance.now() / 1000);
+  };
+
   const startFromCanvas = useCallback(() => {
     if (!assetsReady) return;
     if (!playing) {
@@ -1352,6 +1874,94 @@ export function PlatformerGame({
   }, [assetsReady, playing, start]);
 
   const handleCanvasKeyDown = (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
+    if (editorTool && !playing) {
+      const arrowDelta: Record<string, EditorCell> = {
+        ArrowLeft: { x: -1, y: 0 },
+        ArrowRight: { x: 1, y: 0 },
+        ArrowUp: { x: 0, y: -1 },
+        ArrowDown: { x: 0, y: 1 },
+      };
+      const delta = arrowDelta[event.key];
+      if (delta) {
+        event.preventDefault();
+        inputRef.current = emptyInput();
+        if (editorTool === "move") {
+          const camera = editorCameraRef.current
+            ?? cameraRef.current
+            ?? resolvePlatformerCamera(map, stateRef.current);
+          editorCameraRef.current = clampEditorCamera(map, {
+            x: camera.x + delta.x * map.tileSize,
+            y: camera.y + delta.y * map.tileSize,
+          });
+          announceEditor("Map moved one block.");
+        } else {
+          const current = editorCursorRef.current ?? { x: 0, y: 0 };
+          const next = {
+            x: clamp(current.x + delta.x, 0, map.size.columns - 1),
+            y: clamp(current.y + delta.y, 0, map.size.rows - 1),
+          };
+          editorCursorRef.current = next;
+          editorHoverRef.current = null;
+          keepEditorCellVisible(next);
+          announceEditor(`Column ${next.x + 1}, row ${next.y + 1}.`);
+        }
+        render(performance.now() / 1000);
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        inputRef.current = emptyInput();
+        const cell = editorCursorRef.current;
+        if (!cell || editorTool === "move") return;
+        if (editorTool === "select") {
+          const object = platformerObjectAtPreviewCell(
+            map,
+            stateRef.current,
+            cell.x,
+            cell.y,
+          );
+          if (object) {
+            editorSelectionRef.current = cell;
+            onObjectSelect?.(object.id);
+            announceEditor(`Selected ${object.id} at column ${cell.x + 1}, row ${cell.y + 1}.`);
+            render(performance.now() / 1000);
+            return;
+          }
+          const kind = platformerTerrainKindAt(map, cell.x, cell.y);
+          editorSelectionRef.current = kind === "empty" ? null : cell;
+          onObjectSelect?.(null);
+          announceEditor(
+            kind === "empty"
+              ? `Column ${cell.x + 1}, row ${cell.y + 1} is empty.`
+              : `Selected ${kind} at column ${cell.x + 1}, row ${cell.y + 1}.`,
+          );
+        } else if (PLATFORMER_OBJECT_TOOLS.includes(editorTool as (typeof PLATFORMER_OBJECT_TOOLS)[number])) {
+          onObjectPlace?.({
+            id: `build-${editorTool}-${Date.now().toString(36)}`,
+            x: cell.x,
+            y: cell.y,
+            kind: editorTool as PlatformerObjectPlacement["kind"],
+          });
+          editorSelectionRef.current = cell;
+          announceEditor(`Added ${EDITOR_TOOL_LABELS[editorTool]} at column ${cell.x + 1}, row ${cell.y + 1}.`);
+        } else {
+          const kind = editorPaintKind(editorTool);
+          if (kind) {
+            onTerrainStroke?.([{ ...cell, kind }]);
+            announceEditor(
+              kind === "empty"
+                ? `Erased block at column ${cell.x + 1}, row ${cell.y + 1}.`
+                : `Added ${kind} at column ${cell.x + 1}, row ${cell.y + 1}.`,
+            );
+          }
+        }
+        render(performance.now() / 1000);
+        return;
+      }
+      return;
+    }
+
     if (event.key !== "Enter" || playing) return;
     event.preventDefault();
     startFromCanvas();
@@ -1364,12 +1974,18 @@ export function PlatformerGame({
   }, [assetsReady, autoPlay, start]);
 
   const pause = () => {
+    const snappedState = snapPlatformerStateToGrid(map, stateRef.current);
+    stateRef.current = snappedState;
+    editorCameraRef.current = clampEditorCamera(
+      map,
+      resolvePlatformerCamera(map, snappedState),
+    );
     setPlaying(false);
-    previousStateRef.current = stateRef.current;
+    previousStateRef.current = snappedState;
     inputRef.current = emptyInput();
-    syncRuntimeDom(stateRef.current);
+    syncRuntimeDom(snappedState);
     audioRef.current?.pauseMusic();
-    render(performance.now() / 1000);
+    render(performance.now() / 1000, snappedState);
   };
 
   const togglePlayback = () => {
@@ -1387,6 +2003,7 @@ export function PlatformerGame({
     stateRef.current = createInitialState(map);
     previousStateRef.current = stateRef.current;
     cameraRef.current = null;
+    editorCameraRef.current = resolvePlatformerCamera(map, stateRef.current);
     setTerminalStatus("playing");
     syncRuntimeDom(stateRef.current);
     render(performance.now() / 1000);
@@ -1472,6 +2089,18 @@ export function PlatformerGame({
   };
 
   const controls = controlSummary(controlBindings);
+  const editing = Boolean(editorTool) && !playing;
+  const editorInstruction = editorTool
+    ? editorTool === "move"
+      ? "Drag the map to move around"
+      : editorTool === "select"
+        ? "Click a block to select it"
+        : editorTool === "erase"
+          ? "Click or drag to erase blocks"
+          : PLATFORMER_OBJECT_TOOLS.includes(editorTool as (typeof PLATFORMER_OBJECT_TOOLS)[number])
+            ? `Click to add ${EDITOR_TOOL_LABELS[editorTool].toLowerCase()}`
+            : `Click or drag to add ${editorTool} blocks`
+    : "";
 
   const statusMessage =
     terminalStatus === "won"
@@ -1480,6 +2109,8 @@ export function PlatformerGame({
         ? "Game over — reset to try again"
         : !assetsReady
           ? "Loading level…"
+          : editing
+            ? null
           : !playing
             ? `Click the map or press Play, then use ${controls.replace("Move: ", "")}`
             : null;
@@ -1497,11 +2128,12 @@ export function PlatformerGame({
       data-runtime-tick={initialState.tick}
       data-attack-ticks={initialState.attackTicksRemaining}
       data-death-ticks={initialState.deathTicksRemaining}
+      data-editor-mode={editing ? "true" : undefined}
     >
       <div className={styles.toolbar} aria-label="Game playback controls">
         <div className={styles.buttonGroup}>
           <button className={styles.playbackButton} type="button" onClick={togglePlayback} disabled={!assetsReady}>
-            {playing ? "Ⅱ Pause" : "▶ Play"}
+            {playing ? (editorTool ? "Ⅱ Stop test" : "Ⅱ Pause") : editorTool ? "▶ Test game" : "▶ Play"}
           </button>
           <button type="button" onClick={reset}>
             ↻ Reset
@@ -1510,7 +2142,9 @@ export function PlatformerGame({
             {muted ? "🔇 Muted" : "🔊 Sound"}
           </button>
         </div>
-        <p className={styles.controlHint}>{controls}</p>
+        <p className={styles.controlHint}>
+          {editing ? `Build mode · ${editorInstruction}` : controls}
+        </p>
       </div>
 
       <div className={styles.stage}>
@@ -1518,10 +2152,26 @@ export function PlatformerGame({
           className={styles.canvas}
           ref={canvasRef}
           tabIndex={0}
-          aria-label={`Playable ${map.id} platformer. ${controls.replaceAll(" · ", ". ")}.`}
-          onClick={startFromCanvas}
+          aria-label={
+            editing
+              ? `Editable ${map.id} platformer map. ${editorInstruction}. Use arrow keys to move the editing cursor and Enter or Space to use the selected tool.`
+              : `Playable ${map.id} platformer. ${controls.replaceAll(" · ", ". ")}.`
+          }
+          data-editor-tool={editing ? editorTool : undefined}
+          onClick={editorTool ? () => canvasRef.current?.focus() : startFromCanvas}
           onKeyDown={handleCanvasKeyDown}
+          onPointerDown={handleEditorPointerDown}
+          onPointerMove={handleEditorPointerMove}
+          onPointerUp={finishEditorPointer}
+          onPointerCancel={finishEditorPointer}
+          onPointerLeave={handleEditorPointerLeave}
         />
+        {editing ? (
+          <div className={styles.editorBadge} aria-hidden="true">
+            <span>Build mode</span>
+            <strong>{editorTool ? EDITOR_TOOL_LABELS[editorTool] : "Select"}</strong>
+          </div>
+        ) : null}
         {statusMessage ? (
           <div className={styles.stageMessage} aria-hidden="true">
             <strong>{statusMessage}</strong>
@@ -1530,54 +2180,89 @@ export function PlatformerGame({
       </div>
 
       <div className={styles.controlRow}>
-        <div className={styles.touchControls} aria-label="On-screen movement controls">
-          <button
-            className={styles.keyboardButton}
-            type="button"
-            aria-label="Change movement keys"
-            title="Change movement keys"
-            onClick={showControlsDialog}
-          >
-            <span aria-hidden="true">⌨</span>
-          </button>
-          <button
-            type="button"
-            onPointerDown={() => setPointerInput("left", true)}
-            onPointerUp={() => setPointerInput("left", false)}
-            onPointerCancel={() => setPointerInput("left", false)}
-            onPointerLeave={() => setPointerInput("left", false)}
-          >
-            ← Left
-          </button>
-          <button
-            type="button"
-            onPointerDown={() => setPointerInput("right", true)}
-            onPointerUp={() => setPointerInput("right", false)}
-            onPointerCancel={() => setPointerInput("right", false)}
-            onPointerLeave={() => setPointerInput("right", false)}
-          >
-            Right →
-          </button>
-          <button
-            className={styles.jumpButton}
-            type="button"
-            onPointerDown={() => setPointerInput("jump", true)}
-            onPointerUp={() => setPointerInput("jump", false)}
-            onPointerCancel={() => setPointerInput("jump", false)}
-            onPointerLeave={() => setPointerInput("jump", false)}
-          >
-            ↑ Jump
-          </button>
-          <button
-            className={styles.weaponButton}
-            type="button"
-            onPointerDown={() => setPointerInput("weapon", true)}
-            onPointerUp={() => setPointerInput("weapon", false)}
-            onPointerCancel={() => setPointerInput("weapon", false)}
-            onPointerLeave={() => setPointerInput("weapon", false)}
-          >
-            X Sword
-          </button>
+        {controlRowLeading}
+        <div
+          className={`${styles.touchControls} ${editing ? styles.editorControls : ""}`}
+          aria-label={editing ? "Map control tools" : "On-screen movement controls"}
+        >
+          {editing ? (
+            <>
+            <button
+              type="button"
+              aria-pressed={editorTool === "select"}
+              title="Select a block on the map"
+              onClick={() => onEditorToolChange?.("select")}
+            >
+              ↖ Select
+            </button>
+            <button
+              type="button"
+              aria-pressed={editorTool === "move"}
+              title="Drag the map to see another area"
+              onClick={() => onEditorToolChange?.("move")}
+            >
+              ✋ Move
+            </button>
+            <button
+              type="button"
+              aria-pressed={editorTool === "erase"}
+              title="Drag across blocks to erase them"
+              onClick={() => onEditorToolChange?.("erase")}
+            >
+              × Erase
+            </button>
+            </>
+          ) : (
+            <>
+              <button
+                className={styles.keyboardButton}
+                type="button"
+                aria-label="Change movement keys"
+                title="Change movement keys"
+                onClick={showControlsDialog}
+              >
+                <span aria-hidden="true">⌨</span>
+              </button>
+              <button
+                type="button"
+                onPointerDown={() => setPointerInput("left", true)}
+                onPointerUp={() => setPointerInput("left", false)}
+                onPointerCancel={() => setPointerInput("left", false)}
+                onPointerLeave={() => setPointerInput("left", false)}
+              >
+                ← Left
+              </button>
+              <button
+                type="button"
+                onPointerDown={() => setPointerInput("right", true)}
+                onPointerUp={() => setPointerInput("right", false)}
+                onPointerCancel={() => setPointerInput("right", false)}
+                onPointerLeave={() => setPointerInput("right", false)}
+              >
+                Right →
+              </button>
+              <button
+                className={styles.jumpButton}
+                type="button"
+                onPointerDown={() => setPointerInput("jump", true)}
+                onPointerUp={() => setPointerInput("jump", false)}
+                onPointerCancel={() => setPointerInput("jump", false)}
+                onPointerLeave={() => setPointerInput("jump", false)}
+              >
+                ↑ Jump
+              </button>
+              <button
+                className={styles.weaponButton}
+                type="button"
+                onPointerDown={() => setPointerInput("weapon", true)}
+                onPointerUp={() => setPointerInput("weapon", false)}
+                onPointerCancel={() => setPointerInput("weapon", false)}
+                onPointerLeave={() => setPointerInput("weapon", false)}
+              >
+                X Sword
+              </button>
+            </>
+          )}
         </div>
       </div>
       <dialog
