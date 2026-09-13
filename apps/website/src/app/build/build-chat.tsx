@@ -179,10 +179,11 @@ export function BuildChat() {
   const chatReady =
     setupReady && Boolean(gameIdentity) && !thinking && !pausedBuildTurn;
   const suggestedGameType = displayedGame?.gameType ?? selections.gameType;
-  const suggestedTheme = displayedGame?.theme ?? selections.theme;
+  // Re-rendered below the newest message every turn, so the ideas stay at the
+  // end of the conversation instead of scrolling away with the setup replies.
   const promptSuggestions =
-    suggestedGameType && suggestedTheme
-      ? buildPromptSuggestions(suggestedGameType, suggestedTheme)
+    chatReady && suggestedGameType
+      ? buildPromptSuggestions(suggestedGameType)
       : [];
   const gameNameOptions = buildGameNameOptions(selections);
   const gameTypeReply = setupChoiceReplyFor("gameType", selections.gameType);
@@ -590,17 +591,56 @@ export function BuildChat() {
           </>
         ) : null}
 
-        {thinking ? (
-          <div className={`${styles.cooperPrompt} ${styles.thinkingPrompt}`} role="status">
+        {completionVisible ? (
+          <div className={`${styles.cooperPrompt} ${styles.reply}`}>
             <CooperAvatar />
             <p>
-              Cooper is thinking
-              <span aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </span>
+              <strong>Awesome choices!</strong>
+              Your game is taking shape. Add more ideas or try it out!
             </p>
+          </div>
+        ) : null}
+
+        <div
+          className={styles.chatMessages}
+          role="log"
+          aria-live="polite"
+          aria-label="Messages with Cooper"
+        >
+          {visibleChatHistory.map((turn, index) =>
+            turn.role === "user" ? (
+              <div className={styles.userMessage} key={`${turn.role}-${index}`}>
+                <p>
+                  <strong>You</strong>
+                  {turn.message}
+                </p>
+              </div>
+            ) : (
+              <div className={styles.cooperPrompt} key={`${turn.role}-${index}`}>
+                <CooperAvatar />
+                <p>
+                  <strong className={styles.messageAuthor}>Cooper</strong>
+                  {turn.message}
+                </p>
+              </div>
+            ),
+          )}
+        </div>
+
+        {promptSuggestions.length > 0 ? (
+          <div
+            className={styles.promptSuggestions}
+            aria-label="Ideas to send Cooper"
+          >
+            {promptSuggestions.map((suggestion) => (
+              <button
+                type="button"
+                key={suggestion}
+                onClick={() => sendSuggestedPrompt(suggestion)}
+              >
+                {suggestion}
+              </button>
+            ))}
           </div>
         ) : null}
 
@@ -637,89 +677,25 @@ export function BuildChat() {
           </div>
         ) : null}
 
-        {completionVisible ? (
-          <>
-            <div className={`${styles.cooperPrompt} ${styles.reply}`}>
-              <CooperAvatar />
-              <p>
-                <strong>Awesome choices!</strong>
-                Your game is taking shape. Add more ideas or try it out!
-              </p>
-            </div>
-            <div
-              className={styles.promptSuggestions}
-              aria-label="Ideas to send Cooper"
-            >
-              {promptSuggestions.map((suggestion) => (
-                <button
-                  type="button"
-                  key={suggestion}
-                  onClick={() => sendSuggestedPrompt(suggestion)}
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
-          </>
+        {thinking ? (
+          <div className={`${styles.cooperPrompt} ${styles.thinkingPrompt}`} role="status">
+            <CooperAvatar />
+            <p>
+              Cooper is thinking
+              <span aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+            </p>
+          </div>
         ) : null}
 
-        <div
-          className={styles.chatMessages}
-          role="log"
-          aria-live="polite"
-          aria-label="Messages with Cooper"
-        >
-          {visibleChatHistory.map((turn, index) =>
-            turn.role === "user" ? (
-              <div className={styles.userMessage} key={`${turn.role}-${index}`}>
-                <p>
-                  <strong>You</strong>
-                  {turn.message}
-                </p>
-              </div>
-            ) : (
-              <div className={styles.cooperPrompt} key={`${turn.role}-${index}`}>
-                <CooperAvatar />
-                <p>
-                  <strong className={styles.messageAuthor}>Cooper</strong>
-                  {turn.message}
-                </p>
-              </div>
-            ),
-          )}
-        </div>
         {turnError ? (
           <p className={styles.chatError} role="alert">
             {turnError}
           </p>
         ) : null}
-      </div>
-
-      <div className={styles.selectionSummary} aria-label="Current game choices">
-        <span>Your game so far:</span>
-        <strong className={selections.gameType ? "" : styles.unansweredChoice}>
-          {selections.gameType === "platformer"
-            ? "🎮 Platformer"
-            : selections.gameType === "maze"
-              ? "▦ Maze"
-              : "Choose a game"}
-        </strong>
-        <strong className={selections.theme ? "" : styles.unansweredChoice}>
-          {themes.find((theme) => theme.value === selections.theme)?.icon ?? "◇"}{" "}
-          {themes.find((theme) => theme.value === selections.theme)?.label ?? "Choose a theme"}
-        </strong>
-        <strong className={selections.character ? "" : styles.unansweredChoice}>
-          {selections.character ? "★" : "◇"}{" "}
-          {selections.character === "human" && selections.humanGender
-            ? `Human · ${selections.humanGender === "boy" ? "Boy" : "Girl"}`
-            : heroes.find((hero) => hero.value === selections.character)?.label ??
-              "Choose a hero"}
-        </strong>
-        <strong className={selections.gameName ? "" : styles.unansweredChoice}>
-          {selections.gameName ? "✎" : "◇"}{" "}
-          {selections.gameName ?? "Choose a name"}
-        </strong>
-        <b aria-hidden="true">✦</b>
       </div>
 
       <form

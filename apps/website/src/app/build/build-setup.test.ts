@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { DEFAULT_GAME_DOCUMENT } from "@/lib/game-contract";
+import { PLATFORMER_EDITABLE_PATHS } from "@/lib/game-physics";
 
 import {
   buildGameNameOptions,
@@ -18,37 +19,31 @@ import {
   setupChoiceReplyFor,
 } from "./build-setup-replies";
 
-test("post-setup prompt suggestions match the selected game and theme", () => {
-  assert.deepEqual(buildPromptSuggestions("platformer", "green_hills"), [
+test("post-setup prompt suggestions only ask for physics Cooper can change", () => {
+  assert.deepEqual(buildPromptSuggestions("platformer"), [
     "Add another level",
-    "Reduce the gravity",
-    "Add more hazards",
-    "Add more coins",
-    "Add more enemies",
-  ]);
-  assert.deepEqual(buildPromptSuggestions("maze", "space"), [
-    "Add another level",
-    "Make the maze harder",
-    "Add more hazards",
-    "Add another key",
-    "Add more aliens",
+    "Make me jump higher",
+    "Make me run faster",
+    "Make me fall slower",
+    "Let me fly",
   ]);
 });
 
-test("More fireballs is only suggested for Dragon World", () => {
-  const themes = [
-    "green_hills",
-    "graveyard",
-    "space",
-    "dragon_world",
-  ] as const;
+test("every platformer suggestion has an editable physics path behind it", () => {
+  const editable = new Set(PLATFORMER_EDITABLE_PATHS);
 
-  for (const theme of themes) {
-    assert.equal(
-      buildPromptSuggestions("platformer", theme).includes("More fireballs"),
-      theme === "dragon_world",
-    );
+  for (const path of [
+    "/verticalMovement/groundedJump/jumpHeightTiles",
+    "/movement/maximumRunSpeedTilesPerSecond",
+    "/verticalMovement/groundedJump/maximumFallSpeedTilesPerSecond",
+    "/verticalMovement/mode",
+  ]) {
+    assert.equal(editable.has(path), true, `${path} is no longer editable`);
   }
+});
+
+test("a maze is only offered the level picker, since it ignores the physics document", () => {
+  assert.deepEqual(buildPromptSuggestions("maze"), ["Add another level"]);
 });
 
 test("a new unsaved game has no locked setup answers", () => {

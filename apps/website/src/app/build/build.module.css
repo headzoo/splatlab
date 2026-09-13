@@ -537,50 +537,6 @@
   font-weight: 800;
 }
 
-.selectionSummary {
-  display: flex;
-  min-height: 54px;
-  align-items: center;
-  gap: 8px;
-  margin: 0 14px 9px;
-  padding: 8px 12px;
-  background: #fff;
-  border: 2px solid #cfe0f2;
-  border-radius: 14px;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.selectionSummary strong {
-  padding: 7px 10px;
-  background: #d9f3da;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.selectionSummary strong:nth-of-type(2) {
-  background: #ffd4ca;
-}
-
-.selectionSummary strong:nth-of-type(3) {
-  background: #fff0b5;
-}
-
-.selectionSummary strong:nth-of-type(4) {
-  background: #e5ddff;
-}
-
-.selectionSummary strong.unansweredChoice {
-  color: #60728e;
-  background: #edf2f7;
-}
-
-.selectionSummary b {
-  margin-left: auto;
-  color: #ffbc16;
-  font-size: 24px;
-}
-
 .chatComposer {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) 112px;
@@ -1576,14 +1532,6 @@
 
   .choiceCard {
     min-height: 91px;
-  }
-
-  .selectionSummary {
-    flex-wrap: wrap;
-  }
-
-  .selectionSummary > span {
-    width: 100%;
   }
 
   .chatComposer {

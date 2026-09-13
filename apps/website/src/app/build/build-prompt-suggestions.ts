@@ -1,26 +1,25 @@
-import type { GamePreviewKind, GameTheme } from "@/lib/game-contract";
+import type { GamePreviewKind } from "@/lib/game-contract";
 
 export const ADD_LEVEL_PROMPT = "Add another level";
 
-const THEME_PROMPTS = {
-  green_hills: "Add more enemies",
-  graveyard: "Add more ghosts",
-  space: "Add more aliens",
-  dragon_world: "More fireballs",
-} as const satisfies Record<GameTheme, string>;
+/**
+ * Cooper's only tools are read_game_physics and patch_game_physics, so every
+ * suggestion has to map onto an editable path in PLATFORMER_EDITABLE_FIELDS.
+ * The maze runtime never receives the physics document, so a maze game is only
+ * offered the level picker, which the chat handles without Cooper.
+ */
+const PLATFORMER_PHYSICS_PROMPTS = [
+  "Make me jump higher",
+  "Make me run faster",
+  "Make me fall slower",
+  "Let me fly",
+] as const;
 
 const GAME_TYPE_PROMPTS = {
-  platformer: ["Reduce the gravity", "Add more hazards", "Add more coins"],
-  maze: ["Make the maze harder", "Add more hazards", "Add another key"],
+  platformer: PLATFORMER_PHYSICS_PROMPTS,
+  maze: [],
 } as const satisfies Record<GamePreviewKind, readonly string[]>;
 
-export function buildPromptSuggestions(
-  gameType: GamePreviewKind,
-  theme: GameTheme,
-) {
-  return [
-    ADD_LEVEL_PROMPT,
-    ...GAME_TYPE_PROMPTS[gameType],
-    THEME_PROMPTS[theme],
-  ];
+export function buildPromptSuggestions(gameType: GamePreviewKind) {
+  return [ADD_LEVEL_PROMPT, ...GAME_TYPE_PROMPTS[gameType]];
 }
