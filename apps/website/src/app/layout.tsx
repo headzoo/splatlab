@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "@fontsource/chewy/400.css";
 import "@fontsource/nunito/400.css";
 import "@fontsource/nunito/600.css";
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" data-scroll-behavior="smooth">
       <body>
         <AuthFlowProvider>{children}</AuthFlowProvider>
+        <Analytics />
       </body>
     </html>
   );
