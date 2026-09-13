@@ -75,6 +75,8 @@ export type PlatformerMapSpec = {
   };
   rules: {
     respawnDelaySeconds: number;
+    /** Absent means DEFAULT_STARTING_LIVES. Cooper writes this per game. */
+    startingLives?: number;
   };
   presentation: {
     backgroundId: string;

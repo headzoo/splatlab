@@ -1,4 +1,9 @@
 import type { BuilderChatTurn, GameDocument } from "./game-contract";
+import {
+  applyCooperSpecChange,
+  specChangeIsNoop,
+  type CooperSpecChange,
+} from "./cooper-spec-change";
 import type { GamePhysicsDocument } from "./game-physics";
 
 export type GameHistory = {
@@ -12,6 +17,8 @@ export type GameHistoryAction =
   | { type: "chat"; turns: BuilderChatTurn[] }
   /** Server-owned: Cooper's physics fork is not an undoable local edit. */
   | { type: "physics"; document: GamePhysicsDocument | undefined }
+  /** Cooper's object add/remove, merged in rather than replacing local edits. */
+  | { type: "specChange"; change: CooperSpecChange }
   | { type: "undo" }
   | { type: "redo" };
 
@@ -28,6 +35,7 @@ function withPhysics(spec: GameDocument, document: GamePhysicsDocument | undefin
   if (document) next.physicsDocument = document;
   return next;
 }
+
 
 function sameChatHistory(left: BuilderChatTurn[], right: BuilderChatTurn[]) {
   return (
@@ -159,6 +167,14 @@ export function gameHistoryReducer(
     if (samePhysics(history.present, present)) return history;
 
     return { ...history, present };
+  }
+
+  // Cooper owns this change, so it is folded into the present rather than
+  // pushed as an undo step the kid did not make.
+  if (action.type === "specChange") {
+    if (specChangeIsNoop(history.present, action.change)) return history;
+
+    return { ...history, present: applyCooperSpecChange(history.present, action.change) };
   }
 
   if (action.type === "undo") {

@@ -32,6 +32,7 @@ import {
   type PlatformerLevel,
   type SavedGameDto,
 } from "@/lib/game-contract";
+import { applyCooperSpecChange, specChangeFrom } from "@/lib/cooper-spec-change";
 import { buildGamePath } from "@/lib/game-routes";
 import {
   createGameHistory,
@@ -241,6 +242,9 @@ export function BuildGamePreview({
       ...(persistedBuildTurn.physicsDocument
         ? { physicsDocument: persistedBuildTurn.physicsDocument }
         : {}),
+      ...(persistedBuildTurn.specChange
+        ? applyCooperSpecChange(savedSpec, persistedBuildTurn.specChange)
+        : {}),
     };
 
     identityRef.current = { ...identity, revision: persistedBuildTurn.revision };
@@ -253,6 +257,9 @@ export function BuildGamePreview({
     dispatch({ type: "chat", turns: fallbackServerSpec.builderChatHistory });
     if (persistedBuildTurn.physicsDocument) {
       dispatch({ type: "physics", document: persistedBuildTurn.physicsDocument });
+    }
+    if (persistedBuildTurn.specChange) {
+      dispatch({ type: "specChange", change: persistedBuildTurn.specChange });
     }
 
     void (async () => {
@@ -273,6 +280,7 @@ export function BuildGamePreview({
       latestSpecRef.current = reconciled;
       dispatch({ type: "chat", turns: game.spec.builderChatHistory });
       dispatch({ type: "physics", document: game.spec.physicsDocument });
+      dispatch({ type: "specChange", change: specChangeFrom(game.spec) });
     })();
   }, [persistedBuildTurn]);
 

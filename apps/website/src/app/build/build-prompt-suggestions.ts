@@ -3,20 +3,21 @@ import type { GamePreviewKind } from "@/lib/game-contract";
 export const ADD_LEVEL_PROMPT = "Add another level";
 
 /**
- * Cooper's only tools are read_game_physics and patch_game_physics, so every
- * suggestion has to map onto an editable path in PLATFORMER_EDITABLE_FIELDS.
- * The maze runtime never receives the physics document, so a maze game is only
- * offered the level picker, which the chat handles without Cooper.
+ * Every suggestion has to map onto something Cooper's tools can do: an editable
+ * path in PLATFORMER_EDITABLE_FIELDS, a kind in COOPER_OBJECT_KINDS, or one of
+ * the look and lives tools. The maze runtime receives none of these, so a maze
+ * game is only offered the level picker, which the chat handles without Cooper.
  */
-const PLATFORMER_PHYSICS_PROMPTS = [
+const PLATFORMER_PROMPTS = [
+  "Add more coins",
+  "Add more enemies",
+  "Give me 10 lives",
   "Make me jump higher",
   "Make me run faster",
-  "Make me fall slower",
-  "Let me fly",
 ] as const;
 
 const GAME_TYPE_PROMPTS = {
-  platformer: PLATFORMER_PHYSICS_PROMPTS,
+  platformer: PLATFORMER_PROMPTS,
   maze: [],
 } as const satisfies Record<GamePreviewKind, readonly string[]>;
 

@@ -1,21 +1,27 @@
 import { FLOW_ID, FlowContractError, branchTarget, deterministicCondition, evaluateCondition, nextNode, type CompiledNode } from "./contract";
 import { interpolate } from "./interpolate";
 import { type ModelClient, type ModelMessage, type ModelToolDefinition, type ModelToolOutput, type ModelTurnItem, ModelOutputError } from "./model-client";
+import { ALLOW_ALL_MODERATOR, screenCooperMessage, type ContentModerator } from "./moderation";
 import { getRegisteredFlow } from "./registry";
 import { AgentFlowRunStore, type AgentFlowRun } from "./run-store";
 import { getAgentTool, type ToolExecutionContext } from "./tools/registry";
 import type { BuilderChatTurn } from "../game-contract";
+import type { CooperSpecChange } from "../game-objects";
 import type { GamePhysicsDocument } from "../game-physics";
 
 const VISIBLE_MESSAGE_LIMIT = 500;
-/** An Agent node makes at most one model call plus this many tool follow-ups. */
-const MAX_TOOL_ROUNDS = 2;
+/**
+ * An Agent node makes at most one model call plus this many tool follow-ups.
+ * Cooper reads physics or the level grid, writes, then replies, and sometimes
+ * needs a second read before the write.
+ */
+const MAX_TOOL_ROUNDS = 3;
 type Action = "proceed" | "reject";
 type Budget = { text: number; conditionAgent: number };
 
 export type ExecuteBuildMessageInput = Readonly<{ ownerId: string; gameId: string; message: string; signal?: AbortSignal }>;
 export type ResumeBuildTurnInput = Readonly<{ ownerId: string; gameId: string; action: Action; feedback?: string; signal?: AbortSignal }>;
-export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number; physicsDocument?: GamePhysicsDocument }>;
+export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number; physicsDocument?: GamePhysicsDocument; specChange?: CooperSpecChange }>;
 
 export class BuildExecutionError extends Error {
   constructor(message: string, readonly code: string) {
@@ -23,7 +29,7 @@ export class BuildExecutionError extends Error {
     this.name = "BuildExecutionError";
   }
 }
-export type BuildExecutorDependencies = Readonly<{ modelClient: ModelClient; runStore?: AgentFlowRunStore }>;
+export type BuildExecutorDependencies = Readonly<{ modelClient: ModelClient; runStore?: AgentFlowRunStore; moderator?: ContentModerator }>;
 
 export async function executeBuildMessage(input: ExecuteBuildMessageInput, dependencies: BuildExecutorDependencies): Promise<BuildMessageResult> {
   const registered = getRegisteredFlow(FLOW_ID);
@@ -43,7 +49,7 @@ export async function executeBuildMessage(input: ExecuteBuildMessageInput, depen
   if (started.status === "active_conflict") throw new BuildExecutionError("A build turn is already active", "active_run");
   if (started.status === "stale_running") throw new BuildExecutionError("Previous build turn expired", "stale_running");
   try {
-    return await walk(nextRequired(start), started.run, started.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, started.builderChatHistory, input.signal);
+    return await walk(nextRequired(start), started.run, started.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator ?? ALLOW_ALL_MODERATOR, started.builderChatHistory, input.signal);
   } catch (error) {
     await failBestEffort(store, input, started.run, error);
     throw error;
@@ -73,14 +79,14 @@ export async function resumeBuildTurn(input: ResumeBuildTurnInput, dependencies:
   try {
     const target = registered.flow.nodesById.get(targetId);
     if (!target) throw new FlowContractError("Human Input target is missing");
-    return await walk(target, claimed.run, claimed.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, claimed.builderChatHistory ?? [], input.signal);
+    return await walk(target, claimed.run, claimed.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator ?? ALLOW_ALL_MODERATOR, claimed.builderChatHistory ?? [], input.signal);
   } catch (error) {
     await failBestEffort(store, input, claimed.run, error);
     throw error;
   }
 }
 
-async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, ownerId: string, gameId: string, store: AgentFlowRunStore, client: ModelClient, builderChatHistory: readonly BuilderChatTurn[], signal?: AbortSignal): Promise<BuildMessageResult> {
+async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, ownerId: string, gameId: string, store: AgentFlowRunStore, client: ModelClient, moderator: ContentModerator, builderChatHistory: readonly BuilderChatTurn[], signal?: AbortSignal): Promise<BuildMessageResult> {
   let current: CompiledNode | undefined = node;
   let flowState = { ...run.flowState };
   let flowOutput = String(run.flowOutput ?? "");
@@ -89,6 +95,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
   // Tool writes commit on their own, so an applied patch survives a later
   // Reject or failure. The document rides back so the preview can re-render.
   let physicsDocument: GamePhysicsDocument | undefined;
+  let specChange: CooperSpecChange | undefined;
   const toolContext: ToolExecutionContext = { ownerId, gameId, prompt: run.question, store, signal };
   while (current) {
     if (current.kind === "agentAgentflow" || current.kind === "llmAgentflow") {
@@ -97,6 +104,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
       flowOutput = text.flowOutput;
       flowState = text.flowState;
       physicsDocument = text.physicsDocument ?? physicsDocument;
+      specChange = text.specChange ?? specChange;
       current = nextRequired(current);
     } else if (current.kind === "conditionAgentAgentflow") {
       if (++budget.conditionAgent > 1) throw new BuildExecutionError("Build turn exceeded its condition budget", "execution_budget");
@@ -117,18 +125,20 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
       loopCounts[current.id] = count + 1;
       current = nodeById(current.loopTargetId);
     } else if (current.kind === "directReplyAgentflow") {
-      const cooperMessage = normalizeVisible(interpolate(requiredInput(current, "directReplyMessage"), context(run.question, flowOutput, flowState)), "Direct Reply");
+      const template = requiredInput(current, "directReplyMessage");
+      const cooperMessage = await screenTerminalMessage(template, interpolate(template, context(run.question, flowOutput, flowState)), "Direct Reply", moderator, signal);
       const complete = await store.completeDirectReply({ ownerId, gameId, runId: run.id, expectedRevision: revision, currentNodeId: current.id, flowState, flowOutput, loopCounts, cooperMessage });
       if (complete.status !== "updated" || complete.gameRevision === undefined) throw transitionError(complete.status);
-      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision, physicsDocument };
+      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision, physicsDocument, specChange };
     } else if (current.kind === "humanInputAgentflow") {
-      const cooperMessage = normalizeVisible(interpolate(requiredInput(current, "humanInputDescription"), context(run.question, flowOutput, flowState)), "Human Input");
+      const template = requiredInput(current, "humanInputDescription");
+      const cooperMessage = await screenTerminalMessage(template, interpolate(template, context(run.question, flowOutput, flowState)), "Human Input", moderator, signal);
       const checkpoint = await store.checkpointHumanInput({
         ownerId, gameId, runId: run.id, expectedRevision: revision, currentNodeId: current.id, flowState, flowOutput, loopCounts, cooperPrompt: cooperMessage,
         pendingHumanInput: { nodeId: current.id, branches: current.branches, enableFeedback: current.inputs.humanInputEnableFeedback === true },
       });
       if (checkpoint.status !== "updated" || checkpoint.gameRevision === undefined) throw transitionError(checkpoint.status);
-      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision, physicsDocument };
+      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision, physicsDocument, specChange };
     } else {
       throw new FlowContractError(`Unsupported executable node "${current.kind}"`);
     }
@@ -143,6 +153,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
   let history: readonly ModelTurnItem[] = [];
   let toolOutputs: ModelToolOutput[] | undefined;
   let physicsDocument: GamePhysicsDocument | undefined;
+  let specChange: CooperSpecChange | undefined;
 
   for (let round = 0; ; round += 1) {
     const turn = await client.completeTurn({ messages, tools, history, toolOutputs, signal: toolContext.signal });
@@ -152,6 +163,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
         flowOutput,
         flowState: stateEntries(node, `${prefix}UpdateState` as "agentUpdateState" | "llmUpdateState", question, flowOutput, state),
         physicsDocument,
+        specChange,
       };
     }
     if (round >= MAX_TOOL_ROUNDS) throw new BuildExecutionError("Build turn exceeded its tool budget", "execution_budget");
@@ -164,6 +176,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
       }
       const result = await getAgentTool(call.name).execute(parseToolArguments(call.argumentsJson), toolContext);
       physicsDocument = result.physicsDocument ?? physicsDocument;
+      specChange = result.specChange ?? specChange;
       toolOutputs.push({ callId: call.callId, output: JSON.stringify(result.output) });
     }
   }
@@ -202,7 +215,9 @@ export function modelMessagesForTextNode(node: CompiledNode, question: string, s
   });
   if (node.inputs[`${prefix}EnableMemory`] === true) {
     messages.push(...builderChatHistory
-      .filter((turn) => turn.role !== "user" || turn.message !== userMessage)
+      // Compared against the raw question, not the rendered user message, so a
+      // template that wraps or labels the question still drops its own echo.
+      .filter((turn) => turn.role !== "user" || turn.message !== question)
       .map((turn) => ({
       role: turn.role === "cooper" ? "assistant" as const : "user" as const,
       content: turn.message,
@@ -273,6 +288,16 @@ function normalizeVisible(value: unknown, label: string) {
   const normalized = value.replace(/\s+/g, " ").trim();
   if (!normalized) throw new ModelOutputError(`${label} is empty`);
   return normalized.slice(0, VISIBLE_MESSAGE_LIMIT);
+}
+/**
+ * Screens a terminal message before it reaches the transcript, so flagged text
+ * is never persisted and never replays into a later turn's context. A template
+ * that interpolated to itself carries no model or kid text, so it is already
+ * covered by flow review and skips the provider call.
+ */
+async function screenTerminalMessage(template: string, rendered: string, label: string, moderator: ContentModerator, signal?: AbortSignal) {
+  const drafted = normalizeVisible(rendered, label);
+  return rendered === template ? drafted : screenCooperMessage(drafted, moderator, signal);
 }
 function transitionError(status: "updated" | "not_found" | "conflict") { return new BuildExecutionError("Build run could not be updated", status); }
 async function failBestEffort(store: AgentFlowRunStore, input: { ownerId: string; gameId: string }, run: AgentFlowRun, error: unknown) {

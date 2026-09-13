@@ -195,6 +195,38 @@ test("Cooper's physics document survives undo and redo without becoming an undo 
   assert.equal("physicsDocument" in cleared.present, false);
 });
 
+test("Cooper's objects merge into the present without becoming an undo entry", () => {
+  const cooperCoin = {
+    id: "cooper-coin-1",
+    mapSource: "level-1.json" as const,
+    x: 0,
+    y: 0,
+    kind: "coin" as const,
+  };
+  const kidSpring = {
+    id: "build-platform_spring-abc",
+    mapSource: "level-1.json" as const,
+    x: 2,
+    y: 10,
+    kind: "platform_spring" as const,
+  };
+
+  const initial = createGameHistory({
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerObjectEdits: [kidSpring],
+  });
+  const change = {
+    platformerObjectEdits: [cooperCoin],
+    platformerObjectRemovals: [{ mapSource: "level-1.json" as const, objectId: "coin_18" }],
+  };
+  const merged = gameHistoryReducer(initial, { type: "specChange", change });
+
+  assert.equal(merged.past.length, 0, "Cooper's change is not an undo step");
+  assert.deepEqual(merged.present.platformerObjectEdits, [kidSpring, cooperCoin]);
+  assert.deepEqual(merged.present.platformerObjectRemovals, change.platformerObjectRemovals);
+  assert.equal(gameHistoryReducer(merged, { type: "specChange", change }), merged);
+});
+
 test("documents that differ only by physics are not treated as equal", () => {
   const forked = { ...DEFAULT_GAME_DOCUMENT, physicsDocument: COOPER_PHYSICS };
 

@@ -3,7 +3,9 @@ import test from "node:test";
 
 import starterFlow from "../../../../game/agent-flows/build_agentflow_v1.json";
 
-import { DEFAULT_GAME_DOCUMENT, type BuilderChatTurn } from "../game-contract";
+import { createInitialState } from "../../game/platformer/engine";
+import { activePlayerAssetId, DEFAULT_GAME_DOCUMENT, type BuilderChatTurn } from "../game-contract";
+import { resolveActivePlatformerLevel } from "../game-objects";
 import { CATALOG_PLATFORMER_GAME_PHYSICS } from "../game-physics";
 import { createGame } from "../games";
 import { compileFlow } from "./contract";
@@ -72,6 +74,10 @@ function jumpHeightPatch(value: number, baseRevision = 1) {
 
 function storedPhysics() {
   return globalThis.splatLabGamesMemory?.[0]?.spec.physicsDocument;
+}
+
+function storedSpec() {
+  return globalThis.splatLabGamesMemory?.[0]?.spec;
 }
 
 function resetMemory() {
@@ -159,6 +165,7 @@ test("Ready completes with preserved coordinator output and one call per model n
     runId: result.runId,
     gameRevision: 3,
     physicsDocument: undefined,
+    specChange: undefined,
   });
   assert.equal(model.textCalls, 1);
   assert.equal(model.scenarioCalls, 1);
@@ -309,14 +316,170 @@ test("model failure releases the active run", async () => {
   assert.equal(globalThis.splatLabAgentFlowRunsMemory?.[0]?.activeKey, null);
 });
 
-test("the coordinator Agent node offers exactly the allowlisted physics tools", async () => {
+test("the coordinator Agent node offers exactly the allowlisted tools", async () => {
   const model = new ScriptedToolModel([{ text: "Done.", toolCalls: [], items: [] }]);
   await execute(model);
 
   assert.deepEqual(model.requests[0]?.tools?.map((tool) => tool.name), [
     "read_game_physics",
     "patch_game_physics",
+    "read_game_objects",
+    "add_game_objects",
+    "remove_game_objects",
+    "set_starting_lives",
+    "set_player_character",
+    "set_enemy_appearance",
   ]);
+});
+
+test("asking for ten lives saves it as the level's starting count", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("set_starting_lives", { lives: 10 })], items: [] },
+    { text: "You get ten lives now.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.specChange?.startingLives, 10);
+  assert.equal(storedSpec()?.startingLives, 10);
+
+  const spec = storedSpec();
+  assert.ok(spec);
+  const level = resolveActivePlatformerLevel(spec);
+  assert.ok(level);
+  assert.equal(
+    createInitialState(level.map).lives,
+    10,
+    "the played map, not just the reply, starts the player on ten",
+  );
+});
+
+test("a life count out of range is refused with a reason the model can relay", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("set_starting_lives", { lives: 500 })], items: [] },
+    { text: "That is too many, want ninety-nine?", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.specChange, undefined);
+  assert.equal(storedSpec()?.startingLives, undefined);
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /between 1 and 99/);
+});
+
+test("turning the ghosts into robots repaints them through the whole flow", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game_objects", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+    {
+      text: "",
+      toolCalls: [toolCall("set_enemy_appearance", { look: "neutral_robot_01", fromLook: "neutral_ghost_01", cells: [] })],
+      items: [{ type: "function_call" }],
+    },
+    { text: "The ghosts are robots now.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.cooperMessage, "The ghosts are robots now.");
+  assert.equal(result.specChange?.platformerObjectSettings?.length, 2);
+  assert.deepEqual(
+    storedSpec()?.platformerObjectSettings.map((entry) => entry.assetId),
+    ["neutral_robot_01", "neutral_robot_01"],
+  );
+
+  // The looks and their options reach the model so it never invents an id.
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"enemyLooks"/);
+});
+
+test("changing the hero is saved and rides back to the client", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("set_player_character", { character: "human", gender: "girl" })], items: [] },
+    { text: "You are a human now.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.specChange?.playerCharacter, "human");
+  assert.equal(result.specChange?.humanGender, "girl");
+
+  const spec = storedSpec();
+  assert.ok(spec);
+  assert.equal(spec.playerCharacter, "human");
+  assert.equal(activePlayerAssetId(spec), "neutral_girl_01");
+});
+
+test("reading the level then adding an object saves it and rides back to the client", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game_objects", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+    {
+      text: "",
+      toolCalls: [toolCall("add_game_objects", { placements: [{ kind: "coin", x: 0, y: 0 }, { kind: "enemy", x: 0, y: 10 }] })],
+      items: [{ type: "function_call" }],
+    },
+    { text: "I dropped in a coin and a new enemy.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.status, "replied");
+  assert.equal(result.cooperMessage, "I dropped in a coin and a new enemy.");
+  assert.deepEqual(result.specChange?.platformerObjectEdits, [
+    { id: "cooper-coin-1", mapSource: "level-1.json", x: 0, y: 0, kind: "coin" },
+    { id: "cooper-enemy-1", mapSource: "level-1.json", x: 0, y: 10, kind: "enemy" },
+  ]);
+  assert.deepEqual(storedSpec()?.platformerObjectEdits, result.specChange?.platformerObjectEdits);
+
+  // The grids reach the model, and the reply reports the new totals.
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"terrain":\[/);
+  assert.match(String(model.requests[2]?.toolOutputs?.[0]?.output), /"coin":94/);
+});
+
+test("removing every coin records a removal for each and leaves the spawn alone", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("remove_game_objects", { kind: "coin", cells: [] })], items: [] },
+    { text: "All the coins are gone.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.specChange?.platformerObjectRemovals?.length, 93);
+  assert.equal(storedSpec()?.platformerObjectRemovals.length, 93);
+  assert.equal(
+    storedSpec()?.platformerObjectRemovals.some((removal) => removal.objectId === "spawn_1"),
+    false,
+  );
+});
+
+test("a refused placement still returns a reply and writes nothing", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("add_game_objects", { placements: [{ kind: "enemy", x: 0, y: 0 }] })], items: [] },
+    { text: "That spot has no floor for an enemy to stand on.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.status, "replied");
+  assert.equal(result.specChange, undefined);
+  assert.deepEqual(storedSpec()?.platformerObjectEdits, []);
+  assert.match(
+    String(model.requests[1]?.toolOutputs?.[0]?.output),
+    /"ok":false.*needs solid ground underneath/,
+  );
+});
+
+test("Cooper cannot touch objects in a maze game", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("add_game_objects", { placements: [{ kind: "coin", x: 0, y: 0 }] })], items: [] },
+    { text: "I cannot put coins into a maze yet.", toolCalls: [], items: [] },
+  ]);
+  resetMemory();
+  const game = await createGame("owner-a", {
+    title: "Test maze",
+    spec: { ...DEFAULT_GAME_DOCUMENT, previewKind: "maze" },
+  });
+  const result = await executeBuildMessage(
+    { ownerId: "owner-a", gameId: game.id, message: "Add coins" },
+    { modelClient: model, runStore: new AgentFlowRunStore({ forceMemory: true }) },
+  );
+
+  assert.equal(result.specChange, undefined);
+  assert.match(
+    String(model.requests[1]?.toolOutputs?.[0]?.output),
+    /"ok":false.*only change a platformer this way/,
+  );
 });
 
 test("a patch tool call forks the catalog into the saved game and rides back to the client", async () => {
@@ -391,12 +554,12 @@ test("an Agent node that keeps calling tools stops at the bounded tool budget", 
     toolCalls: [toolCall("read_game_physics", {})],
     items: [] as ModelTurnResult["items"],
   };
-  const model = new ScriptedToolModel([round, round, round]);
+  const model = new ScriptedToolModel([round, round, round, round]);
 
   await assert.rejects(
     () => execute(model),
     (error: unknown) => error instanceof BuildExecutionError && error.code === "execution_budget",
   );
-  assert.equal(model.requests.length, 3);
+  assert.equal(model.requests.length, 4);
   assert.equal(model.scenarioCalls, 0);
 });

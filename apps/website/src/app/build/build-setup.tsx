@@ -27,6 +27,11 @@ import {
   type BuilderChatTurn,
 } from "@/lib/game-contract";
 import {
+  cooperSpecChangeSchema,
+  mergeObjectArrays,
+  type CooperSpecChange,
+} from "@/lib/cooper-spec-change";
+import {
   gamePhysicsDocumentSchema,
   type GamePhysicsDocument,
 } from "@/lib/game-physics";
@@ -166,6 +171,8 @@ export type BuildTurnResult = {
   revision: number;
   /** Present only when Cooper changed this game's physics on this turn. */
   physicsDocument?: GamePhysicsDocument;
+  /** Present only when Cooper added or removed objects on this turn. */
+  specChange?: CooperSpecChange;
 };
 
 export type PersistedBuildTurn = BuildTurnResult & {
@@ -187,11 +194,11 @@ const NON_CHAT_GAME_FIELDS = [
   "setupStep",
   "builderSetupHistory",
   "platformerTerrainEdits",
-  "platformerObjectEdits",
-  "platformerObjectRemovals",
-  "platformerObjectSettings",
-  // `physicsDocument` is deliberately absent: it is server-owned, so the
-  // server's value must survive reconciliation rather than the local copy.
+  // The three object arrays are deliberately absent: Cooper and the level
+  // editor both append to them, so they are unioned below rather than won
+  // outright by either side. `physicsDocument` and `startingLives` are absent
+  // because only the server writes them, so the server's value must survive
+  // reconciliation.
 ] as const satisfies readonly (keyof GameDocument)[];
 
 export function reconcilePersistedGame(
@@ -199,11 +206,12 @@ export function reconcilePersistedGame(
   saved: GameDocument,
   local: GameDocument,
 ): GameDocument {
-  return NON_CHAT_GAME_FIELDS.reduce<GameDocument>((reconciled, field) => (
+  const reconciled = NON_CHAT_GAME_FIELDS.reduce<GameDocument>((carried, field) => (
     JSON.stringify(local[field]) !== JSON.stringify(saved[field])
-      ? { ...reconciled, [field]: local[field] }
-      : reconciled
+      ? { ...carried, [field]: local[field] }
+      : carried
   ), { ...server });
+  return { ...reconciled, ...mergeObjectArrays(server, local) };
 }
 
 export function parseBuildTurnResult(
@@ -234,12 +242,18 @@ export function parseBuildTurnResult(
     : undefined;
   if (physics && !physics.success) return null;
 
+  const objects = "specChange" in body
+    ? cooperSpecChangeSchema.safeParse(body.specChange)
+    : undefined;
+  if (objects && !objects.success) return null;
+
   return {
     status: body.status as BuildTurnResult["status"],
     cooperMessage: body.cooperMessage.trim(),
     runId: body.runId,
     revision,
     ...(physics ? { physicsDocument: physics.data } : {}),
+    ...(objects ? { specChange: objects.data } : {}),
   };
 }
 

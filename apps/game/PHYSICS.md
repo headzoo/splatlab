@@ -247,6 +247,27 @@ window rather than extending it. The Game Editor persists the setting with the
 map and its gameplay preview uses the same delay. Older imported maps without
 the rule default to `2` seconds.
 
+### Per-map starting lives
+
+The same `rules` object carries how many lives the player begins a level with:
+
+```json
+{
+  "rules": {
+    "respawnDelaySeconds": 2,
+    "startingLives": 3
+  }
+}
+```
+
+The allowed range is `1–99`. Because the count lives on the map rather than in
+the running session, it applies to a fresh start and to a restart after a game
+over, not only to the attempt in progress. Maps without the rule default to `3`.
+
+A saved game may override the count for its own copy of the level: the site
+stores it as `startingLives` on the game document and folds it into the map
+before play, so the runtime still reads exactly one place for the value.
+
 ## Maze: `top_down_standard_v1`
 
 ### Movement

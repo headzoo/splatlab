@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { builderChatTurnSchema, gameDocumentSchema, type BuilderChatTurn } from "../game-contract";
 import type { GamePhysicsDocument } from "../game-physics";
+import { applyCooperSpecChange, type CooperSpecChange } from "../cooper-spec-change";
 import { memoryGames, type StoredGame } from "../games";
 import { Prisma } from "@/generated/prisma/client";
 
@@ -128,6 +129,16 @@ export type ApplyPhysicsInput = {
 
 export type ApplyPhysicsResult =
   | { status: "updated"; gameRevision: number; document: GamePhysicsDocument }
+  | { status: "not_found" };
+
+export type ApplySpecChangeInput = {
+  ownerId: string;
+  gameId: string;
+  change: CooperSpecChange;
+};
+
+export type ApplySpecChangeResult =
+  | { status: "updated"; gameRevision: number; change: CooperSpecChange }
   | { status: "not_found" };
 
 export type StartRunResult =
@@ -297,6 +308,34 @@ export class AgentFlowRunStore {
       });
       if (!result.count) throw TRANSCRIPT_CONFLICT;
       return { status: "updated", gameRevision: game.revision + 1, document: clone(input.document) };
+    }));
+  }
+
+  /**
+   * Writes one of Cooper's validated tool changes into `Game.spec` outside the
+   * run lifecycle, so an applied change survives a later Reject or a failed
+   * turn. The kid's own editor writes the same object arrays, so both this and
+   * `updateGame` union rather than overwrite.
+   */
+  async applySpecChange(input: ApplySpecChangeInput): Promise<ApplySpecChangeResult> {
+    if (this.useMemory) {
+      const game = memoryGames().find((item) => item.id === input.gameId && item.ownerId === input.ownerId);
+      if (!game) return { status: "not_found" };
+      game.spec = gameDocumentSchema.parse(applyCooperSpecChange(game.spec, input.change));
+      game.revision += 1;
+      game.updatedAt = new Date();
+      return { status: "updated", gameRevision: game.revision, change: clone(input.change) };
+    }
+    return this.transactionWithTranscriptRetry(() => getPrisma().$transaction(async (tx) => {
+      const game = await tx.game.findFirst({ where: { id: input.gameId, ownerId: input.ownerId } });
+      if (!game) return { status: "not_found" } as ApplySpecChangeResult;
+      const spec = gameDocumentSchema.parse(game.spec);
+      const result = await tx.game.updateMany({
+        where: { id: game.id, revision: game.revision },
+        data: { spec: applyCooperSpecChange(spec, input.change), revision: { increment: 1 } },
+      });
+      if (!result.count) throw TRANSCRIPT_CONFLICT;
+      return { status: "updated", gameRevision: game.revision + 1, change: clone(input.change) };
     }));
   }
 

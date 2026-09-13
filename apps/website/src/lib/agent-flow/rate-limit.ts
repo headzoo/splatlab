@@ -6,9 +6,21 @@ export const AGENTFLOW_RATE_LIMIT_WINDOW_MS = 60_000;
 export const AGENTFLOW_RATE_LIMIT_MAX = 6;
 export const AGENTFLOW_RATE_LIMIT_KEY_PREFIX = "agentflow:build-turn:";
 
+/**
+ * A spend ceiling rather than an abuse control. The burst window alone allows
+ * roughly 8,600 model-bearing turns a day per owner, so this is what actually
+ * bounds what one account can cost. The window runs 24h from an owner's first
+ * turn, not from midnight.
+ */
+export const AGENTFLOW_DAILY_LIMIT_WINDOW_MS = 24 * 60 * 60_000;
+export const AGENTFLOW_DAILY_LIMIT_MAX = 120;
+export const AGENTFLOW_DAILY_LIMIT_KEY_PREFIX = "agentflow:build-turn-daily:";
+
+export type RateLimitScope = "burst" | "daily";
+
 export type RateLimitConsumeResult =
   | Readonly<{ allowed: true }>
-  | Readonly<{ allowed: false; retryAfterSeconds: number }>;
+  | Readonly<{ allowed: false; scope: RateLimitScope; retryAfterSeconds: number }>;
 
 type MemoryRateLimitEntry = {
   key: string;
@@ -29,28 +41,45 @@ export function agentflowRateLimitKey(ownerId: string): string {
   return `${AGENTFLOW_RATE_LIMIT_KEY_PREFIX}${ownerId}`;
 }
 
-function retryAfterSeconds(lastRequestMs: number, nowMs: number): number {
-  const remainingMs = lastRequestMs + AGENTFLOW_RATE_LIMIT_WINDOW_MS - nowMs;
+export function agentflowDailyLimitKey(ownerId: string): string {
+  return `${AGENTFLOW_DAILY_LIMIT_KEY_PREFIX}${ownerId}`;
+}
+
+type WindowConfig = Readonly<{ key: string; windowMs: number; max: number; scope: RateLimitScope }>;
+
+function windowsFor(ownerId: string): readonly WindowConfig[] {
+  // Burst is consumed first so a daily-capped owner does not also burn a daily
+  // slot, and a burst-limited owner only spends a slot that resets in a minute.
+  return [
+    { key: agentflowRateLimitKey(ownerId), windowMs: AGENTFLOW_RATE_LIMIT_WINDOW_MS, max: AGENTFLOW_RATE_LIMIT_MAX, scope: "burst" },
+    { key: agentflowDailyLimitKey(ownerId), windowMs: AGENTFLOW_DAILY_LIMIT_WINDOW_MS, max: AGENTFLOW_DAILY_LIMIT_MAX, scope: "daily" },
+  ];
+}
+
+function retryAfterSeconds(lastRequestMs: number, nowMs: number, windowMs: number): number {
+  const remainingMs = lastRequestMs + windowMs - nowMs;
   return Math.max(1, Math.ceil(remainingMs / 1_000));
 }
 
 function consumeFixedWindow(
   existing: { count: number; lastRequest: number } | undefined,
   nowMs: number,
+  window: WindowConfig,
 ): { next: { count: number; lastRequest: number }; result: RateLimitConsumeResult } {
-  if (!existing || nowMs - existing.lastRequest >= AGENTFLOW_RATE_LIMIT_WINDOW_MS) {
+  if (!existing || nowMs - existing.lastRequest >= window.windowMs) {
     return {
       next: { count: 1, lastRequest: nowMs },
       result: { allowed: true },
     };
   }
 
-  if (existing.count >= AGENTFLOW_RATE_LIMIT_MAX) {
+  if (existing.count >= window.max) {
     return {
       next: existing,
       result: {
         allowed: false,
-        retryAfterSeconds: retryAfterSeconds(existing.lastRequest, nowMs),
+        scope: window.scope,
+        retryAfterSeconds: retryAfterSeconds(existing.lastRequest, nowMs, window.windowMs),
       },
     };
   }
@@ -73,33 +102,36 @@ export class AgentflowRateLimiter {
   }
 
   async consume(ownerId: string): Promise<RateLimitConsumeResult> {
-    const key = agentflowRateLimitKey(ownerId);
-    if (this.useMemory) {
-      return this.consumeMemory(key);
+    for (const window of windowsFor(ownerId)) {
+      const result = this.useMemory
+        ? this.consumeMemory(window)
+        : await this.consumeDatabase(window);
+      if (!result.allowed) return result;
     }
-    return this.consumeDatabase(key);
+    return { allowed: true };
   }
 
-  private consumeMemory(key: string): RateLimitConsumeResult {
+  private consumeMemory(window: WindowConfig): RateLimitConsumeResult {
     const nowMs = Date.now();
     const entries = memoryEntries();
-    const index = entries.findIndex((entry) => entry.key === key);
+    const index = entries.findIndex((entry) => entry.key === window.key);
     const existing = index >= 0 ? entries[index] : undefined;
-    const { next, result } = consumeFixedWindow(existing, nowMs);
+    const { next, result } = consumeFixedWindow(existing, nowMs, window);
 
     if (index >= 0) {
-      entries[index] = { key, ...next };
+      entries[index] = { key: window.key, ...next };
     } else {
-      entries.push({ key, ...next });
+      entries.push({ key: window.key, ...next });
     }
 
     return result;
   }
 
-  private async consumeDatabase(key: string): Promise<RateLimitConsumeResult> {
+  private async consumeDatabase(window: WindowConfig): Promise<RateLimitConsumeResult> {
+    const { key } = window;
     const nowMs = Date.now();
     const prisma = getPrisma();
-    const windowStartMs = nowMs - AGENTFLOW_RATE_LIMIT_WINDOW_MS;
+    const windowStartMs = nowMs - window.windowMs;
 
     const consumed = await prisma.$queryRaw<Array<{ count: number; lastRequest: bigint }>>`
       INSERT INTO "rate_limit" ("id", "key", "count", "last_request")
@@ -115,7 +147,7 @@ export class AgentflowRateLimiter {
           ELSE "rate_limit"."last_request"
         END
       WHERE "rate_limit"."last_request" <= ${BigInt(windowStartMs)}
-         OR "rate_limit"."count" < ${AGENTFLOW_RATE_LIMIT_MAX}
+         OR "rate_limit"."count" < ${window.max}
       RETURNING "count", "last_request" AS "lastRequest"
     `;
     if (consumed.length === 1) return { allowed: true };
@@ -130,7 +162,8 @@ export class AgentflowRateLimiter {
     }
     return {
       allowed: false,
-      retryAfterSeconds: retryAfterSeconds(Number(existing.lastRequest), nowMs),
+      scope: window.scope,
+      retryAfterSeconds: retryAfterSeconds(Number(existing.lastRequest), nowMs, window.windowMs),
     };
   }
 }

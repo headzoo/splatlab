@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { CooperSpecChange } from "../game-objects";
 import type { GamePhysicsDocument } from "../game-physics";
 
 const visibleText = z.string().trim().min(1).max(500);
@@ -32,4 +33,6 @@ export type BuildTurnResponseBody = Readonly<{
   runId: string;
   /** Present only when this turn changed the game's physics. */
   physicsDocument?: GamePhysicsDocument;
+  /** Present only when this turn added or removed objects. */
+  specChange?: CooperSpecChange;
 }>;

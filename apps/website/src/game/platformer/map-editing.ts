@@ -206,6 +206,18 @@ function defaultObjectForKind(
   };
 }
 
+/**
+ * Folds this game's starting life count into the map, so the engine keeps
+ * reading one place for it and the number really is the map's start count.
+ */
+export function applyPlatformerRules(
+  map: PlatformerMapSpec,
+  startingLives: number | undefined,
+): PlatformerMapSpec {
+  if (startingLives === undefined || map.rules.startingLives === startingLives) return map;
+  return { ...map, rules: { ...map.rules, startingLives } };
+}
+
 export function applyPlatformerObjectEdits(
   map: PlatformerMapSpec,
   mapSource: PlatformerMapSource,
@@ -297,16 +309,16 @@ export function erasePlatformerObjectsAtCells(
     return { edits: [...edits], removals: [...removals], settings: [...settings] };
   }
 
-  const baseIds = new Set(baseMap.objects.map((object) => object.id));
   const nextEdits = edits.filter((edit) => !erasedIds.has(edit.id));
   const nextRemovals = new Map(
     removals.map((removal) => [`${removal.mapSource}:${removal.objectId}`, removal]),
   );
+  // Every erased id is recorded, not just ids authored in the base map. A
+  // builder-added object also needs a removal, because the same arrays are
+  // unioned with the server's copy and dropping the edit alone would let
+  // Cooper's stored version come back.
   for (const objectId of erasedIds) {
-    if (baseIds.has(objectId)) {
-      const removal = { mapSource, objectId };
-      nextRemovals.set(`${mapSource}:${objectId}`, removal);
-    }
+    nextRemovals.set(`${mapSource}:${objectId}`, { mapSource, objectId });
   }
   return {
     edits: nextEdits,

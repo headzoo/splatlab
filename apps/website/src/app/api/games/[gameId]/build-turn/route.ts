@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { processBuildTurn } from "@/lib/agent-flow/build-turn-service";
 import { buildTurnInputSchema } from "@/lib/agent-flow/http-contract";
 import { OpenAIResponsesModelClient } from "@/lib/agent-flow/openai-model-client";
+import { createContentModerator } from "@/lib/agent-flow/openai-moderation-client";
+import type { ContentModerator } from "@/lib/agent-flow/moderation";
 import { auth } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -15,10 +17,16 @@ type RouteContext = {
 };
 
 let modelClient: OpenAIResponsesModelClient | undefined;
+let moderator: ContentModerator | undefined;
 
 function getModelClient(): OpenAIResponsesModelClient {
   modelClient ??= new OpenAIResponsesModelClient();
   return modelClient;
+}
+
+function getModerator(): ContentModerator {
+  moderator ??= createContentModerator();
+  return moderator;
 }
 
 function noStoreHeaders(): Headers {
@@ -53,7 +61,7 @@ export async function POST(request: Request, context: RouteContext) {
         gameId,
         input: parsed.data,
       },
-      { modelClient: getModelClient },
+      { modelClient: getModelClient, moderator: getModerator() },
     );
 
     if (result.kind === "error") {

@@ -20,6 +20,9 @@ export const FIXED_DELTA_SECONDS = 1 / FIXED_TICK_RATE;
 export const MAX_CATCH_UP_STEPS = 5;
 export const MAX_FRAME_DELTA_SECONDS = 0.25;
 export const BOSS_HIT_REACTION_TICKS = FIXED_TICK_RATE / 2;
+export const DEFAULT_STARTING_LIVES = 3;
+export const MINIMUM_STARTING_LIVES = 1;
+export const MAXIMUM_STARTING_LIVES = 99;
 export const DEFAULT_DEATH_RESPAWN_DELAY_SECONDS = 2;
 export const MINIMUM_DEATH_RESPAWN_DELAY_SECONDS = 0.5;
 export const MAXIMUM_DEATH_RESPAWN_DELAY_SECONDS = 10;
@@ -83,6 +86,13 @@ export function resolveEnemyFacingDirection(
   enemy: Pick<EnemyState, "direction">,
 ) {
   return enemy.direction;
+}
+
+export function resolveStartingLives(map: PlatformerMapSpec) {
+  const configured = map.rules?.startingLives;
+  return Number.isFinite(configured)
+    ? clamp(Math.round(configured as number), MINIMUM_STARTING_LIVES, MAXIMUM_STARTING_LIVES)
+    : DEFAULT_STARTING_LIVES;
 }
 
 export function resolveDeathRespawnDelayTicks(map: PlatformerMapSpec) {
@@ -709,7 +719,7 @@ export function createInitialState(map: PlatformerMapSpec): PlatformerState {
     extraLifeCollectedAtTick: {},
     springCompressedAtTick: {},
     score: 0,
-    lives: 3,
+    lives: resolveStartingLives(map),
     status: "playing",
     enemies: map.objects
       .filter((object) => object.type === "enemy_spawn")

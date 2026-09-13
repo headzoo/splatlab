@@ -1,0 +1,563 @@
+import { GAME_PLAYER_CONTENT } from "../game/game-player-content";
+import { gameCampaignMaps } from "../game/game-levels";
+import {
+  applyPlatformerObjectEdits,
+  applyPlatformerRules,
+  applyPlatformerTerrainEdits,
+  platformerObjectAtCell,
+  platformerObjectKind,
+  platformerTerrainKindAt,
+} from "../game/platformer/map-editing";
+import { charactersFor } from "../game/platformer/character-catalog";
+import {
+  DEFAULT_STARTING_LIVES,
+  MAXIMUM_STARTING_LIVES,
+  MINIMUM_STARTING_LIVES,
+  resolveStartingLives,
+} from "../game/platformer/engine";
+import type { PlatformerMapSpec } from "../game/platformer/types";
+import {
+  PLATFORMER_OBJECT_KINDS,
+  type GameDocument,
+  type PlatformerMapSource,
+  type PlatformerObjectEdit,
+  type PlatformerObjectKind,
+  type PlatformerObjectSettings,
+  type PlatformerTerrainKind,
+} from "./game-contract";
+import type { CooperSpecChange } from "./cooper-spec-change";
+
+export type { CooperSpecChange } from "./cooper-spec-change";
+
+/**
+ * The kinds Cooper may add or remove. `spawn` and `goal` are deliberately
+ * absent: a level with no spawn or no goal cannot be played or finished, and a
+ * second one of either is meaningless.
+ */
+export const COOPER_OBJECT_KINDS = [
+  "coin",
+  "extra_life",
+  "platform_spring",
+  "enemy",
+  "boss",
+  "flying_object",
+  "checkpoint",
+] as const satisfies readonly PlatformerObjectKind[];
+
+export type CooperObjectKind = (typeof COOPER_OBJECT_KINDS)[number];
+
+/** Kinds that stand on a surface, so they need solid terrain directly below. */
+const GROUNDED_OBJECT_KINDS = new Set<CooperObjectKind>([
+  "enemy",
+  "boss",
+  "platform_spring",
+  "checkpoint",
+]);
+
+const SUPPORTING_TERRAIN_KINDS = new Set<PlatformerTerrainKind>([
+  "ground",
+  "platform",
+  "obstacle",
+]);
+
+export const MAX_PLACEMENTS_PER_CALL = 24;
+export const MAX_OBJECTS_PER_LEVEL = 400;
+/** Mirrors the `.max(1000)` bound on each array in `gameDocumentSchema`. */
+const MAX_STORED_ENTRIES = 1000;
+
+const OBJECT_GRID_SYMBOLS: Record<PlatformerObjectKind, string> = {
+  spawn: "P",
+  coin: "c",
+  extra_life: "x",
+  platform_spring: "s",
+  enemy: "e",
+  boss: "B",
+  flying_object: "f",
+  checkpoint: "k",
+  goal: "G",
+};
+
+const EMPTY_OBJECT_CELL = ".";
+
+/** Words Cooper can say to a kid, rather than the schema's snake_case kinds. */
+const KIND_LABELS: Record<CooperObjectKind, { one: string; many: string }> = {
+  coin: { one: "coin", many: "coins" },
+  extra_life: { one: "extra life", many: "extra lives" },
+  platform_spring: { one: "spring", many: "springs" },
+  enemy: { one: "enemy", many: "enemies" },
+  boss: { one: "boss", many: "bosses" },
+  flying_object: { one: "flying thing", many: "flying things" },
+  checkpoint: { one: "checkpoint", many: "checkpoints" },
+};
+
+export const OBJECT_GRID_LEGEND: Readonly<Record<string, string>> = Object.freeze({
+  [EMPTY_OBJECT_CELL]: "nothing",
+  ...Object.fromEntries(
+    PLATFORMER_OBJECT_KINDS.map((kind) => [OBJECT_GRID_SYMBOLS[kind], kind]),
+  ),
+});
+
+export class GameObjectEditError extends Error {
+  /** Short, kid-safe explanation Cooper can repeat in chat. */
+  readonly reason: string;
+
+  constructor(reason: string, detail?: string) {
+    super(detail ? `${reason} (${detail})` : reason);
+    this.name = "GameObjectEditError";
+    this.reason = reason;
+  }
+}
+
+export function isCooperObjectKind(value: unknown): value is CooperObjectKind {
+  return typeof value === "string"
+    && (COOPER_OBJECT_KINDS as readonly string[]).includes(value);
+}
+
+export type ActivePlatformerLevel = Readonly<{
+  mapSource: PlatformerMapSource;
+  label: string;
+  /** The map as played: catalog map plus this game's terrain and object edits. */
+  map: PlatformerMapSpec;
+}>;
+
+/**
+ * The level the builder is currently showing, composed the same way
+ * `GamePlayer` composes it, so Cooper reads exactly what the kid can see.
+ */
+export function resolveActivePlatformerLevel(
+  spec: GameDocument,
+): ActivePlatformerLevel | null {
+  if (spec.previewKind !== "platformer") return null;
+
+  const campaignMaps = gameCampaignMaps(spec, GAME_PLAYER_CONTENT.maps);
+  const active = campaignMaps.find(
+    (candidate) => candidate.source === spec.platformerMapSource,
+  ) ?? campaignMaps[0];
+  if (!active) return null;
+
+  const map = applyPlatformerRules(
+    applyPlatformerObjectEdits(
+      applyPlatformerTerrainEdits(active.map, active.source, spec.platformerTerrainEdits),
+      active.source,
+      spec.platformerObjectEdits,
+      spec.platformerObjectRemovals,
+      spec.platformerObjectSettings,
+    ),
+    spec.startingLives,
+  );
+
+  return { mapSource: active.source, label: active.label, map };
+}
+
+function terrainRows(map: PlatformerMapSpec): string[] {
+  return map.layers.find((layer) => layer.id === "terrain")?.rows ?? [];
+}
+
+/**
+ * The grids Cooper reads before choosing cells: the authored terrain rows, and
+ * a parallel grid of one symbol per object. Object ids are deliberately not
+ * listed -- a level carries around a hundred of them, nearly all coins.
+ */
+export function describeLevel(level: ActivePlatformerLevel) {
+  const { map } = level;
+  const { columns, rows } = map.size;
+  const grid = Array.from({ length: rows }, () => new Array<string>(columns).fill(EMPTY_OBJECT_CELL));
+  const counts: Partial<Record<PlatformerObjectKind, number>> = {};
+
+  for (const object of map.objects) {
+    const kind = platformerObjectKind(object);
+    counts[kind] = (counts[kind] ?? 0) + 1;
+    const x = Math.floor(object.x);
+    const y = Math.floor(object.y);
+    if (x < 0 || y < 0 || x >= columns || y >= rows) continue;
+    grid[y][x] = OBJECT_GRID_SYMBOLS[kind];
+  }
+
+  return {
+    level: { mapSource: level.mapSource, label: level.label, columns, rows },
+    startingLives: resolveStartingLives(map),
+    characters: describeCharacters(level),
+    terrainLegend: Object.fromEntries(
+      Object.entries(map.legend).map(([symbol, entry]) => [
+        symbol,
+        `${entry.visualSlot} (${entry.collision})`,
+      ]),
+    ),
+    terrain: terrainRows(map),
+    objectLegend: OBJECT_GRID_LEGEND,
+    objects: grid.map((row) => row.join("")),
+    counts,
+    addableKinds: COOPER_OBJECT_KINDS,
+    limits: {
+      maxPerCall: MAX_PLACEMENTS_PER_CALL,
+      maxObjectsPerLevel: MAX_OBJECTS_PER_LEVEL,
+    },
+  };
+}
+
+/** Both planners always write both arrays, so callers never see `undefined`. */
+export type ObjectArrayChange = CooperSpecChange
+  & Required<Pick<CooperSpecChange, "platformerObjectEdits" | "platformerObjectRemovals">>;
+
+export type ObjectPlacementRequest = Readonly<{ kind: string; x: number; y: number }>;
+export type ObjectCellRequest = Readonly<{ x: number; y: number }>;
+
+function assertCell(level: ActivePlatformerLevel, x: number, y: number) {
+  const { columns, rows } = level.map.size;
+  if (!Number.isInteger(x) || !Number.isInteger(y)) {
+    throw new GameObjectEditError(
+      "Those spots need to be whole numbers on the grid.",
+      `non-integer cell ${x},${y}`,
+    );
+  }
+  if (x < 0 || y < 0 || x >= columns || y >= rows) {
+    throw new GameObjectEditError(
+      `That spot is outside the level. It is ${columns} wide and ${rows} tall.`,
+      `out of bounds ${x},${y}`,
+    );
+  }
+}
+
+/**
+ * Continues the `cooper-<kind>-<n>` sequence already present in the game, so
+ * the same request always produces the same ids and tests need no clock stub.
+ */
+function nextIdFactory(spec: GameDocument, level: ActivePlatformerLevel) {
+  const taken = [
+    ...spec.platformerObjectEdits.map((edit) => edit.id),
+    ...level.map.objects.map((object) => object.id),
+  ];
+  const highest = new Map<string, number>();
+  for (const id of taken) {
+    const match = /^cooper-([a-z_]+)-(\d+)$/.exec(id);
+    if (!match) continue;
+    const current = highest.get(match[1]) ?? 0;
+    highest.set(match[1], Math.max(current, Number(match[2])));
+  }
+  return (kind: CooperObjectKind) => {
+    const next = (highest.get(kind) ?? 0) + 1;
+    highest.set(kind, next);
+    return `cooper-${kind}-${next}`;
+  };
+}
+
+/**
+ * Validates every requested cell before producing the next edits array. Fails
+ * closed: one bad cell rejects the whole call rather than silently relocating
+ * an object or dropping it.
+ */
+export function planObjectAdditions(
+  spec: GameDocument,
+  level: ActivePlatformerLevel,
+  placements: readonly ObjectPlacementRequest[],
+): ObjectArrayChange & { added: readonly PlatformerObjectEdit[] } {
+  if (placements.length === 0) {
+    throw new GameObjectEditError("Cooper needs to know what to add and where.");
+  }
+  if (placements.length > MAX_PLACEMENTS_PER_CALL) {
+    throw new GameObjectEditError(
+      `Cooper can only add ${MAX_PLACEMENTS_PER_CALL} things at a time.`,
+      `requested ${placements.length}`,
+    );
+  }
+  if (level.map.objects.length + placements.length > MAX_OBJECTS_PER_LEVEL) {
+    throw new GameObjectEditError(
+      "This level is already too full to add more.",
+      `${level.map.objects.length} objects plus ${placements.length}`,
+    );
+  }
+
+  const nextId = nextIdFactory(spec, level);
+  const claimed = new Set<string>();
+  const added: PlatformerObjectEdit[] = [];
+
+  for (const placement of placements) {
+    const { kind, x, y } = placement;
+    if (!isCooperObjectKind(kind)) {
+      throw new GameObjectEditError(
+        `Cooper cannot add a "${kind}".`,
+        `unsupported kind ${kind}`,
+      );
+    }
+    assertCell(level, x, y);
+
+    const cell = `${x},${y}`;
+    if (claimed.has(cell)) {
+      throw new GameObjectEditError(
+        "Cooper tried to put two things in the same spot.",
+        `duplicate cell ${cell}`,
+      );
+    }
+    claimed.add(cell);
+
+    const terrain = platformerTerrainKindAt(level.map, x, y);
+    if (terrain !== "empty") {
+      throw new GameObjectEditError(
+        `That spot is not empty, it is ${terrain}. Pick an open space.`,
+        `cell ${cell} is ${terrain}`,
+      );
+    }
+    if (platformerObjectAtCell(level.map, x, y)) {
+      throw new GameObjectEditError(
+        "Something is already in that spot.",
+        `cell ${cell} is occupied`,
+      );
+    }
+    if (GROUNDED_OBJECT_KINDS.has(kind)) {
+      const below = y + 1 < level.map.size.rows
+        ? platformerTerrainKindAt(level.map, x, y + 1)
+        : "empty";
+      if (!SUPPORTING_TERRAIN_KINDS.has(below)) {
+        throw new GameObjectEditError(
+          `A ${KIND_LABELS[kind].one} needs solid ground underneath it.`,
+          `cell ${cell} has ${below} below`,
+        );
+      }
+    }
+
+    added.push({ id: nextId(kind), mapSource: level.mapSource, x, y, kind });
+  }
+
+  const platformerObjectEdits = [...spec.platformerObjectEdits, ...added];
+  if (platformerObjectEdits.length > MAX_STORED_ENTRIES) {
+    throw new GameObjectEditError(
+      "This game has too many changes saved to add more.",
+      `${platformerObjectEdits.length} edits`,
+    );
+  }
+
+  return {
+    platformerObjectEdits,
+    platformerObjectRemovals: spec.platformerObjectRemovals,
+    added,
+  };
+}
+
+/**
+ * Removes by cell, or every object of a kind when no cells are given, so
+ * "remove all the coins" is one call rather than ninety coordinates.
+ */
+export function planObjectRemovals(
+  spec: GameDocument,
+  level: ActivePlatformerLevel,
+  kind: string,
+  cells: readonly ObjectCellRequest[],
+): ObjectArrayChange & { removedCount: number } {
+  if (!isCooperObjectKind(kind)) {
+    throw new GameObjectEditError(
+      `Cooper cannot remove a "${kind}".`,
+      `unsupported kind ${kind}`,
+    );
+  }
+  if (cells.length > MAX_PLACEMENTS_PER_CALL) {
+    throw new GameObjectEditError(
+      `Cooper can only remove ${MAX_PLACEMENTS_PER_CALL} things at a time.`,
+      `requested ${cells.length}`,
+    );
+  }
+
+  const targetIds = new Set<string>();
+
+  if (cells.length === 0) {
+    for (const object of level.map.objects) {
+      if (platformerObjectKind(object) === kind) targetIds.add(object.id);
+    }
+    if (targetIds.size === 0) {
+      throw new GameObjectEditError(`There are no ${KIND_LABELS[kind].many} in this level.`);
+    }
+  } else {
+    for (const { x, y } of cells) {
+      assertCell(level, x, y);
+      const object = platformerObjectAtCell(level.map, x, y);
+      if (!object || platformerObjectKind(object) !== kind) {
+        throw new GameObjectEditError(
+          `There is no ${KIND_LABELS[kind].one} in that spot.`,
+          `cell ${x},${y}`,
+        );
+      }
+      targetIds.add(object.id);
+    }
+  }
+
+  const removals = new Map(
+    spec.platformerObjectRemovals.map((removal) => [
+      `${removal.mapSource}:${removal.objectId}`,
+      removal,
+    ]),
+  );
+  for (const objectId of targetIds) {
+    removals.set(`${level.mapSource}:${objectId}`, {
+      mapSource: level.mapSource,
+      objectId,
+    });
+  }
+
+  const platformerObjectRemovals = [...removals.values()];
+  if (platformerObjectRemovals.length > MAX_STORED_ENTRIES) {
+    throw new GameObjectEditError(
+      "This game has too many changes saved to remove more.",
+      `${platformerObjectRemovals.length} removals`,
+    );
+  }
+
+  return {
+    // A removal already suppresses a matching edit, but dropping the edit keeps
+    // the saved game from growing a pair of entries that cancel each other out.
+    platformerObjectEdits: spec.platformerObjectEdits.filter(
+      (edit) => !(edit.mapSource === level.mapSource && targetIds.has(edit.id)),
+    ),
+    platformerObjectRemovals,
+    removedCount: targetIds.size,
+  };
+}
+
+
+/**
+ * Every enemy and boss with the look it is wearing right now, plus the looks
+ * this level's art set offers. A level holds only a handful of these, so they
+ * are listed in full and Cooper can answer "change the ghosts to robots"
+ * without guessing an asset id.
+ */
+export function describeCharacters(level: ActivePlatformerLevel) {
+  const backgroundId = level.map.presentation.backgroundId;
+  const labelFor = (role: "enemy" | "boss", look: string) =>
+    charactersFor(backgroundId, role).find((option) => option.value === look)?.label ?? look;
+
+  return {
+    inLevel: level.map.objects
+      .filter((object) => object.type === "enemy_spawn")
+      .map((object) => {
+        const role = object.role === "boss" ? ("boss" as const) : ("enemy" as const);
+        const look = object.assetId ?? "";
+        return {
+          x: Math.floor(object.x),
+          y: Math.floor(object.y),
+          role,
+          look,
+          label: labelFor(role, look),
+        };
+      }),
+    enemyLooks: charactersFor(backgroundId, "enemy"),
+    bossLooks: charactersFor(backgroundId, "boss"),
+  };
+}
+
+/**
+ * Repaints enemies and bosses. Named cells are repainted, and an empty cell
+ * list repaints every enemy or boss whose look matches `fromLook`, or all of
+ * them when `fromLook` is blank. The look must come from this level's art set,
+ * because an unknown asset id renders as a default ghost rather than failing.
+ */
+export function planAppearanceChange(
+  spec: GameDocument,
+  level: ActivePlatformerLevel,
+  look: string,
+  fromLook: string,
+  cells: readonly ObjectCellRequest[],
+): Required<Pick<CooperSpecChange, "platformerObjectSettings">>
+  & { changed: readonly { x: number; y: number; look: string }[] } {
+  const backgroundId = level.map.presentation.backgroundId;
+  const allowed = [
+    ...charactersFor(backgroundId, "enemy"),
+    ...charactersFor(backgroundId, "boss"),
+  ];
+  const chosen = allowed.find((option) => option.value === look);
+  if (!chosen) {
+    throw new GameObjectEditError(
+      `Cooper cannot use that look here. This level can use: ${allowed.map((option) => option.label).join(", ")}.`,
+      `unknown look ${look} for ${backgroundId}`,
+    );
+  }
+  if (cells.length > MAX_PLACEMENTS_PER_CALL) {
+    throw new GameObjectEditError(
+      `Cooper can only change ${MAX_PLACEMENTS_PER_CALL} of them at a time.`,
+      `requested ${cells.length}`,
+    );
+  }
+
+  const characters = level.map.objects.filter((object) => object.type === "enemy_spawn");
+  const targets = cells.length === 0
+    ? characters.filter((object) => !fromLook || object.assetId === fromLook)
+    : cells.map(({ x, y }) => {
+      assertCell(level, x, y);
+      const object = platformerObjectAtCell(level.map, x, y);
+      if (!object || object.type !== "enemy_spawn") {
+        throw new GameObjectEditError(
+          "There is no enemy or boss in that spot.",
+          `cell ${x},${y}`,
+        );
+      }
+      return object;
+    });
+
+  if (targets.length === 0) {
+    throw new GameObjectEditError(
+      fromLook
+        ? "There is nothing in this level with that look."
+        : "This level has no enemies or bosses to change.",
+      `fromLook ${fromLook || "(any)"}`,
+    );
+  }
+
+  // A boss look on a plain enemy, or the reverse, would draw with the wrong
+  // sheet geometry, so the role has to match the table the look came from.
+  const isBossLook = charactersFor(backgroundId, "boss")
+    .some((option) => option.value === look);
+  for (const object of targets) {
+    const isBoss = object.role === "boss";
+    if (isBoss !== isBossLook) {
+      throw new GameObjectEditError(
+        isBoss
+          ? "That look is for a regular enemy, not a boss."
+          : "That is a boss look, and it only fits a boss.",
+        `look ${look} on role ${object.role ?? "enemy"}`,
+      );
+    }
+  }
+
+  const settings = new Map(
+    spec.platformerObjectSettings.map((item) => [`${item.mapSource}:${item.objectId}`, item]),
+  );
+  const changed: { x: number; y: number; look: string }[] = [];
+  for (const object of targets) {
+    // behavior and direction are required on a settings row, so the object's
+    // current values are carried over rather than reset to a default.
+    const entry: PlatformerObjectSettings = {
+      mapSource: level.mapSource,
+      objectId: object.id,
+      assetId: look,
+      behavior: object.behavior === "chaser" ? "chaser" : "patroller",
+      direction: object.direction === "left" ? "left" : "right",
+    };
+    settings.set(`${level.mapSource}:${object.id}`, entry);
+    changed.push({ x: Math.floor(object.x), y: Math.floor(object.y), look });
+  }
+
+  const platformerObjectSettings = [...settings.values()];
+  if (platformerObjectSettings.length > MAX_STORED_ENTRIES) {
+    throw new GameObjectEditError(
+      "This game has too many changes saved to change more.",
+      `${platformerObjectSettings.length} settings`,
+    );
+  }
+
+  return { platformerObjectSettings, changed };
+}
+
+/** Clamps and validates the count that becomes the played map's start count. */
+export function planStartingLives(
+  lives: unknown,
+): Required<Pick<CooperSpecChange, "startingLives">> {
+  if (typeof lives !== "number" || !Number.isInteger(lives)) {
+    throw new GameObjectEditError("Cooper needs a whole number of lives.", `got ${String(lives)}`);
+  }
+  if (lives < MINIMUM_STARTING_LIVES || lives > MAXIMUM_STARTING_LIVES) {
+    throw new GameObjectEditError(
+      `Lives have to be between ${MINIMUM_STARTING_LIVES} and ${MAXIMUM_STARTING_LIVES}.`,
+      `requested ${lives}`,
+    );
+  }
+  return { startingLives: lives };
+}
+
+export { DEFAULT_STARTING_LIVES, MAXIMUM_STARTING_LIVES, MINIMUM_STARTING_LIVES };

@@ -177,7 +177,24 @@ test("the builder eraser removes added and authored objects but preserves the re
     [],
     [{ x: 2, y: 9 }],
   );
-  assert.deepEqual(erasedAddition, { edits: [], removals: [], settings: [] });
+  // Erasing a builder-added object records a removal as well as dropping the
+  // edit, because these arrays are unioned with the server's copy and the
+  // dropped edit alone would let Cooper's stored version come back.
+  assert.deepEqual(erasedAddition, {
+    edits: [],
+    removals: [{ mapSource: "level-1.json", objectId: "build-coin-erase" }],
+    settings: [],
+  });
+  assert.equal(
+    applyPlatformerObjectEdits(
+      checkedInMap,
+      "level-1.json",
+      additions,
+      erasedAddition.removals,
+    ).objects.some((object) => object.id === "build-coin-erase"),
+    false,
+    "the removal suppresses the addition even if the edit survives a merge",
+  );
 
   const erasedAuthored = erasePlatformerObjectsAtCells(
     checkedInMap,

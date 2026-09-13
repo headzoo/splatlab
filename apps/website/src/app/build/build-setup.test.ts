@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { GAME_PLAYER_CONTENT } from "@/game/game-player-content";
+import { applyPlatformerObjectEdits } from "@/game/platformer/map-editing";
 import { DEFAULT_GAME_DOCUMENT } from "@/lib/game-contract";
+import { COOPER_OBJECT_KINDS } from "@/lib/game-objects";
 import { PLATFORMER_EDITABLE_PATHS } from "@/lib/game-physics";
 
 import {
@@ -19,14 +22,24 @@ import {
   setupChoiceReplyFor,
 } from "./build-setup-replies";
 
-test("post-setup prompt suggestions only ask for physics Cooper can change", () => {
+test("post-setup prompt suggestions only ask for things Cooper's tools can do", () => {
   assert.deepEqual(buildPromptSuggestions("platformer"), [
     "Add another level",
+    "Add more coins",
+    "Add more enemies",
+    "Give me 10 lives",
     "Make me jump higher",
     "Make me run faster",
-    "Make me fall slower",
-    "Let me fly",
   ]);
+});
+
+test("every object suggestion names a kind Cooper is allowed to add", () => {
+  const addable = new Set<string>(COOPER_OBJECT_KINDS);
+
+  assert.equal(addable.has("coin"), true);
+  assert.equal(addable.has("enemy"), true);
+  assert.equal(addable.has("spawn"), false, "the player start is never addable");
+  assert.equal(addable.has("goal"), false, "the goal is never addable");
 });
 
 test("every platformer suggestion has an editable physics path behind it", () => {
@@ -246,6 +259,65 @@ test("server transcript reconciliation retains unsaved map and setup edits", () 
     playerCharacter: "robot",
     platformerTerrainEdits: [{ mapSource: "level-1.json", x: 3, y: 4, kind: "ground" }],
   });
+});
+
+test("Cooper's objects and the kid's unsaved objects both survive reconciliation", () => {
+  const cooperCoin = {
+    id: "cooper-coin-1",
+    mapSource: "level-1.json" as const,
+    x: 0,
+    y: 0,
+    kind: "coin" as const,
+  };
+  const kidSpring = {
+    id: "build-platform_spring-abc",
+    mapSource: "level-1.json" as const,
+    x: 2,
+    y: 10,
+    kind: "platform_spring" as const,
+  };
+
+  const saved = DEFAULT_GAME_DOCUMENT;
+  const server = { ...DEFAULT_GAME_DOCUMENT, platformerObjectEdits: [cooperCoin] };
+  const local = { ...DEFAULT_GAME_DOCUMENT, platformerObjectEdits: [kidSpring] };
+
+  assert.deepEqual(
+    reconcilePersistedGame(server, saved, local).platformerObjectEdits,
+    [cooperCoin, kidSpring],
+  );
+});
+
+test("an object the kid erased is not resurrected by the server's copy", () => {
+  const cooperCoin = {
+    id: "cooper-coin-1",
+    mapSource: "level-1.json" as const,
+    x: 0,
+    y: 0,
+    kind: "coin" as const,
+  };
+  const erased = { mapSource: "level-1.json" as const, objectId: "cooper-coin-1" };
+
+  const saved = { ...DEFAULT_GAME_DOCUMENT, platformerObjectEdits: [cooperCoin] };
+  const server = saved;
+  // Erasing drops the edit and records a removal, which suppresses the union.
+  const local = {
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerObjectEdits: [],
+    platformerObjectRemovals: [erased],
+  };
+
+  const reconciled = reconcilePersistedGame(server, saved, local);
+  assert.deepEqual(reconciled.platformerObjectEdits, [cooperCoin]);
+  assert.deepEqual(reconciled.platformerObjectRemovals, [erased]);
+  assert.deepEqual(
+    applyPlatformerObjectEdits(
+      GAME_PLAYER_CONTENT.maps[0].map,
+      "level-1.json",
+      reconciled.platformerObjectEdits,
+      reconciled.platformerObjectRemovals,
+    ).objects.filter((object) => object.id === "cooper-coin-1"),
+    [],
+  );
 });
 
 test("build-turn response requires the declared response and revision header", () => {

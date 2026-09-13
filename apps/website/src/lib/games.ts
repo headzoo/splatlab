@@ -8,6 +8,7 @@ import {
   type SavedGameDto,
   type SavedGameSummaryDto,
 } from "./game-contract";
+import { mergeObjectArrays } from "./cooper-spec-change";
 import { getPrisma, hasDatabase } from "./prisma";
 
 export type StoredGame = {
@@ -173,6 +174,31 @@ function withStoredPhysics(spec: GameDocument, stored: GameDocument): GameDocume
   return next;
 }
 
+/**
+ * The object arrays are shared: the level editor appends to them from the
+ * client, and Cooper's tools append to them on the server. An autosave can
+ * therefore carry a spec that predates Cooper's last change, so the two are
+ * unioned instead of letting the incoming copy win.
+ */
+function withStoredObjects(spec: GameDocument, stored: GameDocument): GameDocument {
+  return { ...spec, ...mergeObjectArrays(stored, spec) };
+}
+
+/**
+ * Only Cooper writes the starting life count, so an autosave never carries a
+ * newer value than the stored one and the stored value always wins.
+ */
+function withStoredStartingLives(spec: GameDocument, stored: GameDocument): GameDocument {
+  const next: GameDocument = { ...spec };
+  delete next.startingLives;
+  if (stored.startingLives !== undefined) next.startingLives = stored.startingLives;
+  return next;
+}
+
+function withServerOwnedFields(spec: GameDocument, stored: GameDocument): GameDocument {
+  return withStoredStartingLives(withStoredObjects(withStoredPhysics(spec, stored), stored), stored);
+}
+
 export async function updateGame(
   ownerId: string,
   id: string,
@@ -191,7 +217,7 @@ export async function updateGame(
     game.title = input.title;
     game.gameType = input.spec.previewKind;
     game.mapSource = activeMapSource(input.spec);
-    game.spec = withStoredPhysics(input.spec, game.spec);
+    game.spec = withServerOwnedFields(input.spec, game.spec);
     game.revision += 1;
     game.updatedAt = new Date();
     return { status: "updated", game: toDto(game) };
@@ -207,7 +233,7 @@ export async function updateGame(
       title: input.title,
       gameType: input.spec.previewKind,
       mapSource: activeMapSource(input.spec),
-      spec: withStoredPhysics(input.spec, parseStoredGame(existing).spec),
+      spec: withServerOwnedFields(input.spec, parseStoredGame(existing).spec),
       revision: { increment: 1 },
     },
   });

@@ -1,3 +1,4 @@
+import type { CooperSpecChange } from "../../game-objects";
 import type { GamePhysicsDocument } from "../../game-physics";
 import type { ModelToolDefinition } from "../model-client";
 import type { AgentFlowRunStore } from "../run-store";
@@ -17,6 +18,7 @@ export type ToolExecutionResult = Readonly<{
   /** Set only when the call wrote to the game. */
   gameRevision?: number;
   physicsDocument?: GamePhysicsDocument;
+  specChange?: CooperSpecChange;
 }>;
 
 export type AgentTool = Readonly<{

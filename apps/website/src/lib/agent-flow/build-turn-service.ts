@@ -1,6 +1,10 @@
+import { randomUUID } from "node:crypto";
+
+import { getGame } from "../games";
 import { FlowContractError } from "./contract";
 import { BuildExecutionError, executeBuildMessage, resumeBuildTurn, type BuildMessageResult } from "./executor";
 import type { BuildTurnInput, BuildTurnResponseBody } from "./http-contract";
+import { ALLOW_ALL_MODERATOR, COOPER_INBOUND_REDIRECT, safeScreen, type ContentModerator } from "./moderation";
 import {
   ModelConfigurationError,
   type ModelScenarioRequest,
@@ -26,16 +30,26 @@ export type BuildTurnServiceDependencies = Readonly<{
   modelClient: ModelClient | (() => ModelClient);
   runStore?: AgentFlowRunStore;
   rateLimiter?: AgentflowRateLimiter;
+  moderator?: ContentModerator;
 }>;
 
 export async function processBuildTurn(
   input: ProcessBuildTurnInput,
   dependencies: BuildTurnServiceDependencies,
 ): Promise<BuildTurnServiceResult> {
+  const moderator = dependencies.moderator ?? ALLOW_ALL_MODERATOR;
+
   if ("action" in input.input) {
     if (input.input.action === "proceed") {
       const limited = await consumeRateLimit(input.ownerId, dependencies.rateLimiter);
       if (limited) return limited;
+    }
+
+    // Feedback is kid-authored and lands in the transcript, so it is screened
+    // on the same terms as a message. A flagged decline leaves the run paused
+    // so the kid can reword and try the same action again.
+    if (input.input.feedback && await isFlagged(input.input.feedback, moderator)) {
+      return declineFlaggedInput(input.ownerId, input.gameId);
     }
 
     try {
@@ -46,7 +60,7 @@ export async function processBuildTurn(
           action: input.input.action,
           feedback: input.input.feedback,
         },
-        { modelClient: lazyModelClient(dependencies.modelClient), runStore: dependencies.runStore },
+        { modelClient: lazyModelClient(dependencies.modelClient), runStore: dependencies.runStore, moderator },
       );
       return {
         kind: "success",
@@ -61,6 +75,12 @@ export async function processBuildTurn(
   const limited = await consumeRateLimit(input.ownerId, dependencies.rateLimiter);
   if (limited) return limited;
 
+  // Screened before the run starts, so a flagged message never reaches the
+  // model, never enters the transcript, and costs nothing beyond this check.
+  if (await isFlagged(input.input.message, moderator)) {
+    return declineFlaggedInput(input.ownerId, input.gameId);
+  }
+
   try {
     const result = await executeBuildMessage(
       {
@@ -71,6 +91,7 @@ export async function processBuildTurn(
       {
         modelClient: lazyModelClient(dependencies.modelClient),
         runStore: dependencies.runStore,
+        moderator,
       },
     );
 
@@ -90,6 +111,29 @@ function responseBody(result: BuildMessageResult): BuildTurnResponseBody {
     cooperMessage: result.cooperMessage,
     runId: result.runId,
     ...(result.physicsDocument ? { physicsDocument: result.physicsDocument } : {}),
+    ...(result.specChange ? { specChange: result.specChange } : {}),
+  };
+}
+
+async function isFlagged(text: string, moderator: ContentModerator): Promise<boolean> {
+  const verdict = await safeScreen(text, moderator);
+  if (verdict.flagged) {
+    console.warn("Build message was declined by moderation", { categories: verdict.categories });
+  }
+  return verdict.flagged;
+}
+
+/**
+ * Answers a flagged message in Cooper's voice instead of as an error, and
+ * leaves the game untouched, so the kid is redirected rather than blocked.
+ */
+async function declineFlaggedInput(ownerId: string, gameId: string): Promise<BuildTurnServiceResult> {
+  const game = await getGame(ownerId, gameId);
+  if (!game) return serviceError(404, "Game not found.");
+  return {
+    kind: "success",
+    body: { status: "replied", cooperMessage: COOPER_INBOUND_REDIRECT, runId: randomUUID() },
+    gameRevision: game.revision,
   };
 }
 
@@ -98,9 +142,11 @@ async function consumeRateLimit(
   configuredLimiter: AgentflowRateLimiter | undefined,
 ): Promise<Extract<BuildTurnServiceResult, { kind: "error" }> | undefined> {
   const limit = await (configuredLimiter ?? new AgentflowRateLimiter()).consume(ownerId);
-  return limit.allowed
-    ? undefined
-    : serviceError(429, "Cooper needs a short break. Try again in a moment.", limit.retryAfterSeconds);
+  if (limit.allowed) return undefined;
+  const message = limit.scope === "daily"
+    ? "Cooper has done a lot of building today. Come back tomorrow for more."
+    : "Cooper needs a short break. Try again in a moment.";
+  return serviceError(429, message, limit.retryAfterSeconds);
 }
 
 function lazyModelClient(clientOrFactory: ModelClient | (() => ModelClient)): ModelClient {

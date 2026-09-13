@@ -282,6 +282,9 @@ export const gameDocumentSchema = z
     // accepted physics patch forks the catalog into this field, and the server
     // owns it from then on.
     physicsDocument: gamePhysicsDocumentSchema.optional(),
+    // Absent means the engine's default. Only Cooper writes this, and it is
+    // folded into the played map's `rules.startingLives`.
+    startingLives: z.number().int().min(1).max(99).optional(),
   })
   .strict()
   .superRefine((document, context) => {

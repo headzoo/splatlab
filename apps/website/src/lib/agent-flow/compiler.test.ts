@@ -13,6 +13,7 @@ import {
 } from "./contract";
 import { interpolate } from "./interpolate";
 import { flowHashFor, getRegisteredFlow } from "./registry";
+import { AGENT_TOOL_IDS } from "./tools/allowlist";
 
 function cloneStarter(): any {
   return structuredClone(starterFlow);
@@ -77,8 +78,12 @@ test("Agent tools compile only from the closed allowlist", () => {
     [[{ agentSelectedTool: "read_game_physics" }, { agentSelectedTool: "read_game_physics" }], /must be unique/],
     [[{ agentSelectedTool: "read_game_physics", agentSelectedToolRequiresHumanInput: true }], /cannot require human input/],
     [[{ agentSelectedTool: "read_game_physics", agentSelectedToolConfig: {} }], /is not supported/],
-    [[{ agentSelectedTool: "read_game_physics" }, { agentSelectedTool: "patch_game_physics" }, { agentSelectedTool: "read_game_physics" }], /at most 2 entries/],
-    ["read_game_physics", /at most 2 entries/],
+    // The cap is the allowlist size, so it moves as tools are added.
+    [
+      Array.from({ length: AGENT_TOOL_IDS.length + 1 }, () => ({ agentSelectedTool: "read_game_physics" })),
+      new RegExp(`at most ${AGENT_TOOL_IDS.length} entries`),
+    ],
+    ["read_game_physics", new RegExp(`at most ${AGENT_TOOL_IDS.length} entries`)],
   ];
   for (const [agentTools, message] of rejected) {
     const flow = cloneStarter();

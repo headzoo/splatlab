@@ -4,6 +4,7 @@ import { useMemo, type ReactNode } from "react";
 
 import {
   applyPlatformerObjectEdits,
+  applyPlatformerRules,
   applyPlatformerTerrainEdits,
   type PlatformerEditTool,
   type PlatformerObjectPlacement,
@@ -98,16 +99,19 @@ export function GamePlayer({
   const platformerMap = useMemo(
     () =>
       current
-        ? applyPlatformerObjectEdits(
-            applyPlatformerTerrainEdits(
-              current.map,
+        ? applyPlatformerRules(
+            applyPlatformerObjectEdits(
+              applyPlatformerTerrainEdits(
+                current.map,
+                current.source,
+                spec.platformerTerrainEdits,
+              ),
               current.source,
-              spec.platformerTerrainEdits,
+              spec.platformerObjectEdits,
+              spec.platformerObjectRemovals,
+              spec.platformerObjectSettings,
             ),
-            current.source,
-            spec.platformerObjectEdits,
-            spec.platformerObjectRemovals,
-            spec.platformerObjectSettings,
+            spec.startingLives,
           )
         : null,
     [
@@ -116,6 +120,7 @@ export function GamePlayer({
       spec.platformerObjectRemovals,
       spec.platformerObjectSettings,
       spec.platformerTerrainEdits,
+      spec.startingLives,
     ],
   );
 
