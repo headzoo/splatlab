@@ -602,7 +602,11 @@ function spawnPosition(map: PlatformerMapSpec, object: PlatformerMapObject) {
   };
 }
 
-function createEnemy(map: PlatformerMapSpec, object: PlatformerMapObject): EnemyState {
+function createEnemy(
+  map: PlatformerMapSpec,
+  object: PlatformerMapObject,
+  startTick: number,
+): EnemyState {
   const position = spawnPosition(map, object);
   return {
     id: object.id,
@@ -631,7 +635,8 @@ function createEnemy(map: PlatformerMapSpec, object: PlatformerMapObject): Enemy
     ramWindupTicksRemaining: 0,
     ramDistanceRemaining: 0,
     nextRangedAttackTick: object.rangedAttack
-      ? Math.max(1, Math.round((object.rangedAttack.cooldownMs / 1000) * FIXED_TICK_RATE))
+      ? startTick
+        + Math.max(1, Math.round((object.rangedAttack.cooldownMs / 1000) * FIXED_TICK_RATE))
       : null,
     moving: false,
     defeated: false,
@@ -685,6 +690,14 @@ function resolveBossDirectionAfterWeaponHit(
   return attackerX < enemy.x ? "left" : "right";
 }
 
+// Ranged-attack cooldowns are absolute ticks, so a mid-run rebuild has to arm
+// them relative to the tick the enemies return on rather than tick zero.
+function createEnemies(map: PlatformerMapSpec, startTick: number): EnemyState[] {
+  return map.objects
+    .filter((object) => object.type === "enemy_spawn")
+    .map((object) => createEnemy(map, object, startTick));
+}
+
 export function createInitialState(map: PlatformerMapSpec): PlatformerState {
   const spawn = map.objects.find((object) => object.type === "player_spawn");
   if (!spawn) throw new Error(`Map ${map.id} does not contain a player spawn.`);
@@ -721,9 +734,7 @@ export function createInitialState(map: PlatformerMapSpec): PlatformerState {
     score: 0,
     lives: resolveStartingLives(map),
     status: "playing",
-    enemies: map.objects
-      .filter((object) => object.type === "enemy_spawn")
-      .map((object) => createEnemy(map, object)),
+    enemies: createEnemies(map, 0),
     projectiles: [],
     laserBeams: [],
     flyingObjects: map.objects
@@ -802,7 +813,7 @@ function beginDeath(
   };
 }
 
-function advanceDeath(state: PlatformerState): StepResult {
+function advanceDeath(map: PlatformerMapSpec, state: PlatformerState): StepResult {
   const events: RuntimeEvent[] = [];
   const laserBeams = state.laserBeams
     .map((beam) => ({ ...beam, ageTicks: beam.ageTicks + 1 }))
@@ -843,6 +854,8 @@ function advanceDeath(state: PlatformerState): StepResult {
       vy: 0,
       grounded: true,
       deathTicksRemaining: 0,
+      enemies: createEnemies(map, state.tick + 1),
+      projectiles: [],
       laserBeams: [],
       status: "playing",
     },
@@ -1613,7 +1626,7 @@ export function stepPlatformer(
   input: PlatformerInput,
   weapon?: WeaponSpec,
 ): StepResult {
-  if (current.status === "dying") return advanceDeath(current);
+  if (current.status === "dying") return advanceDeath(map, current);
   if (current.status !== "playing") return { state: current, events: [] };
   const events: RuntimeEvent[] = [];
   const spawn = map.objects.find((object) => object.type === "player_spawn");

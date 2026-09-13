@@ -729,6 +729,92 @@ test("hazards play the death state before returning the player to the active spa
   assert.deepEqual(events, ["respawn"]);
 });
 
+test("respawning puts every enemy back on the board at its starting position", () => {
+  const initial = createInitialState(map);
+  const enemy = initial.enemies.find((candidate) => candidate.id === "enemy_1");
+  assert.ok(enemy);
+
+  let state: PlatformerState = {
+    ...initial,
+    x: enemy.x - 60,
+    y: enemy.y,
+    previousY: enemy.y,
+    grounded: true,
+    facing: "right" as const,
+  };
+  for (let index = 0; index < 30; index += 1) {
+    state = stepPlatformer(
+      map,
+      spec,
+      state,
+      { ...idleInput, weaponPressed: index === 0 },
+      weapon,
+    ).state;
+  }
+  assert.equal(state.enemies.find((candidate) => candidate.id === "enemy_1")?.defeated, true);
+  assert.ok(state.enemies.some((candidate) => (
+    candidate.x !== initial.enemies.find((start) => start.id === candidate.id)?.x
+  )));
+
+  const death = stepPlatformer(
+    map,
+    spec,
+    { ...state, x: (14 + 0.5) * 64, y: 12 * 64, grounded: false },
+    idleInput,
+    weapon,
+  );
+  assert.equal(death.state.status, "dying");
+  assert.equal(death.state.enemies.find((candidate) => candidate.id === "enemy_1")?.defeated, true);
+
+  let respawned = death.state;
+  for (let index = 0; index < death.state.deathTicksTotal; index += 1) {
+    respawned = stepPlatformer(map, spec, respawned, idleInput, weapon).state;
+  }
+
+  assert.equal(respawned.status, "playing");
+  const enemySnapshot = (snapshot: PlatformerState) => snapshot.enemies.map((candidate) => ({
+    id: candidate.id,
+    x: candidate.x,
+    y: candidate.y,
+    direction: candidate.direction,
+    hitsRemaining: candidate.hitsRemaining,
+    defeated: candidate.defeated,
+  }));
+  assert.deepEqual(enemySnapshot(respawned), enemySnapshot(initial));
+});
+
+test("respawned enemies rearm their ranged attacks from the respawn tick", () => {
+  const initial = createInitialState(emberkeepMap);
+  const firstRanged = initial.enemies.find((candidate) => candidate.id === "enemy_2");
+  assert.ok(firstRanged);
+  assert.equal(firstRanged.nextRangedAttackTick, FIXED_TICK_RATE * 4);
+
+  const death = stepPlatformer(
+    emberkeepMap,
+    spec,
+    {
+      ...initial,
+      tick: 600,
+      y: (emberkeepMap.size.rows + 3) * emberkeepMap.tileSize,
+      grounded: false,
+    },
+    idleInput,
+    weapon,
+  );
+  assert.equal(death.state.status, "dying");
+
+  let respawned = death.state;
+  for (let index = 0; index < death.state.deathTicksTotal; index += 1) {
+    respawned = stepPlatformer(emberkeepMap, spec, respawned, idleInput, weapon).state;
+  }
+
+  assert.equal(respawned.status, "playing");
+  assert.equal(
+    respawned.enemies.find((candidate) => candidate.id === "enemy_2")?.nextRangedAttackTick,
+    respawned.tick + FIXED_TICK_RATE * 4,
+  );
+});
+
 test("each map can configure its bounded death-to-respawn delay", () => {
   const quickRespawnMap: PlatformerMapSpec = {
     ...map,

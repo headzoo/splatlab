@@ -145,6 +145,59 @@ test("maze enemy contact defeats the hero and returns them to the first spawn", 
   assert.ok(events.some((event) => event.type === "respawn"));
 });
 
+test("maze respawning puts every enemy back at its starting cell", () => {
+  const enemyMap = openLaneMap([
+    { id: "spawn", type: "player_spawn", x: 1, y: 1, slot: 1, speed: 224 },
+    { id: "hazard", type: "hazard", x: 2, y: 1 },
+    {
+      id: "enemy_a",
+      type: "enemy_spawn",
+      x: 5,
+      y: 1,
+      direction: "left",
+      behavior: "chaser",
+      speed: 0,
+      detectionRadius: 0,
+    },
+    {
+      id: "enemy_b",
+      type: "enemy_spawn",
+      x: 6,
+      y: 1,
+      direction: "left",
+      behavior: "chaser",
+      speed: 0,
+      detectionRadius: 0,
+    },
+  ]);
+  const initial = createInitialMazeState(enemyMap);
+  const [defeatedEnemy, wanderedEnemy] = initial.enemies;
+  assert.ok(defeatedEnemy);
+  assert.ok(wanderedEnemy);
+
+  let result = stepMazeWithEvents(
+    enemyMap,
+    {
+      ...initial,
+      x: 2.5,
+      y: 1.875,
+      enemies: [
+        { ...defeatedEnemy, defeated: true },
+        { ...wanderedEnemy, x: wanderedEnemy.x + 1.5 },
+      ],
+    },
+    idleInput,
+  );
+  assert.equal(result.state.status, "dying");
+
+  for (let tick = 0; tick < MAZE_DEATH_DURATION_TICKS; tick += 1) {
+    result = stepMazeWithEvents(enemyMap, result.state, idleInput);
+  }
+
+  assert.equal(result.state.status, "playing");
+  assert.deepEqual(result.state.enemies, initial.enemies);
+});
+
 test("maze hazards defeat the hero when they are not jumping", () => {
   const hazardMap = openLaneMap([
     { id: "spawn", type: "player_spawn", x: 1, y: 1, slot: 1, speed: 224 },

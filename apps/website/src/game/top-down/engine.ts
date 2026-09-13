@@ -357,6 +357,9 @@ function respawnPlayer(map: MazeMapSpec, state: MazeState): MazeState {
     stompGraceTicksRemaining: 0,
     deathTicksRemaining: 0,
     respawnGraceTicksRemaining: MAZE_RESPAWN_GRACE_TICKS,
+    enemies: map.objects
+      .filter((object) => object.type === "enemy_spawn")
+      .map(createEnemyState),
     collectedKeyId: null,
     status: "playing",
   };

@@ -590,6 +590,13 @@ checkpoint. Each enemy spawn selects a character asset independently from the
 complete character catalog, so a Space map can use any available body or theme
 without creating a Space-specific enemy class.
 
+A player death resets the level's enemies. When the respawn delay ends, every
+enemy spawn is rebuilt: defeated enemies return to the board, survivors move
+back to their authored starting positions and directions, boss hit counts and
+ranged-attack cooldowns are restored, and enemy projectiles are cleared. The
+player keeps its collected coins and latest checkpoint. The top-down Maze
+runtime resets its enemies on respawn the same way.
+
 Each Platformer enemy spawn declares its starting direction plus separate
 whole-tile distances to the left and right of its placed cell. Reaching either
 bound reverses its direction. The character choice and these distances remain
