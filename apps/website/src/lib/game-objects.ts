@@ -177,6 +177,7 @@ export function describeLevel(level: ActivePlatformerLevel) {
     level: { mapSource: level.mapSource, label: level.label, columns, rows },
     startingLives: resolveStartingLives(map),
     characters: describeCharacters(level),
+    openCells: openCells(level, grid),
     terrainLegend: Object.fromEntries(
       Object.entries(map.legend).map(([symbol, entry]) => [
         symbol,
@@ -198,6 +199,49 @@ export function describeLevel(level: ActivePlatformerLevel) {
 /** Both planners always write both arrays, so callers never see `undefined`. */
 export type ObjectArrayChange = CooperSpecChange
   & Required<Pick<CooperSpecChange, "platformerObjectEdits" | "platformerObjectRemovals">>;
+
+export const MAX_SUGGESTED_CELLS = 30;
+
+/**
+ * Ready-made cells a new object may go in, spread evenly along the level.
+ *
+ * The grids alone are enough to work this out, but deriving it costs the model
+ * a lot of hidden reasoning on an eighty-column map -- enough to run the
+ * response out of output tokens before it emits a tool call. Handing over the
+ * answer keeps a placement turn cheap and removes the main source of rejected
+ * cells.
+ */
+function openCells(level: ActivePlatformerLevel, objectGrid: readonly string[][]) {
+  const { columns, rows } = level.map.size;
+  const grounded: { x: number; y: number }[] = [];
+  const floating: { x: number; y: number }[] = [];
+
+  for (let x = 0; x < columns; x += 1) {
+    for (let y = 0; y < rows; y += 1) {
+      if (objectGrid[y][x] !== EMPTY_OBJECT_CELL) continue;
+      if (platformerTerrainKindAt(level.map, x, y) !== "empty") continue;
+      const below = y + 1 < rows ? platformerTerrainKindAt(level.map, x, y + 1) : "empty";
+      (SUPPORTING_TERRAIN_KINDS.has(below) ? grounded : floating).push({ x, y });
+    }
+  }
+
+  // An even stride across the level, so anything Cooper adds is spread out
+  // rather than bunched at the start where the scan happens to begin.
+  const spread = (cells: { x: number; y: number }[]) => {
+    if (cells.length <= MAX_SUGGESTED_CELLS) return cells;
+    const step = cells.length / MAX_SUGGESTED_CELLS;
+    return Array.from(
+      { length: MAX_SUGGESTED_CELLS },
+      (_, index) => cells[Math.floor(index * step)],
+    );
+  };
+
+  return {
+    note: "Pick from these. onGround suits enemies, bosses, springs and checkpoints; either list suits coins, extra lives and flying things.",
+    onGround: spread(grounded),
+    inAir: spread(floating),
+  };
+}
 
 export type ObjectPlacementRequest = Readonly<{ kind: string; x: number; y: number }>;
 export type ObjectCellRequest = Readonly<{ x: number; y: number }>;

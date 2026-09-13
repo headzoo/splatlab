@@ -430,3 +430,30 @@ test("repainting a cell with no enemy in it is refused", () => {
     /nothing in this level with that look/,
   );
 });
+
+
+test("every cell read_game_objects offers is one the add tool accepts", () => {
+  const active = level();
+  const { openCells } = describeLevel(active);
+
+  assert.ok(openCells.onGround.length > 0);
+  assert.ok(openCells.inAir.length > 0);
+
+  // Placed one at a time, because the caps apply per call, not per cell.
+  for (const cell of openCells.onGround) {
+    planObjectAdditions(DEFAULT_GAME_DOCUMENT, active, [{ kind: "enemy", ...cell }]);
+  }
+  for (const cell of openCells.inAir) {
+    planObjectAdditions(DEFAULT_GAME_DOCUMENT, active, [{ kind: "coin", ...cell }]);
+  }
+});
+
+test("the offered cells are spread along the level, not bunched at the start", () => {
+  const { openCells, level: bounds } = describeLevel(level());
+  const columns = openCells.onGround.map((cell) => cell.x);
+
+  assert.ok(
+    Math.max(...columns) > bounds.columns / 2,
+    "ground cells should reach past the middle of the level",
+  );
+});

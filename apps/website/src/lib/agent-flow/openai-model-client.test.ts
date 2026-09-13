@@ -188,8 +188,10 @@ test("completeTurn serializes tools in the flat Responses shape with strict sche
     strict: true,
   }]);
   assert.equal(body.tool_choice, "auto");
-  // 700 for a call plus the closing reply, on top of the reasoning allowance.
-  assert.equal(body.max_output_tokens, 2_700);
+  // 700 for a call plus the closing reply, on top of three times the reasoning
+  // allowance: choosing cells on a full level costs far more hidden reasoning
+  // than a physics patch, and the smaller budget truncated the response.
+  assert.equal(body.max_output_tokens, 6_700);
 });
 
 test("completeTurn reports a truncated response as a provider failure", async () => {

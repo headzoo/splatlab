@@ -34,9 +34,11 @@ test("the checked-in starter flow compiles with explicit branches and loop targe
 test("registry hash is stable and reflects execution-relevant edits", () => {
   const first = compileFlow(cloneStarter());
   const reordered = cloneStarter();
+  // Only the key order changes here, so every value is carried over from the
+  // real flow. Spelling one out would make this assert on the prompt text too.
   reordered.nodes[1].data.inputs = {
     agentTools: reordered.nodes[1].data.inputs.agentTools,
-    agentUserMessage: "{{ question }}",
+    agentUserMessage: reordered.nodes[1].data.inputs.agentUserMessage,
     agentMessages: reordered.nodes[1].data.inputs.agentMessages,
     agentModel: "",
     agentEnableMemory: true,

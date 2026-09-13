@@ -161,6 +161,11 @@ function lazyModelClient(clientOrFactory: ModelClient | (() => ModelClient)): Mo
 }
 
 export function mapBuildTurnFailure(error: unknown): Extract<BuildTurnServiceResult, { kind: "error" }> {
+  // Every branch below replaces the cause with a sentence written for a kid, so
+  // without this line a failed turn leaves nothing at all in the server log to
+  // debug from.
+  console.error("Build turn failed", error);
+
   if (error instanceof BuildExecutionError) {
     switch (error.code) {
       case "game_not_found":

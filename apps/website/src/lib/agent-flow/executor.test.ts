@@ -16,6 +16,12 @@ import { AgentFlowRunStore } from "./run-store";
 const COORDINATOR_MESSAGE = (starterFlow.nodes.find((node) => node.id === "agentAgentflow_0")
   ?.data.inputs as { agentMessages: { content: string }[] }).agentMessages[0].content;
 
+/**
+ * The newest message is wrapped so the model can tell the kid's words apart
+ * from its own instructions. Replayed history and Proceed feedback are not.
+ */
+const kidMessage = (text: string) => `<kid_message>\n${text}\n</kid_message>`;
+
 class ScriptedModelClient implements ModelClient {
   textCalls = 0;
   scenarioCalls = 0;
@@ -113,9 +119,14 @@ test("enabled Agent memory sends prior bounded history in transcript order witho
     },
     { role: "user", content: "Make it snowy" },
     { role: "assistant", content: "I will use the ice world." },
-    { role: "user", content: "Build a maze" },
+    { role: "user", content: kidMessage("Build a maze") },
   ]);
-  assert.equal(model.textRequests[0]?.messages.filter((message) => message.content === "Build a maze").length, 1);
+  assert.equal(
+    model.textRequests[0]?.messages.filter(
+      (message) => message.content === kidMessage("Build a maze"),
+    ).length,
+    1,
+  );
 });
 
 test("memory-disabled Agent nodes omit persisted history", () => {
@@ -131,7 +142,7 @@ test("memory-disabled Agent nodes omit persisted history", () => {
       role: "developer",
       content: COORDINATOR_MESSAGE,
     },
-    { role: "user", content: "Build a maze" },
+    { role: "user", content: kidMessage("Build a maze") },
   ]);
 });
 
@@ -247,7 +258,7 @@ test("Proceed consumes one persisted loop and pauses again", async () => {
     },
     { role: "assistant", content: result.cooperMessage },
     { role: "user", content: "Add coins" },
-    { role: "user", content: "Build a maze" },
+    { role: "user", content: kidMessage("Build a maze") },
   ]);
   const run = await store.loadActive("owner-a", game.id);
   assert.equal(run?.loopCounts.loopAgentflow_0, 1);

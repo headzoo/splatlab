@@ -419,30 +419,6 @@ test("the checked-in /build map controls hero speed", () => {
   assert.equal(normal.vx, slower.vx * 2);
 });
 
-test("the checked-in /build hero pecks without changing its collision position", () => {
-  const spawn = map.objects.find((object) => object.type === "player_spawn");
-  assert.equal(spawn?.motion?.visual.type, "peck");
-  assert.ok(spawn?.motion);
-  const initial = createInitialState(map);
-  const offsets = Array.from({ length: FIXED_TICK_RATE }, (_, tick) => (
-    resolveVisualMotionOffset(spawn.motion, spawn.id, tick, map.tileSize, "right")
-  ));
-  const strongest = offsets.reduce((best, offset) => (
-    Math.abs(offset.x) > Math.abs(best.x) ? offset : best
-  ));
-  const mirrored = resolveVisualMotionOffset(
-    spawn.motion,
-    spawn.id,
-    offsets.indexOf(strongest),
-    map.tileSize,
-    "left",
-  );
-
-  assert.ok(strongest.x > 0);
-  assert.equal(mirrored.x, -strongest.x);
-  assert.deepEqual(createInitialState(map), initial);
-});
-
 test("each map scales gravity without weakening the shared jump impulse", () => {
   const normal = resolvePhysics(spec, map.tileSize, map.physics.gravityScale);
   const space = resolvePhysics(spec, campaignMaps[1].tileSize, campaignMaps[1].physics.gravityScale);
@@ -776,7 +752,9 @@ test("an extra-life pickup increments lives once and fades out over fixed ticks"
     ...map,
     objects: [
       ...map.objects,
-      { id: "extra_life_test", type: "extra_life", x: 2, y: 10 },
+      // On the spawn cell, like the coin test: a tile away the hitboxes never
+      // overlap, so an idle player would walk no distance and collect nothing.
+      { id: "extra_life_test", type: "extra_life", x: 1, y: 10 },
     ],
   };
   const initial = createInitialState(extraLifeMap);

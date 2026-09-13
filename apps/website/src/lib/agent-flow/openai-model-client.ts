@@ -23,8 +23,14 @@ const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
  */
 const REASONING_ALLOWANCE_TOKENS = 2_000;
 const MAX_OUTPUT_TOKENS = REASONING_ALLOWANCE_TOKENS + 300;
-/** Tool rounds must fit both a call's arguments and the closing reply. */
-const MAX_TOOL_OUTPUT_TOKENS = REASONING_ALLOWANCE_TOKENS + 700;
+/**
+ * Tool rounds must fit both a call's arguments and the closing reply, and they
+ * get a larger allowance than a plain reply. Placing objects means reading an
+ * eighty-column level and emitting a cell per object, which costs several
+ * times what a physics patch does; at the smaller budget the response came
+ * back `incomplete` before it ever emitted the call.
+ */
+const MAX_TOOL_OUTPUT_TOKENS = 3 * REASONING_ALLOWANCE_TOKENS + 700;
 /** Only these output item types are echoed back on the next round. */
 const ECHOED_ITEM_TYPES = new Set(["message", "function_call"]);
 
