@@ -2,14 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
+import { authClient } from "@/lib/auth-client";
 import type { SavedGameSummaryDto } from "@/lib/game-contract";
 import { buildGamePath } from "@/lib/game-routes";
 
+import { useAuthFlow } from "../auth-flow";
 import { SiteHeader } from "../site-header";
 
 import styles from "./workspace.module.css";
+
+const LAB_KEY_EXAMPLE = "TACO-MOON-FROG-82";
 
 type Workspace = {
   workspaceId: string;
@@ -37,6 +48,8 @@ function getErrorMessage(payload: unknown, fallback: string) {
 }
 
 export function WorkspaceClient() {
+  const router = useRouter();
+  const { markSignedIn } = useAuthFlow();
   const replaceDialogRef = useRef<HTMLDialogElement>(null);
   const keyDialogRef = useRef<HTMLDialogElement>(null);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -46,67 +59,82 @@ export function WorkspaceClient() {
   const [error, setError] = useState("");
   const [games, setGames] = useState<SavedGameSummaryDto[] | null>(null);
   const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
+  const [labKey, setLabKey] = useState("");
+  const [initializing, setInitializing] = useState(true);
+  const [loginBusy, setLoginBusy] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
-  useEffect(() => {
-    let active = true;
+  const loadWorkspaceData = useCallback(async () => {
+    const [workspaceResponse, gamesResponse] = await Promise.all([
+      fetch("/api/auth/lab-workspace", { cache: "no-store" }),
+      fetch("/api/games", { cache: "no-store" }),
+    ]);
+    const [workspacePayload, gamesPayload]: [unknown, unknown] =
+      await Promise.all([
+        workspaceResponse.json().catch(() => null),
+        gamesResponse.json().catch(() => null),
+      ]);
 
-    void fetch("/api/auth/lab-workspace", { cache: "no-store" })
-      .then(async (response) => {
-        const payload: unknown = await response.json().catch(() => null);
+    if (!workspaceResponse.ok) {
+      throw new Error(
+        getErrorMessage(workspacePayload, "We couldn't load your Lab Workspace."),
+      );
+    }
 
-        if (!response.ok) {
-          throw new Error(
-            getErrorMessage(payload, "We couldn't load your Lab Workspace."),
-          );
-        }
+    if (!gamesResponse.ok) {
+      throw new Error(getErrorMessage(gamesPayload, "We couldn't load your games."));
+    }
 
-        if (active) {
-          setWorkspace(payload as Workspace);
-        }
-      })
-      .catch((caught: unknown) => {
-        if (active) {
-          setError(
-            caught instanceof Error
-              ? caught.message
-              : "We couldn't load your Lab Workspace.",
-          );
-        }
-      });
-
-    return () => {
-      active = false;
+    return {
+      workspace: workspacePayload as Workspace,
+      games: (gamesPayload as { games: SavedGameSummaryDto[] }).games,
     };
   }, []);
 
   useEffect(() => {
     let active = true;
 
-    void fetch("/api/games", { cache: "no-store" })
-      .then(async (response) => {
-        const payload: unknown = await response.json().catch(() => null);
+    async function initializeWorkspace() {
+      try {
+        const current = await authClient.getSession();
 
-        if (!response.ok) {
-          throw new Error(getErrorMessage(payload, "We couldn't load your games."));
+        if (!current.data) {
+          const created = await authClient.signIn.anonymous();
+
+          if (created.error) {
+            throw new Error(created.error.message);
+          }
         }
+
+        markSignedIn();
+        const data = await loadWorkspaceData();
 
         if (active) {
-          setGames((payload as { games: SavedGameSummaryDto[] }).games);
+          setWorkspace(data.workspace);
+          setGames(data.games);
         }
-      })
-      .catch((caught: unknown) => {
+      } catch (caught) {
         if (active) {
           setGames([]);
           setError(
-            caught instanceof Error ? caught.message : "We couldn't load your games.",
+            caught instanceof Error
+              ? caught.message
+              : "We couldn't open your Lab Workspace.",
           );
         }
-      });
+      } finally {
+        if (active) {
+          setInitializing(false);
+        }
+      }
+    }
+
+    void initializeWorkspace();
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadWorkspaceData, markSignedIn]);
 
   useEffect(() => {
     if (issuedKey) {
@@ -180,6 +208,44 @@ export function WorkspaceClient() {
     setCopied(false);
   }
 
+  async function submitLabKey(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoginBusy(true);
+    setLoginError("");
+
+    try {
+      const response = await fetch("/api/auth/sign-in/lab-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ labKey }),
+      });
+      const payload: unknown = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setLoginError(
+          getErrorMessage(
+            payload,
+            "That Lab Key didn't work. Check it and try again.",
+          ),
+        );
+        return;
+      }
+
+      const data = await loadWorkspaceData();
+      setWorkspace(data.workspace);
+      setGames(data.games);
+      setLabKey("");
+      setError("");
+      markSignedIn();
+      router.replace("/lab");
+      router.refresh();
+    } catch {
+      setLoginError("We couldn't check that Lab Key. Please try again.");
+    } finally {
+      setLoginBusy(false);
+    }
+  }
+
   async function removeGame(game: SavedGameSummaryDto) {
     if (!window.confirm(`Delete “${game.title}”? This cannot be undone.`)) return;
 
@@ -250,7 +316,14 @@ export function WorkspaceClient() {
               <span>Projects</span>
               <h2 id="games-title">My Games</h2>
             </div>
-            <Link className={styles.createButton} href="/build">
+            <Link
+              className={styles.createButton}
+              href="/build"
+              aria-disabled={!workspace}
+              onClick={(event) => {
+                if (!workspace) event.preventDefault();
+              }}
+            >
               <span aria-hidden="true">+</span> Create a Game
             </Link>
           </div>
@@ -292,6 +365,28 @@ export function WorkspaceClient() {
               <div className={styles.gameGrid}>
                 {games.map((game) => (
                   <article className={styles.gameCard} key={game.id}>
+                    <Link
+                      className={styles.gameCardTopper}
+                      href={`/play/${encodeURIComponent(game.id)}`}
+                      aria-label={`Play ${game.title}`}
+                    >
+                      {game.thumbnailDataUrl ? (
+                        <Image
+                          src={game.thumbnailDataUrl}
+                          alt={`Game preview for ${game.title}`}
+                          fill
+                          sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"
+                          unoptimized
+                        />
+                      ) : (
+                        <span className={styles.gameCardTopperFallback}>
+                          <b aria-hidden="true">
+                            {game.gameType === "maze" ? "▦" : "🎮"}
+                          </b>
+                          <small>Preview coming soon</small>
+                        </span>
+                      )}
+                    </Link>
                     <div className={styles.gameCardBody}>
                       <span className={styles.gameCardIcon} aria-hidden="true">
                         {game.gameType === "maze" ? "▦" : "🎮"}
@@ -379,6 +474,44 @@ export function WorkspaceClient() {
             </button>
             <small>Keep your Lab Key private!</small>
           </div>
+
+          <form
+            className={styles.keyLogin}
+            id="lab-key-login"
+            onSubmit={submitLabKey}
+          >
+            <div className={styles.keyLoginHeading}>
+              <span>Already have a key?</span>
+              <h3>Open a saved lab</h3>
+            </div>
+            <label htmlFor="workspace-lab-key">Lab Key</label>
+            <input
+              id="workspace-lab-key"
+              name="labKey"
+              value={labKey}
+              onChange={(event) => setLabKey(event.target.value.toUpperCase())}
+              placeholder={LAB_KEY_EXAMPLE}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              required
+              maxLength={96}
+              disabled={initializing || loginBusy}
+              aria-describedby={loginError ? "workspace-lab-key-error" : undefined}
+            />
+            {loginError ? (
+              <p
+                className={styles.keyLoginError}
+                id="workspace-lab-key-error"
+                role="alert"
+              >
+                {loginError}
+              </p>
+            ) : null}
+            <button type="submit" disabled={initializing || loginBusy}>
+              {loginBusy ? "Opening…" : "Open My Lab"}
+            </button>
+          </form>
         </section>
 
         {error ? (

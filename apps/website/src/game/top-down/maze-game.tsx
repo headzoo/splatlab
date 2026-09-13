@@ -6,29 +6,51 @@ import {
   useMemo,
   useRef,
   useState,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
 
 import {
   createInitialMazeState,
+  MAZE_DEATH_DURATION_TICKS,
   MAZE_FIXED_DELTA_SECONDS,
   MAZE_MAX_CATCH_UP_STEPS,
   MAZE_MAX_FRAME_DELTA_SECONDS,
   resolveMazeCamera,
-  stepMaze,
+  resolveMazeJumpVisualOffset,
+  stepMazeWithEvents,
 } from "./engine";
 import { resolveBodyMotionOffset } from "../motion";
+import {
+  playerDefeatedEventSheet,
+  playerDefeatedEventVisual,
+} from "../platformer/player-death";
 import {
   isCustomizableHumanAsset,
   loadSpriteImage,
   recolorHumanSprite,
 } from "../player-appearance";
+import {
+  CanvasScreenshotMenu,
+  type CanvasScreenshotMenuHandle,
+} from "../canvas-screenshot-menu";
+import {
+  createCanvasThumbnailDataUrl,
+  type GameThumbnailCapture,
+} from "../canvas-screenshot";
 import type {
   HairColor,
   PlayerAssetId,
   SkinTone,
 } from "@/lib/game-contract";
-import type { MazeCamera, MazeDirection, MazeInput, MazeMapSpec, MazeState } from "./types";
+import type {
+  MazeCamera,
+  MazeDirection,
+  MazeInput,
+  MazeMapSpec,
+  MazeRuntimeEvent,
+  MazeState,
+} from "./types";
 import styles from "../platformer/platformer-game.module.css";
 
 type MazeGameProps = {
@@ -38,14 +60,30 @@ type MazeGameProps = {
   hairColor?: HairColor;
   className?: string;
   controlRowLeading?: ReactNode;
+  onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
+  onUpdateThumbnail?: () => Promise<void>;
 };
 
-type InputState = { left: boolean; right: boolean; up: boolean; down: boolean };
+type InputState = {
+  left: boolean;
+  right: boolean;
+  up: boolean;
+  down: boolean;
+  jumpHeld: boolean;
+  jumpPressed: boolean;
+};
 type VisualSlot = "floor" | "wall" | "obstacle" | "key" | "door";
 type ThemePrefix = "green" | "haunted" | "space" | "dragons";
 type ImageKey = `${ThemePrefix}${Capitalize<VisualSlot>}` | "enemy" | "hazard";
 
-const emptyInput = (): InputState => ({ left: false, right: false, up: false, down: false });
+const emptyInput = (): InputState => ({
+  left: false,
+  right: false,
+  up: false,
+  down: false,
+  jumpHeld: false,
+  jumpPressed: false,
+});
 const assetUrl = (path: string) => `/game-assets/${path}`;
 const IMAGE_URLS: Record<ImageKey, string> = {
   greenFloor: assetUrl("sprites/neutral_green_hills_maze_floor_01.png"),
@@ -71,6 +109,59 @@ const IMAGE_URLS: Record<ImageKey, string> = {
   enemy: assetUrl("sprites/neutral_ghost_01.png"),
   hazard: assetUrl("sprites/shared_hole_hazard_01.png"),
 };
+
+const MAZE_MUSIC_URL = assetUrl("audio/space_basic_v1/gameplay_loop.wav");
+const MAZE_AUDIO_URLS = {
+  jump: assetUrl("audio/space_basic_v1/jump.wav"),
+  land: assetUrl("audio/space_basic_v1/land.wav"),
+  collectible: assetUrl("audio/space_basic_v1/collectible.wav"),
+  enemy_defeat: assetUrl("audio/space_basic_v1/enemy_defeat.wav"),
+  player_death: assetUrl("audio/space_basic_v1/player_death.wav"),
+  respawn: assetUrl("audio/space_basic_v1/respawn.wav"),
+  goal: assetUrl("audio/space_basic_v1/goal.wav"),
+} as const;
+
+const MAZE_AUDIO_VOLUME: Record<keyof typeof MAZE_AUDIO_URLS, number> = {
+  jump: 0.38,
+  land: 0.3,
+  collectible: 0.4,
+  enemy_defeat: 0.46,
+  player_death: 0.48,
+  respawn: 0.36,
+  goal: 0.5,
+};
+
+class MazeRuntimeAudio {
+  private music: HTMLAudioElement | null = null;
+  private muted = false;
+
+  setMuted(muted: boolean) {
+    this.muted = muted;
+    if (this.music) this.music.muted = muted;
+  }
+
+  startMusic() {
+    if (!this.music) {
+      this.music = new Audio(MAZE_MUSIC_URL);
+      this.music.loop = true;
+      this.music.volume = 0.32;
+    }
+    this.music.muted = this.muted;
+    if (this.music.paused) void this.music.play().catch(() => undefined);
+  }
+
+  pauseMusic() {
+    this.music?.pause();
+  }
+
+  play(event: MazeRuntimeEvent["type"]) {
+    if (this.muted) return;
+    const url = MAZE_AUDIO_URLS[event];
+    const effect = new Audio(url);
+    effect.volume = MAZE_AUDIO_VOLUME[event];
+    void effect.play().catch(() => undefined);
+  }
+}
 
 type MazeVisualProfile = Record<VisualSlot, ImageKey> & { color: string };
 
@@ -165,6 +256,8 @@ function drawMaze(
   camera: MazeCamera,
   images: Partial<Record<ImageKey, HTMLImageElement>>,
   playerImage: CanvasImageSource | undefined,
+  playerDefeatedImage: CanvasImageSource | undefined,
+  playerAssetId: PlayerAssetId,
   elapsedSeconds: number,
 ) {
   const tileSize = map.tileSize;
@@ -233,6 +326,7 @@ function drawMaze(
       if (images.hazard) context.drawImage(images.hazard, left, top, tileSize, tileSize);
     } else if (object.type === "enemy_spawn") {
       const enemy = state.enemies.find((candidate) => candidate.id === object.id);
+      if (enemy?.defeated) continue;
       const direction = enemy?.direction ?? object.direction ?? "down";
       const motionOffset = resolveBodyMotionOffset(
         object.motion?.visual,
@@ -263,15 +357,42 @@ function drawMaze(
     tileSize,
     state.direction,
   );
-  drawActor(
-    context,
-    playerImage,
-    state.direction,
-    state.x * tileSize + playerMotionOffset.x,
-    state.y * tileSize + playerMotionOffset.y,
-    state.moving,
-    elapsedSeconds,
-  );
+  const playerX = state.x * tileSize + playerMotionOffset.x;
+  const playerY = (state.y + resolveMazeJumpVisualOffset(state)) * tileSize + playerMotionOffset.y;
+  let playerDrawn = false;
+  if (state.status === "dying") {
+    const eventVisual = playerDefeatedEventVisual(
+      playerAssetId,
+      state.direction === "left" ? "left" : "right",
+      (MAZE_DEATH_DURATION_TICKS - state.deathTicksRemaining)
+        * MAZE_FIXED_DELTA_SECONDS
+        * 1000,
+    );
+    if (eventVisual) {
+      const { eventSheet } = eventVisual;
+      playerDrawn = drawSheetFrame(
+        context,
+        playerDefeatedImage,
+        eventSheet.columns,
+        eventSheet.frameWidth,
+        eventSheet.frameHeight,
+        eventVisual.frameIndex,
+        playerX - eventSheet.anchor.x,
+        playerY - eventSheet.anchor.y,
+      );
+    }
+  }
+  if (!playerDrawn) {
+    drawActor(
+      context,
+      playerImage,
+      state.direction,
+      playerX,
+      playerY,
+      state.moving,
+      elapsedSeconds,
+    );
+  }
   context.restore();
 }
 
@@ -279,6 +400,7 @@ function normalizedInput(input: InputState): MazeInput {
   return {
     moveX: Number(input.right) - Number(input.left),
     moveY: Number(input.down) - Number(input.up),
+    jumpPressed: input.jumpPressed,
   };
 }
 
@@ -289,17 +411,23 @@ export function MazeGame({
   hairColor = "hair_03",
   className,
   controlRowLeading,
+  onThumbnailCaptureReady,
+  onUpdateThumbnail,
 }: MazeGameProps) {
   const initialState = useMemo(() => createInitialMazeState(map), [map]);
   const [playing, setPlaying] = useState(false);
   const [assetsReady, setAssetsReady] = useState(false);
-  const [won, setWon] = useState(false);
+  const [runtimeStatus, setRuntimeStatus] = useState<MazeState["status"]>("playing");
+  const [muted, setMuted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const screenshotMenuRef = useRef<CanvasScreenshotMenuHandle>(null);
   const gameRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef(initialState);
   const inputRef = useRef<InputState>(emptyInput());
   const imagesRef = useRef<Partial<Record<ImageKey, HTMLImageElement>>>({});
   const playerImageRef = useRef<CanvasImageSource | null>(null);
+  const playerDefeatedImageRef = useRef<CanvasImageSource | null>(null);
+  const audioRef = useRef<MazeRuntimeAudio | null>(null);
 
   const syncRuntimeDom = useCallback((state: MazeState, camera: MazeCamera) => {
     if (!gameRef.current) return;
@@ -309,6 +437,10 @@ export function MazeGame({
     gameRef.current.dataset.cameraY = camera.y.toFixed(2);
     gameRef.current.dataset.runtimeState = state.status;
     gameRef.current.dataset.runtimeTick = String(state.tick);
+    gameRef.current.dataset.jumpState = state.jump ? "jumping" : "grounded";
+    gameRef.current.dataset.defeatedEnemies = String(
+      state.enemies.filter((enemy) => enemy.defeated).length,
+    );
   }, []);
 
   const render = useCallback((elapsedSeconds: number) => {
@@ -327,10 +459,44 @@ export function MazeGame({
       camera,
       imagesRef.current,
       playerImageRef.current ?? undefined,
+      playerDefeatedImageRef.current ?? undefined,
+      playerAssetId,
       elapsedSeconds,
     );
     syncRuntimeDom(stateRef.current, camera);
-  }, [map, syncRuntimeDom]);
+  }, [map, playerAssetId, syncRuntimeDom]);
+
+  const captureCleanThumbnail = useCallback(async () => {
+    if (!assetsReady) {
+      throw new Error("The game artwork is still loading.");
+    }
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      throw new Error("The game canvas is unavailable.");
+    }
+    return createCanvasThumbnailDataUrl(canvas);
+  }, [assetsReady]);
+
+  useEffect(() => {
+    if (!assetsReady) {
+      onThumbnailCaptureReady?.(null);
+      return;
+    }
+
+    onThumbnailCaptureReady?.(captureCleanThumbnail);
+    return () => onThumbnailCaptureReady?.(null);
+  }, [assetsReady, captureCleanThumbnail, onThumbnailCaptureReady]);
+
+  useEffect(() => {
+    audioRef.current = new MazeRuntimeAudio();
+    const savedMuted = window.localStorage.getItem("splat-lab.game-audio-muted.v1") === "true";
+    audioRef.current.setMuted(savedMuted);
+    const syncPreference = window.setTimeout(() => setMuted(savedMuted), 0);
+    return () => {
+      window.clearTimeout(syncPreference);
+      audioRef.current?.pauseMusic();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -361,6 +527,11 @@ export function MazeGame({
       } else {
         playerImageRef.current = basePlayerImage ?? null;
       }
+
+      const defeatedSheet = playerDefeatedEventSheet(playerAssetId);
+      playerDefeatedImageRef.current = defeatedSheet
+        ? await loadSpriteImage(assetUrl(`sprites/${defeatedSheet.imageAssetId}.png`)) ?? null
+        : null;
 
       if (!cancelled) setAssetsReady(true);
     })();
@@ -398,16 +569,27 @@ export function MazeGame({
       previousTime = time;
       let steps = 0;
       while (accumulator >= MAZE_FIXED_DELTA_SECONDS && steps < MAZE_MAX_CATCH_UP_STEPS) {
-        stateRef.current = stepMaze(map, stateRef.current, normalizedInput(inputRef.current));
+        const previousStatus = stateRef.current.status;
+        const result = stepMazeWithEvents(
+          map,
+          stateRef.current,
+          normalizedInput(inputRef.current),
+        );
+        inputRef.current.jumpPressed = false;
+        stateRef.current = result.state;
+        for (const event of result.events) audioRef.current?.play(event.type);
+        if (result.state.status !== previousStatus) setRuntimeStatus(result.state.status);
+        if (result.state.status === "dying") inputRef.current = emptyInput();
         accumulator -= MAZE_FIXED_DELTA_SECONDS;
         steps += 1;
       }
       if (steps === MAZE_MAX_CATCH_UP_STEPS) accumulator = 0;
       render(time / 1000);
       if (stateRef.current.status === "won") {
-        setWon(true);
+        setRuntimeStatus("won");
         setPlaying(false);
         inputRef.current = emptyInput();
+        audioRef.current?.pauseMusic();
         return;
       }
       animationFrame = requestAnimationFrame(frame);
@@ -429,12 +611,23 @@ export function MazeGame({
       s: "down",
     }[key] as keyof InputState | undefined);
     const keyDown = (event: KeyboardEvent) => {
+      if ((event.key === " " || event.code === "Space") && gameHasFocus()) {
+        event.preventDefault();
+        if (!playing) return;
+        if (!inputRef.current.jumpHeld) inputRef.current.jumpPressed = true;
+        inputRef.current.jumpHeld = true;
+        return;
+      }
       const action = control(event.key);
-      if (!action || !gameHasFocus()) return;
+      if (!action || !playing || !gameHasFocus()) return;
       event.preventDefault();
       inputRef.current[action] = true;
     };
     const keyUp = (event: KeyboardEvent) => {
+      if (event.key === " " || event.code === "Space") {
+        inputRef.current.jumpHeld = false;
+        return;
+      }
       const action = control(event.key);
       if (!action) return;
       inputRef.current[action] = false;
@@ -448,20 +641,22 @@ export function MazeGame({
       window.removeEventListener("keyup", keyUp);
       window.removeEventListener("blur", clear);
     };
-  }, []);
+  }, [playing]);
 
   const start = () => {
     if (stateRef.current.status === "won") {
       stateRef.current = createInitialMazeState(map);
-      setWon(false);
+      setRuntimeStatus("playing");
     }
     setPlaying(true);
+    audioRef.current?.startMusic();
     canvasRef.current?.focus();
   };
 
   const pause = () => {
     inputRef.current = emptyInput();
     setPlaying(false);
+    audioRef.current?.pauseMusic();
     render(performance.now() / 1000);
   };
 
@@ -469,7 +664,8 @@ export function MazeGame({
     inputRef.current = emptyInput();
     stateRef.current = createInitialMazeState(map);
     setPlaying(false);
-    setWon(false);
+    setRuntimeStatus("playing");
+    audioRef.current?.pauseMusic();
     render(performance.now() / 1000);
     canvasRef.current?.focus();
   };
@@ -479,12 +675,27 @@ export function MazeGame({
     canvasRef.current?.focus();
   };
 
-  const statusMessage = won
+  const setPointerJump = (active: boolean) => {
+    if (active && !inputRef.current.jumpHeld) inputRef.current.jumpPressed = true;
+    inputRef.current.jumpHeld = active;
+    canvasRef.current?.focus();
+  };
+
+  const toggleMuted = () => {
+    const nextMuted = !muted;
+    setMuted(nextMuted);
+    audioRef.current?.setMuted(nextMuted);
+    window.localStorage.setItem("splat-lab.game-audio-muted.v1", String(nextMuted));
+  };
+
+  const statusMessage = runtimeStatus === "won"
     ? "Maze complete!"
+    : runtimeStatus === "dying"
+      ? "Hero defeated — returning to start…"
     : !assetsReady
       ? "Loading maze…"
       : !playing
-        ? "Press Play, then use the arrow keys or W/A/S/D"
+        ? "Press Play, then move with the arrow keys or W/A/S/D and jump with Space"
         : null;
 
   return (
@@ -500,14 +711,19 @@ export function MazeGame({
       data-camera-y="0.00"
       data-runtime-state="playing"
       data-runtime-tick="0"
+      data-jump-state="grounded"
+      data-defeated-enemies="0"
     >
       <div className={styles.toolbar} aria-label="Maze playback controls">
         <div className={styles.buttonGroup}>
           <button className={styles.playButton} type="button" onClick={start} disabled={playing || !assetsReady}>▶ Play</button>
           <button type="button" onClick={pause} disabled={!playing}>Ⅱ Pause</button>
           <button type="button" onClick={reset}>↻ Reset</button>
+          <button type="button" onClick={toggleMuted} aria-pressed={muted}>
+            {muted ? "🔇 Muted" : "🔊 Sound"}
+          </button>
         </div>
-        <p className={styles.controlHint}>Move: W/A/S/D or arrow keys</p>
+        <p className={styles.controlHint}>Move: W/A/S/D or arrow keys · Jump: Space</p>
       </div>
 
       <div className={styles.stage} style={{ aspectRatio: `${map.camera.columns} / ${map.camera.rows}` }}>
@@ -515,8 +731,18 @@ export function MazeGame({
           className={styles.canvas}
           ref={canvasRef}
           tabIndex={0}
-          aria-label={`Playable ${map.id} maze. Move with W, A, S, D or the arrow keys.`}
+          aria-label={`Playable ${map.id} maze. Move with W, A, S, D or the arrow keys. Jump with Space.`}
           onClick={() => { if (!playing && assetsReady) start(); }}
+          onContextMenu={(event: ReactMouseEvent<HTMLCanvasElement>) => {
+            event.preventDefault();
+            screenshotMenuRef.current?.open(event.clientX, event.clientY);
+          }}
+        />
+        <CanvasScreenshotMenu
+          ref={screenshotMenuRef}
+          canvasRef={canvasRef}
+          gameId={map.id}
+          onUpdateThumbnail={onUpdateThumbnail}
         />
         {statusMessage ? <div className={styles.stageMessage} aria-hidden="true"><strong>{statusMessage}</strong></div> : null}
       </div>
@@ -529,6 +755,7 @@ export function MazeGame({
               type="button"
               key={action}
               aria-label={`Move ${action}`}
+              disabled={!playing}
               onPointerDown={() => setPointerInput(action, true)}
               onPointerUp={() => setPointerInput(action, false)}
               onPointerCancel={() => setPointerInput(action, false)}
@@ -537,6 +764,17 @@ export function MazeGame({
               {{ left: "← Left", up: "↑ Up", down: "↓ Down", right: "Right →" }[action]}
             </button>
           ))}
+          <button
+            type="button"
+            aria-label="Jump"
+            disabled={!playing}
+            onPointerDown={() => setPointerJump(true)}
+            onPointerUp={() => setPointerJump(false)}
+            onPointerCancel={() => setPointerJump(false)}
+            onPointerLeave={() => setPointerJump(false)}
+          >
+            ↑ Jump
+          </button>
         </div>
       </div>
     </div>

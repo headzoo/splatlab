@@ -4,6 +4,7 @@ import test from "node:test";
 import { DEFAULT_GAME_DOCUMENT } from "@/lib/game-contract";
 
 import {
+  buildGameNameOptions,
   parseBuildTurnResult,
   persistedBuildTurn,
   reconcilePersistedGame,
@@ -12,15 +13,21 @@ import {
   setupSelectionsFromSpec,
 } from "./build-setup";
 import { buildPromptSuggestions } from "./build-prompt-suggestions";
+import {
+  cooperSetupChoiceReplies,
+  setupChoiceReplyFor,
+} from "./build-setup-replies";
 
 test("post-setup prompt suggestions match the selected game and theme", () => {
   assert.deepEqual(buildPromptSuggestions("platformer", "green_hills"), [
+    "Add another level",
     "Reduce the gravity",
     "Add more hazards",
     "Add more coins",
     "Add more enemies",
   ]);
   assert.deepEqual(buildPromptSuggestions("maze", "space"), [
+    "Add another level",
     "Make the maze harder",
     "Add more hazards",
     "Add another key",
@@ -52,6 +59,7 @@ test("a new unsaved game has no locked setup answers", () => {
     humanGender: null,
     skinTone: null,
     hairColor: null,
+    gameName: null,
   });
 });
 
@@ -78,21 +86,25 @@ test("a partially completed game restores only its locked answers", () => {
       humanGender: null,
       skinTone: null,
       hairColor: null,
+      gameName: null,
     },
   );
 });
 
 test("a completed human setup restores gender and appearance answers", () => {
   assert.deepEqual(
-    setupSelectionsFromSpec({
-      ...DEFAULT_GAME_DOCUMENT,
-      platformerMapSource: "level-3.json",
-      playerCharacter: "human",
-      humanGender: "girl",
-      skinTone: "skin_01",
-      hairColor: "hair_06",
-      setupStep: "complete",
-    }),
+    setupSelectionsFromSpec(
+      {
+        ...DEFAULT_GAME_DOCUMENT,
+        platformerMapSource: "level-3.json",
+        playerCharacter: "human",
+        humanGender: "girl",
+        skinTone: "skin_01",
+        hairColor: "hair_06",
+        setupStep: "complete",
+      },
+      "Crypt Dash",
+    ),
     {
       gameType: "platformer",
       theme: "graveyard",
@@ -100,6 +112,7 @@ test("a completed human setup restores gender and appearance answers", () => {
       humanGender: "girl",
       skinTone: "skin_01",
       hairColor: "hair_06",
+      gameName: "Crypt Dash",
     },
   );
 });
@@ -118,6 +131,7 @@ test("a completed nonhuman setup does not expose unused human answers", () => {
       humanGender: null,
       skinTone: null,
       hairColor: null,
+      gameName: "Green Hills Platformer",
     },
   );
 });
@@ -131,6 +145,55 @@ test("legacy games reconstruct their setup transcript from the saved step", () =
       setupStep: "hairColor",
     }),
     ["gameType", "theme", "character", "humanGender", "skinTone", "hairColor"],
+  );
+});
+
+test("a completed legacy setup transcript includes the name question", () => {
+  assert.deepEqual(
+    setupQuestionHistoryFromSpec({
+      ...DEFAULT_GAME_DOCUMENT,
+      builderSetupHistory: [],
+      setupStep: "complete",
+    }),
+    ["gameType", "theme", "character", "gameName"],
+  );
+});
+
+test("game name choices are generated from the setup selections", () => {
+  assert.deepEqual(
+    buildGameNameOptions({
+      gameType: "maze",
+      theme: "space",
+      character: "robot",
+      humanGender: null,
+    }),
+    [
+      "Robot's Star Mission",
+      "Space Maze",
+      "Rocket Robot Escape",
+      "Moon Key Quest",
+    ],
+  );
+});
+
+test("setup choice replies are mapped for game type and theme choices only", () => {
+  assert.deepEqual(Object.keys(cooperSetupChoiceReplies).sort(), [
+    "gameType",
+    "theme",
+  ]);
+  assert.deepEqual(Object.keys(cooperSetupChoiceReplies.gameType).sort(), [
+    "maze",
+    "platformer",
+  ]);
+  assert.deepEqual(Object.keys(cooperSetupChoiceReplies.theme).sort(), [
+    "dragon_world",
+    "graveyard",
+    "green_hills",
+    "space",
+  ]);
+  assert.equal(
+    setupChoiceReplyFor("theme", "space"),
+    "Be careful, there's less gravity in space.",
   );
 });
 

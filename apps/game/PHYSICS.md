@@ -161,6 +161,15 @@ An active preview applies the accepted revision on the next simulation reset.
 An active network room remains pinned to the revision and resolved physics with
 which it started; it never changes physics halfway through a match.
 
+For a saved game, the website owns this boundary at runtime.
+[`game-physics/platformer_small_01.json`](./game-physics/platformer_small_01.json)
+is an immutable template: Cooper's first accepted patch deep-clones it into that
+game's `Game.spec.physicsDocument`, and every later patch revises the fork.
+`apps/website/src/lib/game-physics.ts` ports the rules above and adds the
+level-design envelope check, and both `/build` and `/play` resolve the fork ahead
+of the catalog file. `tools/physics.py` remains the catalog authority and the CI
+validator for the checked-in documents; it does not see per-game forks.
+
 The editable values are bounded as follows:
 
 - Run or top-down speed: `0.5–12 tiles/s`.

@@ -17,11 +17,16 @@ import {
 } from "@/lib/game-contract";
 
 import {
+  buildGameNameOptions,
   parseBuildTurnResult,
   persistedBuildTurn,
   useBuildSetup,
 } from "./build-setup";
-import { buildPromptSuggestions } from "./build-prompt-suggestions";
+import {
+  ADD_LEVEL_PROMPT,
+  buildPromptSuggestions,
+} from "./build-prompt-suggestions";
+import { setupChoiceReplyFor } from "./build-setup-replies";
 import styles from "./build.module.css";
 
 const gameTypes = [
@@ -95,6 +100,8 @@ const hairColors = [
 }>;
 
 const MAX_CHAT_TURNS = 50;
+const SETUP_INTRO =
+  "You're building a game you can share. The preview is your live game, and this chat is where I'll help you set it up and keep building.";
 
 function CooperAvatar() {
   return (
@@ -150,9 +157,11 @@ export function BuildChat() {
     selectHumanGender,
     selectSkinTone,
     selectHairColor,
+    selectGameName,
     gameIdentity,
     displayedGame,
     pausedBuildTurn,
+    openLevelPicker,
     applyPersistedBuildTurn,
   } = useBuildSetup();
   const [currentQuestion, setCurrentQuestion] =
@@ -175,6 +184,9 @@ export function BuildChat() {
     suggestedGameType && suggestedTheme
       ? buildPromptSuggestions(suggestedGameType, suggestedTheme)
       : [];
+  const gameNameOptions = buildGameNameOptions(selections);
+  const gameTypeReply = setupChoiceReplyFor("gameType", selections.gameType);
+  const themeReply = setupChoiceReplyFor("theme", selections.theme);
   const completionTurnCount = chatReady ? 1 : 0;
   const overflowTurns = Math.max(
     0,
@@ -238,7 +250,7 @@ export function BuildChat() {
   }
 
   function chooseCharacter(character: PlayerCharacter) {
-    const next = character === "human" ? "humanGender" : "complete";
+    const next = character === "human" ? "humanGender" : "gameName";
 
     if (currentQuestion === "character") {
       answerCurrentQuestion(() => selectCharacter(character, next), next);
@@ -252,8 +264,8 @@ export function BuildChat() {
 
     if (character !== "human" && inHumanQuestions) {
       answerCurrentQuestion(
-        () => selectCharacter(character, "complete"),
-        "complete",
+        () => selectCharacter(character, "gameName"),
+        "gameName",
       );
       return;
     }
@@ -336,6 +348,10 @@ export function BuildChat() {
 
   function sendSuggestedPrompt(message: string) {
     if (!chatReady) return;
+    if (message === ADD_LEVEL_PROMPT) {
+      openLevelPicker();
+      return;
+    }
     void postBuildTurn({ message }, message);
   }
 
@@ -353,6 +369,7 @@ export function BuildChat() {
       <div className={styles.conversation} ref={conversationRef}>
         {visibleQuestionSet.has("gameType") ? (
           <>
+            <CooperQuestion>{SETUP_INTRO}</CooperQuestion>
             <CooperQuestion>What do you want to make?</CooperQuestion>
             <div
               className={`${styles.choiceGrid} ${styles.gameTypeGrid}`}
@@ -383,6 +400,10 @@ export function BuildChat() {
           </>
         ) : null}
 
+        {visibleQuestionSet.has("gameType") && gameTypeReply ? (
+          <CooperQuestion>{gameTypeReply}</CooperQuestion>
+        ) : null}
+
         {visibleQuestionSet.has("theme") ? (
           <>
             <CooperQuestion>What theme do you want?</CooperQuestion>
@@ -410,6 +431,10 @@ export function BuildChat() {
               ))}
             </div>
           </>
+        ) : null}
+
+        {visibleQuestionSet.has("theme") && themeReply ? (
+          <CooperQuestion>{themeReply}</CooperQuestion>
         ) : null}
 
         {visibleQuestionSet.has("character") ? (
@@ -525,13 +550,42 @@ export function BuildChat() {
                         chooseSetupOption(
                           "hairColor",
                           (nextStep) => selectHairColor(color.value, nextStep),
-                          "complete",
+                          "gameName",
                         )
                       }
                     />
                   ))}
                 </div>
               </fieldset>
+            </div>
+          </>
+        ) : null}
+
+        {visibleQuestionSet.has("gameName") ? (
+          <>
+            <CooperQuestion>What should we call your game?</CooperQuestion>
+            <div
+              className={`${styles.choiceGrid} ${styles.gameNameGrid}`}
+              aria-label="Choose a game name"
+            >
+              {gameNameOptions.map((gameName) => (
+                <button
+                  type="button"
+                  className={`${styles.choiceCard} ${styles.gameNameCard} ${selections.gameName === gameName ? styles.selected : ""}`}
+                  key={gameName}
+                  aria-pressed={selections.gameName === gameName}
+                  disabled={setupComplete || thinking}
+                  onClick={() =>
+                    chooseSetupOption(
+                      "gameName",
+                      (nextStep) => selectGameName(gameName, nextStep),
+                      "complete",
+                    )
+                  }
+                >
+                  <strong>{gameName}</strong>
+                </button>
+              ))}
             </div>
           </>
         ) : null}
@@ -660,6 +714,10 @@ export function BuildChat() {
             ? `Human · ${selections.humanGender === "boy" ? "Boy" : "Girl"}`
             : heroes.find((hero) => hero.value === selections.character)?.label ??
               "Choose a hero"}
+        </strong>
+        <strong className={selections.gameName ? "" : styles.unansweredChoice}>
+          {selections.gameName ? "✎" : "◇"}{" "}
+          {selections.gameName ?? "Choose a name"}
         </strong>
         <b aria-hidden="true">✦</b>
       </div>

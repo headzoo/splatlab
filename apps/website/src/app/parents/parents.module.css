@@ -125,6 +125,18 @@
   text-align: center;
 }
 
+.heroCopy h1,
+.heroCopy > p,
+.finalCopy h2,
+.finalCopy p {
+  text-shadow:
+    -1px -1px 0 rgb(255 255 255 / 82%),
+    1px -1px 0 rgb(255 255 255 / 82%),
+    -1px 1px 0 rgb(255 255 255 / 82%),
+    1px 1px 0 rgb(255 255 255 / 82%),
+    0 4px 10px rgb(255 255 255 / 72%);
+}
+
 .heroCopy h1 {
   font: 400 clamp(42px, 4vw, 60px)/0.98 "Chewy", cursive;
   letter-spacing: -0.5px;

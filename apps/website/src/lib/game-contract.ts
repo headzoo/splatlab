@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { gamePhysicsDocumentSchema } from "./game-physics";
+
 export const PLATFORMER_MAP_SOURCES = [
   "level-1.json",
   "level-3.json",
@@ -31,6 +33,7 @@ export const GAME_SETUP_QUESTIONS = [
   "humanGender",
   "skinTone",
   "hairColor",
+  "gameName",
 ] as const;
 export const GAME_SETUP_STEPS = [...GAME_SETUP_QUESTIONS, "complete"] as const;
 export const SKIN_TONES = [
@@ -275,6 +278,10 @@ export const gameDocumentSchema = z
       .array(platformerObjectSettingsSchema)
       .max(1000)
       .default([]),
+    // Absent means "use the read-only catalog document". Cooper's first
+    // accepted physics patch forks the catalog into this field, and the server
+    // owns it from then on.
+    physicsDocument: gamePhysicsDocumentSchema.optional(),
   })
   .strict()
   .superRefine((document, context) => {
@@ -351,6 +358,17 @@ export const updateGameInputSchema = z
     title: z.string().trim().min(1).max(80),
     spec: gameDocumentSchema,
     expectedRevision: z.number().int().positive(),
+  })
+  .strict();
+
+export const GAME_THUMBNAIL_MAX_DATA_URL_LENGTH = 750_000;
+
+export const gameThumbnailInputSchema = z
+  .object({
+    thumbnailDataUrl: z
+      .string()
+      .max(GAME_THUMBNAIL_MAX_DATA_URL_LENGTH)
+      .regex(/^data:image\/(?:png|webp);base64,[A-Za-z0-9+/]+={0,2}$/),
   })
   .strict();
 
@@ -436,6 +454,7 @@ export type SavedGameDto = {
   gameType: GamePreviewKind;
   mapSource: string;
   spec: GameDocument;
+  thumbnailDataUrl: string | null;
   revision: number;
   createdAt: string;
   updatedAt: string;

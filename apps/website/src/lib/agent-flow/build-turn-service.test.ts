@@ -15,8 +15,8 @@ import { executeBuildMessage } from "./executor";
 import { AgentFlowRunStore } from "./run-store";
 
 class ScriptedModelClient implements ModelClient {
-  async completeText() {
-    return "A scoped and verified maze handoff.";
+  async completeTurn() {
+    return { text: "A scoped and verified maze handoff.", toolCalls: [], items: [] };
   }
 
   async selectScenario() {
@@ -108,7 +108,7 @@ test("processBuildTurn does not meter Reject or initialize its model client", as
   const game = await createGame("owner-a", { title: "Test game", spec: DEFAULT_GAME_DOCUMENT });
   const store = new AgentFlowRunStore({ forceMemory: true });
   const model = new class implements ModelClient {
-    async completeText() { return "Draft needs a decision."; }
+    async completeTurn() { return { text: "Draft needs a decision.", toolCalls: [], items: [] }; }
     async selectScenario() { return "Needs work"; }
   }();
   await executeBuildMessage(
@@ -140,7 +140,7 @@ test("processBuildTurn limits Proceed before it claims a paused run", async () =
   const game = await createGame("owner-a", { title: "Test game", spec: DEFAULT_GAME_DOCUMENT });
   const store = new AgentFlowRunStore({ forceMemory: true });
   const model = new class implements ModelClient {
-    async completeText() { return "Draft needs a decision."; }
+    async completeTurn() { return { text: "Draft needs a decision.", toolCalls: [], items: [] }; }
     async selectScenario() { return "Needs work"; }
   }();
   await executeBuildMessage(

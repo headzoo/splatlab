@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { builderChatTurnSchema, gameDocumentSchema, type BuilderChatTurn } from "../game-contract";
+import type { GamePhysicsDocument } from "../game-physics";
 import { memoryGames, type StoredGame } from "../games";
 import { Prisma } from "@/generated/prisma/client";
 
@@ -118,6 +119,16 @@ export type FailRunInput = {
   expectedRevision: number;
   code: string;
 };
+
+export type ApplyPhysicsInput = {
+  ownerId: string;
+  gameId: string;
+  document: GamePhysicsDocument;
+};
+
+export type ApplyPhysicsResult =
+  | { status: "updated"; gameRevision: number; document: GamePhysicsDocument }
+  | { status: "not_found" };
 
 export type StartRunResult =
   | { status: "started"; run: AgentFlowRun; gameRevision: number; builderChatHistory: readonly BuilderChatTurn[] }
@@ -261,6 +272,32 @@ export class AgentFlowRunStore {
       return { status: "updated", run: toRun(run as AgentFlowRun) };
     }
     return this.missingOrConflict(input);
+  }
+
+  /**
+   * Writes a validated Cooper physics fork into `Game.spec` outside the run
+   * lifecycle, so an applied patch survives a later Reject or a failed turn.
+   */
+  async applyPhysicsDocument(input: ApplyPhysicsInput): Promise<ApplyPhysicsResult> {
+    if (this.useMemory) {
+      const game = memoryGames().find((item) => item.id === input.gameId && item.ownerId === input.ownerId);
+      if (!game) return { status: "not_found" };
+      game.spec = gameDocumentSchema.parse({ ...game.spec, physicsDocument: input.document });
+      game.revision += 1;
+      game.updatedAt = new Date();
+      return { status: "updated", gameRevision: game.revision, document: clone(input.document) };
+    }
+    return this.transactionWithTranscriptRetry(() => getPrisma().$transaction(async (tx) => {
+      const game = await tx.game.findFirst({ where: { id: input.gameId, ownerId: input.ownerId } });
+      if (!game) return { status: "not_found" } as ApplyPhysicsResult;
+      const spec = gameDocumentSchema.parse(game.spec);
+      const result = await tx.game.updateMany({
+        where: { id: game.id, revision: game.revision },
+        data: { spec: { ...spec, physicsDocument: input.document }, revision: { increment: 1 } },
+      });
+      if (!result.count) throw TRANSCRIPT_CONFLICT;
+      return { status: "updated", gameRevision: game.revision + 1, document: clone(input.document) };
+    }));
   }
 
   async loadActive(ownerId: string, gameId: string): Promise<AgentFlowRun | null> {

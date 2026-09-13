@@ -2,7 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { DEFAULT_GAME_DOCUMENT } from "./game-contract";
-import { createGameHistory, gameHistoryReducer } from "./game-history";
+import { createGameHistory, gameHistoryReducer, sameGameDocument } from "./game-history";
+import { applyCooperPhysicsPatch, CATALOG_PLATFORMER_GAME_PHYSICS } from "./game-physics";
+
+const COOPER_PHYSICS = applyCooperPhysicsPatch(CATALOG_PLATFORMER_GAME_PHYSICS, {
+  baseRevision: 1,
+  prompt: "Make me jump higher",
+  operations: [
+    { op: "replace", path: "/verticalMovement/groundedJump/jumpHeightTiles", value: 3.5 },
+  ],
+});
 
 test("game history supports edit, undo, and redo", () => {
   const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
@@ -157,4 +166,38 @@ test("chat turns save without becoming game undo entries", () => {
   const redone = gameHistoryReducer(undone, { type: "redo" });
   assert.equal(redone.present.previewKind, "maze");
   assert.deepEqual(redone.present.builderChatHistory, turns);
+});
+
+test("Cooper's physics document survives undo and redo without becoming an undo entry", () => {
+  const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
+  const edited = gameHistoryReducer(initial, {
+    type: "edit",
+    spec: { ...DEFAULT_GAME_DOCUMENT, previewKind: "maze" },
+  });
+  const patched = gameHistoryReducer(edited, { type: "physics", document: COOPER_PHYSICS });
+
+  assert.equal(patched.past.length, 1);
+  assert.deepEqual(patched.present.physicsDocument, COOPER_PHYSICS);
+  assert.equal(
+    gameHistoryReducer(patched, { type: "physics", document: COOPER_PHYSICS }),
+    patched,
+  );
+
+  const undone = gameHistoryReducer(patched, { type: "undo" });
+  assert.equal(undone.present.previewKind, "platformer");
+  assert.deepEqual(undone.present.physicsDocument, COOPER_PHYSICS);
+
+  const redone = gameHistoryReducer(undone, { type: "redo" });
+  assert.equal(redone.present.previewKind, "maze");
+  assert.deepEqual(redone.present.physicsDocument, COOPER_PHYSICS);
+
+  const cleared = gameHistoryReducer(redone, { type: "physics", document: undefined });
+  assert.equal("physicsDocument" in cleared.present, false);
+});
+
+test("documents that differ only by physics are not treated as equal", () => {
+  const forked = { ...DEFAULT_GAME_DOCUMENT, physicsDocument: COOPER_PHYSICS };
+
+  assert.equal(sameGameDocument(DEFAULT_GAME_DOCUMENT, forked), false);
+  assert.equal(sameGameDocument(forked, { ...forked }), true);
 });

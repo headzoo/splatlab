@@ -8,8 +8,11 @@ import {
   getGame,
   getPublicGame,
   listGames,
+  saveGameThumbnail,
   updateGame,
 } from "./games";
+
+const TEST_THUMBNAIL = "data:image/webp;base64,UklGRg==";
 
 test("game CRUD is owner-scoped and revision guarded", async () => {
   const originalDatabaseUrl = process.env.DATABASE_URL;
@@ -24,6 +27,24 @@ test("game CRUD is owner-scoped and revision guarded", async () => {
     assert.equal((await listGames("owner-a")).length, 1);
     assert.equal(await getGame("owner-b", created.id), null);
     assert.equal((await getPublicGame(created.id))?.id, created.id);
+    assert.equal(created.thumbnailDataUrl, null);
+
+    assert.equal(
+      await saveGameThumbnail("owner-b", created.id, TEST_THUMBNAIL),
+      false,
+    );
+    assert.equal(
+      await saveGameThumbnail("owner-a", created.id, TEST_THUMBNAIL),
+      true,
+    );
+    assert.equal(
+      (await listGames("owner-a"))[0]?.thumbnailDataUrl,
+      TEST_THUMBNAIL,
+    );
+    assert.equal(
+      (await getGame("owner-a", created.id))?.thumbnailDataUrl,
+      TEST_THUMBNAIL,
+    );
 
     const mazeSpec = { ...DEFAULT_GAME_DOCUMENT, previewKind: "maze" as const };
     const updated = await updateGame("owner-a", created.id, {

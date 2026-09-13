@@ -95,16 +95,17 @@ model RateLimit {
 }
 
 model Game {
-  id        String   @id @default(cuid())
-  ownerId   String   @map("owner_id")
-  title     String
-  gameType  String   @map("game_type")
-  mapSource String   @map("map_source")
-  spec      Json     @db.JsonB
-  revision  Int      @default(1)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id               String   @id @default(cuid())
+  ownerId          String   @map("owner_id")
+  title            String
+  gameType         String   @map("game_type")
+  mapSource        String   @map("map_source")
+  spec             Json     @db.JsonB
+  thumbnailDataUrl String?  @map("thumbnail_data_url") @db.Text
+  revision         Int      @default(1)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+  owner            User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   agentFlowRuns AgentFlowRun[]
 
   @@index([ownerId, updatedAt(sort: Desc)], map: "game_owner_id_updated_at_idx")

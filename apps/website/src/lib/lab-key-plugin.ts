@@ -3,7 +3,6 @@ import {
   APIError,
   createAuthEndpoint,
   formCsrfMiddleware,
-  getSessionFromCtx,
   sessionMiddleware,
 } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
@@ -215,14 +214,6 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
           use: [formCsrfMiddleware],
         },
         async (ctx) => {
-          const currentSession = await getSessionFromCtx(ctx);
-
-          if (currentSession) {
-            throw new APIError("BAD_REQUEST", {
-              message: "You're already inside a Lab Workspace.",
-            });
-          }
-
           const normalized = normalizeLabKey(ctx.body.labKey);
 
           if (!normalized) {

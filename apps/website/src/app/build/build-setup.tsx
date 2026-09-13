@@ -12,6 +12,7 @@ import {
 
 import {
   activeGameTheme,
+  defaultGameTitle,
   GAME_SETUP_STEPS,
   THEME_MAP_SOURCES,
   type GameDocument,
@@ -25,6 +26,10 @@ import {
   type SkinTone,
   type BuilderChatTurn,
 } from "@/lib/game-contract";
+import {
+  gamePhysicsDocumentSchema,
+  type GamePhysicsDocument,
+} from "@/lib/game-physics";
 
 export type SetupSelections = {
   gameType: GamePreviewKind | null;
@@ -33,25 +38,29 @@ export type SetupSelections = {
   humanGender: HumanGender | null;
   skinTone: SkinTone | null;
   hairColor: HairColor | null;
+  gameName: string | null;
 };
+
+type GameSetupSpecChange = Partial<
+  Pick<
+    GameDocument,
+    | "previewKind"
+    | "platformerMapSource"
+    | "mazeMapSource"
+    | "playerCharacter"
+    | "humanGender"
+    | "skinTone"
+    | "hairColor"
+    | "setupStep"
+    | "builderSetupHistory"
+    | "builderChatHistory"
+  >
+>;
 
 export type SetupChange = {
   revision: number;
-  change: Partial<
-    Pick<
-      GameDocument,
-      | "previewKind"
-      | "platformerMapSource"
-      | "mazeMapSource"
-      | "playerCharacter"
-      | "humanGender"
-      | "skinTone"
-      | "hairColor"
-      | "setupStep"
-      | "builderSetupHistory"
-      | "builderChatHistory"
-    >
-  >;
+  change: GameSetupSpecChange;
+  title?: string;
 };
 
 export type BuildGameIdentity = {
@@ -64,6 +73,88 @@ export type DisplayedGame = {
   theme: GameTheme;
 };
 
+const TITLE_THEMES = {
+  green_hills: {
+    adjective: "Sunny",
+    place: "Green Hills",
+    noun: "Meadow",
+    quest: "Hill Hop",
+  },
+  graveyard: {
+    adjective: "Moonlit",
+    place: "Graveyard",
+    noun: "Crypt",
+    quest: "Ghost Quest",
+  },
+  space: {
+    adjective: "Rocket",
+    place: "Space",
+    noun: "Moon",
+    quest: "Star Mission",
+  },
+  dragon_world: {
+    adjective: "Dragon",
+    place: "Dragon World",
+    noun: "Ember",
+    quest: "Castle Quest",
+  },
+} as const satisfies Record<
+  GameTheme,
+  {
+    adjective: string;
+    place: string;
+    noun: string;
+    quest: string;
+  }
+>;
+
+const TITLE_GAME_TYPES = {
+  platformer: {
+    primary: "Dash",
+    action: "Jump",
+    objective: "Coin Quest",
+  },
+  maze: {
+    primary: "Maze",
+    action: "Escape",
+    objective: "Key Quest",
+  },
+} as const satisfies Record<
+  GamePreviewKind,
+  {
+    primary: string;
+    action: string;
+    objective: string;
+  }
+>;
+
+function titleHero(
+  character: PlayerCharacter | null,
+  humanGender: HumanGender | null,
+) {
+  if (character === "cooper" || character === null) return "Cooper";
+  if (character === "human") return humanGender === "girl" ? "Girl Hero" : "Hero";
+  return character === "ghost" ? "Ghost" : "Robot";
+}
+
+export function buildGameNameOptions({
+  gameType,
+  theme,
+  character,
+  humanGender,
+}: Pick<SetupSelections, "gameType" | "theme" | "character" | "humanGender">) {
+  const titleTheme = TITLE_THEMES[theme ?? "green_hills"];
+  const titleGameType = TITLE_GAME_TYPES[gameType ?? "platformer"];
+  const hero = titleHero(character, humanGender);
+
+  return Array.from(new Set([
+    `${hero}'s ${titleTheme.quest}`,
+    `${titleTheme.place} ${titleGameType.primary}`,
+    `${titleTheme.adjective} ${hero} ${titleGameType.action}`,
+    `${titleTheme.noun} ${titleGameType.objective}`,
+  ])).slice(0, 4);
+}
+
 export type PausedBuildTurn = {
   feedbackEnabled: boolean;
 };
@@ -73,6 +164,8 @@ export type BuildTurnResult = {
   cooperMessage: string;
   runId: string;
   revision: number;
+  /** Present only when Cooper changed this game's physics on this turn. */
+  physicsDocument?: GamePhysicsDocument;
 };
 
 export type PersistedBuildTurn = BuildTurnResult & {
@@ -97,6 +190,8 @@ const NON_CHAT_GAME_FIELDS = [
   "platformerObjectEdits",
   "platformerObjectRemovals",
   "platformerObjectSettings",
+  // `physicsDocument` is deliberately absent: it is server-owned, so the
+  // server's value must survive reconciliation rather than the local copy.
 ] as const satisfies readonly (keyof GameDocument)[];
 
 export function reconcilePersistedGame(
@@ -134,11 +229,17 @@ export function parseBuildTurnResult(
   const revision = Number(revisionHeader);
   if (!Number.isInteger(revision) || revision < 1) return null;
 
+  const physics = "physicsDocument" in body
+    ? gamePhysicsDocumentSchema.safeParse(body.physicsDocument)
+    : undefined;
+  if (physics && !physics.success) return null;
+
   return {
     status: body.status as BuildTurnResult["status"],
     cooperMessage: body.cooperMessage.trim(),
     runId: body.runId,
     revision,
+    ...(physics ? { physicsDocument: physics.data } : {}),
   };
 }
 
@@ -171,6 +272,7 @@ type BuildSetupContextValue = {
   pausedBuildTurn: PausedBuildTurn | null;
   persistedBuildTurn: PersistedBuildTurn | null;
   requestedSetup: SetupChange | null;
+  levelPickerOpen: boolean;
   chatHistory: BuilderChatTurn[];
   setupQuestionHistory: GameSetupQuestion[];
   selectGameType: (gameType: GamePreviewKind, nextStep?: GameSetupStep) => void;
@@ -179,6 +281,9 @@ type BuildSetupContextValue = {
   selectHumanGender: (humanGender: HumanGender, nextStep?: GameSetupStep) => void;
   selectSkinTone: (skinTone: SkinTone, nextStep?: GameSetupStep) => void;
   selectHairColor: (hairColor: HairColor, nextStep?: GameSetupStep) => void;
+  selectGameName: (gameName: string, nextStep?: GameSetupStep) => void;
+  openLevelPicker: () => void;
+  closeLevelPicker: () => void;
   saveChatHistory: (turns: BuilderChatTurn[]) => void;
   publishGameIdentity: (identity: BuildGameIdentity) => void;
   publishDisplayedGame: (displayedGame: DisplayedGame) => void;
@@ -194,6 +299,7 @@ const EMPTY_SELECTIONS: SetupSelections = {
   humanGender: null,
   skinTone: null,
   hairColor: null,
+  gameName: null,
 };
 
 function hasAnsweredStep(currentStep: GameSetupStep, answerStep: GameSetupStep) {
@@ -206,6 +312,7 @@ export function isSetupHistoryLocked(setupStep: GameSetupStep) {
 
 export function setupSelectionsFromSpec(
   initialSpec: GameDocument | null,
+  initialTitle: string | null = null,
 ): SetupSelections {
   if (!initialSpec) return { ...EMPTY_SELECTIONS };
 
@@ -232,6 +339,9 @@ export function setupSelectionsFromSpec(
       isHuman && hasAnsweredStep(initialSpec.setupStep, "hairColor")
         ? initialSpec.hairColor
         : null,
+    gameName: hasAnsweredStep(initialSpec.setupStep, "gameName")
+      ? initialTitle ?? defaultGameTitle(initialSpec)
+      : null,
   };
 }
 
@@ -255,6 +365,7 @@ export function setupQuestionHistoryFromSpec(
     if (reached("skinTone")) questions.push("skinTone");
     if (reached("hairColor")) questions.push("hairColor");
   }
+  if (reached("gameName")) questions.push("gameName");
 
   return questions;
 }
@@ -262,21 +373,24 @@ export function setupQuestionHistoryFromSpec(
 export function BuildSetupProvider({
   children,
   initialSpec,
+  initialTitle = null,
   initialIdentity = null,
   initialPausedBuildTurn = null,
 }: {
   children: ReactNode;
   initialSpec: GameDocument | null;
+  initialTitle?: string | null;
   initialIdentity?: BuildGameIdentity | null;
   initialPausedBuildTurn?: PausedBuildTurn | null;
 }) {
   const [selections, setSelections] = useState(() =>
-    setupSelectionsFromSpec(initialSpec),
+    setupSelectionsFromSpec(initialSpec, initialTitle),
   );
   const [setupStep, setSetupStep] = useState<GameSetupStep>(
     initialSpec?.setupStep ?? "gameType",
   );
   const [requestedSetup, setRequestedSetup] = useState<SetupChange | null>(null);
+  const [levelPickerOpen, setLevelPickerOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState<BuilderChatTurn[]>(
     initialSpec?.builderChatHistory ?? [],
   );
@@ -301,18 +415,30 @@ export function BuildSetupProvider({
     useState<PersistedBuildTurn | null>(null);
   const nextRevision = useRef(1);
 
-  const requestChange = useCallback((change: SetupChange["change"]) => {
+  const requestChange = useCallback((
+    change: SetupChange["change"],
+    title?: string,
+  ) => {
     setRequestedSetup((current) => ({
       revision: nextRevision.current++,
       change: { ...current?.change, ...change },
+      ...(title !== undefined
+        ? { title }
+        : current?.title !== undefined
+          ? { title: current.title }
+          : {}),
     }));
   }, []);
 
   const applySelectionChange = useCallback(
-    (change: SetupChange["change"], nextStep?: GameSetupStep) => {
+    (
+      change: SetupChange["change"],
+      nextStep?: GameSetupStep,
+      title?: string,
+    ) => {
       if (nextStep) setSetupStep(nextStep);
       if (!nextStep) {
-        requestChange(change);
+        requestChange(change, title);
         return;
       }
 
@@ -325,7 +451,7 @@ export function BuildSetupProvider({
         ...change,
         setupStep: nextStep,
         builderSetupHistory: nextHistory,
-      });
+      }, title);
     },
     [requestChange, setupQuestionHistory],
   );
@@ -378,6 +504,22 @@ export function BuildSetupProvider({
     [applySelectionChange],
   );
 
+  const selectGameName = useCallback(
+    (gameName: string, nextStep?: GameSetupStep) => {
+      setSelections((current) => ({ ...current, gameName }));
+      applySelectionChange({}, nextStep, gameName);
+    },
+    [applySelectionChange],
+  );
+
+  const openLevelPicker = useCallback(() => {
+    setLevelPickerOpen(true);
+  }, []);
+
+  const closeLevelPicker = useCallback(() => {
+    setLevelPickerOpen(false);
+  }, []);
+
   const saveChatHistory = useCallback((turns: BuilderChatTurn[]) => {
     const boundedTurns = turns.slice(-50);
     setChatHistory(boundedTurns);
@@ -424,6 +566,7 @@ export function BuildSetupProvider({
       pausedBuildTurn,
       persistedBuildTurn: latestPersistedBuildTurn,
       requestedSetup,
+      levelPickerOpen,
       chatHistory,
       setupQuestionHistory,
       selectGameType,
@@ -432,6 +575,9 @@ export function BuildSetupProvider({
       selectHumanGender,
       selectSkinTone,
       selectHairColor,
+      selectGameName,
+      openLevelPicker,
+      closeLevelPicker,
       saveChatHistory,
       publishGameIdentity,
       publishDisplayedGame,
@@ -439,6 +585,7 @@ export function BuildSetupProvider({
     }),
     [
       requestedSetup,
+      levelPickerOpen,
       chatHistory,
       gameIdentity,
       displayedGame,
@@ -448,6 +595,9 @@ export function BuildSetupProvider({
       selectCharacter,
       selectGameType,
       selectHairColor,
+      selectGameName,
+      openLevelPicker,
+      closeLevelPicker,
       selectHumanGender,
       selections,
       selectSkinTone,

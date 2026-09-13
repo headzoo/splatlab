@@ -1,10 +1,10 @@
 import { FlowContractError } from "./contract";
-import { BuildExecutionError, executeBuildMessage, resumeBuildTurn } from "./executor";
+import { BuildExecutionError, executeBuildMessage, resumeBuildTurn, type BuildMessageResult } from "./executor";
 import type { BuildTurnInput, BuildTurnResponseBody } from "./http-contract";
 import {
   ModelConfigurationError,
   type ModelScenarioRequest,
-  type ModelTextRequest,
+  type ModelTurnRequest,
   ModelOutputError,
   ModelProviderError,
   type ModelClient,
@@ -50,7 +50,7 @@ export async function processBuildTurn(
       );
       return {
         kind: "success",
-        body: { status: result.status, cooperMessage: result.cooperMessage, runId: result.runId },
+        body: responseBody(result),
         gameRevision: result.gameRevision,
       };
     } catch (error) {
@@ -76,16 +76,21 @@ export async function processBuildTurn(
 
     return {
       kind: "success",
-      body: {
-        status: result.status,
-        cooperMessage: result.cooperMessage,
-        runId: result.runId,
-      },
+      body: responseBody(result),
       gameRevision: result.gameRevision,
     };
   } catch (error) {
     return mapBuildTurnFailure(error);
   }
+}
+
+function responseBody(result: BuildMessageResult): BuildTurnResponseBody {
+  return {
+    status: result.status,
+    cooperMessage: result.cooperMessage,
+    runId: result.runId,
+    ...(result.physicsDocument ? { physicsDocument: result.physicsDocument } : {}),
+  };
 }
 
 async function consumeRateLimit(
@@ -104,7 +109,7 @@ function lazyModelClient(clientOrFactory: ModelClient | (() => ModelClient)): Mo
   let client: ModelClient | undefined;
   const getClient = () => (client ??= clientOrFactory());
   return {
-    completeText: (request: ModelTextRequest) => getClient().completeText(request),
+    completeTurn: (request: ModelTurnRequest) => getClient().completeTurn(request),
     selectScenario: (request: ModelScenarioRequest) => getClient().selectScenario(request),
   };
 }

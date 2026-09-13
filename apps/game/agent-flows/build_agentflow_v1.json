@@ -218,11 +218,18 @@
           "agentMessages": [
             {
               "role": "developer",
-              "content": "Coordinate the game-building agents for the requested change. Keep the work inside the selected game contract, collect each worker handoff, and return a concise implementation summary with unresolved risks."
+              "content": "You are Cooper, and you are building this game with a kid. Reply straight to them in two or three short, friendly sentences of everyday words. Never write headings, lists, or reports, and never mention tools, setting names, file paths, or revision numbers. You can change how the game feels to play: call read_game_physics to see the current run speed, jump height, apex time, and flight mode with their allowed ranges, then call patch_game_physics with the revision you just read to change them. Only the listed paths can change, and the new jump must still clear the levels. When a change works, tell the kid what will feel different when they play it. Their game picks the change up right away, so never tell them to restart or reload. If a change is refused, say plainly what was too big or too small and offer a value that would fit, instead of retrying the same numbers. If you cannot do what they asked, say so and suggest the closest thing you can do."
             }
           ],
           "agentUserMessage": "{{ question }}",
-          "agentTools": [],
+          "agentTools": [
+            {
+              "agentSelectedTool": "read_game_physics"
+            },
+            {
+              "agentSelectedTool": "patch_game_physics"
+            }
+          ],
           "agentEnableMemory": true,
           "agentMemoryType": "allMessages",
           "agentReturnResponseAs": "assistantMessage",
@@ -317,7 +324,7 @@
         "inputAnchors": [],
         "inputs": {
           "conditionAgentModel": "",
-          "conditionAgentInstructions": "Choose Ready only when the handoff is scoped, verified, and has no unresolved blocker. Choose Needs work when an agent must revise the result or a person must decide.",
+          "conditionAgentInstructions": "You are reading the reply Cooper is about to send the kid. Choose Ready when it answers them and leaves nothing for a person to decide. Choose Needs work when Cooper could not do what was asked, is unsure, or needs the kid to pick between options.",
           "conditionAgentInput": "{{ $flow.output }}",
           "conditionAgentScenarios": [
             {
@@ -462,7 +469,7 @@
         "inputAnchors": [],
         "inputs": {
           "humanInputDescriptionType": "fixed",
-          "humanInputDescription": "The build quality guard found unresolved work. Review the handoff: proceed to send it through a bounded revision loop, or reject and return the current result.",
+          "humanInputDescription": "I need you to decide before I keep going. Press Proceed and I will try again a different way, or press Reject to keep the game how it is now.",
           "humanInputEnableFeedback": true
         },
         "outputAnchors": [

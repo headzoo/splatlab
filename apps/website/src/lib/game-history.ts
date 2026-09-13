@@ -1,4 +1,5 @@
 import type { BuilderChatTurn, GameDocument } from "./game-contract";
+import type { GamePhysicsDocument } from "./game-physics";
 
 export type GameHistory = {
   past: GameDocument[];
@@ -9,10 +10,24 @@ export type GameHistory = {
 export type GameHistoryAction =
   | { type: "edit"; spec: GameDocument }
   | { type: "chat"; turns: BuilderChatTurn[] }
+  /** Server-owned: Cooper's physics fork is not an undoable local edit. */
+  | { type: "physics"; document: GamePhysicsDocument | undefined }
   | { type: "undo" }
   | { type: "redo" };
 
 const MAX_HISTORY_LENGTH = 50;
+
+function samePhysics(left: GameDocument, right: GameDocument) {
+  return JSON.stringify(left.physicsDocument ?? null)
+    === JSON.stringify(right.physicsDocument ?? null);
+}
+
+function withPhysics(spec: GameDocument, document: GamePhysicsDocument | undefined): GameDocument {
+  const next: GameDocument = { ...spec };
+  delete next.physicsDocument;
+  if (document) next.physicsDocument = document;
+  return next;
+}
 
 function sameChatHistory(left: BuilderChatTurn[], right: BuilderChatTurn[]) {
   return (
@@ -109,6 +124,7 @@ export function sameGameDocument(left: GameDocument, right: GameDocument) {
     sameObjectEdits(left, right) &&
     sameObjectRemovals(left, right) &&
     sameObjectSettings(left, right) &&
+    samePhysics(left, right) &&
     sameChatHistory(left.builderChatHistory, right.builderChatHistory)
   );
 }
@@ -138,6 +154,13 @@ export function gameHistoryReducer(
     };
   }
 
+  if (action.type === "physics") {
+    const present = withPhysics(history.present, action.document);
+    if (samePhysics(history.present, present)) return history;
+
+    return { ...history, present };
+  }
+
   if (action.type === "undo") {
     const previous = history.past.at(-1);
     if (!previous) return history;
@@ -145,7 +168,7 @@ export function gameHistoryReducer(
     return {
       past: history.past.slice(0, -1),
       present: {
-        ...previous,
+        ...withPhysics(previous, history.present.physicsDocument),
         builderChatHistory: history.present.builderChatHistory,
       },
       future: [history.present, ...history.future],
@@ -158,7 +181,7 @@ export function gameHistoryReducer(
   return {
     past: [...history.past, history.present].slice(-MAX_HISTORY_LENGTH),
     present: {
-      ...next,
+      ...withPhysics(next, history.present.physicsDocument),
       builderChatHistory: history.present.builderChatHistory,
     },
     future: history.future.slice(1),

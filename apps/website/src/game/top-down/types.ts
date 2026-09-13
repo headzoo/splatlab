@@ -41,6 +41,28 @@ export type MazeMapSpec = {
 export type MazeInput = {
   moveX: number;
   moveY: number;
+  jumpPressed?: boolean;
+};
+
+export type MazeJumpState = {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  ticksElapsed: number;
+  totalTicks: number;
+  targetEnemyId: string | null;
+};
+
+export type MazeRuntimeEvent = {
+  type:
+    | "jump"
+    | "land"
+    | "collectible"
+    | "enemy_defeat"
+    | "player_death"
+    | "respawn"
+    | "goal";
 };
 
 export type MazeState = {
@@ -49,9 +71,13 @@ export type MazeState = {
   y: number;
   direction: MazeDirection;
   moving: boolean;
+  jump: MazeJumpState | null;
+  stompGraceTicksRemaining: number;
+  deathTicksRemaining: number;
+  respawnGraceTicksRemaining: number;
   enemies: MazeEnemyState[];
   collectedKeyId: string | null;
-  status: "playing" | "won";
+  status: "playing" | "dying" | "won";
 };
 
 export type MazeEnemyState = {
@@ -63,6 +89,7 @@ export type MazeEnemyState = {
   direction: MazeDirection;
   wanderDirection: MazeDirection;
   moving: boolean;
+  defeated: boolean;
 };
 
 export type MazeCamera = { x: number; y: number };

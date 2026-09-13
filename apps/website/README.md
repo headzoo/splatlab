@@ -59,4 +59,6 @@ connection variable that Prisma Migrate will prefer. Optionally add
 Add preview origins to
 `BETTER_AUTH_TRUSTED_ORIGINS` as a comma-separated list when previews need to
 exercise authentication. Apply database migrations separately before sending
-traffic to a deployment that uses the new schema.
+traffic to a deployment that uses the new schema. Saved-game thumbnails are
+downscaled in the browser and stored with the game row in Neon; the Vercel
+runtime does not write generated images to its local filesystem.

@@ -47,7 +47,12 @@
   z-index: 2;
   color: #fff;
   text-align: center;
-  text-shadow: 0 3px 0 rgb(26 86 151 / 17%);
+  text-shadow:
+    -1px -1px 0 rgb(0 0 0 / 62%),
+    1px -1px 0 rgb(0 0 0 / 62%),
+    -1px 1px 0 rgb(0 0 0 / 62%),
+    1px 1px 0 rgb(0 0 0 / 62%),
+    0 4px 10px rgb(0 0 0 / 42%);
 }
 
 .welcomeCopy > span,
@@ -222,8 +227,9 @@
   line-height: 1;
 }
 
-.createButton:disabled {
+.createButton[aria-disabled="true"] {
   cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .emptyState {
@@ -285,6 +291,47 @@
   border: 2px solid #b9cce2;
   border-radius: 14px;
   box-shadow: 0 4px 0 rgb(34 86 137 / 10%);
+}
+
+.gameCardTopper {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  color: inherit;
+  background: #dfeaf7;
+  border-bottom: 2px solid #b9cce2;
+  border-radius: 12px 12px 0 0;
+  text-decoration: none;
+}
+
+.gameCardTopper img {
+  object-fit: cover;
+}
+
+.gameCardTopperFallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-content: center;
+  place-items: center;
+  gap: 7px;
+  color: #3155a3;
+  background:
+    radial-gradient(circle at 28% 25%, rgb(255 255 255 / 72%) 0 7%, transparent 8%),
+    linear-gradient(145deg, #dff4ff, #d9d4fb);
+}
+
+.gameCardTopperFallback b {
+  font-size: 38px;
+  line-height: 1;
+}
+
+.gameCardTopperFallback small {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .gameCardBody {
@@ -490,8 +537,11 @@
   position: relative;
   z-index: 3;
   display: grid;
-  min-height: 188px;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+  min-height: 215px;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(240px, 290px)
+    minmax(300px, 360px);
   align-items: center;
   gap: 28px;
   margin-top: 17px;
@@ -549,7 +599,7 @@
 
 .keyAction {
   display: grid;
-  min-width: 260px;
+  min-width: 240px;
   gap: 12px;
 }
 
@@ -584,6 +634,80 @@
   color: #d8e8fb;
   font-size: 11px;
   font-weight: 700;
+  text-align: center;
+}
+
+.keyLogin {
+  display: grid;
+  scroll-margin-top: 24px;
+  gap: 8px;
+  padding: 16px 18px 17px;
+  color: #0d214f;
+  background: rgb(255 255 255 / 96%);
+  border: 2px solid #78d6fa;
+  border-radius: 15px;
+  box-shadow: 0 5px 0 rgb(4 25 62 / 18%);
+}
+
+.keyLoginHeading span {
+  color: #e8402b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.keyLoginHeading h3 {
+  margin-top: 1px;
+  font: 400 25px/1 "Chewy", cursive;
+  letter-spacing: 0;
+}
+
+.keyLogin label {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.keyLogin input {
+  width: 100%;
+  min-height: 43px;
+  padding: 0 11px;
+  color: #0d214f;
+  background: #fff;
+  border: 2px solid #9aacca;
+  border-radius: 8px;
+  font: 800 13px/1 "Nunito", sans-serif;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.keyLogin input::placeholder {
+  color: #78869f;
+  opacity: 1;
+}
+
+.keyLogin button {
+  min-height: 43px;
+  color: #0d1b4e;
+  background: linear-gradient(#ffdc37, #ffca24);
+  border: 2px solid #efa90e;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 rgb(204 137 0 / 20%);
+  font: 400 18px/1 "Chewy", cursive;
+  cursor: pointer;
+}
+
+.keyLogin button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.keyLoginError {
+  color: #a82319;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.25;
   text-align: center;
 }
 
@@ -703,10 +827,13 @@
 }
 
 .createButton:focus-visible,
+.gameCardTopper:focus-visible,
 .gameCardButton:focus-visible,
 .gameMenu summary:focus-visible,
 .gameMenu button:focus-visible,
 .keyButton:focus-visible,
+.keyLogin input:focus-visible,
+.keyLogin button:focus-visible,
 .closeButton:focus-visible,
 .cancelButton:focus-visible,
 .replaceButton:focus-visible,
@@ -727,7 +854,10 @@
   }
 
   .labKeyPanel {
-    grid-template-columns: minmax(0, 1fr) minmax(250px, 310px);
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(230px, 270px)
+      minmax(280px, 320px);
     gap: 20px;
     padding-inline: 26px;
   }
@@ -787,6 +917,10 @@
 
   .labKeyPanel {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .keyCopy {
+    grid-column: 1 / -1;
   }
 }
 

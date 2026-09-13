@@ -17,6 +17,7 @@ export type StoredGame = {
   gameType: GamePreviewKind;
   mapSource: string;
   spec: GameDocument;
+  thumbnailDataUrl: string | null;
   revision: number;
   createdAt: Date;
   updatedAt: Date;
@@ -38,6 +39,7 @@ function parseStoredGame(record: {
   gameType: string;
   mapSource: string;
   spec: unknown;
+  thumbnailDataUrl: string | null;
   revision: number;
   createdAt: Date;
   updatedAt: Date;
@@ -58,6 +60,7 @@ function toDto(game: StoredGame): SavedGameDto {
     gameType: game.gameType,
     mapSource: game.mapSource,
     spec: game.spec,
+    thumbnailDataUrl: game.thumbnailDataUrl,
     revision: game.revision,
     createdAt: game.createdAt.toISOString(),
     updatedAt: game.updatedAt.toISOString(),
@@ -70,6 +73,7 @@ function toSummary(game: StoredGame): SavedGameSummaryDto {
     title: game.title,
     gameType: game.gameType,
     mapSource: game.mapSource,
+    thumbnailDataUrl: game.thumbnailDataUrl,
     revision: game.revision,
     createdAt: game.createdAt.toISOString(),
     updatedAt: game.updatedAt.toISOString(),
@@ -130,6 +134,7 @@ export async function createGame(
       gameType,
       mapSource,
       spec: input.spec,
+      thumbnailDataUrl: null,
       revision: 1,
       createdAt: now,
       updatedAt: now,
@@ -156,6 +161,18 @@ export type UpdateGameResult =
   | { status: "conflict"; game: SavedGameDto }
   | { status: "not_found" };
 
+/**
+ * `physicsDocument` is server-owned: only Cooper's validated patches write it.
+ * A client autosave can carry a stale copy (or none at all), so the stored
+ * value always wins and the client's is discarded.
+ */
+function withStoredPhysics(spec: GameDocument, stored: GameDocument): GameDocument {
+  const next: GameDocument = { ...spec };
+  delete next.physicsDocument;
+  if (stored.physicsDocument) next.physicsDocument = stored.physicsDocument;
+  return next;
+}
+
 export async function updateGame(
   ownerId: string,
   id: string,
@@ -174,20 +191,23 @@ export async function updateGame(
     game.title = input.title;
     game.gameType = input.spec.previewKind;
     game.mapSource = activeMapSource(input.spec);
-    game.spec = input.spec;
+    game.spec = withStoredPhysics(input.spec, game.spec);
     game.revision += 1;
     game.updatedAt = new Date();
     return { status: "updated", game: toDto(game) };
   }
 
   const prisma = getPrisma();
+  const existing = await prisma.game.findFirst({ where: { id, ownerId } });
+  if (!existing) return { status: "not_found" };
+
   const result = await prisma.game.updateMany({
     where: { id, ownerId, revision: input.expectedRevision },
     data: {
       title: input.title,
       gameType: input.spec.previewKind,
       mapSource: activeMapSource(input.spec),
-      spec: input.spec,
+      spec: withStoredPhysics(input.spec, parseStoredGame(existing).spec),
       revision: { increment: 1 },
     },
   });
@@ -212,5 +232,27 @@ export async function deleteGame(ownerId: string, id: string) {
   }
 
   const result = await getPrisma().game.deleteMany({ where: { id, ownerId } });
+  return result.count === 1;
+}
+
+export async function saveGameThumbnail(
+  ownerId: string,
+  id: string,
+  thumbnailDataUrl: string,
+) {
+  if (!hasDatabase()) {
+    const game = memoryGames().find(
+      (candidate) => candidate.id === id && candidate.ownerId === ownerId,
+    );
+    if (!game) return false;
+    game.thumbnailDataUrl = thumbnailDataUrl;
+    game.updatedAt = new Date();
+    return true;
+  }
+
+  const result = await getPrisma().game.updateMany({
+    where: { id, ownerId },
+    data: { thumbnailDataUrl },
+  });
   return result.count === 1;
 }

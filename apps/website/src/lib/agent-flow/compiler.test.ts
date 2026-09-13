@@ -34,7 +34,7 @@ test("registry hash is stable and reflects execution-relevant edits", () => {
   const first = compileFlow(cloneStarter());
   const reordered = cloneStarter();
   reordered.nodes[1].data.inputs = {
-    agentTools: [],
+    agentTools: reordered.nodes[1].data.inputs.agentTools,
     agentUserMessage: "{{ question }}",
     agentMessages: reordered.nodes[1].data.inputs.agentMessages,
     agentModel: "",
@@ -50,7 +50,7 @@ test("registry hash is stable and reflects execution-relevant edits", () => {
   assert.notEqual(flowHashFor(first), flowHashFor(compileFlow(changed)));
 });
 
-test("unknown executable nodes, mismatched pairs, and tools fail closed", () => {
+test("unknown executable nodes and mismatched pairs fail closed", () => {
   for (const [name, type] of [
     ["retrieverAgentflow", "Retriever"],
     ["customFunctionAgentflow", "CustomFunction"],
@@ -62,9 +62,42 @@ test("unknown executable nodes, mismatched pairs, and tools fail closed", () => 
     flow.nodes[1].data.type = type;
     assert.throws(() => compileFlow(flow), FlowContractError);
   }
-  const tools = cloneStarter();
-  tools.nodes[1].data.inputs.agentTools = [{ agentSelectedTool: "httpRequest" }];
-  assert.throws(() => compileFlow(tools), /empty agentTools/);
+});
+
+test("Agent tools compile only from the closed allowlist", () => {
+  const allowed = cloneStarter();
+  allowed.nodes[1].data.inputs.agentTools = [{ agentSelectedTool: "read_game_physics" }];
+  assert.deepEqual(
+    compileFlow(allowed).nodesById.get("agentAgentflow_0")?.inputs.agentTools,
+    [{ agentSelectedTool: "read_game_physics" }],
+  );
+
+  const rejected: [unknown, RegExp][] = [
+    [[{ agentSelectedTool: "httpRequest" }], /is not allowed/],
+    [[{ agentSelectedTool: "read_game_physics" }, { agentSelectedTool: "read_game_physics" }], /must be unique/],
+    [[{ agentSelectedTool: "read_game_physics", agentSelectedToolRequiresHumanInput: true }], /cannot require human input/],
+    [[{ agentSelectedTool: "read_game_physics", agentSelectedToolConfig: {} }], /is not supported/],
+    [[{ agentSelectedTool: "read_game_physics" }, { agentSelectedTool: "patch_game_physics" }, { agentSelectedTool: "read_game_physics" }], /at most 2 entries/],
+    ["read_game_physics", /at most 2 entries/],
+  ];
+  for (const [agentTools, message] of rejected) {
+    const flow = cloneStarter();
+    flow.nodes[1].data.inputs.agentTools = agentTools;
+    assert.throws(() => compileFlow(flow), message);
+  }
+});
+
+test("LLM nodes still reject every tool input", () => {
+  const flow = cloneStarter();
+  flow.nodes[1].data.name = "llmAgentflow";
+  flow.nodes[1].data.type = "LLM";
+  flow.nodes[1].data.inputs = {
+    llmModel: "",
+    llmMessages: flow.nodes[1].data.inputs.agentMessages,
+    llmUserMessage: "{{ question }}",
+    llmTools: [{ agentSelectedTool: "read_game_physics" }],
+  };
+  assert.throws(() => compileFlow(flow), /cannot configure tools/);
 });
 
 test("Flowise deterministic conditions compile from their conditions array", () => {

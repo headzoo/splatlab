@@ -1,5 +1,7 @@
 import type { GamePreviewKind, GameTheme } from "@/lib/game-contract";
 
+export const ADD_LEVEL_PROMPT = "Add another level";
+
 const THEME_PROMPTS = {
   green_hills: "Add more enemies",
   graveyard: "Add more ghosts",
@@ -16,5 +18,9 @@ export function buildPromptSuggestions(
   gameType: GamePreviewKind,
   theme: GameTheme,
 ) {
-  return [...GAME_TYPE_PROMPTS[gameType], THEME_PROMPTS[theme]];
+  return [
+    ADD_LEVEL_PROMPT,
+    ...GAME_TYPE_PROMPTS[gameType],
+    THEME_PROMPTS[theme],
+  ];
 }

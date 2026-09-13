@@ -152,6 +152,22 @@ class AgentFlowStorageTests(unittest.TestCase):
             "agentAgentflow_0-Agent",
         )
 
+    def test_checked_in_build_flow_grants_only_the_allowlisted_physics_tools(self) -> None:
+        flow = load_agent_flow_file("build_agentflow_v1.json")
+        nodes = {node["data"]["name"]: node for node in flow["nodes"]}
+        tools = nodes["agentAgentflow"]["data"]["inputs"]["agentTools"]
+
+        self.assertEqual(
+            [tool["agentSelectedTool"] for tool in tools],
+            ["read_game_physics", "patch_game_physics"],
+        )
+        for tool in tools:
+            self.assertEqual(set(tool), {"agentSelectedTool"})
+        self.assertIn(
+            "patch_game_physics",
+            nodes["agentAgentflow"]["data"]["inputs"]["agentMessages"][0]["content"],
+        )
+
     def test_game_editor_exposes_agent_flow_screen_and_project_api(self) -> None:
         markup = (EDITOR_ROOT / "agent-flows.html").read_text(encoding="utf-8")
         source = (EDITOR_ROOT / "agent-flow-editor.js").read_text(encoding="utf-8")
@@ -163,6 +179,16 @@ class AgentFlowStorageTests(unittest.TestCase):
         self.assertIn('"loopAgentflow"', source)
         self.assertIn('"conditionAgentAgentflow"', source)
         self.assertIn('"/api/agent-flows"', server)
+
+    def test_game_editor_validates_agent_tools_against_the_website_allowlist(self) -> None:
+        source = (EDITOR_ROOT / "agent-flow-editor.js").read_text(encoding="utf-8")
+
+        self.assertIn(
+            'const AGENT_TOOL_IDS = ["read_game_physics", "patch_game_physics"];',
+            source,
+        )
+        self.assertIn("function validateAgentTools(", source)
+        self.assertNotIn("agentTools must stay empty", source)
 
 
 if __name__ == "__main__":

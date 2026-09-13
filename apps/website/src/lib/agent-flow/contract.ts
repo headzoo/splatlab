@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { AGENT_TOOL_IDS, isAgentToolId } from "./tools/allowlist";
+
 export const FLOW_ID = "build_agentflow_v1" as const;
 
 const MAX_NODE_COUNT = 64;
@@ -153,6 +155,32 @@ function validateMemory(inputs: Record<string, unknown>, prefix: "agent" | "llm"
   }
 }
 
+function validateAgentTools(value: unknown): void {
+  if (value === undefined) return;
+  if (!Array.isArray(value) || value.length > AGENT_TOOL_IDS.length) {
+    throw new FlowContractError(`Agent tools must be a list of at most ${AGENT_TOOL_IDS.length} entries`);
+  }
+  const ids = value.map((entry) => {
+    const tool = record(entry, "Agent tool");
+    for (const key of Object.keys(tool)) {
+      if (key !== "agentSelectedTool" && key !== "agentSelectedToolRequiresHumanInput") {
+        throw new FlowContractError(`Agent tool option "${key}" is not supported`);
+      }
+    }
+    if (!isAgentToolId(tool.agentSelectedTool)) {
+      throw new FlowContractError(`Agent tool "${String(tool.agentSelectedTool)}" is not allowed`);
+    }
+    if (tool.agentSelectedToolRequiresHumanInput !== undefined
+      && tool.agentSelectedToolRequiresHumanInput !== false) {
+      throw new FlowContractError("Agent tools cannot require human input");
+    }
+    return tool.agentSelectedTool;
+  });
+  if (new Set(ids).size !== ids.length) {
+    throw new FlowContractError("Agent tools must be unique");
+  }
+}
+
 function validateConditionAgentScenarios(value: unknown): void {
   if (!Array.isArray(value) || value.length < 2 || value.length > MAX_SCENARIOS) {
     throw new FlowContractError(`Condition Agent scenarios must contain 2 to ${MAX_SCENARIOS} entries`);
@@ -189,9 +217,8 @@ function validateInputs(kind: FlowNodeKind, inputs: Record<string, unknown>): vo
   if (kind === "startAgentflow" && inputs.startInputType !== "chatInput") {
     throw new FlowContractError("Start input type must be chatInput");
   }
-  if (kind === "agentAgentflow" && inputs.agentTools !== undefined
-    && (!Array.isArray(inputs.agentTools) || inputs.agentTools.length !== 0)) {
-    throw new FlowContractError("Agent nodes must have an empty agentTools list");
+  if (kind === "agentAgentflow") {
+    validateAgentTools(inputs.agentTools);
   }
   if (kind === "llmAgentflow" && Object.entries(inputs).some(([key, value]) => /tool/i.test(key) && value !== undefined)) {
     throw new FlowContractError("LLM nodes cannot configure tools");

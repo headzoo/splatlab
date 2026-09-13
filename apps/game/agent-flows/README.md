@@ -13,12 +13,29 @@ Open the Game Editor's **Agent Flows** screen to author these files. Project
 save is atomic and writes only to this directory. The browser does not keep a
 second local draft as the source of truth.
 
-These files intentionally do not contain provider credentials. Select model,
-tool, document-store, and sub-flow connectors for the target Flowise
-environment before execution. Flowise currently requires its server runtime to
-execute Agentflow V2 files; the portable JSON is the versioned authoring and
-handoff artifact.
+These files intentionally do not contain provider credentials. The website
+supplies the model, so `agentModel` and `llmModel` stay blank.
 
-build_agentflow_v1.json is a starter coordination graph for the /build
-experience. It demonstrates an agent, a semantic guard, a human checkpoint,
-and a bounded loop without claiming a deployed Flowise runtime.
+The Chickensplat website executes these graphs with its own interpreter in
+`apps/website/src/lib/agent-flow`, not with a Flowise server. It supports only
+the Start, Agent, LLM, Condition, ConditionAgent, HumanInput, Loop, and
+DirectReply nodes, and it fails closed on anything else.
+
+## Tools
+
+An Agent node's `agentTools` may only reference these server-owned tool ids:
+
+- `read_game_physics` — reports the game's current movement and jump settings,
+  the fields the agent may change with their bounds, and the jump reach the
+  levels require.
+- `patch_game_physics` — replaces those fields. The first accepted patch forks
+  the catalog physics document into the saved game, and the change takes effect
+  the next time the game restarts.
+
+Each entry is `{"agentSelectedTool": "<id>"}`. Any other id, a duplicate id,
+`agentSelectedToolRequiresHumanInput`, and tools on an LLM node are all
+rejected when the flow is compiled.
+
+build_agentflow_v1.json is the coordination graph for the /build experience. It
+demonstrates a tool-using agent, a semantic guard, a human checkpoint, and a
+bounded loop.

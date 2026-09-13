@@ -1,0 +1,12 @@
+{
+  "gameType": {
+    "platformer": "Great pick. Platformers are all about jumping, timing, and finding the best path forward.",
+    "maze": "Nice. Mazes are perfect for keys, doors, secret routes, and tricky escapes."
+  },
+  "theme": {
+    "green_hills": "Green Hills are bright and bouncy. Keep an eye out for sneaky jumps and hidden coins.",
+    "graveyard": "A graveyard game needs spooky surprises. Watch out for ghosts and gloomy corners.",
+    "space": "Be careful, there's less gravity in space.",
+    "dragon_world": "Dragon World runs hot. Expect fire, castles, and big trouble."
+  }
+}

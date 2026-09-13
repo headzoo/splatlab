@@ -442,6 +442,16 @@
 }
 
 .heroCopy h1,
+.heroCopy > p {
+  text-shadow:
+    -1px -1px 0 rgb(255 255 255 / 82%),
+    1px -1px 0 rgb(255 255 255 / 82%),
+    -1px 1px 0 rgb(255 255 255 / 82%),
+    1px 1px 0 rgb(255 255 255 / 82%),
+    0 4px 10px rgb(255 255 255 / 72%);
+}
+
+.heroCopy h1,
 .sectionHeading h2,
 .feature h2,
 .gameCard h3 {

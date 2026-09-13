@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
@@ -68,6 +69,14 @@ import {
   playerDefeatedEventSheet,
   playerDefeatedEventVisual,
 } from "./player-death";
+import {
+  CanvasScreenshotMenu,
+  type CanvasScreenshotMenuHandle,
+} from "../canvas-screenshot-menu";
+import {
+  createCanvasThumbnailDataUrl,
+  type GameThumbnailCapture,
+} from "../canvas-screenshot";
 import styles from "./platformer-game.module.css";
 
 type PlatformerGameProps = {
@@ -80,6 +89,9 @@ type PlatformerGameProps = {
   className?: string;
   controlRowLeading?: ReactNode;
   autoPlay?: boolean;
+  hideEditorLabels?: boolean;
+  onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
+  onUpdateThumbnail?: () => Promise<void>;
   editorTool?: PlatformerEditTool;
   onEditorToolChange?: (tool: PlatformerEditTool) => void;
   onTerrainStroke?: (stroke: readonly PlatformerTerrainStrokeCell[]) => void;
@@ -1269,6 +1281,9 @@ export function PlatformerGame({
   className,
   controlRowLeading,
   autoPlay = false,
+  hideEditorLabels = false,
+  onThumbnailCaptureReady,
+  onUpdateThumbnail,
   editorTool,
   onEditorToolChange,
   onTerrainStroke,
@@ -1286,6 +1301,7 @@ export function PlatformerGame({
   const [capturingBinding, setCapturingBinding] = useState<CapturingBinding>(null);
   const [controlError, setControlError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const screenshotMenuRef = useRef<CanvasScreenshotMenuHandle>(null);
   const gameRef = useRef<HTMLDivElement>(null);
   const controlsDialogRef = useRef<HTMLDialogElement>(null);
   const srStatusRef = useRef<HTMLParagraphElement>(null);
@@ -1456,6 +1472,64 @@ export function PlatformerGame({
       );
     }
   }, [editorTool, map, playerAssetId, playing, selectedObjectId, weapon]);
+
+  const captureCleanThumbnail = useCallback(async () => {
+    if (!assetsReady) {
+      throw new Error("The game artwork is still loading.");
+    }
+
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      throw new Error("The game canvas is unavailable.");
+    }
+
+    const thumbnailSource = document.createElement("canvas");
+    thumbnailSource.width = canvas.width;
+    thumbnailSource.height = canvas.height;
+    const context = thumbnailSource.getContext("2d");
+    if (!context) {
+      throw new Error("The game thumbnail canvas is unavailable.");
+    }
+
+    const logicalWidth = map.camera.columns * map.tileSize;
+    const logicalHeight = map.camera.rows * map.tileSize;
+    const camera = cameraRef.current ?? resolvePlatformerCamera(map, stateRef.current);
+    context.setTransform(
+      thumbnailSource.width / logicalWidth,
+      0,
+      0,
+      thumbnailSource.height / logicalHeight,
+      0,
+      0,
+    );
+    context.imageSmoothingEnabled = true;
+    drawWorld(
+      context,
+      map,
+      stateRef.current,
+      camera,
+      imagesRef.current,
+      performance.now() / 1000,
+      weapon,
+      playerAssetId,
+      playerImageRef.current ?? imagesRef.current[playerAssetId],
+      victoryStartedAtRef.current === null
+        ? null
+        : performance.now() / 1000 - victoryStartedAtRef.current,
+    );
+
+    return createCanvasThumbnailDataUrl(thumbnailSource);
+  }, [assetsReady, map, playerAssetId, weapon]);
+
+  useEffect(() => {
+    if (!assetsReady) {
+      onThumbnailCaptureReady?.(null);
+      return;
+    }
+
+    onThumbnailCaptureReady?.(captureCleanThumbnail);
+    return () => onThumbnailCaptureReady?.(null);
+  }, [assetsReady, captureCleanThumbnail, onThumbnailCaptureReady]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1757,6 +1831,8 @@ export function PlatformerGame({
   const handleEditorPointerDown = (
     event: ReactPointerEvent<HTMLCanvasElement>,
   ) => {
+    if (event.button !== 0) return;
+
     if (!editorTool || playing) {
       event.currentTarget.focus();
       return;
@@ -2135,6 +2211,7 @@ export function PlatformerGame({
   const controls = controlSummary(controlBindings);
   const building = Boolean(editorTool);
   const editing = building && !playing;
+  const showToolbar = !(building && hideEditorLabels);
   const editorInstruction = editorTool
     ? editorTool === "move"
       ? "Drag the map to move around"
@@ -2175,24 +2252,26 @@ export function PlatformerGame({
       data-death-ticks={initialState.deathTicksRemaining}
       data-editor-mode={editing ? "true" : undefined}
     >
-      <div className={`${styles.toolbar} ${building ? styles.editorToolbar : ""}`} aria-label={building ? "Build instructions" : "Game playback controls"}>
-        {!building ? (
-          <div className={styles.buttonGroup}>
-            <button className={styles.playbackButton} type="button" onClick={togglePlayback} disabled={!assetsReady}>
-              {playing ? "Ⅱ Pause" : "▶ Play"}
-            </button>
-            <button type="button" onClick={reset}>
-              ↻ Reset
-            </button>
-            <button type="button" onClick={toggleMuted} aria-pressed={muted}>
-              {muted ? "🔇 Muted" : "🔊 Sound"}
-            </button>
-          </div>
-        ) : null}
-        <p className={styles.controlHint}>
-          {editing ? `Build mode · ${editorInstruction}` : controls}
-        </p>
-      </div>
+      {showToolbar ? (
+        <div className={`${styles.toolbar} ${building ? styles.editorToolbar : ""}`} aria-label={building ? "Build instructions" : "Game playback controls"}>
+          {!building ? (
+            <div className={styles.buttonGroup}>
+              <button className={styles.playbackButton} type="button" onClick={togglePlayback} disabled={!assetsReady}>
+                {playing ? "Ⅱ Pause" : "▶ Play"}
+              </button>
+              <button type="button" onClick={reset}>
+                ↻ Reset
+              </button>
+              <button type="button" onClick={toggleMuted} aria-pressed={muted}>
+                {muted ? "🔇 Muted" : "🔊 Sound"}
+              </button>
+            </div>
+          ) : null}
+          <p className={styles.controlHint}>
+            {editing ? `Build mode · ${editorInstruction}` : controls}
+          </p>
+        </div>
+      ) : null}
 
       <div className={styles.stage}>
         <canvas
@@ -2206,6 +2285,10 @@ export function PlatformerGame({
           }
           data-editor-tool={editing ? editorTool : undefined}
           onClick={editorTool ? () => canvasRef.current?.focus() : startFromCanvas}
+          onContextMenu={(event: ReactMouseEvent<HTMLCanvasElement>) => {
+            event.preventDefault();
+            screenshotMenuRef.current?.open(event.clientX, event.clientY);
+          }}
           onKeyDown={handleCanvasKeyDown}
           onPointerDown={handleEditorPointerDown}
           onPointerMove={handleEditorPointerMove}
@@ -2213,7 +2296,13 @@ export function PlatformerGame({
           onPointerCancel={finishEditorPointer}
           onPointerLeave={handleEditorPointerLeave}
         />
-        {editing ? (
+        <CanvasScreenshotMenu
+          ref={screenshotMenuRef}
+          canvasRef={canvasRef}
+          gameId={map.id}
+          onUpdateThumbnail={onUpdateThumbnail}
+        />
+        {editing && !hideEditorLabels ? (
           <div className={styles.editorBadge} aria-hidden="true">
             <span>Build mode</span>
             <strong>{editorTool ? EDITOR_TOOL_LABELS[editorTool] : "Select"}</strong>

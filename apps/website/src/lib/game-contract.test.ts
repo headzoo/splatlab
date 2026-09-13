@@ -8,10 +8,13 @@ import {
   DEFAULT_GAME_DOCUMENT,
   defaultGameTitle,
   gameDocumentSchema,
+  gameThumbnailInputSchema,
   playerAssetIdFor,
   PLATFORMER_MAP_SOURCES,
   THEME_MAP_SOURCES,
 } from "./game-contract";
+
+const TEST_THUMBNAIL = "data:image/webp;base64,UklGRg==";
 
 test("platformer maps use the campaign order", () => {
   assert.deepEqual(PLATFORMER_MAP_SOURCES, [
@@ -212,6 +215,25 @@ test("game documents reject unknown maps and extra executable-looking data", () 
       platformerObjectEdits: [
         { id: "bad", mapSource: "level-1.json", x: 1, y: 1, kind: "script" },
       ],
+    }).success,
+    false,
+  );
+});
+
+test("game thumbnails only accept bounded PNG or WebP data URLs", () => {
+  assert.equal(
+    gameThumbnailInputSchema.safeParse({ thumbnailDataUrl: TEST_THUMBNAIL }).success,
+    true,
+  );
+  assert.equal(
+    gameThumbnailInputSchema.safeParse({
+      thumbnailDataUrl: "https://example.com/untrusted.png",
+    }).success,
+    false,
+  );
+  assert.equal(
+    gameThumbnailInputSchema.safeParse({
+      thumbnailDataUrl: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
     }).success,
     false,
   );

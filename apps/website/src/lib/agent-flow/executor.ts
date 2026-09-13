@@ -1,17 +1,21 @@
 import { FLOW_ID, FlowContractError, branchTarget, deterministicCondition, evaluateCondition, nextNode, type CompiledNode } from "./contract";
 import { interpolate } from "./interpolate";
-import { type ModelClient, type ModelMessage, ModelOutputError } from "./model-client";
+import { type ModelClient, type ModelMessage, type ModelToolDefinition, type ModelToolOutput, type ModelTurnItem, ModelOutputError } from "./model-client";
 import { getRegisteredFlow } from "./registry";
 import { AgentFlowRunStore, type AgentFlowRun } from "./run-store";
+import { getAgentTool, type ToolExecutionContext } from "./tools/registry";
 import type { BuilderChatTurn } from "../game-contract";
+import type { GamePhysicsDocument } from "../game-physics";
 
 const VISIBLE_MESSAGE_LIMIT = 500;
+/** An Agent node makes at most one model call plus this many tool follow-ups. */
+const MAX_TOOL_ROUNDS = 2;
 type Action = "proceed" | "reject";
 type Budget = { text: number; conditionAgent: number };
 
 export type ExecuteBuildMessageInput = Readonly<{ ownerId: string; gameId: string; message: string; signal?: AbortSignal }>;
 export type ResumeBuildTurnInput = Readonly<{ ownerId: string; gameId: string; action: Action; feedback?: string; signal?: AbortSignal }>;
-export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number }>;
+export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number; physicsDocument?: GamePhysicsDocument }>;
 
 export class BuildExecutionError extends Error {
   constructor(message: string, readonly code: string) {
@@ -82,10 +86,17 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
   let flowOutput = String(run.flowOutput ?? "");
   const loopCounts = { ...run.loopCounts };
   const budget: Budget = { text: 0, conditionAgent: 0 };
+  // Tool writes commit on their own, so an applied patch survives a later
+  // Reject or failure. The document rides back so the preview can re-render.
+  let physicsDocument: GamePhysicsDocument | undefined;
+  const toolContext: ToolExecutionContext = { ownerId, gameId, prompt: run.question, store, signal };
   while (current) {
     if (current.kind === "agentAgentflow" || current.kind === "llmAgentflow") {
       if (++budget.text > 1) throw new BuildExecutionError("Build turn exceeded its model budget", "execution_budget");
-      ({ flowOutput, flowState } = await executeText(current, run.question, flowState, flowOutput, client, builderChatHistory, signal));
+      const text = await executeText(current, run.question, flowState, flowOutput, client, builderChatHistory, toolContext);
+      flowOutput = text.flowOutput;
+      flowState = text.flowState;
+      physicsDocument = text.physicsDocument ?? physicsDocument;
       current = nextRequired(current);
     } else if (current.kind === "conditionAgentAgentflow") {
       if (++budget.conditionAgent > 1) throw new BuildExecutionError("Build turn exceeded its condition budget", "execution_budget");
@@ -109,7 +120,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
       const cooperMessage = normalizeVisible(interpolate(requiredInput(current, "directReplyMessage"), context(run.question, flowOutput, flowState)), "Direct Reply");
       const complete = await store.completeDirectReply({ ownerId, gameId, runId: run.id, expectedRevision: revision, currentNodeId: current.id, flowState, flowOutput, loopCounts, cooperMessage });
       if (complete.status !== "updated" || complete.gameRevision === undefined) throw transitionError(complete.status);
-      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision };
+      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision, physicsDocument };
     } else if (current.kind === "humanInputAgentflow") {
       const cooperMessage = normalizeVisible(interpolate(requiredInput(current, "humanInputDescription"), context(run.question, flowOutput, flowState)), "Human Input");
       const checkpoint = await store.checkpointHumanInput({
@@ -117,7 +128,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
         pendingHumanInput: { nodeId: current.id, branches: current.branches, enableFeedback: current.inputs.humanInputEnableFeedback === true },
       });
       if (checkpoint.status !== "updated" || checkpoint.gameRevision === undefined) throw transitionError(checkpoint.status);
-      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision };
+      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision, physicsDocument };
     } else {
       throw new FlowContractError(`Unsupported executable node "${current.kind}"`);
     }
@@ -125,11 +136,52 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
   throw new FlowContractError("Flow ended without a terminal node");
 }
 
-async function executeText(node: CompiledNode, question: string, state: Record<string, string>, priorOutput: string, client: ModelClient, builderChatHistory: readonly BuilderChatTurn[], signal?: AbortSignal) {
+async function executeText(node: CompiledNode, question: string, state: Record<string, string>, priorOutput: string, client: ModelClient, builderChatHistory: readonly BuilderChatTurn[], toolContext: ToolExecutionContext) {
   const prefix = node.kind === "agentAgentflow" ? "agent" : "llm";
   const messages = modelMessagesForTextNode(node, question, state, priorOutput, builderChatHistory);
-  const flowOutput = normalizeVisible(await client.completeText({ messages, signal }), "Model response");
-  return { flowOutput, flowState: stateEntries(node, `${prefix}UpdateState` as "agentUpdateState" | "llmUpdateState", question, flowOutput, state) };
+  const tools = toolDefinitionsForNode(node);
+  let history: readonly ModelTurnItem[] = [];
+  let toolOutputs: ModelToolOutput[] | undefined;
+  let physicsDocument: GamePhysicsDocument | undefined;
+
+  for (let round = 0; ; round += 1) {
+    const turn = await client.completeTurn({ messages, tools, history, toolOutputs, signal: toolContext.signal });
+    if (!turn.toolCalls.length) {
+      const flowOutput = normalizeVisible(turn.text, "Model response");
+      return {
+        flowOutput,
+        flowState: stateEntries(node, `${prefix}UpdateState` as "agentUpdateState" | "llmUpdateState", question, flowOutput, state),
+        physicsDocument,
+      };
+    }
+    if (round >= MAX_TOOL_ROUNDS) throw new BuildExecutionError("Build turn exceeded its tool budget", "execution_budget");
+    // Tool results are provider history only; they never become kid-visible chat.
+    history = turn.items;
+    toolOutputs = [];
+    for (const call of turn.toolCalls) {
+      if (!tools.some((tool) => tool.name === call.name)) {
+        throw new BuildExecutionError(`Model called unavailable tool "${call.name}"`, "unexpected_tool_call");
+      }
+      const result = await getAgentTool(call.name).execute(parseToolArguments(call.argumentsJson), toolContext);
+      physicsDocument = result.physicsDocument ?? physicsDocument;
+      toolOutputs.push({ callId: call.callId, output: JSON.stringify(result.output) });
+    }
+  }
+}
+
+function toolDefinitionsForNode(node: CompiledNode): readonly ModelToolDefinition[] {
+  if (node.kind !== "agentAgentflow" || !Array.isArray(node.inputs.agentTools)) return [];
+  return node.inputs.agentTools.map((entry) =>
+    getAgentTool(String((entry as Record<string, unknown>).agentSelectedTool)).definition);
+}
+
+/** Malformed arguments reach the tool as undefined, which it reports as an error. */
+function parseToolArguments(argumentsJson: string): unknown {
+  try {
+    return JSON.parse(argumentsJson || "{}");
+  } catch {
+    return undefined;
+  }
 }
 
 export function modelMessagesForTextNode(node: CompiledNode, question: string, state: Record<string, string>, priorOutput: string, builderChatHistory: readonly BuilderChatTurn[]) {

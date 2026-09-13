@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import type { GamePhysicsDocument } from "../game-physics";
+
 const visibleText = z.string().trim().min(1).max(500);
 
 export const buildTurnMessageInputSchema = z
@@ -28,4 +30,6 @@ export type BuildTurnResponseBody = Readonly<{
   status: "replied" | "paused";
   cooperMessage: string;
   runId: string;
+  /** Present only when this turn changed the game's physics. */
+  physicsDocument?: GamePhysicsDocument;
 }>;

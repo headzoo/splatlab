@@ -17,10 +17,12 @@ import type {
 } from "@/game/platformer/types";
 import { MazeGame } from "@/game/top-down/maze-game";
 import type { MazeMapSpec } from "@/game/top-down/types";
+import type { GameThumbnailCapture } from "./canvas-screenshot";
 import {
   activePlayerAssetId,
   type GameDocument,
 } from "@/lib/game-contract";
+import { effectivePlatformerGamePhysics } from "@/lib/game-physics";
 import { gameCampaignMaps, gameMazeMaps } from "./game-levels";
 
 export type CampaignMap = {
@@ -46,6 +48,9 @@ type GamePlayerProps = GamePlayerContentProps & {
   spec: GameDocument;
   onPlatformerComplete?: () => void;
   controlRowLeading?: ReactNode;
+  hidePlatformerEditorLabels?: boolean;
+  onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
+  onUpdateThumbnail?: () => Promise<void>;
   platformerEditor?: {
     tool: PlatformerEditTool;
     onToolChange: (tool: PlatformerEditTool) => void;
@@ -78,6 +83,9 @@ export function GamePlayer({
   weapon,
   onPlatformerComplete,
   controlRowLeading,
+  hidePlatformerEditorLabels,
+  onThumbnailCaptureReady,
+  onUpdateThumbnail,
   platformerEditor,
 }: GamePlayerProps) {
   const campaignMaps = useMemo(() => gameCampaignMaps(spec, maps), [maps, spec]);
@@ -85,6 +93,8 @@ export function GamePlayer({
   const current = campaignMaps[campaignMapIndex(spec, campaignMaps)];
   const currentMaze = availableMazes[mazeMapIndex(spec, availableMazes)];
   const playerAssetId = activePlayerAssetId(spec);
+  // Cooper's saved physics fork wins over the read-only catalog document.
+  const activePhysics = effectivePlatformerGamePhysics(spec.physicsDocument, physics);
   const platformerMap = useMemo(
     () =>
       current
@@ -119,18 +129,23 @@ export function GamePlayer({
       skinTone={spec.skinTone}
       hairColor={spec.hairColor}
       controlRowLeading={controlRowLeading}
+      onThumbnailCaptureReady={onThumbnailCaptureReady}
+      onUpdateThumbnail={onUpdateThumbnail}
     />
   ) : (
     <PlatformerGame
-      key={`${current.map.id}:${current.map.revision}:${playerAssetId}:${spec.skinTone}:${spec.hairColor}`}
+      key={`${current.map.id}:${current.map.revision}:${playerAssetId}:${spec.skinTone}:${spec.hairColor}:${activePhysics.id}@${activePhysics.revision}`}
       map={platformerMap}
-      physics={physics}
+      physics={activePhysics}
       weapon={weapon}
       playerAssetId={playerAssetId}
       skinTone={spec.skinTone}
       hairColor={spec.hairColor}
       controlRowLeading={controlRowLeading}
       autoPlay={!platformerEditor}
+      hideEditorLabels={hidePlatformerEditorLabels}
+      onThumbnailCaptureReady={onThumbnailCaptureReady}
+      onUpdateThumbnail={onUpdateThumbnail}
       editorTool={platformerEditor?.tool}
       onEditorToolChange={platformerEditor?.onToolChange}
       onTerrainStroke={platformerEditor?.onTerrainStroke}

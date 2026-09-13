@@ -2887,15 +2887,18 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         root = GAME_ROOT
         source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
         markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
-        map_spec = json.loads((root / "maps/platformer_small_01.json").read_text(encoding="utf-8"))
+        map_spec = json.loads((root / "maps/level-1.json").read_text(encoding="utf-8"))
 
         self.assertEqual(map_spec["presentation"]["hud"], [
             {"id": "lives", "type": "lives", "column": 5, "row": 0},
             {"id": "coins", "type": "coins", "column": 9, "row": 0},
         ])
-        self.assertIn('data-map-tool="lives"', markup)
-        self.assertIn('data-map-tool="coins"', markup)
-        self.assertIn('id="map-hud-toggle"', markup)
+        self.assertNotIn('data-map-tool="lives"', markup)
+        self.assertNotIn('data-map-tool="coins"', markup)
+        self.assertIn('class="map-hud-lock-list"', markup)
+        self.assertIn("Lives and coins stay locked while building.", markup)
+        self.assertNotIn('id="map-hud-toggle"', markup)
+        self.assertNotIn("position fixed HUD counters", markup)
         self.assertIn("space_platformer_hud_lives_01", source)
         self.assertIn("space_platformer_hud_coins_01", source)
         self.assertIn("hud: map.hud.map", source)
@@ -2915,6 +2918,21 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("simulation.gameOver = false", reset_source)
         self.assertIn('Place the lives counter in the gameplay HUD.', source)
         self.assertIn('Place the coins counter in the gameplay HUD.', source)
+        delete_source = source[
+            source.index("function deleteSelectedItems"):
+            source.index("function eraseCursorItem")
+        ]
+        self.assertNotIn("selectedHudId", delete_source)
+        self.assertNotIn("state.map.hud", delete_source)
+        apply_tool_source = source[
+            source.index("function applyTool"):
+            source.index("if (PAINT_TOOLS.has(state.tool))")
+        ]
+        self.assertIn("if (hud) return false;", apply_tool_source)
+        self.assertIn("HUD counters are locked to the saved map.", apply_tool_source)
+        self.assertNotIn("setHudSelection", apply_tool_source)
+        self.assertNotIn("state.map.hud =", apply_tool_source)
+        self.assertNotIn("state.map.hud.push", apply_tool_source)
 
     def test_platformer_extra_lives_are_placeable_shared_pickups(self) -> None:
         root = GAME_ROOT

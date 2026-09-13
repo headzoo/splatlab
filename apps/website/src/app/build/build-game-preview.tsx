@@ -8,6 +8,7 @@ import {
   mazeMapIndex,
   type GamePlayerContentProps,
 } from "@/game/game-player";
+import type { GameThumbnailCapture } from "@/game/canvas-screenshot";
 import { gameCampaignMaps, gameMazeMaps } from "@/game/game-levels";
 import {
   applyPlatformerObjectEdits,
@@ -82,6 +83,31 @@ function errorMessage(payload: unknown, fallback: string) {
   return fallback;
 }
 
+async function putGameThumbnail(gameId: string, thumbnailDataUrl: string) {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch(
+      `/api/games/${encodeURIComponent(gameId)}/thumbnail`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thumbnailDataUrl }),
+      },
+    );
+
+    if (response.ok) return;
+
+    const payload: unknown = await response.json().catch(() => null);
+    lastError = new Error(
+      errorMessage(payload, "We couldn't save your game image."),
+    );
+    if (response.status < 500) break;
+  }
+
+  throw lastError ?? new Error("We couldn't save your game image.");
+}
+
 export function BuildGamePreview({
   maps,
   mazes,
@@ -90,12 +116,17 @@ export function BuildGamePreview({
   initialGame,
 }: BuildGamePreviewProps) {
   const {
+    gameIdentity,
     requestedSetup,
+    levelPickerOpen,
     persistedBuildTurn,
     publishGameIdentity,
     publishDisplayedGame,
+    openLevelPicker,
+    closeLevelPicker,
   } = useBuildSetup();
   const initialSpec = initialGame?.spec ?? DEFAULT_GAME_DOCUMENT;
+  const initialTitle = initialGame?.title ?? defaultGameTitle(initialSpec);
   const [history, dispatch] = useReducer(
     gameHistoryReducer,
     initialSpec,
@@ -106,13 +137,12 @@ export function BuildGamePreview({
       ? { id: initialGame.id, revision: initialGame.revision }
       : null,
   );
-  const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "error">(
+  const [, setSaveStatus] = useState<"saving" | "saved" | "error">(
     initialGame ? "saved" : "saving",
   );
-  const [saveError, setSaveError] = useState("");
+  const [, setSaveError] = useState("");
   const [activeTool, setActiveTool] = useState<PlatformerEditTool>("select");
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
-  const [levelDialogOpen, setLevelDialogOpen] = useState(false);
   const [pendingLevel, setPendingLevel] = useState<PendingLevel | null>(null);
   const [levelName, setLevelName] = useState("");
   const [levelSettingsOpen, setLevelSettingsOpen] = useState(false);
@@ -123,8 +153,22 @@ export function BuildGamePreview({
   const levelSettingsInputRef = useRef<HTMLInputElement>(null);
   const latestSpecRef = useRef(history.present);
   const savedSpecRef = useRef<GameDocument | null>(initialGame?.spec ?? null);
+  const titleRef = useRef(initialTitle);
+  const savedTitleRef = useRef<string | null>(initialGame?.title ?? null);
   const savePromiseRef = useRef<Promise<void> | null>(null);
+  const thumbnailSavePromiseRef = useRef<Promise<void> | null>(null);
+  const savedThumbnailGameIdsRef = useRef(new Set(
+    initialGame?.thumbnailDataUrl ? [initialGame.id] : [],
+  ));
+  const [thumbnailCapture, setThumbnailCapture] =
+    useState<GameThumbnailCapture | null>(null);
   const appliedSetupRevisionRef = useRef(0);
+  const handleThumbnailCaptureReady = useCallback(
+    (capture: GameThumbnailCapture | null) => {
+      setThumbnailCapture((current) => current === capture ? current : capture);
+    },
+    [],
+  );
   const commit = useCallback(
     (
       change: Partial<
@@ -170,6 +214,9 @@ export function BuildGamePreview({
     }
 
     appliedSetupRevisionRef.current = requestedSetup.revision;
+    if (requestedSetup.title !== undefined) {
+      titleRef.current = requestedSetup.title;
+    }
     if (
       Object.keys(requestedSetup.change).length === 1 &&
       requestedSetup.change.builderChatHistory
@@ -191,6 +238,9 @@ export function BuildGamePreview({
     const fallbackServerSpec = {
       ...savedSpec,
       builderChatHistory: persistedBuildTurn.chatHistory,
+      ...(persistedBuildTurn.physicsDocument
+        ? { physicsDocument: persistedBuildTurn.physicsDocument }
+        : {}),
     };
 
     identityRef.current = { ...identity, revision: persistedBuildTurn.revision };
@@ -201,6 +251,9 @@ export function BuildGamePreview({
       latestSpecRef.current,
     );
     dispatch({ type: "chat", turns: fallbackServerSpec.builderChatHistory });
+    if (persistedBuildTurn.physicsDocument) {
+      dispatch({ type: "physics", document: persistedBuildTurn.physicsDocument });
+    }
 
     void (async () => {
       const response = await fetch(`/api/games/${encodeURIComponent(identity.id)}`, {
@@ -216,8 +269,10 @@ export function BuildGamePreview({
       const reconciled = reconcilePersistedGame(game.spec, persisted, latest);
       identityRef.current = { id: game.id, revision: game.revision };
       savedSpecRef.current = game.spec;
+      savedTitleRef.current = game.title;
       latestSpecRef.current = reconciled;
       dispatch({ type: "chat", turns: game.spec.builderChatHistory });
+      dispatch({ type: "physics", document: game.spec.physicsDocument });
     })();
   }, [persistedBuildTurn]);
 
@@ -228,10 +283,12 @@ export function BuildGamePreview({
       while (true) {
         const spec = latestSpecRef.current;
         const identity = identityRef.current;
+        const title = titleRef.current.trim() || defaultGameTitle(spec);
 
         if (
           identity &&
           savedSpecRef.current &&
+          savedTitleRef.current === title &&
           sameGameDocument(savedSpecRef.current, spec)
         ) {
           setSaveStatus("saved");
@@ -250,11 +307,11 @@ export function BuildGamePreview({
             body: JSON.stringify(
               identity
                 ? {
-                    title: defaultGameTitle(spec),
+                    title,
                     spec,
                     expectedRevision: identity.revision,
                   }
-                : { title: defaultGameTitle(spec), spec },
+                : { title, spec },
             ),
           },
         );
@@ -276,6 +333,7 @@ export function BuildGamePreview({
             );
             identityRef.current = { id: game.id, revision: game.revision };
             savedSpecRef.current = game.spec;
+            savedTitleRef.current = game.title;
             latestSpecRef.current = reconciled;
             dispatch({ type: "chat", turns: game.spec.builderChatHistory });
             continue;
@@ -289,6 +347,12 @@ export function BuildGamePreview({
         const nextIdentity = { id: savedGame.id, revision: savedGame.revision };
         identityRef.current = nextIdentity;
         savedSpecRef.current = spec;
+        savedTitleRef.current = savedGame.title;
+        const latestTitle =
+          titleRef.current.trim() || defaultGameTitle(latestSpecRef.current);
+        if (latestTitle === title) {
+          titleRef.current = savedGame.title;
+        }
         publishGameIdentity(nextIdentity);
 
         if (!identity && window.location.pathname === "/build") {
@@ -299,7 +363,11 @@ export function BuildGamePreview({
           );
         }
 
-        if (sameGameDocument(latestSpecRef.current, spec)) {
+        if (
+          sameGameDocument(latestSpecRef.current, spec) &&
+          (titleRef.current.trim() || defaultGameTitle(latestSpecRef.current)) ===
+            savedGame.title
+        ) {
           setSaveStatus("saved");
           return;
         }
@@ -320,14 +388,77 @@ export function BuildGamePreview({
   }, [publishGameIdentity]);
 
   useEffect(() => {
+    if (
+      history.present.setupStep !== "complete" ||
+      !thumbnailCapture ||
+      thumbnailSavePromiseRef.current ||
+      (
+        identityRef.current &&
+        savedThumbnailGameIdsRef.current.has(identityRef.current.id)
+      )
+    ) {
+      return;
+    }
+
+    const saveThumbnail = async () => {
+      latestSpecRef.current = history.present;
+      await persistLatest();
+      const identity = identityRef.current;
+      if (!identity || savedThumbnailGameIdsRef.current.has(identity.id)) return;
+
+      const thumbnailDataUrl = await thumbnailCapture();
+      await putGameThumbnail(identity.id, thumbnailDataUrl);
+      savedThumbnailGameIdsRef.current.add(identity.id);
+    };
+
+    const promise = saveThumbnail()
+      .catch((error: unknown) => {
+        console.error("Failed to capture game thumbnail", error);
+      })
+      .finally(() => {
+        if (thumbnailSavePromiseRef.current === promise) {
+          thumbnailSavePromiseRef.current = null;
+        }
+      });
+    thumbnailSavePromiseRef.current = promise;
+  }, [history.present, persistLatest, thumbnailCapture]);
+
+  const updateThumbnail = useCallback(async () => {
+    const pendingThumbnailSave = thumbnailSavePromiseRef.current;
+    if (pendingThumbnailSave) await pendingThumbnailSave;
+
+    const identity = identityRef.current;
+    if (!identity || !thumbnailCapture) {
+      throw new Error("The game thumbnail is not ready yet.");
+    }
+
+    const promise = (async () => {
+      const thumbnailDataUrl = await thumbnailCapture();
+      await putGameThumbnail(identity.id, thumbnailDataUrl);
+      savedThumbnailGameIdsRef.current.add(identity.id);
+    })();
+    thumbnailSavePromiseRef.current = promise;
+
+    try {
+      await promise;
+    } finally {
+      if (thumbnailSavePromiseRef.current === promise) {
+        thumbnailSavePromiseRef.current = null;
+      }
+    }
+  }, [thumbnailCapture]);
+
+  useEffect(() => {
     if (identityRef.current) publishGameIdentity(identityRef.current);
   }, [publishGameIdentity]);
 
   useEffect(() => {
     latestSpecRef.current = history.present;
+    const title = titleRef.current.trim() || defaultGameTitle(history.present);
     const alreadySaved =
       identityRef.current &&
       savedSpecRef.current &&
+      savedTitleRef.current === title &&
       sameGameDocument(savedSpecRef.current, history.present);
 
     if (alreadySaved) return;
@@ -344,6 +475,9 @@ export function BuildGamePreview({
     () => () => {
       if (
         !savedSpecRef.current ||
+        savedTitleRef.current !== (
+          titleRef.current.trim() || defaultGameTitle(latestSpecRef.current)
+        ) ||
         !sameGameDocument(savedSpecRef.current, latestSpecRef.current)
       ) {
         void persistLatest();
@@ -376,9 +510,9 @@ export function BuildGamePreview({
   useEffect(() => {
     const dialog = levelDialogRef.current;
     if (!dialog) return;
-    if (levelDialogOpen && !dialog.open) dialog.showModal();
-    if (!levelDialogOpen && dialog.open) dialog.close();
-  }, [levelDialogOpen]);
+    if (levelPickerOpen && !dialog.open) dialog.showModal();
+    if (!levelPickerOpen && dialog.open) dialog.close();
+  }, [levelPickerOpen]);
 
   useEffect(() => {
     const dialog = levelNameDialogRef.current;
@@ -436,7 +570,6 @@ export function BuildGamePreview({
   const selectedObject = selectedObjectId
     ? editableObjectMap.objects.find((object) => object.id === selectedObjectId) ?? null
     : null;
-  const currentSource = previewKind === "maze" ? currentMaze.source : current.source;
   const selectedLevel = previewKind === "maze" ? currentMaze : current;
   const availableLevels = previewKind === "maze" ? availableMazes : campaignMaps;
   const selectedLevelIndex = availableLevels.findIndex(
@@ -461,7 +594,7 @@ export function BuildGamePreview({
           (level) => level.templateSource === templateSource,
         ).length + Number(history.present.platformerMapSource === templateSource);
     const defaultName = `${templateLabel} ${existingCount + 1}`;
-    setLevelDialogOpen(false);
+    closeLevelPicker();
     setLevelName(defaultName);
     setPendingLevel({ source: templateSource, defaultName });
   };
@@ -708,24 +841,6 @@ export function BuildGamePreview({
   return (
     <>
       <header className={styles.previewHeading}>
-        <div className={styles.previewTitle}>
-          <span aria-hidden="true">{previewKind === "maze" ? "▦" : "🎮"}</span>
-          <h2 id="preview-title">Game Preview</h2>
-          <b>LIVE</b>
-        </div>
-        <div className={styles.saveSummary}>
-          <p data-current-map={currentSource}>Playing maps/{currentSource}</p>
-          <span
-            className={saveStatus === "error" ? styles.saveError : undefined}
-            role={saveStatus === "error" ? "alert" : "status"}
-          >
-            {saveStatus === "saving"
-              ? "Saving…"
-              : saveStatus === "saved"
-                ? "Saved"
-                : saveError}
-          </span>
-        </div>
         <div className={styles.previewActions}>
           <div className={styles.historyControls} aria-label="Edit history">
             <button
@@ -771,7 +886,7 @@ export function BuildGamePreview({
               type="button"
               aria-label="Add a level"
               title="Add a level"
-              onClick={() => setLevelDialogOpen(true)}
+              onClick={openLevelPicker}
             >
               +
             </button>
@@ -786,6 +901,11 @@ export function BuildGamePreview({
             </button>
           </div>
         )}
+        hidePlatformerEditorLabels
+        onThumbnailCaptureReady={handleThumbnailCaptureReady}
+        onUpdateThumbnail={
+          gameIdentity && thumbnailCapture ? updateThumbnail : undefined
+        }
         platformerEditor={{
           tool: activeTool,
           onToolChange: setActiveTool,
@@ -809,18 +929,18 @@ export function BuildGamePreview({
         className={styles.levelDialog}
         ref={levelDialogRef}
         aria-labelledby="add-level-title"
-        onClose={() => setLevelDialogOpen(false)}
-        onCancel={() => setLevelDialogOpen(false)}
+        onClose={closeLevelPicker}
+        onCancel={closeLevelPicker}
       >
         <header>
           <div>
             <span>Add a level</span>
-            <h2 id="add-level-title">Choose a world</h2>
+            <h2 id="add-level-title">Choose a theme</h2>
           </div>
           <button
             type="button"
             aria-label="Close add level"
-            onClick={() => setLevelDialogOpen(false)}
+            onClick={closeLevelPicker}
           >
             ×
           </button>

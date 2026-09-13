@@ -115,8 +115,22 @@ test("an anonymous workspace can issue, replace, and restore a Lab Key", async (
   });
   assert.equal(oldKeyResponse.status, 401);
 
+  const otherAnonymousResponse = await callAuth(auth, "/sign-in/anonymous");
+  assert.equal(otherAnonymousResponse.status, 200);
+  const otherSessionCookie = responseCookies(otherAnonymousResponse);
+  const otherWorkspaceResponse = await callAuth(auth, "/lab-workspace/ensure", {
+    body: {},
+    cookie: otherSessionCookie,
+  });
+  assert.equal(otherWorkspaceResponse.status, 200);
+  const otherWorkspace = (await otherWorkspaceResponse.json()) as {
+    workspaceId: string;
+  };
+  assert.notEqual(otherWorkspace.workspaceId, initialWorkspace.workspaceId);
+
   const restoredResponse = await callAuth(auth, "/sign-in/lab-key", {
     body: { labKey: replacement.labKey.toLowerCase() },
+    cookie: otherSessionCookie,
   });
   assert.equal(restoredResponse.status, 200);
   const restoredSessionCookie = responseCookies(restoredResponse);

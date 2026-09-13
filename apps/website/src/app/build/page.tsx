@@ -29,7 +29,7 @@ export default async function BuildPage({ searchParams }: BuildPageProps) {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) {
-    redirect("/?lab-key=1");
+    redirect("/lab#lab-key-login");
   }
 
   const gameParam = (await searchParams).game;
@@ -70,6 +70,7 @@ export default async function BuildPage({ searchParams }: BuildPageProps) {
 
       <BuildSetupProvider
         initialSpec={initialGame?.spec ?? null}
+        initialTitle={initialGame?.title ?? null}
         initialIdentity={
           initialGame
             ? { id: initialGame.id, revision: initialGame.revision }
@@ -99,7 +100,7 @@ export default async function BuildPage({ searchParams }: BuildPageProps) {
             <BuildChat />
           </section>
 
-          <section className={styles.previewPanel} aria-labelledby="preview-title">
+          <section className={styles.previewPanel} aria-label="Game preview">
             <BuildGamePreview
               {...GAME_PLAYER_CONTENT}
               initialGame={initialGame}

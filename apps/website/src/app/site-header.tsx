@@ -81,6 +81,7 @@ export function SiteHeader({ currentPage }: SiteHeaderProps) {
         <AuthAction
           className={styles.signIn}
           mode="sign-in"
+          hideWhenSignedOut
           signedInMode="sign-out"
           signedInChildren="Sign out"
         >

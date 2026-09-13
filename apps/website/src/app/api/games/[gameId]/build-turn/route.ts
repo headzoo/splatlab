@@ -7,7 +7,8 @@ import { auth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+// A physics turn can be three sequential Agent calls plus the Condition Agent.
+export const maxDuration = 60;
 
 type RouteContext = {
   params: Promise<{ gameId: string }>;

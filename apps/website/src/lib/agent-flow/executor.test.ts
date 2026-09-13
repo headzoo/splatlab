@@ -4,32 +4,74 @@ import test from "node:test";
 import starterFlow from "../../../../game/agent-flows/build_agentflow_v1.json";
 
 import { DEFAULT_GAME_DOCUMENT, type BuilderChatTurn } from "../game-contract";
+import { CATALOG_PLATFORMER_GAME_PHYSICS } from "../game-physics";
 import { createGame } from "../games";
 import { compileFlow } from "./contract";
-import { type ModelClient, ModelOutputError, type ModelTextRequest } from "./model-client";
+import { type ModelClient, ModelOutputError, type ModelToolCall, type ModelTurnRequest, type ModelTurnResult } from "./model-client";
 import { BuildExecutionError, executeBuildMessage, modelMessagesForTextNode, resumeBuildTurn } from "./executor";
 import { AgentFlowRunStore } from "./run-store";
+
+const COORDINATOR_MESSAGE = (starterFlow.nodes.find((node) => node.id === "agentAgentflow_0")
+  ?.data.inputs as { agentMessages: { content: string }[] }).agentMessages[0].content;
 
 class ScriptedModelClient implements ModelClient {
   textCalls = 0;
   scenarioCalls = 0;
-  textRequests: ModelTextRequest[] = [];
+  textRequests: ModelTurnRequest[] = [];
 
   constructor(
     private readonly response: string,
     private readonly scenario: string,
   ) {}
 
-  async completeText(request: ModelTextRequest) {
+  async completeTurn(request: ModelTurnRequest): Promise<ModelTurnResult> {
     this.textCalls += 1;
     this.textRequests.push(request);
-    return this.response;
+    return { text: this.response, toolCalls: [], items: [] };
   }
 
   async selectScenario() {
     this.scenarioCalls += 1;
     return this.scenario;
   }
+}
+
+/** Replays one scripted model turn per call so tool loops can be exercised. */
+class ScriptedToolModel implements ModelClient {
+  readonly requests: ModelTurnRequest[] = [];
+  scenarioCalls = 0;
+
+  constructor(
+    private readonly turns: readonly ModelTurnResult[],
+    private readonly scenario = "Ready",
+  ) {}
+
+  async completeTurn(request: ModelTurnRequest): Promise<ModelTurnResult> {
+    this.requests.push(request);
+    const turn = this.turns[this.requests.length - 1];
+    if (!turn) throw new Error("unscripted model call");
+    return turn;
+  }
+
+  async selectScenario() {
+    this.scenarioCalls += 1;
+    return this.scenario;
+  }
+}
+
+function toolCall(name: string, args: unknown, callId = `call-${name}`): ModelToolCall {
+  return { callId, name, argumentsJson: JSON.stringify(args) };
+}
+
+function jumpHeightPatch(value: number, baseRevision = 1) {
+  return {
+    baseRevision,
+    operations: [{ op: "replace", path: "/verticalMovement/groundedJump/jumpHeightTiles", value }],
+  };
+}
+
+function storedPhysics() {
+  return globalThis.splatLabGamesMemory?.[0]?.spec.physicsDocument;
 }
 
 function resetMemory() {
@@ -61,7 +103,7 @@ test("enabled Agent memory sends prior bounded history in transcript order witho
   assert.deepEqual(model.textRequests[0]?.messages, [
     {
       role: "developer",
-      content: "Coordinate the game-building agents for the requested change. Keep the work inside the selected game contract, collect each worker handoff, and return a concise implementation summary with unresolved risks.",
+      content: COORDINATOR_MESSAGE,
     },
     { role: "user", content: "Make it snowy" },
     { role: "assistant", content: "I will use the ice world." },
@@ -81,7 +123,7 @@ test("memory-disabled Agent nodes omit persisted history", () => {
   assert.deepEqual(messages.map(({ role, content }) => ({ role, content })), [
     {
       role: "developer",
-      content: "Coordinate the game-building agents for the requested change. Keep the work inside the selected game contract, collect each worker handoff, and return a concise implementation summary with unresolved risks.",
+      content: COORDINATOR_MESSAGE,
     },
     { role: "user", content: "Build a maze" },
   ]);
@@ -116,6 +158,7 @@ test("Ready completes with preserved coordinator output and one call per model n
     cooperMessage: "A scoped and verified maze handoff.",
     runId: result.runId,
     gameRevision: 3,
+    physicsDocument: undefined,
   });
   assert.equal(model.textCalls, 1);
   assert.equal(model.scenarioCalls, 1);
@@ -133,7 +176,9 @@ test("Needs work checkpoints one Human Input prompt", async () => {
   const { game, store, result } = await execute(model);
 
   assert.equal(result.status, "paused");
-  assert.match(result.cooperMessage, /unresolved work/i);
+  // The pause prompt has to name both buttons the kid is about to choose between.
+  assert.match(result.cooperMessage, /Proceed/);
+  assert.match(result.cooperMessage, /Reject/);
   assert.equal(model.textCalls, 1);
   assert.equal(model.scenarioCalls, 1);
   const run = await store.loadActive("owner-a", game.id);
@@ -169,10 +214,10 @@ test("Reject completes a paused run from preserved output without a model call",
 test("Proceed consumes one persisted loop and pauses again", async () => {
   class RetryingModel extends ScriptedModelClient {
     constructor() { super("", ""); }
-    override async completeText(request: ModelTextRequest) {
+    override async completeTurn(request: ModelTurnRequest): Promise<ModelTurnResult> {
       this.textCalls += 1;
       this.textRequests.push(request);
-      return `Draft ${this.textCalls}`;
+      return { text: `Draft ${this.textCalls}`, toolCalls: [], items: [] };
     }
     override async selectScenario() {
       this.scenarioCalls += 1;
@@ -191,7 +236,7 @@ test("Proceed consumes one persisted loop and pauses again", async () => {
   assert.deepEqual(model.textRequests[1]?.messages.map(({ role, content }) => ({ role, content })), [
     {
       role: "developer",
-      content: "Coordinate the game-building agents for the requested change. Keep the work inside the selected game contract, collect each worker handoff, and return a concise implementation summary with unresolved risks.",
+      content: COORDINATOR_MESSAGE,
     },
     { role: "assistant", content: result.cooperMessage },
     { role: "user", content: "Add coins" },
@@ -252,7 +297,7 @@ test("malformed scenario fails the run without a retry", async () => {
 
 test("model failure releases the active run", async () => {
   const model: ModelClient = {
-    async completeText() {
+    async completeTurn() {
       throw new Error("unavailable");
     },
     async selectScenario() {
@@ -262,4 +307,96 @@ test("model failure releases the active run", async () => {
   await assert.rejects(() => execute(model));
   assert.equal(globalThis.splatLabAgentFlowRunsMemory?.[0]?.status, "failed");
   assert.equal(globalThis.splatLabAgentFlowRunsMemory?.[0]?.activeKey, null);
+});
+
+test("the coordinator Agent node offers exactly the allowlisted physics tools", async () => {
+  const model = new ScriptedToolModel([{ text: "Done.", toolCalls: [], items: [] }]);
+  await execute(model);
+
+  assert.deepEqual(model.requests[0]?.tools?.map((tool) => tool.name), [
+    "read_game_physics",
+    "patch_game_physics",
+  ]);
+});
+
+test("a patch tool call forks the catalog into the saved game and rides back to the client", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("patch_game_physics", jumpHeightPatch(3.5))], items: [{ type: "function_call" }] },
+    { text: "Your jump is much bigger now.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.status, "replied");
+  assert.equal(result.cooperMessage, "Your jump is much bigger now.");
+  assert.equal(result.physicsDocument?.revision, 2);
+  assert.deepEqual(result.physicsDocument?.provenance, {
+    lastEditedBy: "cooper",
+    lastPrompt: "Build a maze",
+  });
+
+  const stored = storedPhysics();
+  assert.equal(stored?.runtime, "platformer_v1");
+  if (stored?.runtime !== "platformer_v1") throw new Error("expected a platformer document");
+  assert.equal(stored.verticalMovement.groundedJump.jumpHeightTiles, 3.5);
+  assert.equal(CATALOG_PLATFORMER_GAME_PHYSICS.verticalMovement.groundedJump.jumpHeightTiles, 2.25625);
+});
+
+test("a tool result is echoed to the model as provider history, never as kid-visible chat", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game_physics", {}, "call-1")], items: [{ type: "function_call", call_id: "call-1" }] },
+    { text: "Right now you jump about two tiles.", toolCalls: [], items: [] },
+  ]);
+  await execute(model);
+
+  assert.deepEqual(model.requests[1]?.history, [{ type: "function_call", call_id: "call-1" }]);
+  assert.equal(model.requests[1]?.toolOutputs?.[0]?.callId, "call-1");
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"editableFields"/);
+  assert.deepEqual(
+    globalThis.splatLabGamesMemory?.[0]?.spec.builderChatHistory.map((turn) => turn.message),
+    ["Build a maze", "Right now you jump about two tiles."],
+  );
+});
+
+test("a rejected patch still returns a reply and leaves no fork", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("patch_game_physics", jumpHeightPatch(1))], items: [] },
+    { text: "That jump would be too low to reach the platforms.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.status, "replied");
+  assert.equal(result.physicsDocument, undefined);
+  assert.equal(storedPhysics(), undefined);
+  assert.match(
+    String(model.requests[1]?.toolOutputs?.[0]?.output),
+    /"ok":false.*too low to reach the platforms/,
+  );
+});
+
+test("a tool the Agent node does not offer fails the run closed", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("patch_game_map", {})], items: [] },
+  ]);
+
+  await assert.rejects(
+    () => execute(model),
+    (error: unknown) => error instanceof BuildExecutionError && error.code === "unexpected_tool_call",
+  );
+  assert.equal(globalThis.splatLabAgentFlowRunsMemory?.[0]?.status, "failed");
+});
+
+test("an Agent node that keeps calling tools stops at the bounded tool budget", async () => {
+  const round = {
+    text: "",
+    toolCalls: [toolCall("read_game_physics", {})],
+    items: [] as ModelTurnResult["items"],
+  };
+  const model = new ScriptedToolModel([round, round, round]);
+
+  await assert.rejects(
+    () => execute(model),
+    (error: unknown) => error instanceof BuildExecutionError && error.code === "execution_budget",
+  );
+  assert.equal(model.requests.length, 3);
+  assert.equal(model.scenarioCalls, 0);
 });
