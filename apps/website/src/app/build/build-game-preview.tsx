@@ -3,13 +3,16 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import {
-  campaignMapIndex,
   GamePlayer,
-  mazeMapIndex,
   type GamePlayerContentProps,
 } from "@/game/game-player";
 import type { GameThumbnailCapture } from "@/game/canvas-screenshot";
-import { gameCampaignMaps, gameMazeMaps } from "@/game/game-levels";
+import {
+  campaignMapIndex,
+  gameCampaignMaps,
+  gameMazeMaps,
+  mazeMapIndex,
+} from "@/game/game-levels";
 import {
   applyPlatformerObjectEdits,
   erasePlatformerObjectsAtCells,

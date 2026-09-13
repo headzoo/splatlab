@@ -60,8 +60,11 @@ type MazeGameProps = {
   hairColor?: HairColor;
   className?: string;
   controlRowLeading?: ReactNode;
+  levelLabel?: string;
+  completionMessage?: string;
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
   onUpdateThumbnail?: () => Promise<void>;
+  onComplete?: () => void;
 };
 
 type InputState = {
@@ -411,8 +414,11 @@ export function MazeGame({
   hairColor = "hair_03",
   className,
   controlRowLeading,
+  levelLabel,
+  completionMessage = "Maze complete!",
   onThumbnailCaptureReady,
   onUpdateThumbnail,
+  onComplete,
 }: MazeGameProps) {
   const initialState = useMemo(() => createInitialMazeState(map), [map]);
   const [playing, setPlaying] = useState(false);
@@ -428,6 +434,7 @@ export function MazeGame({
   const playerImageRef = useRef<CanvasImageSource | null>(null);
   const playerDefeatedImageRef = useRef<CanvasImageSource | null>(null);
   const audioRef = useRef<MazeRuntimeAudio | null>(null);
+  const completionNotifiedRef = useRef(false);
 
   const syncRuntimeDom = useCallback((state: MazeState, camera: MazeCamera) => {
     if (!gameRef.current) return;
@@ -590,13 +597,17 @@ export function MazeGame({
         setPlaying(false);
         inputRef.current = emptyInput();
         audioRef.current?.pauseMusic();
+        if (!completionNotifiedRef.current) {
+          completionNotifiedRef.current = true;
+          onComplete?.();
+        }
         return;
       }
       animationFrame = requestAnimationFrame(frame);
     };
     animationFrame = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(animationFrame);
-  }, [map, playing, render]);
+  }, [map, onComplete, playing, render]);
 
   useEffect(() => {
     const gameHasFocus = () => gameRef.current?.contains(document.activeElement) === true;
@@ -646,6 +657,7 @@ export function MazeGame({
   const start = () => {
     if (stateRef.current.status === "won") {
       stateRef.current = createInitialMazeState(map);
+      completionNotifiedRef.current = false;
       setRuntimeStatus("playing");
     }
     setPlaying(true);
@@ -663,6 +675,7 @@ export function MazeGame({
   const reset = () => {
     inputRef.current = emptyInput();
     stateRef.current = createInitialMazeState(map);
+    completionNotifiedRef.current = false;
     setPlaying(false);
     setRuntimeStatus("playing");
     audioRef.current?.pauseMusic();
@@ -689,7 +702,7 @@ export function MazeGame({
   };
 
   const statusMessage = runtimeStatus === "won"
-    ? "Maze complete!"
+    ? completionMessage
     : runtimeStatus === "dying"
       ? "Hero defeated — returning to start…"
     : !assetsReady
@@ -723,6 +736,7 @@ export function MazeGame({
             {muted ? "🔇 Muted" : "🔊 Sound"}
           </button>
         </div>
+        {levelLabel ? <p className={styles.levelLabel}>{levelLabel}</p> : null}
         <p className={styles.controlHint}>Move: W/A/S/D or arrow keys · Jump: Space</p>
       </div>
 

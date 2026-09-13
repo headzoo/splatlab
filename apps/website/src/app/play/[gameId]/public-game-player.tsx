@@ -21,6 +21,7 @@ export function PublicGamePlayer({
       mazes={mazes}
       physics={physics}
       weapon={weapon}
+      playAllLevels
     />
   );
 }

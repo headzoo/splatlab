@@ -3,7 +3,11 @@ import {
   resolveActivePlatformerLevel,
   type ActivePlatformerLevel,
 } from "../../game-objects";
-import { applyCooperSpecChange, type CooperSpecChange } from "../../cooper-spec-change";
+import {
+  applyCooperSpecChange,
+  toSpecChange,
+  type CooperSpecChange,
+} from "../../cooper-spec-change";
 import type { GameDocument } from "../../game-contract";
 import { getGame } from "../../games";
 import type { ToolExecutionContext, ToolExecutionResult } from "./types";
@@ -61,7 +65,7 @@ export async function persist(
   const applied = await context.store.applySpecChange({
     ownerId: context.ownerId,
     gameId: context.gameId,
-    change,
+    change: toSpecChange(change),
   });
   if (applied.status !== "updated") return toolError("This game could not be found.");
 

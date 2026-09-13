@@ -1,6 +1,25 @@
 import type { GameDocument } from "@/lib/game-contract";
 
+import { nextCampaignMapIndex } from "./platformer/campaign";
 import type { CampaignMap, MazeMap } from "./game-player";
+
+// A shared game always opens on its first authored level, whichever level the
+// builder happened to have selected when the game was saved.
+export const FIRST_LEVEL_INDEX = 0;
+
+export function levelProgressLabel(index: number, total: number, label: string) {
+  return total > 1 ? `Level ${index + 1} of ${total} · ${label}` : label;
+}
+
+export function levelCompletionMessage(
+  index: number,
+  total: number,
+  levelMessage: string,
+) {
+  return total > 1 && nextCampaignMapIndex(index, total) === null
+    ? "You beat the game!"
+    : levelMessage;
+}
 
 export function gameCampaignMaps(
   spec: GameDocument,
@@ -24,6 +43,20 @@ export function gameCampaignMaps(
         : [];
     }),
   ];
+}
+
+export function campaignMapIndex(spec: GameDocument, maps: CampaignMap[]) {
+  const index = maps.findIndex(
+    (candidate) => candidate.source === spec.platformerMapSource,
+  );
+  return index < 0 ? 0 : index;
+}
+
+export function mazeMapIndex(spec: GameDocument, maps: MazeMap[]) {
+  const index = maps.findIndex(
+    (candidate) => candidate.source === spec.mazeMapSource,
+  );
+  return index < 0 ? 0 : index;
 }
 
 export function gameMazeMaps(

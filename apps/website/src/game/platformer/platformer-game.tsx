@@ -88,6 +88,8 @@ type PlatformerGameProps = {
   hairColor?: HairColor;
   className?: string;
   controlRowLeading?: ReactNode;
+  levelLabel?: string;
+  completionMessage?: string;
   autoPlay?: boolean;
   hideEditorLabels?: boolean;
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
@@ -98,7 +100,7 @@ type PlatformerGameProps = {
   onObjectPlace?: (placement: PlatformerObjectPlacement) => void;
   selectedObjectId?: string | null;
   onObjectSelect?: (objectId: string | null) => void;
-  onComplete?: () => void;
+  onComplete?: (livesRemaining: number) => void;
 };
 
 type ControlAction = "left" | "right" | "down" | "jump" | "weapon";
@@ -1280,6 +1282,8 @@ export function PlatformerGame({
   hairColor = "hair_03",
   className,
   controlRowLeading,
+  levelLabel,
+  completionMessage = "Level complete!",
   autoPlay = false,
   hideEditorLabels = false,
   onThumbnailCaptureReady,
@@ -1354,13 +1358,13 @@ export function PlatformerGame({
       : state.status === "playing"
         ? `${state.lives} lives and ${state.collectedIds.length} coins collected.`
         : state.status === "won"
-          ? "Level complete!"
+          ? completionMessage
           : "Game over — reset to try again";
     const srStatus = srStatusRef.current;
     if (srStatus && srStatus.textContent !== announcement) {
       srStatus.textContent = announcement;
     }
-  }, [playerAssetId]);
+  }, [completionMessage, playerAssetId]);
 
   useEffect(() => {
     audioRef.current = new RuntimeAudio();
@@ -1679,7 +1683,7 @@ export function PlatformerGame({
         audioRef.current?.pauseMusic();
         if (!completionNotifiedRef.current) {
           completionNotifiedRef.current = true;
-          onComplete?.();
+          onComplete?.(stateRef.current.lives);
         }
       }
     };
@@ -2226,7 +2230,7 @@ export function PlatformerGame({
 
   const statusMessage =
     terminalStatus === "won"
-      ? playing ? null : "Level complete!"
+      ? playing ? null : completionMessage
       : terminalStatus === "game_over"
         ? "Game over — reset to try again"
         : !assetsReady
@@ -2266,6 +2270,9 @@ export function PlatformerGame({
                 {muted ? "🔇 Muted" : "🔊 Sound"}
               </button>
             </div>
+          ) : null}
+          {!building && levelLabel ? (
+            <p className={styles.levelLabel}>{levelLabel}</p>
           ) : null}
           <p className={styles.controlHint}>
             {editing ? `Build mode · ${editorInstruction}` : controls}

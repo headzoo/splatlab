@@ -519,9 +519,16 @@ export function planAppearanceChange(
     );
   }
 
+  const isBossLook = charactersFor(backgroundId, "boss")
+    .some((option) => option.value === look);
   const characters = level.map.objects.filter((object) => object.type === "enemy_spawn");
   const targets = cells.length === 0
-    ? characters.filter((object) => !fromLook || object.assetId === fromLook)
+    // Sweeping the whole level only touches the ones the look actually fits,
+    // so "turn the enemies into robots" repaints the enemies and leaves the
+    // boss alone rather than being refused outright.
+    ? characters.filter((object) => (
+      (object.role === "boss") === isBossLook && (!fromLook || object.assetId === fromLook)
+    ))
     : cells.map(({ x, y }) => {
       assertCell(level, x, y);
       const object = platformerObjectAtCell(level.map, x, y);
@@ -538,15 +545,14 @@ export function planAppearanceChange(
     throw new GameObjectEditError(
       fromLook
         ? "There is nothing in this level with that look."
-        : "This level has no enemies or bosses to change.",
+        : `This level has no ${isBossLook ? "bosses" : "enemies"} to change.`,
       `fromLook ${fromLook || "(any)"}`,
     );
   }
 
   // A boss look on a plain enemy, or the reverse, would draw with the wrong
-  // sheet geometry, so the role has to match the table the look came from.
-  const isBossLook = charactersFor(backgroundId, "boss")
-    .some((option) => option.value === look);
+  // sheet geometry, so a directly named cell has to match the table the look
+  // came from. A whole-level sweep has already filtered by role above.
   for (const object of targets) {
     const isBoss = object.role === "boss";
     if (isBoss !== isBossLook) {

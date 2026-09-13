@@ -383,6 +383,20 @@ test("a look this level's art set does not have is refused", () => {
   );
 });
 
+test("changing every enemy leaves the boss alone instead of refusing the call", () => {
+  const active = level();
+  const change = planAppearanceChange(DEFAULT_GAME_DOCUMENT, active, "neutral_robot_01", "", []);
+  const bossId = active.map.objects.find((object) => object.role === "boss")?.id;
+
+  assert.ok(bossId, "level-1 should ship with a boss");
+  assert.equal(
+    change.platformerObjectSettings.some((entry) => entry.objectId === bossId),
+    false,
+    "an enemy look must not be applied to the boss",
+  );
+  assert.equal(change.changed.length, 5, "all five plain enemies are repainted");
+});
+
 test("a boss look cannot be put on a plain enemy, and the reverse", () => {
   const active = level();
   const enemy = describeLevel(active).characters.inLevel

@@ -5,6 +5,7 @@ import starterFlow from "../../../../game/agent-flows/build_agentflow_v1.json";
 
 import { createInitialState } from "../../game/platformer/engine";
 import { activePlayerAssetId, DEFAULT_GAME_DOCUMENT, type BuilderChatTurn } from "../game-contract";
+import { parseBuildTurnResult } from "../../app/build/build-setup";
 import { resolveActivePlatformerLevel } from "../game-objects";
 import { CATALOG_PLATFORMER_GAME_PHYSICS } from "../game-physics";
 import { createGame } from "../games";
@@ -438,6 +439,43 @@ test("reading the level then adding an object saves it and rides back to the cli
   // The grids reach the model, and the reply reports the new totals.
   assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"terrain":\[/);
   assert.match(String(model.requests[2]?.toolOutputs?.[0]?.output), /"coin":94/);
+});
+
+test("what a tool change puts on the wire is what the client can parse back", async () => {
+  // The client parses specChange with a strict schema, so a tool leaking its
+  // own report into the change fails the whole reply as malformed rather than
+  // failing anywhere near the tool that caused it.
+  const cases: [string, Record<string, unknown>][] = [
+    ["add_game_objects", { placements: [{ kind: "coin", x: 0, y: 0 }] }],
+    ["remove_game_objects", { kind: "coin", cells: [] }],
+    ["set_starting_lives", { lives: 10 }],
+    ["set_player_character", { character: "robot", gender: "boy" }],
+    ["set_enemy_appearance", { look: "neutral_robot_01", fromLook: "", cells: [] }],
+  ];
+
+  for (const [name, args] of cases) {
+    resetMemory();
+    const model = new ScriptedToolModel([
+      { text: "", toolCalls: [toolCall(name, args)], items: [] },
+      { text: "Done.", toolCalls: [], items: [] },
+    ]);
+    const { result } = await execute(model);
+
+    assert.ok(result.specChange, `${name} produced no change`);
+    assert.deepEqual(
+      parseBuildTurnResult(
+        {
+          status: result.status,
+          cooperMessage: result.cooperMessage,
+          runId: result.runId,
+          specChange: JSON.parse(JSON.stringify(result.specChange)),
+        },
+        String(result.gameRevision),
+      )?.specChange,
+      result.specChange,
+      `${name} sent a change the client rejects`,
+    );
+  }
 });
 
 test("removing every coin records a removal for each and leaves the spawn alone", async () => {

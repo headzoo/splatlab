@@ -112,6 +112,21 @@ export function specChangeIsNoop(spec: GameDocument, change: CooperSpecChange): 
   );
 }
 
+/**
+ * Keeps anything that is not part of the change out of the payload. Planners
+ * return their validated change alongside a report for the model, such as the
+ * cells they filled, and that report must not ride along to the client: the
+ * schema is strict, so one unknown key fails the parse and the whole reply is
+ * rejected as malformed.
+ */
+export function toSpecChange(value: CooperSpecChange): CooperSpecChange {
+  return cooperSpecChangeSchema.parse(
+    Object.fromEntries(
+      Object.entries(value).filter(([key]) => key in cooperSpecChangeSchema.shape),
+    ),
+  );
+}
+
 /** Projects a full document down to just the fields Cooper's tools own. */
 export function specChangeFrom(spec: GameDocument): CooperSpecChange {
   return {

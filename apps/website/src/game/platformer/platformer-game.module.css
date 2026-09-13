@@ -241,6 +241,18 @@
   min-width: 50px;
 }
 
+.levelLabel {
+  margin: 0;
+  padding: 5px 13px;
+  color: #12234e;
+  background: #fff;
+  border: 1px solid #b6c9df;
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
+  font: 400 16px/1.2 "Chewy", cursive;
+  white-space: nowrap;
+}
+
 .controlHint {
   max-width: 340px;
   margin-left: auto;
@@ -444,6 +456,10 @@
   .touchControls button {
     min-width: 0;
     padding-inline: 7px;
+  }
+
+  .levelLabel {
+    text-align: center;
   }
 
   .touchControls {
