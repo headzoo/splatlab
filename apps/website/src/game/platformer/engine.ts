@@ -1487,13 +1487,13 @@ function processTriggers(
   return next;
 }
 
-function completeBossOnlyMapIfCleared(
-  map: PlatformerMapSpec,
-  state: PlatformerState,
-) {
-  const hasGoal = map.objects.some((object) => object.type === "goal");
+/**
+ * A boss level finishes the moment its bosses are down, whether or not the map
+ * also carries a goal flag, because the boss is the level's finish condition.
+ */
+function completeBossLevelIfCleared(state: PlatformerState) {
   const bosses = state.enemies.filter((enemy) => enemy.role === "boss");
-  if (hasGoal || bosses.length === 0 || bosses.some((boss) => !boss.defeated)) return state;
+  if (bosses.length === 0 || bosses.some((boss) => !boss.defeated)) return state;
   return { ...state, vx: 0, vy: 0, status: "won" as const };
 }
 
@@ -1540,7 +1540,7 @@ function processEnemyContact(
             : candidate,
         ),
       };
-      return completeBossOnlyMapIfCleared(map, next);
+      return completeBossLevelIfCleared(next);
     }
     return beginDeath(map, state, events);
   }
@@ -1601,7 +1601,7 @@ function processWeaponContact(
           : candidate,
       ),
     };
-    return completeBossOnlyMapIfCleared(map, next);
+    return completeBossLevelIfCleared(next);
   }
   return state;
 }

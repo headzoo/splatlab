@@ -52,8 +52,8 @@ const sharedGame: GameDocument = {
   ],
 };
 
-// Plays a level the way a winning run ends: every boss down, then either the
-// hero stands on the goal or the last boss falls on a boss-only map.
+// Plays a level the way a winning run ends: the last boss falls, or the hero
+// stands on the goal when a level has no boss.
 function completeLevel(
   map: PlatformerMapSpec,
   runSoFar: Partial<PlatformerState> = {},
@@ -66,14 +66,11 @@ function completeLevel(
     `${map.id} has neither a goal nor a boss, so it can never be completed`,
   );
 
-  if (goal) {
+  if (bosses.length === 0 && goal) {
     const atTheGoal: PlatformerState = {
       ...initial,
       x: (goal.x + 0.5) * map.tileSize,
       y: (goal.y + 1) * map.tileSize,
-      enemies: initial.enemies.map((enemy) => enemy.role === "boss"
-        ? { ...enemy, defeated: true }
-        : enemy),
     };
     return stepPlatformer(map, gamePhysics, atTheGoal, idleInput, weapon).state;
   }
@@ -140,6 +137,22 @@ test("beating a checked-in level advances the shared game to the next one", () =
   }
 
   assert.deepEqual(played, campaignMaps.map((level) => level.label));
+});
+
+test("beating the boss finishes a level that also carries a goal flag", () => {
+  // Graveyard is the only checked-in campaign map with a boss and a goal, and
+  // GAME.md makes the boss the finish condition on a boss level.
+  const graveyard = GAME_PLAYER_CONTENT.maps.find(
+    (level) => level.source === "level-3.json",
+  );
+  assert.ok(graveyard);
+  assert.ok(graveyard.map.objects.some((object) => object.type === "goal"));
+  assert.ok(
+    graveyard.map.objects.some((object) => object.role === "boss"),
+    "the graveyard map should still have its boss",
+  );
+
+  assert.equal(completeLevel(graveyard.map).status, "won");
 });
 
 test("a shared game keeps the lives it has left but restarts each level's coins", () => {
