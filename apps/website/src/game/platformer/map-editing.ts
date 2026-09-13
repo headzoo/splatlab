@@ -35,6 +35,7 @@ export const PLATFORMER_OBJECT_TOOLS: readonly PlatformerObjectKind[] = [
   "spawn",
   "coin",
   "extra_life",
+  "platform_spring",
   "enemy",
   "boss",
   "flying_object",
@@ -137,7 +138,7 @@ export function platformerObjectAtPreviewCell(
   }) ?? null;
 }
 
-const THEMED_OBJECT_ASSETS: Record<string, { enemy: string; boss: string; flying: string }> = {
+const THEMED_OBJECT_ASSETS: Record<string, { enemy: string; boss: string; flying: string; spring?: string }> = {
   neutral_green_hills_01: {
     enemy: "neutral_ghost_01",
     boss: "neutral_green_hills_boss_01",
@@ -152,16 +153,18 @@ const THEMED_OBJECT_ASSETS: Record<string, { enemy: string; boss: string; flying
     enemy: "haunted_ghost_01",
     boss: "haunted_boss_01",
     flying: "haunted_flying_cooper_bat_01",
+    spring: "haunted_graveyard_platformer_spring_01",
   },
   dragons_emberkeep_01: {
     enemy: "dragon_ghost_01",
     boss: "dragons_emberkeep_boss_01",
-    flying: "neutral_green_hills_flying_cooper_01",
+    flying: "dragons_emberkeep_flying_fireball_01",
   },
   ice_world_01: {
-    enemy: "neutral_ghost_01",
+    enemy: "ice_world_ghost_01",
     boss: "ice_world_boss_01",
     flying: "neutral_green_hills_flying_cooper_01",
+    spring: "ice_world_platformer_spring_01",
   },
 };
 
@@ -175,6 +178,14 @@ function defaultObjectForKind(
   if (edit.kind === "spawn") return { ...base, type: "player_spawn" };
   if (edit.kind === "coin") return { ...base, type: "collectible", pointValue: 1 };
   if (edit.kind === "extra_life") return { ...base, type: "extra_life" };
+  if (edit.kind === "platform_spring") {
+    return {
+      ...base,
+      type: "platform_spring",
+      assetId: themedAssets.spring ?? "ice_world_platformer_spring_01",
+      launchSpeedPxPerSecond: 1200,
+    };
+  }
   if (edit.kind === "checkpoint") return { ...base, type: "checkpoint" };
   if (edit.kind === "goal") return { ...base, type: "goal" };
   if (edit.kind === "flying_object") {

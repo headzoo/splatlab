@@ -59,6 +59,11 @@ export type BuildGameIdentity = {
   revision: number;
 };
 
+export type DisplayedGame = {
+  gameType: GamePreviewKind;
+  theme: GameTheme;
+};
+
 export type PausedBuildTurn = {
   feedbackEnabled: boolean;
 };
@@ -162,6 +167,7 @@ type BuildSetupContextValue = {
   setupStep: GameSetupStep;
   setupComplete: boolean;
   gameIdentity: BuildGameIdentity | null;
+  displayedGame: DisplayedGame | null;
   pausedBuildTurn: PausedBuildTurn | null;
   persistedBuildTurn: PersistedBuildTurn | null;
   requestedSetup: SetupChange | null;
@@ -175,6 +181,7 @@ type BuildSetupContextValue = {
   selectHairColor: (hairColor: HairColor, nextStep?: GameSetupStep) => void;
   saveChatHistory: (turns: BuilderChatTurn[]) => void;
   publishGameIdentity: (identity: BuildGameIdentity) => void;
+  publishDisplayedGame: (displayedGame: DisplayedGame) => void;
   applyPersistedBuildTurn: (turn: PersistedBuildTurn) => void;
 };
 
@@ -191,6 +198,10 @@ const EMPTY_SELECTIONS: SetupSelections = {
 
 function hasAnsweredStep(currentStep: GameSetupStep, answerStep: GameSetupStep) {
   return GAME_SETUP_STEPS.indexOf(currentStep) > GAME_SETUP_STEPS.indexOf(answerStep);
+}
+
+export function isSetupHistoryLocked(setupStep: GameSetupStep) {
+  return setupStep === "complete";
 }
 
 export function setupSelectionsFromSpec(
@@ -274,6 +285,14 @@ export function BuildSetupProvider({
   >(() => setupQuestionHistoryFromSpec(initialSpec));
   const [gameIdentity, setGameIdentity] = useState<BuildGameIdentity | null>(
     initialIdentity,
+  );
+  const [displayedGame, setDisplayedGame] = useState<DisplayedGame | null>(() =>
+    initialSpec
+      ? {
+          gameType: initialSpec.previewKind,
+          theme: activeGameTheme(initialSpec),
+        }
+      : null,
   );
   const [pausedBuildTurn, setPausedBuildTurn] = useState<PausedBuildTurn | null>(
     initialPausedBuildTurn,
@@ -376,6 +395,14 @@ export function BuildSetupProvider({
     );
   }, []);
 
+  const publishDisplayedGame = useCallback((next: DisplayedGame) => {
+    setDisplayedGame((current) =>
+      current?.gameType === next.gameType && current.theme === next.theme
+        ? current
+        : next,
+    );
+  }, []);
+
   const applyPersistedBuildTurn = useCallback((turn: PersistedBuildTurn) => {
     setChatHistory(turn.chatHistory);
     setGameIdentity((current) =>
@@ -391,8 +418,9 @@ export function BuildSetupProvider({
     () => ({
       selections,
       setupStep,
-      setupComplete: setupStep === "complete",
+      setupComplete: isSetupHistoryLocked(setupStep),
       gameIdentity,
+      displayedGame,
       pausedBuildTurn,
       persistedBuildTurn: latestPersistedBuildTurn,
       requestedSetup,
@@ -406,12 +434,14 @@ export function BuildSetupProvider({
       selectHairColor,
       saveChatHistory,
       publishGameIdentity,
+      publishDisplayedGame,
       applyPersistedBuildTurn,
     }),
     [
       requestedSetup,
       chatHistory,
       gameIdentity,
+      displayedGame,
       pausedBuildTurn,
       latestPersistedBuildTurn,
       setupQuestionHistory,
@@ -424,6 +454,7 @@ export function BuildSetupProvider({
       selectTheme,
       saveChatHistory,
       publishGameIdentity,
+      publishDisplayedGame,
       applyPersistedBuildTurn,
       setupStep,
     ],

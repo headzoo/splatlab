@@ -24,6 +24,7 @@
 }
 
 .toolbar button,
+.buildPlaybackControls button,
 .touchControls button {
   min-height: 38px;
   padding: 0 12px;
@@ -37,12 +38,14 @@
 }
 
 .toolbar button:hover,
+.buildPlaybackControls button:hover,
 .touchControls button:hover {
   border-color: #6698cc;
   background: #f3f9ff;
 }
 
 .toolbar button:focus-visible,
+.buildPlaybackControls button:focus-visible,
 .touchControls button:focus-visible,
 .controlsDialog button:focus-visible,
 .canvas:focus-visible {
@@ -63,6 +66,10 @@
 .toolbar button:disabled {
   cursor: not-allowed;
   opacity: 0.52;
+}
+
+.editorToolbar {
+  justify-content: flex-end;
 }
 
 .stage {
@@ -157,6 +164,81 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.editorControlRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.buildPlaybackControls {
+  display: flex;
+  grid-column: 2;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.buildPlaybackControls .buildPlaybackButton {
+  display: grid;
+  width: 58px;
+  min-width: 58px;
+  height: 58px;
+  min-height: 58px;
+  padding: 0;
+  color: #fff;
+  background: #24b947;
+  border: 3px solid #159634;
+  border-radius: 50%;
+  place-items: center;
+  box-shadow: 0 4px 0 #0f7f2b, 0 7px 12px rgb(18 104 47 / 22%);
+  font-size: 23px;
+}
+
+.playbackIcon {
+  display: block;
+  line-height: 1;
+}
+
+.playIcon {
+  transform: translateX(2px);
+}
+
+.pauseIcon {
+  transform: translateY(-1px);
+}
+
+.buildPlaybackControls .buildPlaybackButton:hover {
+  background: #169d39;
+  border-color: #0f7f2b;
+}
+
+.buildPlaybackControls .buildPlaybackButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #0f7f2b, 0 4px 8px rgb(18 104 47 / 20%);
+}
+
+.buildPlaybackControls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.editorControlRow .touchControls {
+  grid-column: 3;
+}
+
+.editorControlRow .touchControls:not(.editorControls) {
+  gap: 4px;
+}
+
+.editorControlRow .touchControls:not(.editorControls) button {
+  min-width: 44px;
+  padding-inline: 6px;
+}
+
+.editorControlRow .touchControls:not(.editorControls) .jumpButton,
+.editorControlRow .touchControls:not(.editorControls) .weaponButton {
+  min-width: 50px;
 }
 
 .controlHint {
@@ -371,6 +453,20 @@
 
   .touchControls.editorControls {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .editorControlRow {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .editorControlRow .buildPlaybackControls,
+  .editorControlRow .touchControls {
+    grid-column: 1;
+  }
+
+  .editorControlRow .buildPlaybackControls {
+    justify-self: center;
   }
 
   .controlHint {

@@ -901,6 +901,62 @@
       "y": 9
     },
     {
+      "id": "flying_1",
+      "type": "flying_object",
+      "x": 18,
+      "y": 2,
+      "motion": {
+        "version": 1,
+        "lifecycle": {
+          "trigger": "camera_reaches_spawn",
+          "repeat": "once"
+        },
+        "travel": {
+          "type": "viewport_arc",
+          "entryEdge": "right",
+          "exitEdge": "left",
+          "entryRow": 6,
+          "exitRow": 6,
+          "archDirection": "up",
+          "archHeightTiles": 4,
+          "durationMs": 5000,
+          "offscreenPaddingTiles": 1
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "assetId": "dragons_emberkeep_flying_fireball_01"
+    },
+    {
+      "id": "flying_2",
+      "type": "flying_object",
+      "x": 61,
+      "y": 5,
+      "motion": {
+        "version": 1,
+        "lifecycle": {
+          "trigger": "camera_reaches_spawn",
+          "repeat": "once"
+        },
+        "travel": {
+          "type": "viewport_arc",
+          "entryEdge": "right",
+          "exitEdge": "left",
+          "entryRow": 6,
+          "exitRow": 6,
+          "archDirection": "up",
+          "archHeightTiles": 4,
+          "durationMs": 5000,
+          "offscreenPaddingTiles": 1
+        },
+        "visual": {
+          "type": "none"
+        }
+      },
+      "assetId": "dragons_emberkeep_flying_fireball_01"
+    },
+    {
       "id": "boss_1",
       "type": "enemy_spawn",
       "x": 84,

@@ -1,0 +1,18 @@
+{
+  "assetId": "ice_world_girl_01",
+  "approvedAt": "2026-09-13T02:17:58.667658+00:00",
+  "recipe": "sprite-specs/ice_world_girl_01.json",
+  "runtimeImage": "sprites/ice_world_girl_01.png",
+  "sha256": "5a133d5abde5f37b7635b6ed378d441ea938f30c10f4c267952df5a5aba6b3f0",
+  "validationReport": "sprite-reports/ice_world_girl_01/ice_world_girl_01-report.json",
+  "skinTone": {
+    "paletteId": "skin_tones_v1",
+    "mask": "sprite-masks/ice_world_girl_01-skin-mask.png",
+    "maskSha256": "8390d9f57a6e41a06ae48249bad793e7e1a9d176ab7ff717a27bae63488bde64"
+  },
+  "hairColor": {
+    "paletteId": "hair_colors_v1",
+    "mask": "sprite-masks/ice_world_girl_01-hair-mask.png",
+    "maskSha256": "17f7fa4b20bc406def4ba63366fa7d8d384cc6a8ccab39c8c7d01abfb54067bb"
+  }
+}

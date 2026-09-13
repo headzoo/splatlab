@@ -43,11 +43,45 @@ test("a game-created level clones its approved theme as an independent map", () 
     }],
   }, GAME_PLAYER_CONTENT.maps);
   const created = levels.find((level) => level.source === levelId);
-  const template = levels.find((level) => level.source === "level-2.json");
+  const template = GAME_PLAYER_CONTENT.maps.find((level) => level.source === "level-2.json");
 
+  assert.deepEqual(levels.map((level) => level.source), [levelId]);
   assert.equal(created?.label, "Space 2");
   assert.equal(created?.map.presentation.backgroundId, "space_orbital_outpost_01");
   assert.notEqual(created?.map.id, template?.map.id);
+  assert.ok(created);
+  assert.ok(template);
+  const edited = applyPlatformerTerrainEdits(created.map, levelId, [{
+    mapSource: levelId,
+    x: 1,
+    y: 1,
+    kind: "hazard",
+  }]);
+  assert.equal(platformerTerrainKindAt(edited, 1, 1), "hazard");
+  assert.notEqual(
+    platformerTerrainKindAt(edited, 1, 1),
+    platformerTerrainKindAt(template.map, 1, 1),
+  );
+});
+
+test("a game exposes only its active starting level and added levels", () => {
+  const levelId = "custom-platformer-123e4567-e89b-12d3-a456-426614174001";
+  const levels = gameCampaignMaps({
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerLevels: [{
+      id: levelId,
+      templateSource: "level-2.json",
+      label: "Space 1",
+    }],
+  }, GAME_PLAYER_CONTENT.maps);
+
+  assert.deepEqual(
+    levels.map(({ source, label }) => ({ source, label })),
+    [
+      { source: "level-1.json", label: "Green Hills" },
+      { source: levelId, label: "Space 1" },
+    ],
+  );
 });
 
 test("paused preview actors remain selectable at their settled cells", () => {
@@ -79,6 +113,7 @@ test("saved builder object edits add every basic object tool to a checked-in map
     { id: "build-spawn-1", mapSource: "level-1.json" as const, x: 1, y: 8, kind: "spawn" as const },
     { id: "build-coin-1", mapSource: "level-1.json" as const, x: 3, y: 8, kind: "coin" as const },
     { id: "build-life-1", mapSource: "level-1.json" as const, x: 4, y: 8, kind: "extra_life" as const },
+    { id: "build-spring-1", mapSource: "level-1.json" as const, x: 4, y: 7, kind: "platform_spring" as const },
     { id: "build-enemy-1", mapSource: "level-1.json" as const, x: 5, y: 8, kind: "enemy" as const },
     { id: "build-boss-1", mapSource: "level-1.json" as const, x: 6, y: 8, kind: "boss" as const },
     { id: "build-flying-1", mapSource: "level-1.json" as const, x: 7, y: 4, kind: "flying_object" as const },
@@ -90,6 +125,17 @@ test("saved builder object edits add every basic object tool to a checked-in map
   assert.equal(editedMap.objects.find((object) => object.id === "build-spawn-1")?.type, "player_spawn");
   assert.equal(editedMap.objects.find((object) => object.id === "build-coin-1")?.type, "collectible");
   assert.equal(editedMap.objects.find((object) => object.id === "build-life-1")?.type, "extra_life");
+  assert.deepEqual(
+    editedMap.objects.find((object) => object.id === "build-spring-1"),
+    {
+      id: "build-spring-1",
+      type: "platform_spring",
+      x: 4,
+      y: 7,
+      assetId: "ice_world_platformer_spring_01",
+      launchSpeedPxPerSecond: 1200,
+    },
+  );
   assert.equal(editedMap.objects.find((object) => object.id === "build-enemy-1")?.type, "enemy_spawn");
   assert.equal(editedMap.objects.find((object) => object.id === "build-boss-1")?.role, "boss");
   assert.equal(editedMap.objects.find((object) => object.id === "build-flying-1")?.type, "flying_object");
@@ -198,6 +244,14 @@ test("Ice World is a checked-in slippery fifth map", () => {
   assert.equal(iceWorld?.map.presentation.backgroundId, "ice_world_01");
   assert.equal(iceWorld?.map.physics.groundTractionScale, 0.15);
   assert.deepEqual(iceWorld?.map.size, { columns: 88, rows: 12 });
+  assert.deepEqual(
+    new Set(
+      iceWorld?.map.objects
+        .filter((object) => object.type === "enemy_spawn" && object.role === "enemy")
+        .map((object) => object.assetId),
+    ),
+    new Set(["ice_world_ghost_01", "ice_world_robot_01"]),
+  );
 });
 
 test("saved builder edits change real checked-in platformer terrain", () => {

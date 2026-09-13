@@ -21,6 +21,7 @@ import {
   upsertPlatformerObjectSettings,
 } from "@/game/platformer/map-editing";
 import {
+  activeGameTheme,
   defaultGameTitle,
   DEFAULT_GAME_DOCUMENT,
   MAZE_MAP_SOURCES,
@@ -49,6 +50,11 @@ type BuildGamePreviewProps = GamePlayerContentProps & {
 type GameIdentity = {
   id: string;
   revision: number;
+};
+
+type PendingLevel = {
+  source: string;
+  defaultName: string;
 };
 
 const WORLD_ICONS: Record<string, string> = {
@@ -87,6 +93,7 @@ export function BuildGamePreview({
     requestedSetup,
     persistedBuildTurn,
     publishGameIdentity,
+    publishDisplayedGame,
   } = useBuildSetup();
   const initialSpec = initialGame?.spec ?? DEFAULT_GAME_DOCUMENT;
   const [history, dispatch] = useReducer(
@@ -106,7 +113,14 @@ export function BuildGamePreview({
   const [activeTool, setActiveTool] = useState<PlatformerEditTool>("select");
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   const [levelDialogOpen, setLevelDialogOpen] = useState(false);
+  const [pendingLevel, setPendingLevel] = useState<PendingLevel | null>(null);
+  const [levelName, setLevelName] = useState("");
+  const [levelSettingsOpen, setLevelSettingsOpen] = useState(false);
   const levelDialogRef = useRef<HTMLDialogElement>(null);
+  const levelNameDialogRef = useRef<HTMLDialogElement>(null);
+  const levelNameInputRef = useRef<HTMLInputElement>(null);
+  const levelSettingsDialogRef = useRef<HTMLDialogElement>(null);
+  const levelSettingsInputRef = useRef<HTMLInputElement>(null);
   const latestSpecRef = useRef(history.present);
   const savedSpecRef = useRef<GameDocument | null>(initialGame?.spec ?? null);
   const savePromiseRef = useRef<Promise<void> | null>(null);
@@ -139,6 +153,13 @@ export function BuildGamePreview({
     },
     [history.present],
   );
+
+  useEffect(() => {
+    publishDisplayedGame({
+      gameType: history.present.previewKind,
+      theme: activeGameTheme(history.present),
+    });
+  }, [history.present, publishDisplayedGame]);
 
   useEffect(() => {
     if (
@@ -359,6 +380,28 @@ export function BuildGamePreview({
     if (!levelDialogOpen && dialog.open) dialog.close();
   }, [levelDialogOpen]);
 
+  useEffect(() => {
+    const dialog = levelNameDialogRef.current;
+    if (!dialog) return;
+    if (pendingLevel && !dialog.open) {
+      dialog.showModal();
+      levelNameInputRef.current?.focus();
+      levelNameInputRef.current?.select();
+    }
+    if (!pendingLevel && dialog.open) dialog.close();
+  }, [pendingLevel]);
+
+  useEffect(() => {
+    const dialog = levelSettingsDialogRef.current;
+    if (!dialog) return;
+    if (levelSettingsOpen && !dialog.open) {
+      dialog.showModal();
+      levelSettingsInputRef.current?.focus();
+      levelSettingsInputRef.current?.select();
+    }
+    if (!levelSettingsOpen && dialog.open) dialog.close();
+  }, [levelSettingsOpen]);
+
   const { previewKind } = history.present;
   const campaignMaps = useMemo(
     () => gameCampaignMaps(history.present, maps),
@@ -396,6 +439,9 @@ export function BuildGamePreview({
   const currentSource = previewKind === "maze" ? currentMaze.source : current.source;
   const selectedLevel = previewKind === "maze" ? currentMaze : current;
   const availableLevels = previewKind === "maze" ? availableMazes : campaignMaps;
+  const selectedLevelIndex = availableLevels.findIndex(
+    (level) => level.source === selectedLevel.source,
+  );
   const changeLevel = (source: string) => {
     setSelectedObjectId(null);
     if (previewKind === "maze") {
@@ -406,45 +452,192 @@ export function BuildGamePreview({
     const selected = campaignMaps.find((candidate) => candidate.source === source);
     if (selected) commit({ platformerMapSource: selected.source });
   };
-  const createLevel = (templateSource: string, templateLabel: string) => {
+  const chooseWorld = (templateSource: string, templateLabel: string) => {
+    const existingCount = previewKind === "maze"
+      ? history.present.mazeLevels.filter(
+          (level) => level.templateSource === templateSource,
+        ).length + Number(history.present.mazeMapSource === templateSource)
+      : history.present.platformerLevels.filter(
+          (level) => level.templateSource === templateSource,
+        ).length + Number(history.present.platformerMapSource === templateSource);
+    const defaultName = `${templateLabel} ${existingCount + 1}`;
+    setLevelDialogOpen(false);
+    setLevelName(defaultName);
+    setPendingLevel({ source: templateSource, defaultName });
+  };
+  const editableMazeLevelState = () => {
+    const source = history.present.mazeMapSource;
+    const template = mazes.find((level) => level.source === source);
+    if (!template) {
+      return {
+        source: source as MazeLevel["id"],
+        levels: history.present.mazeLevels,
+      };
+    }
+    const promoted: MazeLevel = {
+      id: `custom-maze-${crypto.randomUUID()}`,
+      templateSource: template.source as MazeLevel["templateSource"],
+      label: `${template.label} 1`,
+    };
+    return {
+      source: promoted.id,
+      levels: [promoted, ...history.present.mazeLevels],
+    };
+  };
+  const editablePlatformerLevelState = () => {
+    const source = history.present.platformerMapSource;
+    const template = maps.find((level) => level.source === source);
+    if (!template) {
+      return {
+        source: source as PlatformerLevel["id"],
+        levels: history.present.platformerLevels,
+        platformerTerrainEdits: history.present.platformerTerrainEdits,
+        platformerObjectEdits: history.present.platformerObjectEdits,
+        platformerObjectRemovals: history.present.platformerObjectRemovals,
+        platformerObjectSettings: history.present.platformerObjectSettings,
+      };
+    }
+    const promoted: PlatformerLevel = {
+      id: `custom-platformer-${crypto.randomUUID()}`,
+      templateSource: template.source as PlatformerLevel["templateSource"],
+      label: `${template.label} 1`,
+    };
+    const remap = <T extends { mapSource: GameDocument["platformerMapSource"] }>(
+      entries: T[],
+    ) => entries.map((entry) => entry.mapSource === source
+      ? { ...entry, mapSource: promoted.id }
+      : entry);
+    return {
+      source: promoted.id,
+      levels: [promoted, ...history.present.platformerLevels],
+      platformerTerrainEdits: remap(history.present.platformerTerrainEdits),
+      platformerObjectEdits: remap(history.present.platformerObjectEdits),
+      platformerObjectRemovals: remap(history.present.platformerObjectRemovals),
+      platformerObjectSettings: remap(history.present.platformerObjectSettings),
+    };
+  };
+  const createLevel = (templateSource: string, name: string) => {
     setSelectedObjectId(null);
     if (previewKind === "maze") {
       if (!MAZE_MAP_SOURCES.includes(templateSource as MazeLevel["templateSource"])) return;
       const source = templateSource as MazeLevel["templateSource"];
-      const matchingLevels = availableMazes.filter((level) => (
-        level.source === source || history.present.mazeLevels.some(
-          (savedLevel) => savedLevel.id === level.source && savedLevel.templateSource === source,
-        )
-      ));
+      const existing = editableMazeLevelState();
       const level: MazeLevel = {
         id: `custom-maze-${crypto.randomUUID()}`,
         templateSource: source,
-        label: `${templateLabel} ${matchingLevels.length + 1}`,
+        label: name,
       };
       commit({
-        mazeLevels: [...history.present.mazeLevels, level],
+        mazeLevels: [...existing.levels, level],
         mazeMapSource: level.id,
       });
-      setLevelDialogOpen(false);
+      setPendingLevel(null);
       return;
     }
     if (!PLATFORMER_MAP_SOURCES.includes(templateSource as PlatformerLevel["templateSource"])) return;
     const source = templateSource as PlatformerLevel["templateSource"];
-    const matchingLevels = campaignMaps.filter((level) => (
-      level.source === source || history.present.platformerLevels.some(
-        (savedLevel) => savedLevel.id === level.source && savedLevel.templateSource === source,
-      )
-    ));
+    const existing = editablePlatformerLevelState();
     const level: PlatformerLevel = {
       id: `custom-platformer-${crypto.randomUUID()}`,
       templateSource: source,
-      label: `${templateLabel} ${matchingLevels.length + 1}`,
+      label: name,
     };
     commit({
-      platformerLevels: [...history.present.platformerLevels, level],
+      platformerLevels: [...existing.levels, level],
       platformerMapSource: level.id,
+      platformerTerrainEdits: existing.platformerTerrainEdits,
+      platformerObjectEdits: existing.platformerObjectEdits,
+      platformerObjectRemovals: existing.platformerObjectRemovals,
+      platformerObjectSettings: existing.platformerObjectSettings,
     });
-    setLevelDialogOpen(false);
+    setPendingLevel(null);
+  };
+  const renameSelectedLevel = () => {
+    const name = levelSettingsInputRef.current?.value.trim() ?? "";
+    if (!name) return;
+    if (previewKind === "maze") {
+      const editable = editableMazeLevelState();
+      commit({
+        mazeLevels: editable.levels.map((level) => level.id === editable.source
+          ? { ...level, label: name }
+          : level),
+        mazeMapSource: editable.source,
+      });
+    } else {
+      const editable = editablePlatformerLevelState();
+      commit({
+        platformerLevels: editable.levels.map((level) => level.id === editable.source
+          ? { ...level, label: name }
+          : level),
+        platformerMapSource: editable.source,
+        platformerTerrainEdits: editable.platformerTerrainEdits,
+        platformerObjectEdits: editable.platformerObjectEdits,
+        platformerObjectRemovals: editable.platformerObjectRemovals,
+        platformerObjectSettings: editable.platformerObjectSettings,
+      });
+    }
+    setLevelSettingsOpen(false);
+  };
+  const deleteSelectedLevel = () => {
+    if (availableLevels.length <= 1) return;
+    setSelectedObjectId(null);
+    if (previewKind === "maze") {
+      const editable = editableMazeLevelState();
+      const index = editable.levels.findIndex((level) => level.id === editable.source);
+      const levels = editable.levels.filter((level) => level.id !== editable.source);
+      const next = levels[Math.min(index, levels.length - 1)];
+      if (next) commit({ mazeLevels: levels, mazeMapSource: next.id });
+    } else {
+      const editable = editablePlatformerLevelState();
+      const index = editable.levels.findIndex((level) => level.id === editable.source);
+      const levels = editable.levels.filter((level) => level.id !== editable.source);
+      const next = levels[Math.min(index, levels.length - 1)];
+      if (next) {
+        commit({
+          platformerLevels: levels,
+          platformerMapSource: next.id,
+          platformerTerrainEdits: editable.platformerTerrainEdits.filter(
+            (edit) => edit.mapSource !== editable.source,
+          ),
+          platformerObjectEdits: editable.platformerObjectEdits.filter(
+            (edit) => edit.mapSource !== editable.source,
+          ),
+          platformerObjectRemovals: editable.platformerObjectRemovals.filter(
+            (removal) => removal.mapSource !== editable.source,
+          ),
+          platformerObjectSettings: editable.platformerObjectSettings.filter(
+            (settings) => settings.mapSource !== editable.source,
+          ),
+        });
+      }
+    }
+    setLevelSettingsOpen(false);
+  };
+  const moveSelectedLevel = (offset: -1 | 1) => {
+    if (previewKind === "maze") {
+      const editable = editableMazeLevelState();
+      const index = editable.levels.findIndex((level) => level.id === editable.source);
+      const target = index + offset;
+      if (index < 0 || target < 0 || target >= editable.levels.length) return;
+      const levels = [...editable.levels];
+      [levels[index], levels[target]] = [levels[target], levels[index]];
+      commit({ mazeLevels: levels, mazeMapSource: editable.source });
+      return;
+    }
+    const editable = editablePlatformerLevelState();
+    const index = editable.levels.findIndex((level) => level.id === editable.source);
+    const target = index + offset;
+    if (index < 0 || target < 0 || target >= editable.levels.length) return;
+    const levels = [...editable.levels];
+    [levels[index], levels[target]] = [levels[target], levels[index]];
+    commit({
+      platformerLevels: levels,
+      platformerMapSource: editable.source,
+      platformerTerrainEdits: editable.platformerTerrainEdits,
+      platformerObjectEdits: editable.platformerObjectEdits,
+      platformerObjectRemovals: editable.platformerObjectRemovals,
+      platformerObjectSettings: editable.platformerObjectSettings,
+    });
   };
   const applyTerrainStroke = (stroke: readonly PlatformerTerrainStrokeCell[]) => {
     const platformerTerrainEdits = mergePlatformerTerrainEdits(
@@ -582,6 +775,15 @@ export function BuildGamePreview({
             >
               +
             </button>
+            <button
+              className={styles.levelSettingsButton}
+              type="button"
+              aria-label="Level settings"
+              title="Level settings"
+              onClick={() => setLevelSettingsOpen(true)}
+            >
+              <span aria-hidden="true">⚙</span>
+            </button>
           </div>
         )}
         platformerEditor={{
@@ -628,13 +830,130 @@ export function BuildGamePreview({
             <button
               type="button"
               key={level.source}
-              onClick={() => createLevel(level.source, level.label)}
+              onClick={() => chooseWorld(level.source, level.label)}
             >
               <span aria-hidden="true">{WORLD_ICONS[level.source] ?? "🗺️"}</span>
               <strong>{level.label}</strong>
             </button>
           ))}
         </div>
+      </dialog>
+
+      <dialog
+        className={styles.levelDialog}
+        ref={levelNameDialogRef}
+        aria-labelledby="name-level-title"
+        onClose={() => setPendingLevel(null)}
+        onCancel={() => setPendingLevel(null)}
+      >
+        <header>
+          <div>
+            <span>Add a level</span>
+            <h2 id="name-level-title">Name your level</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Close name level"
+            onClick={() => setPendingLevel(null)}
+          >
+            ×
+          </button>
+        </header>
+        <form
+          className={styles.levelNameForm}
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!pendingLevel) return;
+            createLevel(
+              pendingLevel.source,
+              levelName.trim() || pendingLevel.defaultName,
+            );
+          }}
+        >
+          <label className={styles.levelNameField}>
+            <span>Level name</span>
+            <input
+              ref={levelNameInputRef}
+              value={levelName}
+              maxLength={40}
+              required
+              onChange={(event) => setLevelName(event.target.value)}
+            />
+          </label>
+          <div className={styles.levelNameActions}>
+            <button type="button" onClick={() => setPendingLevel(null)}>Cancel</button>
+            <button type="submit">Create level</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog
+        className={styles.levelDialog}
+        ref={levelSettingsDialogRef}
+        aria-labelledby="level-settings-title"
+        onCancel={(event) => {
+          event.preventDefault();
+          setLevelSettingsOpen(false);
+        }}
+      >
+        <header>
+          <div>
+            <span>Selected level</span>
+            <h2 id="level-settings-title">Level settings</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Close level settings"
+            onClick={() => setLevelSettingsOpen(false)}
+          >
+            ×
+          </button>
+        </header>
+        <form
+          className={styles.levelSettingsForm}
+          onSubmit={(event) => {
+            event.preventDefault();
+            renameSelectedLevel();
+          }}
+        >
+          <label className={styles.levelNameField}>
+            <span>Level name</span>
+            <input
+              key={selectedLevel.source}
+              ref={levelSettingsInputRef}
+              defaultValue={selectedLevel.label}
+              maxLength={40}
+              required
+            />
+          </label>
+          <button className={styles.renameLevelButton} type="submit">Save name</button>
+          <div className={styles.levelOrderActions} aria-label="Level order">
+            <button
+              type="button"
+              disabled={selectedLevelIndex <= 0}
+              onClick={() => moveSelectedLevel(-1)}
+            >
+              ← Move backward
+            </button>
+            <button
+              type="button"
+              disabled={selectedLevelIndex < 0 || selectedLevelIndex >= availableLevels.length - 1}
+              onClick={() => moveSelectedLevel(1)}
+            >
+              Move forward →
+            </button>
+          </div>
+          <div className={styles.levelDeleteRow}>
+            <p>{availableLevels.length <= 1 ? "A game needs at least one level." : "Delete this level from the game."}</p>
+            <button
+              type="button"
+              disabled={availableLevels.length <= 1}
+              onClick={deleteSelectedLevel}
+            >
+              Delete level
+            </button>
+          </div>
+        </form>
       </dialog>
 
       {selectedObject ? (

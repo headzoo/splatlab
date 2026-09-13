@@ -15,6 +15,7 @@ export type PlatformerMapObject = {
     | "player_spawn"
     | "collectible"
     | "extra_life"
+    | "platform_spring"
     | "checkpoint"
     | "goal"
     | "enemy_spawn"
@@ -25,6 +26,7 @@ export type PlatformerMapObject = {
   role?: "enemy" | "boss";
   viewMusicCue?: string;
   assetId?: string;
+  launchSpeedPxPerSecond?: number;
   behavior?: "patroller" | "chaser";
   direction?: "left" | "right";
   patrolLeftTiles?: number;
@@ -178,6 +180,8 @@ export type EnemyState = {
   x: number;
   y: number;
   startX: number;
+  startY: number;
+  circleTicks: number;
   speed: number;
   patrolLeftTiles: number;
   patrolRightTiles: number;
@@ -246,6 +250,7 @@ export type RuntimeEvent =
   | { type: "land" }
   | { type: "collectible"; objectId: string }
   | { type: "extra_life"; objectId: string }
+  | { type: "platform_spring"; objectId: string }
   | { type: "checkpoint"; objectId: string }
   | { type: "enemy_defeat"; objectId: string }
   | { type: "weapon_swing" }
@@ -284,6 +289,7 @@ export type PlatformerState = {
   collectedIds: string[];
   collectibleCollectedAtTick: Record<string, number>;
   extraLifeCollectedAtTick: Record<string, number>;
+  springCompressedAtTick: Record<string, number>;
   score: number;
   lives: number;
   status: "playing" | "dying" | "won" | "game_over";

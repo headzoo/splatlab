@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ice_world_platformer_coin_01_collected",
+  "frameLabels": [
+    "poof_1",
+    "poof_2",
+    "poof_3",
+    "poof_4"
+  ],
+  "normalization": {
+    "source": "sprites/ice_world_platformer_coin_01_collected-source.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          627,
+          627
+        ],
+        [
+          627,
+          0,
+          1254,
+          627
+        ],
+        [
+          0,
+          627,
+          627,
+          1254
+        ],
+        [
+          627,
+          627,
+          1254,
+          1254
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          53,
+          52
+        ],
+        "paste": [
+          6,
+          6
+        ],
+        "localLandmark": [
+          26.5,
+          26.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          56,
+          53
+        ],
+        "paste": [
+          4,
+          6
+        ],
+        "localLandmark": [
+          28.0,
+          26.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          49,
+          47
+        ],
+        "paste": [
+          8,
+          8
+        ],
+        "localLandmark": [
+          24.5,
+          23.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          28,
+          29
+        ],
+        "paste": [
+          18,
+          18
+        ],
+        "localLandmark": [
+          14.0,
+          14.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "ice_world_platformer_coin_01_collected",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/ice_world_platformer_coin_01_collected.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          6,
+          6,
+          59,
+          58
+        ],
+        [
+          4,
+          6,
+          60,
+          59
+        ],
+        [
+          8,
+          8,
+          57,
+          55
+        ],
+        [
+          18,
+          18,
+          46,
+          47
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        28,
+        56
+      ],
+      "bboxHeightRange": [
+        29,
+        53
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.5
+      ],
+      "bboxBottomRange": [
+        47,
+        59
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/ice_world_platformer_coin_01_collected/ice_world_platformer_coin_01_collected-contact.png",
+    "animationPreview": "sprite-reports/ice_world_platformer_coin_01_collected/ice_world_platformer_coin_01_collected-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

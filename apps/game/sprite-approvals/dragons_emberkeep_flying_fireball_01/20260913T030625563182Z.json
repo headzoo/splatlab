@@ -1,0 +1,8 @@
+{
+  "assetId": "dragons_emberkeep_flying_fireball_01",
+  "approvedAt": "2026-09-13T03:06:25.563182+00:00",
+  "recipe": "sprite-specs/dragons_emberkeep_flying_fireball_01.json",
+  "runtimeImage": "sprites/dragons_emberkeep_flying_fireball_01.png",
+  "sha256": "4ea5177a8f6e67b0c8bd435f3f9dbdee2a16076bba85b8c57177cf428a0bb8fc",
+  "validationReport": "sprite-reports/dragons_emberkeep_flying_fireball_01/dragons_emberkeep_flying_fireball_01-report.json"
+}

@@ -6,8 +6,11 @@ export function gameCampaignMaps(
   spec: GameDocument,
   templates: CampaignMap[],
 ): CampaignMap[] {
+  const activeTemplate = templates.find(
+    (template) => template.source === spec.platformerMapSource,
+  );
   return [
-    ...templates,
+    ...(activeTemplate ? [activeTemplate] : []),
     ...spec.platformerLevels.flatMap((level) => {
       const template = templates.find(
         (candidate) => candidate.source === level.templateSource,
@@ -27,8 +30,11 @@ export function gameMazeMaps(
   spec: GameDocument,
   templates: MazeMap[],
 ): MazeMap[] {
+  const activeTemplate = templates.find(
+    (template) => template.source === spec.mazeMapSource,
+  );
   return [
-    ...templates,
+    ...(activeTemplate ? [activeTemplate] : []),
     ...spec.mazeLevels.flatMap((level) => {
       const template = templates.find(
         (candidate) => candidate.source === level.templateSource,

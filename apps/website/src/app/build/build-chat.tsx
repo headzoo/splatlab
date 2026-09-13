@@ -21,6 +21,7 @@ import {
   persistedBuildTurn,
   useBuildSetup,
 } from "./build-setup";
+import { buildPromptSuggestions } from "./build-prompt-suggestions";
 import styles from "./build.module.css";
 
 const gameTypes = [
@@ -150,6 +151,7 @@ export function BuildChat() {
     selectSkinTone,
     selectHairColor,
     gameIdentity,
+    displayedGame,
     pausedBuildTurn,
     applyPersistedBuildTurn,
   } = useBuildSetup();
@@ -167,6 +169,12 @@ export function BuildChat() {
   const setupReady = setupComplete && currentQuestion === "complete";
   const chatReady =
     setupReady && Boolean(gameIdentity) && !thinking && !pausedBuildTurn;
+  const suggestedGameType = displayedGame?.gameType ?? selections.gameType;
+  const suggestedTheme = displayedGame?.theme ?? selections.theme;
+  const promptSuggestions =
+    suggestedGameType && suggestedTheme
+      ? buildPromptSuggestions(suggestedGameType, suggestedTheme)
+      : [];
   const completionTurnCount = chatReady ? 1 : 0;
   const overflowTurns = Math.max(
     0,
@@ -199,7 +207,7 @@ export function BuildChat() {
   );
 
   function answerCurrentQuestion(action: () => void, next: GameSetupStep) {
-    if (thinking || isTransitioningRef.current) return;
+    if (setupComplete || thinking || isTransitioningRef.current) return;
     isTransitioningRef.current = true;
     action();
     setThinking(true);
@@ -326,6 +334,11 @@ export function BuildChat() {
     void postBuildTurn({ message }, message);
   }
 
+  function sendSuggestedPrompt(message: string) {
+    if (!chatReady) return;
+    void postBuildTurn({ message }, message);
+  }
+
   function submitPausedAction(action: "proceed" | "reject") {
     if (!pausedBuildTurn || thinking) return;
     const trimmedFeedback = feedback.trim();
@@ -351,7 +364,7 @@ export function BuildChat() {
                   className={`${styles.choiceCard} ${styles[gameType.tone]} ${selections.gameType === gameType.value ? styles.selected : ""}`}
                   key={gameType.value}
                   aria-pressed={selections.gameType === gameType.value}
-                  disabled={thinking}
+                  disabled={setupComplete || thinking}
                   onClick={() =>
                     chooseSetupOption(
                       "gameType",
@@ -380,7 +393,7 @@ export function BuildChat() {
                   className={`${styles.choiceCard} ${styles[theme.tone]} ${selections.theme === theme.value ? styles.selected : ""}`}
                   key={theme.value}
                   aria-pressed={selections.theme === theme.value}
-                  disabled={thinking}
+                  disabled={setupComplete || thinking}
                   onClick={() =>
                     chooseSetupOption(
                       "theme",
@@ -409,7 +422,7 @@ export function BuildChat() {
                   className={`${styles.choiceCard} ${styles[hero.tone]} ${selections.character === hero.value ? styles.selected : ""}`}
                   key={hero.value}
                   aria-pressed={selections.character === hero.value}
-                  disabled={thinking}
+                  disabled={setupComplete || thinking}
                   onClick={() => chooseCharacter(hero.value)}
                 >
                   <CharacterSprite
@@ -438,7 +451,7 @@ export function BuildChat() {
                   className={`${styles.choiceCard} ${styles[gender.tone]} ${selections.humanGender === gender.value ? styles.selected : ""}`}
                   key={gender.value}
                   aria-pressed={selections.humanGender === gender.value}
-                  disabled={thinking}
+                  disabled={setupComplete || thinking}
                   onClick={() =>
                     chooseSetupOption(
                       "humanGender",
@@ -476,7 +489,7 @@ export function BuildChat() {
                       style={{ "--swatch-color": tone.color } as CSSProperties}
                       aria-label={tone.label}
                       aria-pressed={selections.skinTone === tone.value}
-                      disabled={thinking}
+                      disabled={setupComplete || thinking}
                       onClick={() =>
                         chooseSetupOption(
                           "skinTone",
@@ -507,7 +520,7 @@ export function BuildChat() {
                       style={{ "--swatch-color": color.color } as CSSProperties}
                       aria-label={color.label}
                       aria-pressed={selections.hairColor === color.value}
-                      disabled={thinking}
+                      disabled={setupComplete || thinking}
                       onClick={() =>
                         chooseSetupOption(
                           "hairColor",
@@ -571,13 +584,29 @@ export function BuildChat() {
         ) : null}
 
         {completionVisible ? (
-          <div className={`${styles.cooperPrompt} ${styles.reply}`}>
-            <CooperAvatar />
-            <p>
-              <strong>Awesome choices!</strong>
-              Your game is taking shape. Add more ideas or try it out!
-            </p>
-          </div>
+          <>
+            <div className={`${styles.cooperPrompt} ${styles.reply}`}>
+              <CooperAvatar />
+              <p>
+                <strong>Awesome choices!</strong>
+                Your game is taking shape. Add more ideas or try it out!
+              </p>
+            </div>
+            <div
+              className={styles.promptSuggestions}
+              aria-label="Ideas to send Cooper"
+            >
+              {promptSuggestions.map((suggestion) => (
+                <button
+                  type="button"
+                  key={suggestion}
+                  onClick={() => sendSuggestedPrompt(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </>
         ) : null}
 
         <div

@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "dragons_emberkeep_flying_fireball_01",
+  "frameLabels": [
+    "fly_left_1",
+    "fly_left_2",
+    "fly_left_3",
+    "fly_left_4"
+  ],
+  "normalization": {
+    "source": "sprites/dragons_emberkeep_flying_fireball_01-source.png",
+    "sourceSize": [
+      1374,
+      1145
+    ],
+    "detection": {
+      "analysisScale": 0.5094614264919942,
+      "selectedComponentAreas": [
+        27406,
+        26425,
+        26130,
+        25665
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        311.65,
+        953.55
+      ],
+      "yCenters": [
+        344.64,
+        847.69
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          633,
+          596
+        ],
+        [
+          633,
+          0,
+          1374,
+          596
+        ],
+        [
+          0,
+          596,
+          633,
+          1145
+        ],
+        [
+          633,
+          596,
+          1374,
+          1145
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          47,
+          32
+        ],
+        "paste": [
+          8,
+          16
+        ],
+        "localLandmark": [
+          23.5,
+          16.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          60,
+          28
+        ],
+        "paste": [
+          2,
+          18
+        ],
+        "localLandmark": [
+          30.0,
+          14.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          47,
+          30
+        ],
+        "paste": [
+          8,
+          17
+        ],
+        "localLandmark": [
+          23.5,
+          15.0
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          59,
+          27
+        ],
+        "paste": [
+          2,
+          18
+        ],
+        "localLandmark": [
+          29.5,
+          13.5
+        ],
+        "target": [
+          32.0,
+          32.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "dragons_emberkeep_flying_fireball_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/dragons_emberkeep_flying_fireball_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          8,
+          16,
+          55,
+          48
+        ],
+        [
+          2,
+          18,
+          62,
+          46
+        ],
+        [
+          8,
+          17,
+          55,
+          47
+        ],
+        [
+          2,
+          18,
+          61,
+          45
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        47,
+        60
+      ],
+      "bboxHeightRange": [
+        27,
+        32
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        31.5,
+        32.0
+      ],
+      "bboxBottomRange": [
+        45,
+        48
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/dragons_emberkeep_flying_fireball_01/dragons_emberkeep_flying_fireball_01-contact.png",
+    "animationPreview": "sprite-reports/dragons_emberkeep_flying_fireball_01/dragons_emberkeep_flying_fireball_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

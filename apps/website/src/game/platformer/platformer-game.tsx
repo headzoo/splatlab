@@ -24,6 +24,7 @@ import {
   resolveEnemyViewMusicCue,
   resolveExtraLifeFireworkFrame,
   resolveExtraLifeOpacity,
+  resolvePlatformSpringCompressionFrame,
   resolvePlatformerCamera,
   snapPlatformerStateToGrid,
   resolveVisualMotionOffset,
@@ -59,6 +60,10 @@ import {
   type PlatformerObjectPlacement,
   type PlatformerTerrainStrokeCell,
 } from "./map-editing";
+import {
+  playerAttackEventVisual,
+  playerWeaponAttackPose,
+} from "./player-attack";
 import {
   playerDefeatedEventSheet,
   playerDefeatedEventVisual,
@@ -197,6 +202,8 @@ const IMAGE_URLS = {
   hauntedPlatform: assetUrl("sprites/haunted_graveyard_platformer_platform_01.png"),
   hauntedObstacle: assetUrl("sprites/haunted_graveyard_platformer_obstacle_01.png"),
   hauntedHazard: assetUrl("sprites/haunted_graveyard_platformer_hazard_01.png"),
+  haunted_graveyard_platformer_spring_01: assetUrl("sprites/haunted_graveyard_platformer_spring_01.png"),
+  haunted_graveyard_platformer_spring_01_compressed: assetUrl("sprites/haunted_graveyard_platformer_spring_01_compressed.png"),
   dragonsGround: assetUrl("sprites/dragons_emberkeep_platformer_ground_01.png"),
   dragonsPlatform: assetUrl("sprites/dragons_emberkeep_platformer_platform_01.png"),
   dragonsObstacle: assetUrl("sprites/dragons_emberkeep_platformer_obstacle_01.png"),
@@ -205,6 +212,13 @@ const IMAGE_URLS = {
   icePlatform: assetUrl("sprites/ice_world_platformer_platform_01.png"),
   iceObstacle: assetUrl("sprites/ice_world_platformer_obstacle_01.png"),
   iceHazard: assetUrl("sprites/ice_world_platformer_hazard_01.png"),
+  ice_world_cooper_01: assetUrl("sprites/ice_world_cooper_01.png"),
+  ice_world_human_01: assetUrl("sprites/ice_world_human_01.png"),
+  ice_world_girl_01: assetUrl("sprites/ice_world_girl_01.png"),
+  ice_world_ghost_01: assetUrl("sprites/ice_world_ghost_01.png"),
+  ice_world_robot_01: assetUrl("sprites/ice_world_robot_01.png"),
+  ice_world_platformer_spring_01: assetUrl("sprites/ice_world_platformer_spring_01.png"),
+  ice_world_platformer_spring_01_compressed: assetUrl("sprites/ice_world_platformer_spring_01_compressed.png"),
   neutral_cooper_01: assetUrl("sprites/neutral_cooper_01.png"),
   neutral_human_01: assetUrl("sprites/neutral_human_01.png"),
   neutral_girl_01: assetUrl("sprites/neutral_girl_01.png"),
@@ -224,7 +238,8 @@ const IMAGE_URLS = {
   dragon_human_01: assetUrl("sprites/dragon_human_01.png"),
   dragon_girl_01: assetUrl("sprites/dragon_girl_01.png"),
   dragon_ghost_01: assetUrl("sprites/dragon_ghost_01.png"),
-  playerAttack: assetUrl("sprites/space_cooper_01_attack.png"),
+  space_cooper_01_attack: assetUrl("sprites/space_cooper_01_attack.png"),
+  space_human_01_attack: assetUrl("sprites/space_human_01_attack.png"),
   space_cooper_01_defeated: assetUrl("sprites/space_cooper_01_defeated.png"),
   space_human_01_defeated: assetUrl("sprites/space_human_01_defeated.png"),
   space_ghost_01_defeated: assetUrl("sprites/space_ghost_01_defeated.png"),
@@ -236,6 +251,8 @@ const IMAGE_URLS = {
   spaceGoal: assetUrl("sprites/space_platformer_goal_01.png"),
   dragonsCoin: assetUrl("sprites/dragons_emberkeep_platformer_coin_01.png"),
   dragonsCoinCollected: assetUrl("sprites/dragons_emberkeep_platformer_coin_01_collected.png"),
+  iceCoin: assetUrl("sprites/ice_world_platformer_coin_01.png"),
+  iceCoinCollected: assetUrl("sprites/ice_world_platformer_coin_01_collected.png"),
   dragonsCheckpoint: assetUrl("sprites/dragons_emberkeep_platformer_checkpoint_01.png"),
   dragonsGoal: assetUrl("sprites/dragons_emberkeep_platformer_goal_01.png"),
   hudCoin: assetUrl("sprites/space_platformer_hud_coins_01.png"),
@@ -252,6 +269,7 @@ const IMAGE_URLS = {
   haunted_graveyard_flaming_pumpkin_01: assetUrl("sprites/haunted_graveyard_flaming_pumpkin_01.png"),
   dragon_dragon_01: assetUrl("sprites/dragon_dragon_01.png"),
   dragons_emberkeep_fireball_01: assetUrl("sprites/dragons_emberkeep_fireball_01.png"),
+  dragons_emberkeep_flying_fireball_01: assetUrl("sprites/dragons_emberkeep_flying_fireball_01.png"),
   dragons_emberkeep_boss_01: assetUrl("sprites/dragons_emberkeep_boss_01.png"),
   ice_world_boss_01: assetUrl("sprites/ice_world_boss_01.png"),
   ice_world_crystal_projectile_01: assetUrl("sprites/ice_world_crystal_projectile_01.png"),
@@ -366,8 +384,8 @@ const MAP_VISUALS: Record<string, MapVisualProfile> = {
     hazard: "iceHazard",
     hazardColumns: 2,
     hazardFrames: 4,
-    coin: "spaceCoin",
-    coinCollected: "spaceCoinCollected",
+    coin: "iceCoin",
+    coinCollected: "iceCoinCollected",
     checkpoint: "spaceCheckpoint",
     goal: "spaceGoal",
   },
@@ -390,6 +408,7 @@ const AUDIO_URLS = {
   land: assetUrl("audio/space_basic_v1/land.wav"),
   collectible: assetUrl("audio/space_basic_v1/collectible.wav"),
   extra_life: assetUrl("audio/space_basic_v1/collectible.wav"),
+  platform_spring: assetUrl("audio/space_basic_v1/jump.wav"),
   checkpoint: assetUrl("audio/space_basic_v1/checkpoint.wav"),
   goal: assetUrl("audio/space_basic_v1/goal.wav"),
   enemy_defeat: assetUrl("audio/space_basic_v1/enemy_defeat.wav"),
@@ -406,6 +425,7 @@ const AUDIO_VOLUME: Partial<Record<keyof typeof AUDIO_URLS, number>> = {
   land: 0.3,
   collectible: 0.4,
   extra_life: 0.46,
+  platform_spring: 0.46,
   checkpoint: 0.42,
   goal: 0.5,
   enemy_defeat: 0.46,
@@ -473,6 +493,7 @@ const EDITOR_TOOL_LABELS: Record<PlatformerEditTool, string> = {
   spawn: "Spawn",
   coin: "Coin",
   extra_life: "Extra life",
+  platform_spring: "Platform spring",
   enemy: "Enemy",
   boss: "Boss",
   flying_object: "Flying object",
@@ -673,8 +694,7 @@ function drawWeaponFrame(
   layer: "behind" | "front",
 ) {
   if (!image) return;
-  const poses = weapon.visual.characters[playerAssetId]?.directions[state.facing];
-  const pose = poses?.[Math.min(frame, poses.length - 1)];
+  const pose = playerWeaponAttackPose(weapon, playerAssetId, state.facing, frame);
   if (!pose || pose.layer !== layer) return;
 
   context.save();
@@ -877,6 +897,26 @@ function drawWorld(
         context.globalAlpha = opacity;
         context.drawImage(images.hudLife, x, y, 64, 64);
         context.restore();
+      }
+    } else if (object.type === "platform_spring") {
+      const compressionFrame = resolvePlatformSpringCompressionFrame(state, object.id);
+      const defaultImage = images[object.assetId as ImageKey]
+        ?? images.ice_world_platformer_spring_01;
+      const compressedImage = images[`${object.assetId}_compressed` as ImageKey]
+        ?? images.ice_world_platformer_spring_01_compressed;
+      if (compressionFrame === null) {
+        if (defaultImage) context.drawImage(defaultImage, x, y, 64, 64);
+      } else {
+        drawSheetFrame(
+          context,
+          compressedImage,
+          2,
+          64,
+          64,
+          compressionFrame,
+          x,
+          y,
+        );
       }
     } else if (object.type === "checkpoint") {
       drawSheetFrame(context, images[visuals.checkpoint], 2, 64, 64, animationFrame, x, y);
@@ -1113,18 +1153,22 @@ function drawWorld(
     );
     const elapsedAttackTicks = durationTicks - state.attackTicksRemaining;
     const attackFrame = clamp(Math.floor((elapsedAttackTicks * 4) / durationTicks), 0, 3);
-    const attackRow = state.facing === "left" ? 0 : 1;
+    const attackVisual = playerAttackEventVisual(
+      playerAssetId,
+      state.facing,
+      elapsedAttackTicks * FIXED_DELTA_SECONDS * 1000,
+    );
     drawWeaponFrame(context, images.weapon, weapon, playerAssetId, visualPlayerState, attackFrame, "behind");
-    playerDrawn = playerAssetId === "space_cooper_01"
+    playerDrawn = attackVisual
       ? drawSheetFrame(
           context,
-          images.playerAttack,
-          4,
-          64,
-          64,
-          attackRow * 4 + attackFrame,
-          visualPlayerState.x - 32,
-          visualPlayerState.y - 56,
+          images[attackVisual.eventSheet.imageAssetId],
+          attackVisual.eventSheet.columns,
+          attackVisual.eventSheet.frameWidth,
+          attackVisual.eventSheet.frameHeight,
+          attackVisual.frameIndex,
+          visualPlayerState.x - attackVisual.eventSheet.anchor.x,
+          visualPlayerState.y - attackVisual.eventSheet.anchor.y,
         )
       : drawSheetFrame(
           context,
@@ -2089,7 +2133,8 @@ export function PlatformerGame({
   };
 
   const controls = controlSummary(controlBindings);
-  const editing = Boolean(editorTool) && !playing;
+  const building = Boolean(editorTool);
+  const editing = building && !playing;
   const editorInstruction = editorTool
     ? editorTool === "move"
       ? "Drag the map to move around"
@@ -2130,18 +2175,20 @@ export function PlatformerGame({
       data-death-ticks={initialState.deathTicksRemaining}
       data-editor-mode={editing ? "true" : undefined}
     >
-      <div className={styles.toolbar} aria-label="Game playback controls">
-        <div className={styles.buttonGroup}>
-          <button className={styles.playbackButton} type="button" onClick={togglePlayback} disabled={!assetsReady}>
-            {playing ? (editorTool ? "Ⅱ Stop test" : "Ⅱ Pause") : editorTool ? "▶ Test game" : "▶ Play"}
-          </button>
-          <button type="button" onClick={reset}>
-            ↻ Reset
-          </button>
-          <button type="button" onClick={toggleMuted} aria-pressed={muted}>
-            {muted ? "🔇 Muted" : "🔊 Sound"}
-          </button>
-        </div>
+      <div className={`${styles.toolbar} ${building ? styles.editorToolbar : ""}`} aria-label={building ? "Build instructions" : "Game playback controls"}>
+        {!building ? (
+          <div className={styles.buttonGroup}>
+            <button className={styles.playbackButton} type="button" onClick={togglePlayback} disabled={!assetsReady}>
+              {playing ? "Ⅱ Pause" : "▶ Play"}
+            </button>
+            <button type="button" onClick={reset}>
+              ↻ Reset
+            </button>
+            <button type="button" onClick={toggleMuted} aria-pressed={muted}>
+              {muted ? "🔇 Muted" : "🔊 Sound"}
+            </button>
+          </div>
+        ) : null}
         <p className={styles.controlHint}>
           {editing ? `Build mode · ${editorInstruction}` : controls}
         </p>
@@ -2179,8 +2226,39 @@ export function PlatformerGame({
         ) : null}
       </div>
 
-      <div className={styles.controlRow}>
+      <div className={`${styles.controlRow} ${building ? styles.editorControlRow : ""}`}>
         {controlRowLeading}
+        {building ? (
+          <div className={styles.buildPlaybackControls} aria-label="Game playback controls">
+            <button type="button" onClick={reset} aria-label="Reset game" title="Reset game">
+              ↻ Reset
+            </button>
+            <button
+              className={styles.buildPlaybackButton}
+              type="button"
+              onClick={togglePlayback}
+              disabled={!assetsReady}
+              aria-label={playing ? "Pause game" : "Test game"}
+              title={playing ? "Pause game" : "Test game"}
+            >
+              <span
+                className={`${styles.playbackIcon} ${playing ? styles.pauseIcon : styles.playIcon}`}
+                aria-hidden="true"
+              >
+                {playing ? "Ⅱ" : "▶"}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={toggleMuted}
+              aria-label={muted ? "Turn sound on" : "Mute sound"}
+              title={muted ? "Turn sound on" : "Mute sound"}
+              aria-pressed={muted}
+            >
+              {muted ? "🔇 Muted" : "🔊 Sound"}
+            </button>
+          </div>
+        ) : null}
         <div
           className={`${styles.touchControls} ${editing ? styles.editorControls : ""}`}
           aria-label={editing ? "Map control tools" : "On-screen movement controls"}

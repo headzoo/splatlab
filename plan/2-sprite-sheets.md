@@ -512,6 +512,23 @@ layout inside `presentation.hud`; remaining lives and collected-coin state are
 owned by gameplay. Both HUD icons remain staged until approved in the Sprite
 Viewer.
 
+### Platformer spring object set
+
+Platform springs use a shared semantic `platform_spring` object and theme-specific
+art packages:
+
+- `sprites/ice_world_platformer_spring_01-source.png` -> `sprite-build/ice_world_platformer_spring_01.png`
+- `sprites/haunted_graveyard_platformer_spring_01-source.png` -> `sprite-build/haunted_graveyard_platformer_spring_01.png`
+
+Each default sheet is one expanded `64 × 64` frame with bottom-center anchor
+`(32, 64)`. Each parent recipe also owns a `compressed` event sheet with four
+`64 × 64` frames in a `2 × 2` layout: expanded, compressing, compressed, and
+rebounding at 12 FPS, play once. The artwork never defines launch behavior;
+MapSpec supplies bounded launch speed, and runtime physics preserves incoming
+horizontal velocity so landing direction determines rebound direction. Both
+packages remain staged until their default and event sheets are approved
+atomically in the external Sprite Viewer.
+
 ### Platformer fly-by object set
 
 Platformer fly-bys use a dedicated role-neutral `flying_object` sprite kind so
@@ -520,6 +537,7 @@ character contract:
 
 - `sprites/neutral_green_hills_flying_cooper_01-source.png` -> `sprite-build/neutral_green_hills_flying_cooper_01.png`
 - `sprites/haunted_flying_cooper_bat_01-source.png` -> `sprite-build/haunted_flying_cooper_bat_01.png`
+- `sprites/dragons_emberkeep_flying_fireball_01-source.png` -> `sprite-build/dragons_emberkeep_flying_fireball_01.png`
 
 Each recipe uses `runtime: "platformer_v1"`, `visualSlot: "flying_object"`, a
 four-frame `2 × 2` sheet of `64 × 64` frames, center anchor `(32, 32)`, an
@@ -528,9 +546,12 @@ four-frame `2 × 2` sheet of `64 × 64` frames, center anchor `(32, 32)`, an
 and returning upstroke. Green Hills uses flying Cooper in his scientist coat;
 Haunted uses the same Cooper identity in a playful bat-wing costume. Runtime
 MotionSpec chooses the path and mirrors these left-facing frames only for a
-future rightward route. Both sheets pass the pipeline. Flying Cooper has been
-approved through the Sprite Viewer; Bat-Costume Cooper remains staged in
-`sprite-build/` until the user approves it through the same gate.
+future rightward route. Dragon World uses a separate large fireball with a
+stable white-hot core and four rising/level/falling/returning flame-tail phases;
+it is non-colliding presentation art, not the damaging combat projectile.
+All three sheets pass the pipeline. Flying Cooper has been approved through the
+Sprite Viewer; Bat-Costume Cooper and the Dragon World flying fireball remain
+staged in `sprite-build/` until the user approves them through the same gate.
 
 ### Space combat event set
 
@@ -572,9 +593,10 @@ elder dragon with basalt armor and ember-lit cracks. Ice World uses the Glacier
 Brute, a broad humanoid ice boss whose separate four-frame crystal projectile
 rotates end over end while following the map-authored lobbed-projectile arc.
 All five locomotion and `defeated` sheets pass the automated pipeline and have
-clean reviewed contact sheets. They remain staged as pending parent packages until the user
-approves their animation playback in the external `game_editor` Sprite Viewer
-(`../../../game_editor` from this app). Health bars, hit counts, facing
+clean reviewed contact sheets. The current parent packages are approved through
+the external `game_editor` Sprite Viewer (`../../../game_editor` from this app);
+future replacements remain staged until the user approves their animation
+playback there. Health bars, hit counts, facing
 behavior, attack range, and movement stay in game and map data rather than in
 these images.
 

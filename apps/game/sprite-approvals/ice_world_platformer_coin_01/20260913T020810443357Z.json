@@ -1,0 +1,15 @@
+{
+  "assetId": "ice_world_platformer_coin_01",
+  "approvedAt": "2026-09-13T02:08:10.443357+00:00",
+  "recipe": "sprite-specs/ice_world_platformer_coin_01.json",
+  "runtimeImage": "sprites/ice_world_platformer_coin_01.png",
+  "sha256": "8b0cc1d9ba8e1bc271de281fb74be80440e7cf0c27778400db0cc91bc709b49b",
+  "validationReport": "sprite-reports/ice_world_platformer_coin_01/ice_world_platformer_coin_01-report.json",
+  "eventSheets": {
+    "collected": {
+      "runtimeImage": "sprites/ice_world_platformer_coin_01_collected.png",
+      "sha256": "c8353593e741da81694730ad13c1d39fe98cf6d9560ec586019902c87ada7208",
+      "validationReport": "sprite-reports/ice_world_platformer_coin_01_collected/ice_world_platformer_coin_01_collected-report.json"
+    }
+  }
+}

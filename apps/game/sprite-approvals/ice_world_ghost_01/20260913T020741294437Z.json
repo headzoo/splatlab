@@ -1,0 +1,8 @@
+{
+  "assetId": "ice_world_ghost_01",
+  "approvedAt": "2026-09-13T02:07:41.294437+00:00",
+  "recipe": "sprite-specs/ice_world_ghost_01.json",
+  "runtimeImage": "sprites/ice_world_ghost_01.png",
+  "sha256": "5f10f66e84dcb5140d6a6e4870d7082ad446fa277a051d47bd12ee855ac8cacd",
+  "validationReport": "sprite-reports/ice_world_ghost_01/ice_world_ghost_01-report.json"
+}

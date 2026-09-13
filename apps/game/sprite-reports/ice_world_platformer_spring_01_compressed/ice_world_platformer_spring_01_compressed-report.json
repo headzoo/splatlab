@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ice_world_platformer_spring_01_compressed",
+  "frameLabels": [
+    "expanded",
+    "compressing",
+    "compressed",
+    "rebounding"
+  ],
+  "normalization": {
+    "source": "sprites/ice_world_platformer_spring_01_compressed-source.png",
+    "sourceSize": [
+      1274,
+      1235
+    ],
+    "detection": {
+      "analysisScale": 0.5494505494505495,
+      "selectedComponentAreas": [
+        66031,
+        59817,
+        57811,
+        49135
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        323.18,
+        958.7
+      ],
+      "yCenters": [
+        399.5,
+        1000.84
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          641,
+          700
+        ],
+        [
+          641,
+          0,
+          1274,
+          700
+        ],
+        [
+          0,
+          700,
+          641,
+          1235
+        ],
+        [
+          641,
+          700,
+          1274,
+          1235
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          57,
+          60
+        ],
+        "paste": [
+          4,
+          4
+        ],
+        "localLandmark": [
+          28.5,
+          60
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          57,
+          49
+        ],
+        "paste": [
+          4,
+          15
+        ],
+        "localLandmark": [
+          28.5,
+          49
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          57,
+          39
+        ],
+        "paste": [
+          4,
+          25
+        ],
+        "localLandmark": [
+          28.5,
+          39
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          57,
+          51
+        ],
+        "paste": [
+          4,
+          13
+        ],
+        "localLandmark": [
+          28.5,
+          51
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "ice_world_platformer_spring_01_compressed",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/ice_world_platformer_spring_01_compressed.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          4,
+          61,
+          64
+        ],
+        [
+          4,
+          15,
+          61,
+          64
+        ],
+        [
+          4,
+          25,
+          61,
+          64
+        ],
+        [
+          4,
+          13,
+          61,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        57,
+        57
+      ],
+      "bboxHeightRange": [
+        39,
+        60
+      ],
+      "bboxCenterXRange": [
+        32.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        34.0,
+        44.5
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/ice_world_platformer_spring_01_compressed/ice_world_platformer_spring_01_compressed-contact.png",
+    "animationPreview": "sprite-reports/ice_world_platformer_spring_01_compressed/ice_world_platformer_spring_01_compressed-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

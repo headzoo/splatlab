@@ -392,6 +392,36 @@
   color: #18396f;
 }
 
+.promptSuggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: -2px 0 16px 54px;
+}
+
+.promptSuggestions button {
+  min-height: 36px;
+  padding: 7px 12px;
+  color: #234986;
+  background: #fff;
+  border: 2px solid #8fb9e5;
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgb(42 73 129 / 10%);
+  font: 800 12px/1.2 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.promptSuggestions button:hover {
+  color: #fff;
+  background: #3155a3;
+  border-color: #3155a3;
+}
+
+.promptSuggestions button:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
 .chatMessages:empty {
   display: none;
 }
@@ -681,8 +711,9 @@
 }
 
 .levelSelect select {
-  min-width: 96px;
-  max-width: 128px;
+  width: 96px;
+  min-width: 0;
+  max-width: 96px;
   height: 28px;
   padding: 0 24px 0 8px;
   color: #12234e;
@@ -697,12 +728,12 @@
   display: flex;
   min-width: 0;
   align-items: stretch;
-  gap: 7px;
+  gap: 5px;
 }
 
 .addLevelButton {
-  width: 38px;
-  min-width: 38px;
+  width: 34px;
+  min-width: 34px;
   padding: 0;
   color: #fff;
   background: #2588f0;
@@ -718,6 +749,30 @@
 }
 
 .addLevelButton:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.levelSettingsButton {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  color: #3155a3;
+  background: #edf4fb;
+  border: 1px solid #b6c9df;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
+  font: 1000 19px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.levelSettingsButton:hover {
+  color: #173f8a;
+  background: #fff;
+  border-color: #6698cc;
+}
+
+.levelSettingsButton:focus-visible {
   outline: 4px solid #ffd52e;
   outline-offset: 2px;
 }
@@ -814,6 +869,146 @@
 
 .levelThemeGrid button strong {
   font: 400 17px/1 "Chewy", cursive;
+}
+
+.levelNameForm {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.levelNameField {
+  display: grid;
+  gap: 7px;
+}
+
+.levelNameField span {
+  color: #3155a3;
+  font-size: 11px;
+  font-weight: 1000;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.levelNameField input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  color: #12234e;
+  background: #fff;
+  border: 2px solid #b6c9df;
+  border-radius: 11px;
+  font: 800 16px/1 "Nunito", sans-serif;
+}
+
+.levelNameField input:focus {
+  border-color: #2588f0;
+  outline: 4px solid rgb(37 136 240 / 18%);
+}
+
+.levelNameActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.levelNameActions button {
+  min-height: 40px;
+  padding: 0 16px;
+  color: #3155a3;
+  background: #fff;
+  border: 2px solid #b6c9df;
+  border-radius: 10px;
+  font: 900 12px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.levelNameActions button[type="submit"] {
+  color: #fff;
+  background: #2588f0;
+  border-color: #1772ce;
+}
+
+.levelNameActions button:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.levelSettingsForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px 10px;
+  padding: 22px;
+}
+
+.levelSettingsForm .levelNameField {
+  min-width: 0;
+}
+
+.renameLevelButton,
+.levelOrderActions button,
+.levelDeleteRow button {
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: 10px;
+  font: 900 12px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.renameLevelButton {
+  align-self: end;
+  color: #fff;
+  background: #2588f0;
+  border: 2px solid #1772ce;
+}
+
+.levelOrderActions {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.levelOrderActions button {
+  color: #3155a3;
+  background: #fff;
+  border: 2px solid #b6c9df;
+}
+
+.levelDeleteRow {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px solid #d7e3ef;
+}
+
+.levelDeleteRow p {
+  color: #607493;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.levelDeleteRow button {
+  flex: none;
+  color: #fff;
+  background: #d74444;
+  border: 2px solid #b92c2c;
+}
+
+.levelOrderActions button:disabled,
+.levelDeleteRow button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.renameLevelButton:focus-visible,
+.levelOrderActions button:focus-visible,
+.levelDeleteRow button:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
 }
 
 .historyControls button {
@@ -1344,6 +1539,10 @@
   }
 
   .appearancePickers {
+    margin-left: 0;
+  }
+
+  .promptSuggestions {
     margin-left: 0;
   }
 

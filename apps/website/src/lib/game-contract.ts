@@ -64,6 +64,7 @@ export const PLATFORMER_OBJECT_KINDS = [
   "spawn",
   "coin",
   "extra_life",
+  "platform_spring",
   "enemy",
   "boss",
   "flying_object",
@@ -225,9 +226,20 @@ const GIRL_ASSET_IDS = {
   dragon_world: "dragon_girl_01",
 } as const satisfies Record<GameTheme, string>;
 
+const ICE_WORLD_PLAYER_ASSET_IDS = {
+  cooper: "ice_world_cooper_01",
+  human: "ice_world_human_01",
+  ghost: "ice_world_ghost_01",
+  robot: "ice_world_robot_01",
+} as const satisfies Record<PlayerCharacter, string>;
+
+const ICE_WORLD_GIRL_ASSET_ID = "ice_world_girl_01" as const;
+
 export type PlayerAssetId =
   | (typeof PLAYER_ASSET_IDS)[GameTheme][PlayerCharacter]
-  | (typeof GIRL_ASSET_IDS)[GameTheme];
+  | (typeof GIRL_ASSET_IDS)[GameTheme]
+  | (typeof ICE_WORLD_PLAYER_ASSET_IDS)[PlayerCharacter]
+  | typeof ICE_WORLD_GIRL_ASSET_ID;
 
 export const gameDocumentSchema = z
   .object({
@@ -387,6 +399,17 @@ export function playerAssetIdFor(
 }
 
 export function activePlayerAssetId(spec: GameDocument): PlayerAssetId {
+  if (spec.previewKind === "platformer") {
+    const source = spec.platformerLevels.find(
+      (level) => level.id === spec.platformerMapSource,
+    )?.templateSource ?? spec.platformerMapSource;
+    if (source === "level-5.json") {
+      if (spec.playerCharacter === "human" && spec.humanGender === "girl") {
+        return ICE_WORLD_GIRL_ASSET_ID;
+      }
+      return ICE_WORLD_PLAYER_ASSET_IDS[spec.playerCharacter];
+    }
+  }
   return playerAssetIdFor(
     activeGameTheme(spec),
     spec.playerCharacter,

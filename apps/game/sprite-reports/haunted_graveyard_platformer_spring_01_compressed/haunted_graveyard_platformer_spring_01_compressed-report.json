@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "assetId": "haunted_graveyard_platformer_spring_01_compressed",
+  "frameLabels": [
+    "expanded",
+    "compressing",
+    "compressed",
+    "rebounding"
+  ],
+  "normalization": {
+    "source": "sprites/haunted_graveyard_platformer_spring_01_compressed-source.png",
+    "sourceSize": [
+      1274,
+      1234
+    ],
+    "detection": {
+      "analysisScale": 0.5494505494505495,
+      "selectedComponentAreas": [
+        66864,
+        60609,
+        58933,
+        49799
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        323.29,
+        958.41
+      ],
+      "yCenters": [
+        398.19,
+        1000.49
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          641,
+          699
+        ],
+        [
+          641,
+          0,
+          1274,
+          699
+        ],
+        [
+          0,
+          699,
+          641,
+          1234
+        ],
+        [
+          641,
+          699,
+          1274,
+          1234
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          57,
+          60
+        ],
+        "paste": [
+          4,
+          4
+        ],
+        "localLandmark": [
+          28.5,
+          60
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          57,
+          49
+        ],
+        "paste": [
+          4,
+          15
+        ],
+        "localLandmark": [
+          28.5,
+          49
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          57,
+          39
+        ],
+        "paste": [
+          4,
+          25
+        ],
+        "localLandmark": [
+          28.5,
+          39
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          57,
+          51
+        ],
+        "paste": [
+          4,
+          13
+        ],
+        "localLandmark": [
+          28.5,
+          51
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "haunted_graveyard_platformer_spring_01_compressed",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/haunted_graveyard_platformer_spring_01_compressed.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          4,
+          4,
+          61,
+          64
+        ],
+        [
+          4,
+          15,
+          61,
+          64
+        ],
+        [
+          4,
+          25,
+          61,
+          64
+        ],
+        [
+          4,
+          13,
+          61,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        57,
+        57
+      ],
+      "bboxHeightRange": [
+        39,
+        60
+      ],
+      "bboxCenterXRange": [
+        32.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        34.0,
+        44.5
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/haunted_graveyard_platformer_spring_01_compressed/haunted_graveyard_platformer_spring_01_compressed-contact.png",
+    "animationPreview": "sprite-reports/haunted_graveyard_platformer_spring_01_compressed/haunted_graveyard_platformer_spring_01_compressed-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

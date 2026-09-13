@@ -621,8 +621,8 @@ Motion has three separate parts:
 - `lifecycle` declares when a fly-by begins, repeats, and ends.
 
 The initial vocabulary is intentionally small. `travel.type` is `controlled`,
-`stationary`, `behavior`, `ramming`, or `viewport_arc`; `visual.type` is `none`,
-`bob`, or `peck`. Controlled travel is valid only for player spawns and uses
+`stationary`, `behavior`, `ramming`, `circle`, or `viewport_arc`; `visual.type`
+is `none`, `bob`, or `peck`. Controlled travel is valid only for player spawns and uses
 player input at the spawn's authored speed. Behavior and ramming travel are
 valid only for enemy characters and delegate to
 the enemy's bounded `patroller` or `chaser` behavior. Ramming pauses for a
@@ -632,6 +632,32 @@ inside its patrol or chase range, then moves forward by the bounded authored
 leaves the enemy's forward-facing trigger. A viewport arc can be used by any
 placed map object, including a character-backed enemy, collectible, checkpoint,
 or goal.
+
+Circular travel is available to every Platformer enemy. The enemy's placed cell
+is the bottom point of an odd square travel grid, so a `9`-tile grid travels
+around the center of the `9 x 9` area without jumping when play begins. The
+enemy's authoritative position and collider follow the circle. Each placement
+declares clockwise or counterclockwise spin and a bounded cycle duration; the
+circle is not clipped or redirected by terrain.
+
+```json
+{
+  "motion": {
+    "version": 1,
+    "travel": {
+      "type": "circle",
+      "gridSizeTiles": 9,
+      "direction": "clockwise",
+      "durationMs": 8000
+    },
+    "visual": { "type": "none" }
+  }
+}
+```
+
+Circular grids are odd integers from `3` through `25` tiles and cycle durations
+are integers from `1000` through `60000` milliseconds. The full grid should fit
+inside the authored map.
 
 Platformer maps also expose a dedicated `flying_object` placement. It is a
 non-colliding presentation object with a required stable `assetId`; the map

@@ -17,6 +17,7 @@ import {
   COLLECTIBLE_POOF_FRAME_COUNT,
   COLLECTIBLE_POOF_FPS,
   createInitialState,
+  DEFAULT_PLATFORM_SPRING_LAUNCH_SPEED,
   DEATH_ANIMATION_TICKS,
   DEFAULT_DEATH_RESPAWN_DELAY_SECONDS,
   EXTRA_LIFE_FADE_TICKS,
@@ -30,6 +31,7 @@ import {
   resolveEnemyViewMusicCue,
   resolveCollectiblePoofFrame,
   resolvePlatformerCamera,
+  resolvePlatformSpringCompressionFrame,
   snapPlatformerStateToGrid,
   resolveDeathRespawnDelayTicks,
   resolveWorldBottomBackgroundOffset,
@@ -484,6 +486,53 @@ test("the Ice World map scales grounded acceleration and braking without changin
     idleInput,
   ).state;
   assert.ok(iceCoast.vx > normalCoast.vx);
+});
+
+test("checked-in themed platform springs launch high while preserving incoming horizontal direction", () => {
+  for (const { map, assetId } of [
+    { map: campaignMaps[2], assetId: "haunted_graveyard_platformer_spring_01" },
+    { map: campaignMaps[4], assetId: "ice_world_platformer_spring_01" },
+  ]) {
+    const spring = map.objects.find((object) => object.type === "platform_spring");
+    assert.ok(spring);
+    assert.equal(spring.assetId, assetId);
+    assert.equal(spring.launchSpeedPxPerSecond, DEFAULT_PLATFORM_SPRING_LAUNCH_SPEED);
+
+    for (const incomingVx of [-320, 0, 320]) {
+      const initial = createInitialState(map);
+      const positioned: PlatformerState = {
+        ...initial,
+        x: (spring.x + 0.5) * map.tileSize,
+        y: spring.y * map.tileSize - 1,
+        previousY: spring.y * map.tileSize - 1,
+        vx: incomingVx,
+        vy: 600,
+        grounded: false,
+      };
+      const input = { ...idleInput, moveX: Math.sign(incomingVx) };
+      const result = stepPlatformer(map, spec, positioned, input, weapon);
+
+      assert.equal(result.state.vy, -DEFAULT_PLATFORM_SPRING_LAUNCH_SPEED);
+      assert.equal(result.state.vx, incomingVx);
+      assert.equal(result.state.grounded, false);
+      assert.deepEqual(
+        result.events.find((event) => event.type === "platform_spring"),
+        { type: "platform_spring", objectId: spring.id },
+      );
+      assert.equal(resolvePlatformSpringCompressionFrame(result.state, spring.id), 0);
+    }
+  }
+});
+
+test("the platform spring compression animation returns to its expanded state", () => {
+  const state = {
+    ...createInitialState(campaignMaps[4]),
+    tick: 100,
+    springCompressedAtTick: { platform_spring_1: 100 },
+  };
+  assert.equal(resolvePlatformSpringCompressionFrame(state, "platform_spring_1"), 0);
+  assert.equal(resolvePlatformSpringCompressionFrame({ ...state, tick: 105 }, "platform_spring_1"), 1);
+  assert.equal(resolvePlatformSpringCompressionFrame({ ...state, tick: 120 }, "platform_spring_1"), null);
 });
 
 test("the checked-in Ice World boss lobs spinning crystal sprites along its authored arc", () => {
@@ -1250,15 +1299,49 @@ test("bobbing is a deterministic visual offset and does not alter enemy collisio
   assert.equal(initial.enemies.find((candidate) => candidate.id === "enemy_1")?.y, enemyY);
 });
 
-test("the campaign maps loaded by /build give every boss ramming travel", () => {
+test("the checked-in Haunted spirit orbs circle opposite ways around authored 9 by 9 grids", () => {
+  const orbObjects = graveyardMap.objects.filter((object) => (
+    object.type === "enemy_spawn" && object.assetId === "haunted_spirit_orb_01"
+  ));
+  assert.equal(orbObjects.length, 2);
+  assert.deepEqual(
+    orbObjects.map((object) => object.motion?.travel),
+    [
+      { type: "circle", gridSizeTiles: 9, direction: "clockwise", durationMs: 8000 },
+      { type: "circle", gridSizeTiles: 9, direction: "counterclockwise", durationMs: 8000 },
+    ],
+  );
+
+  let state = createInitialState(graveyardMap);
+  for (let tick = 0; tick < FIXED_TICK_RATE * 2; tick += 1) {
+    state = stepPlatformer(graveyardMap, spec, state, idleInput, weapon).state;
+  }
+
+  const radius = 4 * graveyardMap.tileSize;
+  const clockwise = state.enemies.find((enemy) => enemy.id === orbObjects[0].id);
+  const counterclockwise = state.enemies.find((enemy) => enemy.id === orbObjects[1].id);
+  assert.ok(clockwise);
+  assert.ok(counterclockwise);
+  assert.ok(Math.abs(clockwise.x - (clockwise.startX - radius)) < 0.01);
+  assert.ok(Math.abs(counterclockwise.x - (counterclockwise.startX + radius)) < 0.01);
+  assert.ok(Math.abs(clockwise.y - (clockwise.startY - radius)) < 0.01);
+  assert.ok(Math.abs(counterclockwise.y - (counterclockwise.startY - radius)) < 0.01);
+  assert.equal(clockwise.direction, "left");
+  assert.equal(counterclockwise.direction, "right");
+});
+
+test("the campaign maps loaded by /build preserve each boss's authored travel", () => {
+  const expectedTravelByMap = new Map([
+    ["green_hills_01", { type: "ramming", chargeDelayMs: 1000, distanceTiles: 3 }],
+    ["space_01", { type: "ramming", chargeDelayMs: 1000, distanceTiles: 3 }],
+    ["graveyard_01", { type: "ramming", chargeDelayMs: 1000, distanceTiles: 3 }],
+    ["dragons_01", { type: "behavior" }],
+    ["ice_world_01", { type: "behavior" }],
+  ]);
   for (const campaignMap of campaignMaps) {
     const boss = campaignMap.objects.find((candidate) => candidate.role === "boss");
     assert.ok(boss?.motion, `${campaignMap.id} must contain a boss with authored motion`);
-    assert.deepEqual(boss.motion.travel, {
-      type: "ramming",
-      chargeDelayMs: 1000,
-      distanceTiles: 3,
-    });
+    assert.deepEqual(boss.motion.travel, expectedTravelByMap.get(campaignMap.id));
     assert.deepEqual(boss.motion.visual, { type: "none" });
     assert.equal(resolveVisualBobOffset(boss.motion, boss.id, 24, campaignMap.tileSize), 0);
   }
@@ -1323,6 +1406,48 @@ test("a camera-triggered flying object crosses the snapshotted viewport on its a
   }
   assert.equal(
     state.flyingObjects.find((candidate) => candidate.id === "flying_1")?.phase,
+    "complete",
+  );
+});
+
+test("Dragon World flying fireballs reuse the Cooper fly-by arc", () => {
+  const cooperFlyby = map.objects.find((object) => object.id === "flying_1");
+  const fireballs = emberkeepMap.objects.filter((object) => object.type === "flying_object");
+  assert.equal(fireballs.length, 2);
+  assert.ok(cooperFlyby?.motion);
+  for (const fireball of fireballs) {
+    assert.equal(fireball.assetId, "dragons_emberkeep_flying_fireball_01");
+    assert.deepEqual(fireball.motion, cooperFlyby.motion);
+  }
+
+  const first = fireballs[0];
+  let state = createInitialState(emberkeepMap);
+  state = {
+    ...state,
+    x: Math.max(state.x, (first.x - emberkeepMap.camera.columns / 2) * emberkeepMap.tileSize),
+  };
+  state = stepPlatformer(emberkeepMap, spec, state, idleInput, weapon).state;
+  const started = state.flyingObjects.find((candidate) => candidate.id === first.id);
+  assert.ok(started);
+  assert.equal(started.assetId, "dragons_emberkeep_flying_fireball_01");
+  assert.equal(started.phase, "active");
+  const startX = started.x;
+  const startY = started.y;
+
+  for (let index = 0; index < 90; index += 1) {
+    state = stepPlatformer(emberkeepMap, spec, state, idleInput, weapon).state;
+  }
+  const inFlight = state.flyingObjects.find((candidate) => candidate.id === first.id);
+  assert.ok(inFlight);
+  assert.equal(inFlight.phase, "active");
+  assert.ok(inFlight.x < startX);
+  assert.ok(inFlight.y < startY);
+
+  for (let index = 0; index < 220; index += 1) {
+    state = stepPlatformer(emberkeepMap, spec, state, idleInput, weapon).state;
+  }
+  assert.equal(
+    state.flyingObjects.find((candidate) => candidate.id === first.id)?.phase,
     "complete",
   );
 });

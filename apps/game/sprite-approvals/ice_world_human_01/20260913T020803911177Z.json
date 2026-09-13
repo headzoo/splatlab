@@ -1,0 +1,18 @@
+{
+  "assetId": "ice_world_human_01",
+  "approvedAt": "2026-09-13T02:08:03.911177+00:00",
+  "recipe": "sprite-specs/ice_world_human_01.json",
+  "runtimeImage": "sprites/ice_world_human_01.png",
+  "sha256": "97da757544646b84c19777ce83dab27616fad760f09240a9bf4a4958e37dd851",
+  "validationReport": "sprite-reports/ice_world_human_01/ice_world_human_01-report.json",
+  "skinTone": {
+    "paletteId": "skin_tones_v1",
+    "mask": "sprite-masks/ice_world_human_01-skin-mask.png",
+    "maskSha256": "8042874be2768430f79f3fa6e56ea8f297595e959221b1d8e56930d2a6f18695"
+  },
+  "hairColor": {
+    "paletteId": "hair_colors_v1",
+    "mask": "sprite-masks/ice_world_human_01-hair-mask.png",
+    "maskSha256": "31d0b65d0c3380d8ec1247818b23980cad5a2f94580ac43885c7bae07faa6ace"
+  }
+}

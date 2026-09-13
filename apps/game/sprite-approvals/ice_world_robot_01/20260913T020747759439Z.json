@@ -1,0 +1,8 @@
+{
+  "assetId": "ice_world_robot_01",
+  "approvedAt": "2026-09-13T02:07:47.759439+00:00",
+  "recipe": "sprite-specs/ice_world_robot_01.json",
+  "runtimeImage": "sprites/ice_world_robot_01.png",
+  "sha256": "1fc4986e9beada888053d68c5e5dc6886d068cdaca3961c1df14ceebb16b93ee",
+  "validationReport": "sprite-reports/ice_world_robot_01/ice_world_robot_01-report.json"
+}

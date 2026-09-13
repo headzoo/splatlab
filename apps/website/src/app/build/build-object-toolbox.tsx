@@ -40,10 +40,11 @@ const ENEMY_CHARACTERS: Record<string, readonly CharacterOption[]> = {
     { value: "dragon_dragon_01", label: "Dragon" },
   ],
   ice_world_01: [
-    { value: "neutral_cooper_01", label: "Cooper" },
-    { value: "neutral_human_01", label: "Human" },
-    { value: "neutral_ghost_01", label: "Ghost" },
-    { value: "neutral_robot_01", label: "Robot" },
+    { value: "ice_world_cooper_01", label: "Ice Cooper" },
+    { value: "ice_world_human_01", label: "Ice human" },
+    { value: "ice_world_girl_01", label: "Ice girl" },
+    { value: "ice_world_ghost_01", label: "Ice ghost" },
+    { value: "ice_world_robot_01", label: "Ice robot" },
   ],
 };
 

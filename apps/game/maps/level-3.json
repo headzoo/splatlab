@@ -72,9 +72,9 @@
         "........................................................................................",
         "........................................................................................",
         ".........................................................========.......................",
-        "..........========......................=======.........=...............................",
-        ".........=............=======......................................=======..............",
-        "...............................................O........................................",
+        "..........=======.......................................=...............................",
+        ".........=...........========...........======.........=...........=======..............",
+        "........................................................................................",
         "....=======.....................O=======............=======.................=======.....",
         "...=.......=...................O...................o.......o...............==OOOOO==....",
         "..=.........=.................O...................o.........o.............===========...",
@@ -164,6 +164,14 @@
       "speedPxPerSecond": 320
     },
     {
+      "id": "platform_spring_1",
+      "type": "platform_spring",
+      "x": 17,
+      "y": 10,
+      "assetId": "haunted_graveyard_platformer_spring_01",
+      "launchSpeedPxPerSecond": 1200
+    },
+    {
       "id": "coin_1",
       "type": "collectible",
       "x": 5,
@@ -217,20 +225,6 @@
       "type": "collectible",
       "x": 38,
       "y": 6,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_9",
-      "type": "collectible",
-      "x": 41,
-      "y": 3,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_10",
-      "type": "collectible",
-      "x": 45,
-      "y": 3,
       "pointValue": 1
     },
     {
@@ -456,9 +450,9 @@
       "hitsToDefeat": 5,
       "rangedAttack": {
         "type": "lobbed_projectile",
-        "projectileAssetId": "haunted_graveyard_flaming_pumpkin_01",
         "rangeTiles": 6,
         "cooldownMs": 2500,
+        "projectileAssetId": "haunted_graveyard_flaming_pumpkin_01",
         "arcHeightTiles": 3
       }
     },
@@ -568,13 +562,6 @@
       "pointValue": 1
     },
     {
-      "id": "coin_42",
-      "type": "collectible",
-      "x": 17,
-      "y": 3,
-      "pointValue": 1
-    },
-    {
       "id": "coin_43",
       "type": "collectible",
       "x": 22,
@@ -645,12 +632,13 @@
       "motion": {
         "version": 1,
         "travel": {
-          "type": "behavior"
+          "type": "circle",
+          "gridSizeTiles": 9,
+          "direction": "clockwise",
+          "durationMs": 8000
         },
         "visual": {
-          "type": "bob",
-          "heightTiles": 0.12,
-          "periodMs": 1600
+          "type": "none"
         }
       },
       "role": "enemy",
@@ -672,12 +660,13 @@
       "motion": {
         "version": 1,
         "travel": {
-          "type": "behavior"
+          "type": "circle",
+          "gridSizeTiles": 9,
+          "direction": "counterclockwise",
+          "durationMs": 8000
         },
         "visual": {
-          "type": "bob",
-          "heightTiles": 0.12,
-          "periodMs": 1600
+          "type": "none"
         }
       },
       "role": "enemy",
@@ -730,48 +719,6 @@
       "type": "collectible",
       "x": 39,
       "y": 6,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_58",
-      "type": "collectible",
-      "x": 40,
-      "y": 3,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_59",
-      "type": "collectible",
-      "x": 42,
-      "y": 3,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_60",
-      "type": "collectible",
-      "x": 43,
-      "y": 3,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_61",
-      "type": "collectible",
-      "x": 44,
-      "y": 3,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_62",
-      "type": "collectible",
-      "x": 46,
-      "y": 3,
-      "pointValue": 1
-    },
-    {
-      "id": "coin_63",
-      "type": "collectible",
-      "x": 47,
-      "y": 5,
       "pointValue": 1
     },
     {
@@ -973,6 +920,70 @@
       "contactDamage": 1,
       "pointValue": 5,
       "defeatMode": "both"
+    },
+    {
+      "id": "coin_17",
+      "type": "collectible",
+      "x": 21,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "platform_spring_2",
+      "type": "platform_spring",
+      "x": 46,
+      "y": 10,
+      "assetId": "haunted_graveyard_platformer_spring_01",
+      "launchSpeedPxPerSecond": 1200
+    },
+    {
+      "id": "coin_9",
+      "type": "collectible",
+      "x": 40,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_10",
+      "type": "collectible",
+      "x": 45,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_18",
+      "type": "collectible",
+      "x": 44,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_42",
+      "type": "collectible",
+      "x": 43,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_58",
+      "type": "collectible",
+      "x": 42,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_59",
+      "type": "collectible",
+      "x": 41,
+      "y": 4,
+      "pointValue": 1
+    },
+    {
+      "id": "coin_60",
+      "type": "collectible",
+      "x": 55,
+      "y": 4,
+      "pointValue": 1
     }
   ]
 }

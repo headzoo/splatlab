@@ -7,9 +7,42 @@ import {
   parseBuildTurnResult,
   persistedBuildTurn,
   reconcilePersistedGame,
+  isSetupHistoryLocked,
   setupQuestionHistoryFromSpec,
   setupSelectionsFromSpec,
 } from "./build-setup";
+import { buildPromptSuggestions } from "./build-prompt-suggestions";
+
+test("post-setup prompt suggestions match the selected game and theme", () => {
+  assert.deepEqual(buildPromptSuggestions("platformer", "green_hills"), [
+    "Reduce the gravity",
+    "Add more hazards",
+    "Add more coins",
+    "Add more enemies",
+  ]);
+  assert.deepEqual(buildPromptSuggestions("maze", "space"), [
+    "Make the maze harder",
+    "Add more hazards",
+    "Add another key",
+    "Add more aliens",
+  ]);
+});
+
+test("More fireballs is only suggested for Dragon World", () => {
+  const themes = [
+    "green_hills",
+    "graveyard",
+    "space",
+    "dragon_world",
+  ] as const;
+
+  for (const theme of themes) {
+    assert.equal(
+      buildPromptSuggestions("platformer", theme).includes("More fireballs"),
+      theme === "dragon_world",
+    );
+  }
+});
 
 test("a new unsaved game has no locked setup answers", () => {
   assert.deepEqual(setupSelectionsFromSpec(null), {
@@ -20,6 +53,13 @@ test("a new unsaved game has no locked setup answers", () => {
     skinTone: null,
     hairColor: null,
   });
+});
+
+test("setup choices lock only after game creation is complete", () => {
+  assert.equal(isSetupHistoryLocked("gameType"), false);
+  assert.equal(isSetupHistoryLocked("theme"), false);
+  assert.equal(isSetupHistoryLocked("character"), false);
+  assert.equal(isSetupHistoryLocked("complete"), true);
 });
 
 test("a partially completed game restores only its locked answers", () => {

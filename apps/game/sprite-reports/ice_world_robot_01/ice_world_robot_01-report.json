@@ -1,0 +1,899 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ice_world_robot_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": {
+    "source": "sprites/ice_world_robot_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        7203,
+        7107,
+        7049,
+        7002,
+        6947,
+        6932,
+        6921,
+        6915,
+        6875,
+        6865,
+        6855,
+        6788,
+        6759,
+        6757,
+        6746,
+        6720,
+        6632,
+        6599,
+        6498,
+        6348
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        173.03,
+        438.36,
+        699.84,
+        963.08,
+        1226.74
+      ],
+      "yCenters": [
+        139.18,
+        416.15,
+        686.95,
+        953.04
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          306,
+          278
+        ],
+        [
+          306,
+          0,
+          569,
+          278
+        ],
+        [
+          569,
+          0,
+          831,
+          278
+        ],
+        [
+          831,
+          0,
+          1095,
+          278
+        ],
+        [
+          1095,
+          0,
+          1402,
+          278
+        ],
+        [
+          0,
+          278,
+          306,
+          552
+        ],
+        [
+          306,
+          278,
+          569,
+          552
+        ],
+        [
+          569,
+          278,
+          831,
+          552
+        ],
+        [
+          831,
+          278,
+          1095,
+          552
+        ],
+        [
+          1095,
+          278,
+          1402,
+          552
+        ],
+        [
+          0,
+          552,
+          306,
+          820
+        ],
+        [
+          306,
+          552,
+          569,
+          820
+        ],
+        [
+          569,
+          552,
+          831,
+          820
+        ],
+        [
+          831,
+          552,
+          1095,
+          820
+        ],
+        [
+          1095,
+          552,
+          1402,
+          820
+        ],
+        [
+          0,
+          820,
+          306,
+          1122
+        ],
+        [
+          306,
+          820,
+          569,
+          1122
+        ],
+        [
+          569,
+          820,
+          831,
+          1122
+        ],
+        [
+          831,
+          820,
+          1095,
+          1122
+        ],
+        [
+          1095,
+          820,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          37,
+          52
+        ],
+        "paste": [
+          14,
+          4
+        ],
+        "localLandmark": [
+          18.5,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          52
+        ],
+        "paste": [
+          15,
+          4
+        ],
+        "localLandmark": [
+          17.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          52
+        ],
+        "paste": [
+          15,
+          4
+        ],
+        "localLandmark": [
+          17.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          52
+        ],
+        "paste": [
+          15,
+          4
+        ],
+        "localLandmark": [
+          17.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          52
+        ],
+        "paste": [
+          15,
+          4
+        ],
+        "localLandmark": [
+          17.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          31,
+          54
+        ],
+        "paste": [
+          16,
+          2
+        ],
+        "localLandmark": [
+          15.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          32,
+          54
+        ],
+        "paste": [
+          16,
+          2
+        ],
+        "localLandmark": [
+          16.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          33,
+          53
+        ],
+        "paste": [
+          16,
+          3
+        ],
+        "localLandmark": [
+          16.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          32,
+          52
+        ],
+        "paste": [
+          16,
+          4
+        ],
+        "localLandmark": [
+          16.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          53
+        ],
+        "paste": [
+          15,
+          3
+        ],
+        "localLandmark": [
+          17.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          54
+        ],
+        "paste": [
+          15,
+          2
+        ],
+        "localLandmark": [
+          17.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          52
+        ],
+        "paste": [
+          14,
+          4
+        ],
+        "localLandmark": [
+          18.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          53
+        ],
+        "paste": [
+          14,
+          3
+        ],
+        "localLandmark": [
+          17.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          53
+        ],
+        "paste": [
+          14,
+          3
+        ],
+        "localLandmark": [
+          18.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          56
+        ],
+        "paste": [
+          14,
+          0
+        ],
+        "localLandmark": [
+          18.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          56
+        ],
+        "paste": [
+          14,
+          0
+        ],
+        "localLandmark": [
+          18.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "ice_world_robot_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/ice_world_robot_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          14,
+          4,
+          51,
+          56
+        ],
+        [
+          15,
+          4,
+          49,
+          56
+        ],
+        [
+          15,
+          4,
+          49,
+          56
+        ],
+        [
+          15,
+          4,
+          49,
+          56
+        ],
+        [
+          15,
+          4,
+          49,
+          56
+        ],
+        [
+          16,
+          2,
+          47,
+          55
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          16,
+          2,
+          48,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          16,
+          3,
+          49,
+          56
+        ],
+        [
+          16,
+          4,
+          48,
+          56
+        ],
+        [
+          15,
+          3,
+          49,
+          56
+        ],
+        [
+          16,
+          2,
+          49,
+          56
+        ],
+        [
+          15,
+          2,
+          49,
+          56
+        ],
+        [
+          14,
+          4,
+          50,
+          56
+        ],
+        [
+          14,
+          3,
+          49,
+          56
+        ],
+        [
+          14,
+          3,
+          50,
+          56
+        ],
+        [
+          15,
+          3,
+          50,
+          56
+        ],
+        [
+          14,
+          3,
+          50,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        31,
+        37
+      ],
+      "bboxHeightRange": [
+        52,
+        54
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.5,
+        30.0
+      ],
+      "bboxBottomRange": [
+        55,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/ice_world_robot_01/ice_world_robot_01-contact.png",
+    "animationPreview": "sprite-reports/ice_world_robot_01/ice_world_robot_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

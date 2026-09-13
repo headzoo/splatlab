@@ -83,6 +83,11 @@ player, enemy, or NPC by map data.
 | `space_robot_01` | Space robot with sleek small body, antenna or visor, blue/cyan energy details, clear mechanical stride. |
 | `space_ghost_01` | Space ghost with helmet/jetpack or comet-like cues, spectral body, readable drift cycle. |
 | `space_cooper_01` | Cooper in compact astronaut lab suit, still white chicken with red comb, goggles, lab-coat identity, and scruffy charm. |
+| `ice_world_human_01` | Ice World human derived from `neutral_human_01`, wearing a thick icy-blue hooded winter coat with pale fur trim, insulated snow pants, mittens, and winter boots. Preserve the friendly face and brown hair across all four directions and include skin and hair masks. Generate with the built-in image editor, restore any baked checker alpha conservatively, then process `sprite-specs/ice_world_human_01.json`; keep the passing candidate staged until Sprite Viewer approval. |
+| `ice_world_girl_01` | Ice World girl derived from `neutral_girl_01`, wearing a thick icy-blue hooded winter coat with pale fur trim, insulated navy snow pants, mittens, and winter boots while preserving her friendly face, brown hair, and low ponytail in all four directions. Include skin and hair masks, process `sprite-specs/ice_world_girl_01.json`, and keep the passing candidate staged until Sprite Viewer approval. |
+| `ice_world_cooper_01` | Cooper in an unmistakable icy-blue winter parka with pale fur trim while retaining his white feathers, red comb, orange beak and feet, oversized goggles, and friendly identity. Recreate the full `5 x 4` locomotion source and process `sprite-specs/ice_world_cooper_01.json`; keep the passing candidate staged until Sprite Viewer approval. |
+| `ice_world_robot_01` | Ice World robot derived from `neutral_robot_01`, with the same compact friendly silhouette rebuilt from faceted translucent glacier ice, frosted white edges, deep cyan shadows, crystalline highlights, and a cold blue face display. Process `sprite-specs/ice_world_robot_01.json` and review every direction before promotion. |
+| `ice_world_ghost_01` | Ice World ghost derived from `neutral_ghost_01`, retaining the friendly face and tapered floating tail while using faceted pale-cyan ice planes, frosty highlights, deep-blue internal shadows, and small icicle edges. Process `sprite-specs/ice_world_ghost_01.json` and keep the candidate staged until Sprite Viewer approval. |
 
 ## Character Event Sheets
 
@@ -147,6 +152,7 @@ player, enemy, or NPC by map data.
 | `haunted_graveyard_platformer_platform_01` | Single haunted platform tile, stone or old wood with moss, solid collision. |
 | `haunted_graveyard_platformer_obstacle_01` | Single obstacle tile, graveyard prop such as stump/stone/fence, solid collision. |
 | `haunted_graveyard_platformer_hazard_01` | Eight-frame `4 x 2` hazard hand animation: hidden, emerge, rise, high, swipe, descend, lower, reset. |
+| `haunted_graveyard_platformer_spring_01` | One-tile Graveyard platform spring made from weathered purple-brown timber, iron corner plates, moss, and a heavy black-iron coil with spectral teal highlights. Its `compressed` event sheet uses the shared four-frame expanded, compressing, compressed, and rebounding sequence at 12 FPS. Recreate by retheming the Ice World spring source while preserving its exact geometry, process `sprite-specs/haunted_graveyard_platformer_spring_01.json`, and promote both sheets together only through Sprite Viewer approval. |
 | `haunted_tombstone_01` | Single `64 x 96` tombstone obstacle, bottom anchored, clear silhouette. |
 | `haunted_crypt_door_01` | Four-frame `2 x 2` `64 x 96` crypt door: closed, opening, opening, open. |
 | `haunted_magic_portal_01` | Eight-frame `4 x 2` `128 x 128` magic portal, dark central opening, swirling spooky glow, looped. |
@@ -169,6 +175,7 @@ player, enemy, or NPC by map data.
 | `dragons_emberkeep_platformer_goal_01` | Four-frame `2 x 2` `64 x 96` goal banner/gate marker, volcanic castle styling. |
 | `dragons_emberkeep_platformer_goal_01_level_complete` | Four-frame celebratory goal-complete event, ember glow, play once. |
 | `dragons_emberkeep_fireball_01` | Four-frame `2 x 2` small fireball projectile, flickering flame core, centered. |
+| `dragons_emberkeep_flying_fireball_01` | Four-frame `2 x 2` non-colliding Dragon World fly-by fireball, with a stable white-hot core and left-facing flame tail phases that rise, level, fall, and return upward. Recreate from the existing fly-by sheets as the layout contract and `dragons_emberkeep_fireball_01` as the visual reference, process `sprite-specs/dragons_emberkeep_flying_fireball_01.json`, and keep the result in `sprite-build/` until Sprite Viewer approval. Its camera-triggered arc is authored in MapSpec and is not baked into the art. |
 
 ### Ice World
 
@@ -178,6 +185,9 @@ player, enemy, or NPC by map data.
 | `ice_world_platformer_platform_01` | Single full-cell floating ice platform tile with a snowy upper ledge and deeper blue lower facets. Recreate from `sprites/ice_world_platformer_platform_01-source.png`, then process its matching recipe. |
 | `ice_world_platformer_obstacle_01` | Single square translucent ice-block obstacle with a dark-blue outline, crossed internal braces/cracks, and solid collision. Recreate from `sprites/ice_world_platformer_obstacle_01-source.png`, then process its matching recipe. |
 | `ice_world_platformer_hazard_01` | Four-frame `2 x 2` animated crystal-spike hazard with low, rising, high, and receding silhouettes plus restrained frost particles. Recreate from `sprites/ice_world_platformer_hazard_01-source.png`, then process its matching recipe at 8 FPS. |
+| `ice_world_platformer_coin_01` | Four-frame `2 x 2` spinning frozen medallion with a snowflake emblem, faceted pale-cyan ice, frosty white highlights, and deep arctic-blue edges. Recreate the front, three-quarter, edge, and opposite-three-quarter views from `sprites/ice_world_platformer_coin_01-source.png`, then process `sprite-specs/ice_world_platformer_coin_01.json`; the complete package remains staged until Sprite Viewer approval. |
+| `ice_world_platformer_coin_01_collected` | Four-frame `2 x 2` play-once frost burst owned by the Ice World coin recipe: impact flash, expanding ice-shard/snowflake ring, dissipating particles, then a sparse final sparkle at 12 FPS. Recreate from `sprites/ice_world_platformer_coin_01_collected-source.png`; approval of the coin promotes both sheets together. |
+| `ice_world_platformer_spring_01` | One-tile Ice World platform spring made from square frosted wooden top and bottom pieces with a large steel coil between them. The default sheet is the fully expanded state; its `compressed` event sheet is a four-frame expanded, compressing, compressed, and rebounding sequence at 12 FPS. Recreate both sources with the built-in image generator, process `sprite-specs/ice_world_platformer_spring_01.json`, and promote both sheets together only through Sprite Viewer approval. |
 | `ice_world_crystal_projectile_01` | Four-frame `2 x 2` sharp ice-crystal projectile with the same crystal centered at successive end-over-end rotations. Recreate from `sprites/ice_world_crystal_projectile_01-source.png`, then process its matching 10 FPS recipe; the map's `lobbed_projectile` path supplies the arc. |
 
 ## Maze Terrain And Escape Objects

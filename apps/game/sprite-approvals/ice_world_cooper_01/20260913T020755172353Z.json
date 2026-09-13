@@ -1,0 +1,8 @@
+{
+  "assetId": "ice_world_cooper_01",
+  "approvedAt": "2026-09-13T02:07:55.172353+00:00",
+  "recipe": "sprite-specs/ice_world_cooper_01.json",
+  "runtimeImage": "sprites/ice_world_cooper_01.png",
+  "sha256": "691876f4a65658751adb2f7b5cd9e42da6e88f6a0de83d815e4bec7c97782371",
+  "validationReport": "sprite-reports/ice_world_cooper_01/ice_world_cooper_01-report.json"
+}

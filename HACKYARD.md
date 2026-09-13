@@ -227,6 +227,12 @@ Run, jump, collect coins, avoid a simple hazard, and reach the goal.
   upward. Terrain cells retain semantic collision while selecting obstacle art
   independently, so the stone block and tombstone are interchangeable obstacle
   choices.
+- One semantic `platform_spring` object with a bounded map-authored launch
+  speed. Landing replaces only vertical velocity, so the hero's incoming
+  horizontal velocity determines whether the rebound travels left, straight
+  up, or right. Ice World and Haunted Graveyard each provide their own
+  recipe-backed expanded and four-frame compression artwork for the same
+  gameplay object.
 - An Ice World-specific full-cell ice ground treatment, floating ice platforms,
   frozen blocks, crystal-spike hazards, and a cold mountain or glacier parallax
   treatment. These use normal recipe-backed assets and the same Sprite Viewer
@@ -252,6 +258,11 @@ Run, jump, collect coins, avoid a simple hazard, and reach the goal.
 - A small four-frame 64-by-64 fireball sheet for Dragon Dragon 01, with its
   projectile asset, travel distance in blocks, and shot cooldown configured on
   that enemy.
+- A separate non-colliding Dragon World flying-fireball object using the same
+  four-frame 64-by-64 `flying_object` sprite contract and camera-triggered
+  `viewport_arc` travel as the Green Hills birds and Haunted bats. The fireball
+  changes only presentation; its trigger, route, timing, and repeat behavior
+  remain ordinary bounded MapSpec motion data.
 - One trusted short-sword weapon with separate character and weapon artwork.
 - A polished layered parallax background treatment using repeatable sections;
   the second map uses the approved `dragons_emberkeep_01` (**Emberkeep

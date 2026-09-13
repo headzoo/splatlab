@@ -19,6 +19,12 @@ export type MotionSpec = {
     | { type: "behavior" }
     | { type: "ramming"; chargeDelayMs: number; distanceTiles: number }
     | {
+        type: "circle";
+        gridSizeTiles: number;
+        direction: "clockwise" | "counterclockwise";
+        durationMs: number;
+      }
+    | {
         type: "viewport_arc";
         entryEdge: "left" | "right";
         exitEdge: "left" | "right";

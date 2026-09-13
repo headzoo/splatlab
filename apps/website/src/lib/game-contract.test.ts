@@ -116,6 +116,23 @@ test("themes resolve to real maps and theme-specific player sprites", () => {
     }),
     "dragon_ghost_01",
   );
+  assert.equal(
+    activePlayerAssetId({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerMapSource: "level-5.json",
+      playerCharacter: "cooper",
+    }),
+    "ice_world_cooper_01",
+  );
+  assert.equal(
+    activePlayerAssetId({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerMapSource: "level-5.json",
+      playerCharacter: "human",
+      humanGender: "girl",
+    }),
+    "ice_world_girl_01",
+  );
 });
 
 test("game documents reject unknown maps and extra executable-looking data", () => {

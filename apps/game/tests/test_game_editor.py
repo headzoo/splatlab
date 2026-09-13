@@ -673,9 +673,10 @@ class MapFileTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "chargeMs plus durationMs cannot exceed cooldownMs"):
                 save_map_file("test.json", value, Path(directory))
 
-    def test_accepts_bobbing_ramming_and_flyby_motion_specs(self) -> None:
+    def test_accepts_bobbing_ramming_circle_and_flyby_motion_specs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             value = platformer_map_spec()
+            value["size"]["rows"] = 12
             value["objects"] = [
                 {
                     "id": "ghost_1",
@@ -705,6 +706,22 @@ class MapFileTests(unittest.TestCase):
                             "type": "ramming",
                             "chargeDelayMs": 1000,
                             "distanceTiles": 3,
+                        },
+                        "visual": {"type": "none"},
+                    },
+                },
+                {
+                    "id": "circle_enemy_1",
+                    "type": "enemy_spawn",
+                    "x": 5,
+                    "y": 9,
+                    "motion": {
+                        "version": 1,
+                        "travel": {
+                            "type": "circle",
+                            "gridSizeTiles": 9,
+                            "direction": "counterclockwise",
+                            "durationMs": 8000,
                         },
                         "visual": {"type": "none"},
                     },
@@ -886,6 +903,69 @@ class MapFileTests(unittest.TestCase):
             value["objects"][0]["motion"]["travel"]["chargeDelayMs"] = 1000
             with self.assertRaisesRegex(ValueError, "distanceTiles must be a number from 1 to 12"):
                 save_map_file("test.json", value, Path(directory))
+
+            value["objects"] = [
+                {
+                    "id": "bad_circle",
+                    "type": "enemy_spawn",
+                    "x": 5,
+                    "y": 9,
+                    "motion": {
+                        "version": 1,
+                        "travel": {
+                            "type": "circle",
+                            "gridSizeTiles": 8,
+                            "direction": "sideways",
+                            "durationMs": 500,
+                        },
+                        "visual": {"type": "none"},
+                    },
+                }
+            ]
+            with self.assertRaisesRegex(ValueError, "gridSizeTiles must be an odd integer"):
+                save_map_file("test.json", value, Path(directory))
+            value["objects"][0]["motion"]["travel"]["gridSizeTiles"] = 9
+            with self.assertRaisesRegex(ValueError, "direction must be clockwise or counterclockwise"):
+                save_map_file("test.json", value, Path(directory))
+            value["objects"][0]["motion"]["travel"]["direction"] = "clockwise"
+            with self.assertRaisesRegex(ValueError, "durationMs must be an integer from 1000"):
+                save_map_file("test.json", value, Path(directory))
+
+    def test_haunted_spirit_orbs_use_configurable_circular_travel(self) -> None:
+        map_spec = load_map_file("level-3.json")
+        orbs = [
+            item for item in map_spec["objects"]
+            if item.get("assetId") == "haunted_spirit_orb_01"
+        ]
+        self.assertEqual(len(orbs), 2)
+        self.assertEqual(
+            [orb["motion"]["travel"] for orb in orbs],
+            [
+                {
+                    "type": "circle",
+                    "gridSizeTiles": 9,
+                    "direction": "clockwise",
+                    "durationMs": 8000,
+                },
+                {
+                    "type": "circle",
+                    "gridSizeTiles": 9,
+                    "direction": "counterclockwise",
+                    "durationMs": 8000,
+                },
+            ],
+        )
+
+    def test_platformer_editor_exposes_configurable_circular_enemy_travel(self) -> None:
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn('<option value="circle">Circle a grid center</option>', markup)
+        self.assertIn('id="motion-circle-grid-size-input"', markup)
+        self.assertIn('id="motion-circle-direction-select"', markup)
+        self.assertIn('<option value="counterclockwise">Counterclockwise</option>', markup)
+        self.assertIn('id="motion-circle-duration-input"', markup)
+        self.assertIn("function stepCircularTravel(enemy, preview, travel)", source)
+        self.assertIn('motion.travel.type === "circle"', source)
 
     def test_rejects_invalid_game_over_effect_id(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -1717,6 +1797,183 @@ class SpriteViewerCatalogTests(unittest.TestCase):
 
 
 class PlatformerMapEditorAssetTests(unittest.TestCase):
+    def test_graveyard_platform_spring_uses_the_shared_contract_and_haunted_art(self) -> None:
+        map_spec = load_map_file("level-3.json")
+        spring = next(
+            item for item in map_spec["objects"] if item["type"] == "platform_spring"
+        )
+        self.assertEqual(
+            spring,
+            {
+                "id": "platform_spring_1",
+                "type": "platform_spring",
+                "x": 17,
+                "y": 10,
+                "assetId": "haunted_graveyard_platformer_spring_01",
+                "launchSpeedPxPerSecond": 1200,
+            },
+        )
+
+        recipe = json.loads(
+            (
+                GAME_ROOT
+                / "sprite-specs/haunted_graveyard_platformer_spring_01.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(recipe["parentAssetId"], "ice_world_platformer_spring_01")
+        self.assertEqual(recipe["kind"], "spring")
+        self.assertEqual(recipe["runtime"], "platformer_v1")
+        self.assertEqual(recipe["themeTags"], ["haunted"])
+        self.assertEqual(recipe["visualSlot"], "platform_spring")
+        self.assertEqual(recipe["collision"], "platform_spring")
+        self.assertEqual(
+            recipe["eventSheets"]["compressed"]["frameLabels"],
+            ["expanded", "compressing", "compressed", "rebounding"],
+        )
+        for filename in (
+            "haunted_graveyard_platformer_spring_01.png",
+            "haunted_graveyard_platformer_spring_01_compressed.png",
+        ):
+            self.assertTrue((GAME_ROOT / "sprite-build" / filename).is_file(), filename)
+
+        editor_source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        website_source = (
+            GAME_ROOT.parent
+            / "website/src/game/platformer/platformer-game.tsx"
+        ).read_text(encoding="utf-8")
+        self.assertIn('platformerAssetForSlot("platform_spring")?.id', editor_source)
+        self.assertIn(
+            'object.type === "platform_spring" ? platformerAssetForSlot(object.type)',
+            editor_source,
+        )
+        self.assertIn(
+            'haunted_graveyard_platformer_spring_01: assetUrl(',
+            website_source,
+        )
+        self.assertIn(
+            'images[`${object.assetId}_compressed` as ImageKey]',
+            website_source,
+        )
+
+    def test_ice_world_platform_spring_is_recipe_backed_and_preserves_launch_direction(self) -> None:
+        map_spec = load_map_file("level-5.json")
+        spring = next(
+            item for item in map_spec["objects"] if item["type"] == "platform_spring"
+        )
+        self.assertEqual(
+            spring,
+            {
+                "id": "platform_spring_1",
+                "type": "platform_spring",
+                "x": 13,
+                "y": 10,
+                "assetId": "ice_world_platformer_spring_01",
+                "launchSpeedPxPerSecond": 1200,
+            },
+        )
+
+        recipe = json.loads(
+            (GAME_ROOT / "sprite-specs/ice_world_platformer_spring_01.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(recipe["kind"], "spring")
+        self.assertEqual(recipe["runtime"], "platformer_v1")
+        self.assertEqual(recipe["themeTags"], ["ice_world"])
+        self.assertEqual(recipe["visualSlot"], "platform_spring")
+        self.assertEqual(recipe["collision"], "platform_spring")
+        self.assertEqual(recipe["frameLabels"], ["expanded"])
+        compressed = recipe["eventSheets"]["compressed"]
+        self.assertEqual(compressed["frameLabels"], [
+            "expanded",
+            "compressing",
+            "compressed",
+            "rebounding",
+        ])
+        self.assertEqual(compressed["animation"], {"fps": 12, "loop": False})
+        for filename in (
+            "ice_world_platformer_spring_01.png",
+            "ice_world_platformer_spring_01_compressed.png",
+        ):
+            self.assertTrue((GAME_ROOT / "sprite-build" / filename).is_file(), filename)
+
+        editor_source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        editor_markup = (EDITOR_ROOT / "index.html").read_text(encoding="utf-8")
+        spring_branch_start = editor_source.index(
+            'setPreviewObjectEvent(spring, "compressed", "platform_spring")'
+        )
+        spring_branch = editor_source[spring_branch_start - 500:spring_branch_start + 150]
+        self.assertIn("character.velocityY = -(", spring_branch)
+        self.assertNotIn("character.velocityX =", spring_branch)
+        self.assertIn('data-map-tool="platform_spring"', editor_markup)
+
+        website_engine_source = (
+            GAME_ROOT.parent / "website" / "src" / "game" / "platformer" / "engine.ts"
+        ).read_text(encoding="utf-8")
+        website_spring_start = website_engine_source.index(
+            'events.push({ type: "platform_spring", objectId: vertical.springId })'
+        )
+        website_spring_branch = website_engine_source[
+            website_spring_start - 600:website_spring_start + 100
+        ]
+        self.assertIn("state.vy = -launchSpeed", website_spring_branch)
+        self.assertNotIn("state.vx =", website_spring_branch)
+
+    def test_ice_world_character_roster_and_coin_are_recipe_backed_runtime_assets(self) -> None:
+        character_ids = (
+            "ice_world_cooper_01",
+            "ice_world_human_01",
+            "ice_world_girl_01",
+            "ice_world_ghost_01",
+            "ice_world_robot_01",
+        )
+        for asset_id in character_ids:
+            recipe = json.loads(
+                (GAME_ROOT / "sprite-specs" / f"{asset_id}.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(recipe["kind"], "character", asset_id)
+            self.assertEqual(recipe["themeTags"], ["ice_world"], asset_id)
+            self.assertEqual(recipe["sheet"], {
+                "columns": 5,
+                "rows": 4,
+                "frameWidth": 64,
+                "frameHeight": 64,
+            }, asset_id)
+            self.assertTrue((GAME_ROOT / "sprite-build" / f"{asset_id}.png").is_file(), asset_id)
+            self.assertTrue((GAME_ROOT / "sprites" / f"{asset_id}.png").is_file(), asset_id)
+
+        for asset_id in ("ice_world_human_01", "ice_world_girl_01"):
+            recipe = json.loads(
+                (GAME_ROOT / "sprite-specs" / f"{asset_id}.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(recipe["body"], "human")
+            for appearance_key in ("skinTone", "hairColor"):
+                self.assertTrue((GAME_ROOT / recipe["appearance"][appearance_key]["mask"]).is_file())
+
+        coin_recipe = json.loads(
+            (GAME_ROOT / "sprite-specs/ice_world_platformer_coin_01.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(coin_recipe["visualSlot"], "coin")
+        self.assertIn("collected", coin_recipe["eventSheets"])
+        for filename in (
+            "ice_world_platformer_coin_01.png",
+            "ice_world_platformer_coin_01_collected.png",
+        ):
+            self.assertTrue((GAME_ROOT / "sprite-build" / filename).is_file(), filename)
+            self.assertTrue((GAME_ROOT / "sprites" / filename).is_file(), filename)
+
+        map_spec = load_map_file("level-5.json")
+        enemy_asset_ids = {
+            item["assetId"]
+            for item in map_spec["objects"]
+            if item["type"] == "enemy_spawn" and item.get("role") == "enemy"
+        }
+        self.assertTrue(
+            {"ice_world_ghost_01", "ice_world_robot_01"}.issubset(enemy_asset_ids)
+        )
+
     def test_ice_world_map_uses_bounded_traction_and_recipe_backed_assets(self) -> None:
         map_spec = load_map_file("level-5.json")
         source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
@@ -1758,6 +2015,7 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertEqual(boss["role"], "boss")
         self.assertEqual(boss["assetId"], "ice_world_boss_01")
         self.assertEqual(boss["behavior"], "chaser")
+        self.assertEqual((boss["viewLeftTiles"], boss["viewRightTiles"]), (6, 2))
         self.assertEqual(boss["defeatMode"], "both")
         self.assertEqual(boss["hitsToDefeat"], 5)
         self.assertEqual(
@@ -2310,8 +2568,9 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
     def test_cooper_flyby_sprites_and_editor_tool_are_semantic_and_map_scoped(self) -> None:
         root = GAME_ROOT
         expected = {
-            "platformer_green_hills_01": "neutral_green_hills_flying_cooper_01",
-            "platformer_haunted_graveyard_01": "haunted_flying_cooper_bat_01",
+            "green_hills_01": ("neutral_green_hills_flying_cooper_01", 4),
+            "graveyard_01": ("haunted_flying_cooper_bat_01", 2),
+            "dragons_01": ("dragons_emberkeep_flying_fireball_01", 2),
         }
         found = {}
         for path in (root / "maps").glob("*.json"):
@@ -2321,18 +2580,18 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
             ]
             if not flying_objects:
                 continue
-            self.assertEqual(len(flying_objects), 1)
-            flying = flying_objects[0]
-            found[map_spec["id"]] = flying["assetId"]
-            self.assertEqual(flying["motion"]["version"], 1)
-            self.assertEqual(flying["motion"]["lifecycle"]["repeat"], "once")
-            self.assertEqual(flying["motion"]["travel"]["type"], "viewport_arc")
-            self.assertEqual(flying["motion"]["travel"]["entryEdge"], "right")
-            self.assertEqual(flying["motion"]["travel"]["exitEdge"], "left")
-            self.assertEqual(flying["motion"]["travel"]["archHeightTiles"], 4)
+            found[map_spec["id"]] = (flying_objects[0]["assetId"], len(flying_objects))
+            for flying in flying_objects:
+                self.assertEqual(flying["assetId"], flying_objects[0]["assetId"])
+                self.assertEqual(flying["motion"]["version"], 1)
+                self.assertEqual(flying["motion"]["lifecycle"]["repeat"], "once")
+                self.assertEqual(flying["motion"]["travel"]["type"], "viewport_arc")
+                self.assertEqual(flying["motion"]["travel"]["entryEdge"], "right")
+                self.assertEqual(flying["motion"]["travel"]["exitEdge"], "left")
+                self.assertEqual(flying["motion"]["travel"]["archHeightTiles"], 4)
         self.assertEqual(found, expected)
 
-        for asset_id in expected.values():
+        for asset_id, _count in expected.values():
             recipe = json.loads(
                 (root / "sprite-specs" / f"{asset_id}.json").read_text(encoding="utf-8")
             )
@@ -2362,6 +2621,9 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("function renderFlyingObjectSettings()", source)
         self.assertIn("function drawFlyingObject(object, x, y, size, time)", source)
         self.assertIn('sprite.kind === "flying_object"', source)
+        self.assertIn('flying: "dragons_emberkeep_flying_fireball_01"', (
+            GAME_ROOT.parent / "website/src/game/platformer/map-editing.ts"
+        ).read_text(encoding="utf-8"))
 
     def test_enemy_fireballs_only_spawn_when_character_is_in_their_forward_range(self) -> None:
         root = GAME_ROOT

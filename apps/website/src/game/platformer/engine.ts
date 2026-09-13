@@ -53,6 +53,11 @@ export const EXTRA_LIFE_FIREWORK_FRAME_COUNT = 8;
 export const EXTRA_LIFE_FIREWORK_FPS = 8;
 export const COLLECTIBLE_POOF_FRAME_COUNT = 4;
 export const COLLECTIBLE_POOF_FPS = 12;
+export const DEFAULT_PLATFORM_SPRING_LAUNCH_SPEED = 1200;
+export const MINIMUM_PLATFORM_SPRING_LAUNCH_SPEED = 800;
+export const MAXIMUM_PLATFORM_SPRING_LAUNCH_SPEED = 1600;
+export const PLATFORM_SPRING_COMPRESSION_FRAME_COUNT = 4;
+export const PLATFORM_SPRING_COMPRESSION_FPS = 12;
 
 type ResolvedPhysics = {
   maximumRunSpeed: number;
@@ -139,6 +144,16 @@ export function snapPlatformerStateToGrid(
     coyoteTicksRemaining: 0,
     jumpBufferTicksRemaining: 0,
     enemies: state.enemies.map((enemy) => {
+      const object = map.objects.find((candidate) => candidate.id === enemy.id);
+      if (object?.motion?.travel.type === "circle") {
+        return {
+          ...enemy,
+          x: enemy.startX,
+          y: enemy.startY,
+          circleTicks: 0,
+          moving: false,
+        };
+      }
       const leftTiles = enemy.behavior === "chaser"
         ? enemy.viewLeftTiles
         : enemy.patrolLeftTiles;
@@ -354,6 +369,20 @@ export function resolveCollectiblePoofFrame(
   return frame < COLLECTIBLE_POOF_FRAME_COUNT ? frame : null;
 }
 
+export function resolvePlatformSpringCompressionFrame(
+  state: Pick<PlatformerState, "tick" | "springCompressedAtTick">,
+  objectId: string,
+) {
+  const compressedAtTick = state.springCompressedAtTick[objectId];
+  if (compressedAtTick === undefined) return null;
+  const elapsedTicks = state.tick - compressedAtTick;
+  if (elapsedTicks < 0) return null;
+  const frame = Math.floor(
+    (elapsedTicks * PLATFORM_SPRING_COMPRESSION_FPS) / FIXED_TICK_RATE,
+  );
+  return frame < PLATFORM_SPRING_COMPRESSION_FRAME_COUNT ? frame : null;
+}
+
 function moveToward(value: number, target: number, maximumDelta: number) {
   if (value < target) return Math.min(value + maximumDelta, target);
   if (value > target) return Math.max(value - maximumDelta, target);
@@ -408,6 +437,22 @@ function collisionAt(map: PlatformerMapSpec, column: number, row: number) {
 
 function isSolid(map: PlatformerMapSpec, column: number, row: number) {
   return collisionAt(map, column, row) === "solid";
+}
+
+function platformSpringAt(
+  map: PlatformerMapSpec,
+  column: number,
+  row: number,
+) {
+  return map.objects.find((object) => (
+    object.type === "platform_spring"
+    && Math.floor(object.x) === column
+    && Math.floor(object.y) === row
+  ));
+}
+
+function isSolidCell(map: PlatformerMapSpec, column: number, row: number) {
+  return isSolid(map, column, row) || Boolean(platformSpringAt(map, column, row));
 }
 
 function nearestPlayerGridPosition(
@@ -465,7 +510,7 @@ function resolveHorizontal(
     const nextColumn = Math.floor((nextX + halfWidth - COLLISION_SKIN) / tileSize);
     for (let column = previousColumn + 1; column <= nextColumn; column += 1) {
       for (let row = topRow; row <= bottomRow; row += 1) {
-        if (isSolid(map, column, row)) {
+        if (isSolidCell(map, column, row)) {
           nextX = column * tileSize - halfWidth - COLLISION_SKIN;
           return { position: nextX, hit: true };
         }
@@ -476,7 +521,7 @@ function resolveHorizontal(
     const nextColumn = Math.floor((nextX - halfWidth + COLLISION_SKIN) / tileSize);
     for (let column = previousColumn - 1; column >= nextColumn; column -= 1) {
       for (let row = topRow; row <= bottomRow; row += 1) {
-        if (isSolid(map, column, row)) {
+        if (isSolidCell(map, column, row)) {
           nextX = (column + 1) * tileSize + halfWidth + COLLISION_SKIN;
           return { position: nextX, hit: true };
         }
@@ -493,7 +538,7 @@ function resolveVertical(
   y: number,
   dy: number,
 ) {
-  if (dy === 0) return { position: y, hit: false, grounded: false };
+  if (dy === 0) return { position: y, hit: false, grounded: false, springId: null };
   const tileSize = map.tileSize;
   let nextY = y + dy;
   const leftColumn = Math.floor((x - PLAYER_HALF_WIDTH + COLLISION_SKIN) / tileSize);
@@ -504,14 +549,21 @@ function resolveVertical(
     const nextRow = Math.floor((nextY - COLLISION_SKIN) / tileSize);
     for (let row = previousRow + 1; row <= nextRow; row += 1) {
       for (let column = leftColumn; column <= rightColumn; column += 1) {
+        const spring = platformSpringAt(map, column, row);
         const collision = collisionAt(map, column, row);
         const tileTop = row * tileSize;
         const blocks =
+          Boolean(spring) ||
           collision === "solid" ||
           (collision === "one_way" && y <= tileTop + COLLISION_SKIN);
         if (blocks) {
           nextY = tileTop - COLLISION_SKIN;
-          return { position: nextY, hit: true, grounded: true };
+          return {
+            position: nextY,
+            hit: true,
+            grounded: !spring,
+            springId: spring?.id ?? null,
+          };
         }
       }
     }
@@ -522,15 +574,15 @@ function resolveVertical(
     const nextRow = Math.floor((nextTop + COLLISION_SKIN) / tileSize);
     for (let row = previousRow - 1; row >= nextRow; row -= 1) {
       for (let column = leftColumn; column <= rightColumn; column += 1) {
-        if (isSolid(map, column, row)) {
+        if (isSolidCell(map, column, row)) {
           nextY = (row + 1) * tileSize + PLAYER_HEIGHT + COLLISION_SKIN;
-          return { position: nextY, hit: true, grounded: false };
+          return { position: nextY, hit: true, grounded: false, springId: null };
         }
       }
     }
   }
 
-  return { position: nextY, hit: false, grounded: false };
+  return { position: nextY, hit: false, grounded: false, springId: null };
 }
 
 function spawnPosition(map: PlatformerMapSpec, object: PlatformerMapObject) {
@@ -552,6 +604,8 @@ function createEnemy(map: PlatformerMapSpec, object: PlatformerMapObject): Enemy
     x: position.x,
     y: position.y,
     startX: position.x,
+    startY: position.y,
+    circleTicks: 0,
     speed: object.speedPxPerSecond ?? 48,
     patrolLeftTiles: object.patrolLeftTiles ?? 2,
     patrolRightTiles: object.patrolRightTiles ?? 2,
@@ -653,6 +707,7 @@ export function createInitialState(map: PlatformerMapSpec): PlatformerState {
     collectedIds: [],
     collectibleCollectedAtTick: {},
     extraLifeCollectedAtTick: {},
+    springCompressedAtTick: {},
     score: 0,
     lives: 3,
     status: "playing",
@@ -901,6 +956,29 @@ function updateEnemies(map: PlatformerMapSpec, state: PlatformerState) {
     }
     const object = map.objects.find((candidate) => candidate.id === enemy.id);
     const travel = object?.motion?.travel;
+    if (travel?.type === "circle") {
+      const durationTicks = Math.max(
+        1,
+        Math.round((travel.durationMs / 1000) * FIXED_TICK_RATE),
+      );
+      const circleTicks = (enemy.circleTicks + 1) % durationTicks;
+      const radius = ((travel.gridSizeTiles - 1) / 2) * map.tileSize;
+      const spin = travel.direction === "clockwise" ? 1 : -1;
+      const angle = Math.PI / 2 + spin * Math.PI * 2 * (circleTicks / durationTicks);
+      const x = enemy.startX + Math.cos(angle) * radius;
+      const y = enemy.startY - radius + Math.sin(angle) * radius;
+      const horizontalDelta = x - enemy.x;
+      return {
+        ...enemy,
+        x,
+        y,
+        circleTicks,
+        direction: Math.abs(horizontalDelta) <= COLLISION_SKIN
+          ? enemy.direction
+          : horizontalDelta < 0 ? "left" : "right",
+        moving: true,
+      };
+    }
     if (travel?.type === "ramming") {
       const result = updateRammingEnemy(map, state, enemy, travel);
       if (result.handled) return result.enemy;
@@ -1637,7 +1715,27 @@ export function stepPlatformer(
   const vertical = resolveVertical(map, state.x, state.y, dy);
   state.y = vertical.position;
   state.grounded = vertical.grounded;
-  if (vertical.hit) state.vy = 0;
+  if (vertical.springId) {
+    const spring = map.objects.find((object) => object.id === vertical.springId);
+    const launchSpeed = clamp(
+      spring?.launchSpeedPxPerSecond ?? DEFAULT_PLATFORM_SPRING_LAUNCH_SPEED,
+      MINIMUM_PLATFORM_SPRING_LAUNCH_SPEED,
+      MAXIMUM_PLATFORM_SPRING_LAUNCH_SPEED,
+    );
+    state.vy = -launchSpeed;
+    state.grounded = false;
+    state.coyoteTicksRemaining = 0;
+    state.jumpBufferTicksRemaining = 0;
+    state.jumpReleaseArmed = false;
+    state.jumpCutApplied = true;
+    state.springCompressedAtTick = {
+      ...state.springCompressedAtTick,
+      [vertical.springId]: state.tick,
+    };
+    events.push({ type: "platform_spring", objectId: vertical.springId });
+  } else if (vertical.hit) {
+    state.vy = 0;
+  }
   if (!wasGrounded && state.grounded) events.push({ type: "land" });
 
   state.enemies = updateEnemies(map, state);

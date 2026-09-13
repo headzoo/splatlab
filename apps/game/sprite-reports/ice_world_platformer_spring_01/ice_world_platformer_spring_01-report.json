@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ice_world_platformer_spring_01",
+  "frameLabels": [
+    "expanded"
+  ],
+  "normalization": {
+    "source": "sprites/ice_world_platformer_spring_01-source.png",
+    "sourceSize": [
+      637,
+      618
+    ],
+    "detection": {
+      "analysisScale": 1.0,
+      "selectedComponentAreas": [
+        205450
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        324.0
+      ],
+      "yCenters": [
+        358.37
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          637,
+          618
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          60,
+          60
+        ],
+        "paste": [
+          2,
+          4
+        ],
+        "localLandmark": [
+          30.0,
+          60
+        ],
+        "target": [
+          32.0,
+          64.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "ice_world_platformer_spring_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/ice_world_platformer_spring_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          2,
+          4,
+          62,
+          64
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        60,
+        60
+      ],
+      "bboxHeightRange": [
+        60,
+        60
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        34.0,
+        34.0
+      ],
+      "bboxBottomRange": [
+        64,
+        64
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/ice_world_platformer_spring_01/ice_world_platformer_spring_01-contact.png",
+    "animationPreview": "sprite-reports/ice_world_platformer_spring_01/ice_world_platformer_spring_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

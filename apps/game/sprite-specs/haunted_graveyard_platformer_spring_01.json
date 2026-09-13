@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "haunted_graveyard_platformer_spring_01",
+  "name": "Graveyard Platform Spring",
+  "parentAssetId": "ice_world_platformer_spring_01",
+  "kind": "spring",
+  "runtime": "platformer_v1",
+  "themeTags": ["haunted"],
+  "visualSlot": "platform_spring",
+  "collision": "platform_spring",
+  "source": "sprites/haunted_graveyard_platformer_spring_01-source.png",
+  "output": "sprites/haunted_graveyard_platformer_spring_01.png",
+  "sourceLayout": { "columns": 1, "rows": 1 },
+  "sheet": { "columns": 1, "rows": 1, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": ["expanded"],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "bottom_center",
+    "anchor": { "x": 32, "y": 64 },
+    "contentBox": { "width": 60, "height": 60 },
+    "resizeMode": "contain_shared"
+  },
+  "animation": { "fps": 1, "loop": false },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1 },
+  "preview": { "scale": 5 },
+  "eventSheets": {
+    "compressed": {
+      "source": "sprites/haunted_graveyard_platformer_spring_01_compressed-source.png",
+      "output": "sprites/haunted_graveyard_platformer_spring_01_compressed.png",
+      "sourceLayout": { "columns": 2, "rows": 2 },
+      "sheet": { "columns": 2, "rows": 2, "frameWidth": 64, "frameHeight": 64 },
+      "frameLabels": [
+        "expanded",
+        "compressing",
+        "compressed",
+        "rebounding"
+      ],
+      "detection": {
+        "alphaThreshold": 48,
+        "analysisMaxDimension": 700,
+        "minPrimaryAreaRatio": 0.01,
+        "ambiguityRatio": 0.45
+      },
+      "alignment": {
+        "mode": "bottom_center",
+        "anchor": { "x": 32, "y": 64 },
+        "contentBox": { "width": 60, "height": 60 },
+        "resizeMode": "contain_shared"
+      },
+      "animation": { "fps": 12, "loop": false },
+      "validation": {
+        "requiredPadding": 0,
+        "pivotTolerance": 1,
+        "centerDriftWarning": 4
+      },
+      "preview": { "scale": 5 }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "ice_world_cooper_01",
+  "name": "Ice World Cooper",
+  "kind": "character",
+  "parentAssetId": "neutral_cooper_01",
+  "body": "chicken",
+  "themeTags": ["ice_world"],
+  "source": "sprites/ice_world_cooper_01-source.png",
+  "output": "sprites/ice_world_cooper_01.png",
+  "sourceLayout": { "columns": 5, "rows": 4 },
+  "sheet": { "columns": 5, "rows": 4, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": [
+    "idle_down", "walk_down_1", "walk_down_2", "walk_down_3", "walk_down_4",
+    "idle_left", "walk_left_1", "walk_left_2", "walk_left_3", "walk_left_4",
+    "idle_right", "walk_right_1", "walk_right_2", "walk_right_3", "walk_right_4",
+    "idle_up", "walk_up_1", "walk_up_2", "walk_up_3", "walk_up_4"
+  ],
+  "detection": { "alphaThreshold": 48, "analysisMaxDimension": 700, "minPrimaryAreaRatio": 0.0015, "ambiguityRatio": 0.45 },
+  "alignment": { "mode": "bottom_center", "anchor": { "x": 32, "y": 56 }, "contentBox": { "width": 56, "height": 56 }, "resizeMode": "contain_shared" },
+  "animation": { "fps": 8, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1, "centerDriftWarning": 8 },
+  "preview": { "scale": 4 }
+}

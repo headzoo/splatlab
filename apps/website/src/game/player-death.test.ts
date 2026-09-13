@@ -58,6 +58,7 @@ test("themed heroes reuse the existing body-matched defeated event sheets", () =
     "neutral_cooper_01",
     "haunted_cooper_01",
     "dragon_cooper_01",
+    "ice_world_cooper_01",
   ] as const) {
     assert.equal(
       playerDefeatedEventSheet(playerAssetId)?.imageAssetId,
@@ -76,12 +77,25 @@ test("themed heroes reuse the existing body-matched defeated event sheets", () =
     playerDefeatedEventSheet("neutral_robot_01")?.imageAssetId,
     "space_robot_01_defeated",
   );
+  assert.equal(
+    playerDefeatedEventSheet("ice_world_human_01")?.imageAssetId,
+    "space_human_01_defeated",
+  );
+  assert.equal(
+    playerDefeatedEventSheet("ice_world_ghost_01")?.imageAssetId,
+    "space_ghost_01_defeated",
+  );
+  assert.equal(
+    playerDefeatedEventSheet("ice_world_robot_01")?.imageAssetId,
+    "space_robot_01_defeated",
+  );
 });
 
 test("heroes without compatible event art retain the safe no-animation fallback", () => {
   assert.equal(playerDefeatedEventSheet("neutral_girl_01"), null);
   assert.equal(playerDefeatedEventSheet("space_girl_01"), null);
   assert.equal(playerDefeatedEventSheet("dragon_girl_01"), null);
+  assert.equal(playerDefeatedEventSheet("ice_world_girl_01"), null);
 });
 
 test("defeated events advance at authored FPS and hold their final directional frame", () => {
