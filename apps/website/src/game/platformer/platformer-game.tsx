@@ -70,7 +70,6 @@ import {
 import { GameLoadingOverlay } from "@/game/game-loading-overlay";
 import {
   isCustomizableHumanAsset,
-  loadSpriteImage,
   recolorHumanSprite,
 } from "@/game/player-appearance";
 import {
@@ -1308,14 +1307,15 @@ export function PlatformerGame({
 
   useEffect(() => {
     let cancelled = false;
-    setLoadProgress(0);
 
     void (async () => {
       const sheets = Object.entries(IMAGE_URLS) as Array<[ImageKey, string]>;
       const track = createSpritePreloader(
         spritePreloadTotal({ sheetCount: sheets.length, playerAssetId }),
         (fraction) => {
-          if (!cancelled) setLoadProgress(fraction);
+          // Swapping heroes restarts this effect, and a bar that slid backwards
+          // would read as a stall rather than a fresh download.
+          if (!cancelled) setLoadProgress((filled) => Math.max(filled, fraction));
         },
       );
       const loadSheet = async ([key, url]: [ImageKey, string]) => {
@@ -2549,22 +2549,6 @@ export function PlatformerGame({
           gameId={map.id}
           onUpdateThumbnail={onUpdateThumbnail}
         />
-        {showStartOverlay ? (
-          <button
-            className={styles.startOverlay}
-            type="button"
-            onClick={startFromCanvas}
-            disabled={!assetsReady}
-            aria-label={assetsReady ? `Play ${startOverlayTitle}` : `Loading ${startOverlayTitle}`}
-          >
-            <span className={styles.startOverlayContent}>
-              <span className={styles.startOverlayTitle}>{startOverlayTitle}</span>
-              <span className={styles.startOverlayPlay} aria-hidden="true">
-                {assetsReady ? "▶" : "..."}
-              </span>
-            </span>
-          </button>
-        ) : null}
         {editing && !hideEditorLabels ? (
           <div className={styles.editorBadge} aria-hidden="true">
             <span>Build mode</span>
@@ -2576,8 +2560,14 @@ export function PlatformerGame({
             <strong>{statusMessage}</strong>
           </div>
         ) : null}
-        {!assetsReady ? (
-          <GameLoadingOverlay progress={loadProgress} {...backdrop} />
+        {!assetsReady || showStartOverlay ? (
+          <GameLoadingOverlay
+            progress={loadProgress}
+            {...backdrop}
+            title={startOverlayTitle}
+            ready={assetsReady}
+            onStart={showStartOverlay ? startFromCanvas : undefined}
+          />
         ) : null}
       </div>
 

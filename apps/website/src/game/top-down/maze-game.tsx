@@ -473,7 +473,6 @@ export function MazeGame({
 
   useEffect(() => {
     let cancelled = false;
-    setLoadProgress(0);
 
     void (async () => {
       const defeatedSheet = playerDefeatedEventSheet(playerAssetId);
@@ -486,7 +485,9 @@ export function MazeGame({
           extraSheets: defeatedSheet ? 2 : 1,
         }),
         (fraction) => {
-          if (!cancelled) setLoadProgress(fraction);
+          // Swapping heroes restarts this effect, and a bar that slid backwards
+          // would read as a stall rather than a fresh download.
+          if (!cancelled) setLoadProgress((filled) => Math.max(filled, fraction));
         },
       );
 
@@ -765,27 +766,14 @@ export function MazeGame({
           gameId={map.id}
           onUpdateThumbnail={onUpdateThumbnail}
         />
-        {showStartOverlay ? (
-          <button
-            className={styles.startOverlay}
-            type="button"
-            onClick={() => { if (assetsReady) start(); }}
-            disabled={!assetsReady}
-            aria-label={assetsReady ? `Play ${startOverlayTitle}` : `Loading ${startOverlayTitle}`}
-          >
-            <span className={styles.startOverlayContent}>
-              <span className={styles.startOverlayTitle}>{startOverlayTitle}</span>
-              <span className={styles.startOverlayPlay} aria-hidden="true">
-                {assetsReady ? "▶" : "..."}
-              </span>
-            </span>
-          </button>
-        ) : null}
         {statusMessage ? <div className={styles.stageMessage} aria-hidden="true"><strong>{statusMessage}</strong></div> : null}
-        {!assetsReady ? (
+        {!assetsReady || showStartOverlay ? (
           <GameLoadingOverlay
             progress={loadProgress}
             {...mazeLoadingBackdrop(map.id)}
+            title={startOverlayTitle}
+            ready={assetsReady}
+            onStart={showStartOverlay ? start : undefined}
           />
         ) : null}
       </div>
