@@ -14,6 +14,7 @@ import {
   type ModelClient,
 } from "./model-client";
 import { AgentflowRateLimiter } from "./rate-limit";
+import type { RegisteredFlow } from "./registry";
 import { AgentFlowRunStore } from "./run-store";
 
 export type BuildTurnServiceResult =
@@ -31,6 +32,8 @@ export type BuildTurnServiceDependencies = Readonly<{
   runStore?: AgentFlowRunStore;
   rateLimiter?: AgentflowRateLimiter;
   moderator?: ContentModerator;
+  /** Forwarded to the executor; see `BuildExecutorDependencies.flow`. */
+  flow?: RegisteredFlow;
 }>;
 
 export async function processBuildTurn(
@@ -60,7 +63,7 @@ export async function processBuildTurn(
           action: input.input.action,
           feedback: input.input.feedback,
         },
-        { modelClient: lazyModelClient(dependencies.modelClient), runStore: dependencies.runStore, moderator },
+        { modelClient: lazyModelClient(dependencies.modelClient), runStore: dependencies.runStore, moderator, flow: dependencies.flow },
       );
       return {
         kind: "success",
@@ -92,6 +95,7 @@ export async function processBuildTurn(
         modelClient: lazyModelClient(dependencies.modelClient),
         runStore: dependencies.runStore,
         moderator,
+        flow: dependencies.flow,
       },
     );
 

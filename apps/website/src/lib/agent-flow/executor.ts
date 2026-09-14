@@ -1,8 +1,8 @@
-import { FLOW_ID, FlowContractError, branchTarget, deterministicCondition, evaluateCondition, nextNode, type CompiledNode } from "./contract";
+import { FLOW_ID, FlowContractError, branchTarget, deterministicCondition, evaluateCondition, nextNode, type CompiledFlow, type CompiledNode } from "./contract";
 import { interpolate } from "./interpolate";
 import { type ModelClient, type ModelMessage, type ModelToolDefinition, type ModelToolOutput, type ModelTurnItem, ModelOutputError } from "./model-client";
 import { ALLOW_ALL_MODERATOR, screenCooperMessage, type ContentModerator } from "./moderation";
-import { getRegisteredFlow } from "./registry";
+import { getRegisteredFlow, type RegisteredFlow } from "./registry";
 import { AgentFlowRunStore, type AgentFlowRun } from "./run-store";
 import { getAgentTool, type ToolExecutionContext } from "./tools/registry";
 import type { BuilderChatTurn } from "../game-contract";
@@ -23,6 +23,15 @@ const CLOSE_INSTRUCTION = {
 };
 /** Set AGENT_FLOW_DEBUG=1 to trace each tool call and its result. */
 const DEBUG = process.env.AGENT_FLOW_DEBUG === "1";
+/**
+ * Scenario taken without asking the Condition Agent once a tool has committed
+ * a change. The guard grades only Cooper's drafted sentence, so a turn that
+ * really did write but had to say the value was already at its bound reads as
+ * "could not do what was asked" and was routed to Human Input. The kid then
+ * got a stock "decide before I keep going" prompt in place of the explanation,
+ * and Proceed only ran the same turn into the same bound again.
+ */
+const APPLIED_WRITE_SCENARIO = "Ready";
 type Action = "proceed" | "reject";
 type Budget = { text: number; conditionAgent: number };
 
@@ -36,10 +45,20 @@ export class BuildExecutionError extends Error {
     this.name = "BuildExecutionError";
   }
 }
-export type BuildExecutorDependencies = Readonly<{ modelClient: ModelClient; runStore?: AgentFlowRunStore; moderator?: ContentModerator }>;
+export type BuildExecutorDependencies = Readonly<{
+  modelClient: ModelClient;
+  runStore?: AgentFlowRunStore;
+  moderator?: ContentModerator;
+  /**
+   * Defaults to the checked-in build flow. The product flow replies on every
+   * turn, so tests supply a graph that still reaches Condition Agent, Human
+   * Input, and Loop to keep those interpreter paths honest.
+   */
+  flow?: RegisteredFlow;
+}>;
 
 export async function executeBuildMessage(input: ExecuteBuildMessageInput, dependencies: BuildExecutorDependencies): Promise<BuildMessageResult> {
-  const registered = getRegisteredFlow(FLOW_ID);
+  const registered = dependencies.flow ?? getRegisteredFlow(FLOW_ID);
   const store = dependencies.runStore ?? new AgentFlowRunStore();
   const active = await store.loadActive(input.ownerId, input.gameId);
   if (active?.flowHash !== undefined && active.flowHash !== registered.flowHash) {
@@ -56,7 +75,7 @@ export async function executeBuildMessage(input: ExecuteBuildMessageInput, depen
   if (started.status === "active_conflict") throw new BuildExecutionError("A build turn is already active", "active_run");
   if (started.status === "stale_running") throw new BuildExecutionError("Previous build turn expired", "stale_running");
   try {
-    return await walk(nextRequired(start), started.run, started.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator ?? ALLOW_ALL_MODERATOR, started.builderChatHistory, input.signal);
+    return await walk(registered.flow, nextRequired(registered.flow, start), started.run, started.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator ?? ALLOW_ALL_MODERATOR, started.builderChatHistory, input.signal);
   } catch (error) {
     await failBestEffort(store, input, started.run, error);
     throw error;
@@ -64,7 +83,7 @@ export async function executeBuildMessage(input: ExecuteBuildMessageInput, depen
 }
 
 export async function resumeBuildTurn(input: ResumeBuildTurnInput, dependencies: BuildExecutorDependencies): Promise<BuildMessageResult> {
-  const registered = getRegisteredFlow(FLOW_ID);
+  const registered = dependencies.flow ?? getRegisteredFlow(FLOW_ID);
   const store = dependencies.runStore ?? new AgentFlowRunStore();
   const active = await store.loadActive(input.ownerId, input.gameId);
   if (!active || active.status !== "paused") throw new BuildExecutionError("There is no paused build turn", "no_paused_run");
@@ -86,14 +105,14 @@ export async function resumeBuildTurn(input: ResumeBuildTurnInput, dependencies:
   try {
     const target = registered.flow.nodesById.get(targetId);
     if (!target) throw new FlowContractError("Human Input target is missing");
-    return await walk(target, claimed.run, claimed.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator ?? ALLOW_ALL_MODERATOR, claimed.builderChatHistory ?? [], input.signal);
+    return await walk(registered.flow, target, claimed.run, claimed.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator ?? ALLOW_ALL_MODERATOR, claimed.builderChatHistory ?? [], input.signal);
   } catch (error) {
     await failBestEffort(store, input, claimed.run, error);
     throw error;
   }
 }
 
-async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, ownerId: string, gameId: string, store: AgentFlowRunStore, client: ModelClient, moderator: ContentModerator, builderChatHistory: readonly BuilderChatTurn[], signal?: AbortSignal): Promise<BuildMessageResult> {
+async function walk(flow: CompiledFlow, node: CompiledNode, run: AgentFlowRun, revision: number, ownerId: string, gameId: string, store: AgentFlowRunStore, client: ModelClient, moderator: ContentModerator, builderChatHistory: readonly BuilderChatTurn[], signal?: AbortSignal): Promise<BuildMessageResult> {
   let current: CompiledNode | undefined = node;
   let flowState = { ...run.flowState };
   let flowOutput = String(run.flowOutput ?? "");
@@ -104,6 +123,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
   let physicsDocument: GamePhysicsDocument | undefined;
   let specChange: CooperSpecChange | undefined;
   let gameTitle: string | undefined;
+  let appliedWrite = false;
   const toolContext: ToolExecutionContext = { ownerId, gameId, prompt: run.question, store, moderator, signal };
   while (current) {
     if (current.kind === "agentAgentflow" || current.kind === "llmAgentflow") {
@@ -114,14 +134,19 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
       physicsDocument = text.physicsDocument ?? physicsDocument;
       specChange = text.specChange ?? specChange;
       gameTitle = text.gameTitle ?? gameTitle;
-      current = nextRequired(current);
+      appliedWrite = appliedWrite || text.appliedWrite;
+      current = nextRequired(flow, current);
     } else if (current.kind === "conditionAgentAgentflow") {
+      if (appliedWrite && hasBranch(current, APPLIED_WRITE_SCENARIO)) {
+        current = branchFor(flow, current, APPLIED_WRITE_SCENARIO);
+        continue;
+      }
       if (++budget.conditionAgent > 1) throw new BuildExecutionError("Build turn exceeded its condition budget", "execution_budget");
-      current = branchFor(current, await executeConditionAgent(current, run.question, flowState, flowOutput, client, signal));
+      current = branchFor(flow, current, await executeConditionAgent(current, run.question, flowState, flowOutput, client, signal));
     } else if (current.kind === "conditionAgentflow") {
       const condition = deterministicCondition(current.inputs);
       const values = context(run.question, flowOutput, flowState);
-      current = branchFor(current, evaluateCondition(
+      current = branchFor(flow, current, evaluateCondition(
         condition.operation,
         interpolate(condition.left, values),
         interpolate(condition.right, values),
@@ -132,7 +157,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
       const count = loopCounts[current.id] ?? 0;
       if (count >= maximum) throw new BuildExecutionError("Build revision loop is exhausted", "loop_exhausted");
       loopCounts[current.id] = count + 1;
-      current = nodeById(current.loopTargetId);
+      current = nodeById(flow, current.loopTargetId);
     } else if (current.kind === "directReplyAgentflow") {
       const template = requiredInput(current, "directReplyMessage");
       const cooperMessage = await screenTerminalMessage(template, interpolate(template, context(run.question, flowOutput, flowState)), "Direct Reply", moderator, signal);
@@ -164,6 +189,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
   let physicsDocument: GamePhysicsDocument | undefined;
   let specChange: CooperSpecChange | undefined;
   let gameTitle: string | undefined;
+  let appliedWrite = false;
 
   for (let round = 0; ; round += 1) {
     const allowTools = round < MAX_TOOL_ROUNDS;
@@ -182,6 +208,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
         physicsDocument,
         specChange,
         gameTitle,
+        appliedWrite,
       };
     }
     if (!allowTools) {
@@ -201,6 +228,9 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
         throw new BuildExecutionError(`Model called unavailable tool "${call.name}"`, "unexpected_tool_call");
       }
       const result = await getAgentTool(call.name).execute(parseToolArguments(call.argumentsJson), toolContext);
+      // `gameRevision` is set by every tool that committed, and by no tool that
+      // only read or was refused.
+      appliedWrite = appliedWrite || result.gameRevision !== undefined;
       physicsDocument = result.physicsDocument ?? physicsDocument;
       specChange = result.specChange ?? specChange;
       gameTitle = result.gameTitle ?? gameTitle;
@@ -275,21 +305,26 @@ async function executeConditionAgent(node: CompiledNode, question: string, state
   return selected;
 }
 
-function nextRequired(node: CompiledNode) {
-  const next = nextNode(getRegisteredFlow(FLOW_ID).flow, node.id);
+function nextRequired(flow: CompiledFlow, node: CompiledNode) {
+  const next = nextNode(flow, node.id);
   if (!next) throw new FlowContractError(`Node "${node.id}" has no successor`);
   return next;
 }
-function nodeById(id: string) {
-  const node = getRegisteredFlow(FLOW_ID).flow.nodesById.get(id);
+function nodeById(flow: CompiledFlow, id: string) {
+  const node = flow.nodesById.get(id);
   if (!node) throw new FlowContractError(`Node "${id}" is missing`);
   return node;
 }
-function branchFor(node: CompiledNode, branch: string) {
-  if (node.branches[branch]) return branchTarget(getRegisteredFlow(FLOW_ID).flow, node.id, branch);
+/** Matches `branchFor`, so a flow that omits the branch keeps its own routing. */
+function hasBranch(node: CompiledNode, branch: string) {
+  if (node.branches[branch]) return true;
+  return Object.keys(node.branches).filter((candidate) => candidate.toLowerCase() === branch.toLowerCase()).length === 1;
+}
+function branchFor(flow: CompiledFlow, node: CompiledNode, branch: string) {
+  if (node.branches[branch]) return branchTarget(flow, node.id, branch);
   const match = Object.keys(node.branches).filter((candidate) => candidate.toLowerCase() === branch.toLowerCase());
   if (match.length !== 1) throw new FlowContractError(`Node "${node.id}" has no unambiguous branch "${branch}"`);
-  return branchTarget(getRegisteredFlow(FLOW_ID).flow, node.id, match[0]);
+  return branchTarget(flow, node.id, match[0]);
 }
 function stateEntries(node: CompiledNode, key: "startState" | "agentUpdateState" | "llmUpdateState", question: string, output: string, initial: Record<string, string> = {}) {
   const entries = node.inputs[key];

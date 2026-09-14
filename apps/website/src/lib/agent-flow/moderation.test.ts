@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import gateFlow from "./review-gate-flow.fixture.json";
+
 import { DEFAULT_GAME_DOCUMENT, gameDocumentSchema } from "../game-contract";
 import { createGame, getGame } from "../games";
 import { processBuildTurn } from "./build-turn-service";
+import { compileFlow, FLOW_ID } from "./contract";
 import { type ModelClient } from "./model-client";
 import {
   ALLOW_ALL_MODERATOR,
@@ -14,9 +17,18 @@ import {
   type ModerationVerdict,
 } from "./moderation";
 import { AgentflowRateLimiter } from "./rate-limit";
+import { flowHashFor, type RegisteredFlow } from "./registry";
 import { AgentFlowRunStore } from "./run-store";
 
 const COOPER_REPLY = "Your chicken runs faster now.";
+
+/** Only a graph with Human Input can produce a paused run to reword feedback on. */
+const compiledGate = compileFlow(gateFlow);
+const GATE_FLOW: RegisteredFlow = Object.freeze({
+  id: FLOW_ID,
+  flow: compiledGate,
+  flowHash: flowHashFor(compiledGate),
+});
 
 class ScriptedModelClient implements ModelClient {
   calls = 0;
@@ -188,13 +200,13 @@ test("flagged feedback is redirected and leaves the paused run claimable", async
 
   await processBuildTurn(
     { ownerId: "owner-a", gameId: game.id, input: { message: "make my chicken faster" } },
-    { modelClient: pausing, moderator: ALLOW_ALL_MODERATOR, runStore: store, rateLimiter },
+    { modelClient: pausing, moderator: ALLOW_ALL_MODERATOR, runStore: store, rateLimiter, flow: GATE_FLOW },
   );
   assert.equal((await store.loadActive("owner-a", game.id))?.status, "paused");
 
   const result = await processBuildTurn(
     { ownerId: "owner-a", gameId: game.id, input: { action: "proceed", feedback: "something nasty" } },
-    { modelClient: pausing, moderator: moderatorFlagging("nasty"), runStore: store, rateLimiter },
+    { modelClient: pausing, moderator: moderatorFlagging("nasty"), runStore: store, rateLimiter, flow: GATE_FLOW },
   );
 
   assert.equal(result.kind, "success");

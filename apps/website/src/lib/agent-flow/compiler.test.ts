@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import starterFlow from "../../../../game/agent-flows/build_agentflow_v1.json";
+import gateFlow from "./review-gate-flow.fixture.json";
 
 import {
   branchTarget,
@@ -19,16 +20,38 @@ function cloneStarter(): any {
   return structuredClone(starterFlow);
 }
 
-test("the checked-in starter flow compiles with explicit branches and loop target", () => {
+/**
+ * The checked-in flow is a straight line, so branch and loop compilation is
+ * proved against the review-gate fixture instead.
+ */
+function cloneGate(): ReturnType<typeof cloneStarter> {
+  return structuredClone(gateFlow);
+}
+
+test("the checked-in starter flow compiles as a straight line that cannot pause", () => {
   const registered = getRegisteredFlow("build_agentflow_v1");
   const { flow } = registered;
 
   assert.equal(flow.startNodeId, "startAgentflow_0");
   assert.equal(nextNode(flow, flow.startNodeId)?.id, "agentAgentflow_0");
+  assert.equal(nextNode(flow, "agentAgentflow_0")?.id, "directReplyAgentflow_0");
+  assert.deepEqual(
+    flow.nodes.map((node) => node.kind).sort(),
+    ["agentAgentflow", "directReplyAgentflow", "startAgentflow"],
+    "a Human Input or Loop node here would let a build turn stall on a kid's decision",
+  );
+  assert.match(registered.flowHash, /^[a-f0-9]{64}$/);
+});
+
+test("branch and loop targets compile from the review-gate fixture", () => {
+  const flow = compileFlow(cloneGate());
+
+  assert.equal(nextNode(flow, flow.startNodeId)?.id, "agentAgentflow_0");
   assert.equal(branchTarget(flow, "conditionAgentAgentflow_0", "Ready").id, "directReplyAgentflow_0");
   assert.equal(branchTarget(flow, "conditionAgentAgentflow_0", "Needs work").id, "humanInputAgentflow_0");
+  assert.equal(branchTarget(flow, "humanInputAgentflow_0", "Proceed").id, "loopAgentflow_0");
+  assert.equal(branchTarget(flow, "humanInputAgentflow_0", "Reject").id, "directReplyAgentflow_0");
   assert.equal(flow.nodesById.get("loopAgentflow_0")?.loopTargetId, "agentAgentflow_0");
-  assert.match(registered.flowHash, /^[a-f0-9]{64}$/);
 });
 
 test("registry hash is stable and reflects execution-relevant edits", () => {
@@ -108,7 +131,7 @@ test("LLM nodes still reject every tool input", () => {
 });
 
 test("Flowise deterministic conditions compile from their conditions array", () => {
-  const flow = cloneStarter();
+  const flow = cloneGate();
   const condition = flow.nodes.find((node: any) => node.id === "conditionAgentAgentflow_0")!;
   condition.data.name = "conditionAgentflow";
   condition.data.type = "Condition";
@@ -164,11 +187,11 @@ test("supported nodes reject malformed messages, scenarios, branches, terminals,
   };
   assert.throws(() => compileFlow(invalidLlm), /invalid role/);
 
-  const invalidScenario = cloneStarter();
+  const invalidScenario = cloneGate();
   invalidScenario.nodes.find((node: any) => node.id === "conditionAgentAgentflow_0")!.data.inputs.conditionAgentScenarios = [{ scenario: "Ready" }];
   assert.throws(() => compileFlow(invalidScenario), /scenarios must contain 2/);
 
-  const invalidHumanBranches = cloneStarter();
+  const invalidHumanBranches = cloneGate();
   const human = invalidHumanBranches.nodes.find((node: any) => node.id === "humanInputAgentflow_0")!;
   human.data.outputAnchors[1].branchLabel = "Cancel";
   invalidHumanBranches.edges.find((edge: any) => edge.sourceHandle === human.data.outputAnchors[1].id)!.data.edgeLabel = "Cancel";
@@ -182,7 +205,7 @@ test("supported nodes reject malformed messages, scenarios, branches, terminals,
   invalidReply.nodes.find((node: any) => node.id === "directReplyAgentflow_0")!.data.inputs.directReplyMessage = 42;
   assert.throws(() => compileFlow(invalidReply), /Direct Reply message/);
 
-  const invalidLoop = cloneStarter();
+  const invalidLoop = cloneGate();
   invalidLoop.nodes.find((node: any) => node.id === "loopAgentflow_0")!.data.inputs.maxLoopCount = 21;
   assert.throws(() => compileFlow(invalidLoop), /integer from 1 to 20/);
 });
@@ -222,11 +245,11 @@ test("sticky notes are ignored but malformed executable graphs fail closed", () 
   });
   assert.equal(compileFlow(withSticky).nodes.length, starterFlow.nodes.length);
 
-  const badLoop = cloneStarter();
+  const badLoop = cloneGate();
   badLoop.nodes.find((node: any) => node.id === "loopAgentflow_0")!.data.inputs.loopBackToNode = "unknown-Agent";
   assert.throws(() => compileFlow(badLoop), /no valid target/);
 
-  const duplicateBranch = cloneStarter();
+  const duplicateBranch = cloneGate();
   duplicateBranch.nodes.find((node: any) => node.id === "humanInputAgentflow_0")!.data.outputAnchors[1].branchLabel = "Proceed";
   assert.throws(() => compileFlow(duplicateBranch), /duplicate branch/);
 });

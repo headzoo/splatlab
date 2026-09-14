@@ -9,10 +9,22 @@ import {
   buildTurnInputSchema,
   type BuildTurnResponseBody,
 } from "./http-contract";
+import gateFlow from "./review-gate-flow.fixture.json";
+
+import { compileFlow, FLOW_ID } from "./contract";
 import { type ModelClient, ModelProviderError } from "./model-client";
 import { AGENTFLOW_RATE_LIMIT_MAX, AgentflowRateLimiter } from "./rate-limit";
 import { executeBuildMessage } from "./executor";
+import { flowHashFor, type RegisteredFlow } from "./registry";
 import { AgentFlowRunStore } from "./run-store";
+
+/** Only a graph with Human Input can produce the paused run these tests resume. */
+const compiledGate = compileFlow(gateFlow);
+const GATE_FLOW: RegisteredFlow = Object.freeze({
+  id: FLOW_ID,
+  flow: compiledGate,
+  flowHash: flowHashFor(compiledGate),
+});
 
 class ScriptedModelClient implements ModelClient {
   async completeTurn() {
@@ -158,7 +170,7 @@ test("processBuildTurn does not meter Reject or initialize its model client", as
   }();
   await executeBuildMessage(
     { ownerId: "owner-a", gameId: game.id, message: "Build a maze" },
-    { modelClient: model, runStore: store },
+    { modelClient: model, runStore: store, flow: GATE_FLOW },
   );
   const rateLimiter = new AgentflowRateLimiter({ forceMemory: true });
   let factoryCalls = 0;
@@ -172,6 +184,7 @@ test("processBuildTurn does not meter Reject or initialize its model client", as
       },
       runStore: store,
       rateLimiter,
+      flow: GATE_FLOW,
     },
   );
 
@@ -190,7 +203,7 @@ test("processBuildTurn limits Proceed before it claims a paused run", async () =
   }();
   await executeBuildMessage(
     { ownerId: "owner-a", gameId: game.id, message: "Build a maze" },
-    { modelClient: model, runStore: store },
+    { modelClient: model, runStore: store, flow: GATE_FLOW },
   );
   const rateLimiter = new AgentflowRateLimiter({ forceMemory: true });
   for (let attempt = 0; attempt < AGENTFLOW_RATE_LIMIT_MAX; attempt += 1) {
@@ -207,6 +220,7 @@ test("processBuildTurn limits Proceed before it claims a paused run", async () =
       },
       runStore: store,
       rateLimiter,
+      flow: GATE_FLOW,
     },
   );
 

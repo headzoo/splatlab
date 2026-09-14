@@ -9,10 +9,26 @@ import { parseBuildTurnResult } from "../../app/build/build-setup";
 import { resolveActivePlatformerLevel } from "../game-objects";
 import { CATALOG_PLATFORMER_GAME_PHYSICS } from "../game-physics";
 import { createGame } from "../games";
-import { compileFlow } from "./contract";
+import gateFlow from "./review-gate-flow.fixture.json";
+
+import { compileFlow, FLOW_ID } from "./contract";
 import { type ModelClient, ModelOutputError, type ModelToolCall, type ModelTurnRequest, type ModelTurnResult } from "./model-client";
 import { BuildExecutionError, executeBuildMessage, modelMessagesForTextNode, resumeBuildTurn } from "./executor";
+import { flowHashFor, type RegisteredFlow } from "./registry";
 import { AgentFlowRunStore } from "./run-store";
+
+/**
+ * The checked-in flow replies on every turn, so it can never reach Condition
+ * Agent, Human Input, or Loop. These tests drive the graph the product used
+ * before the review gate was removed, which is the only way those interpreter
+ * paths stay covered.
+ */
+const compiledGate = compileFlow(gateFlow);
+const GATE_FLOW: RegisteredFlow = Object.freeze({
+  id: FLOW_ID,
+  flow: compiledGate,
+  flowHash: flowHashFor(compiledGate),
+});
 
 const COORDINATOR_MESSAGE = (starterFlow.nodes.find((node) => node.id === "agentAgentflow_0")
   ?.data.inputs as { agentMessages: { content: string }[] }).agentMessages[0].content;
@@ -92,7 +108,7 @@ function resetMemory() {
   globalThis.splatLabAgentFlowRunsMemory = [];
 }
 
-async function execute(model: ModelClient, builderChatHistory: BuilderChatTurn[] = []) {
+async function execute(model: ModelClient, builderChatHistory: BuilderChatTurn[] = [], flow?: RegisteredFlow) {
   resetMemory();
   const game = await createGame("owner-a", {
     title: "Test game",
@@ -101,9 +117,14 @@ async function execute(model: ModelClient, builderChatHistory: BuilderChatTurn[]
   const store = new AgentFlowRunStore({ forceMemory: true });
   const result = await executeBuildMessage(
     { ownerId: "owner-a", gameId: game.id, message: "Build a maze" },
-    { modelClient: model, runStore: store },
+    { modelClient: model, runStore: store, flow },
   );
   return { game, store, result };
+}
+
+/** Runs the review-gate graph, the only one that can pause or loop. */
+async function executeGated(model: ModelClient, builderChatHistory: BuilderChatTurn[] = []) {
+  return execute(model, builderChatHistory, GATE_FLOW);
 }
 
 test("enabled Agent memory sends prior bounded history in transcript order without the current message", async () => {
@@ -169,7 +190,7 @@ test("a cross-owner game cannot provide history to a build request", async () =>
 
 test("Ready completes with preserved coordinator output and one call per model node", async () => {
   const model = new ScriptedModelClient("  A scoped and verified maze handoff.  ", "Ready");
-  const { game, store, result } = await execute(model);
+  const { game, store, result } = await executeGated(model);
 
   assert.deepEqual(result, {
     status: "replied",
@@ -193,12 +214,12 @@ test("Ready completes with preserved coordinator output and one call per model n
 
 test("Needs work checkpoints one Human Input prompt", async () => {
   const model = new ScriptedModelClient("Draft needs a decision.", "Needs work");
-  const { game, store, result } = await execute(model);
+  const { game, store, result } = await executeGated(model);
 
   assert.equal(result.status, "paused");
-  // The pause prompt has to name both buttons the kid is about to choose between.
-  assert.match(result.cooperMessage, /Proceed/);
-  assert.match(result.cooperMessage, /Reject/);
+  // The pause carries Cooper's own question rather than a stock sentence, so
+  // the kid reads what is actually being asked before choosing a button.
+  assert.equal(result.cooperMessage, "Draft needs a decision.");
   assert.equal(model.textCalls, 1);
   assert.equal(model.scenarioCalls, 1);
   const run = await store.loadActive("owner-a", game.id);
@@ -213,14 +234,50 @@ test("Needs work checkpoints one Human Input prompt", async () => {
   assert.equal(globalThis.splatLabGamesMemory?.[0]?.spec.builderChatHistory.length, 2);
 });
 
+/**
+ * A committed write leaves nothing to decide, but the guard sees only the
+ * drafted sentence. Explaining that a value is already at its bound reads as a
+ * refusal, which used to replace Cooper's reason with the stock pause prompt.
+ */
+test("a committed write replies without consulting the guard", async () => {
+  const model = new ScriptedToolModel(
+    [
+      { text: "", toolCalls: [toolCall("patch_game_physics", jumpHeightPatch(3.5))], items: [{ type: "function_call" }] },
+      { text: "You already run as fast as this game goes, so I made you speed up quicker.", toolCalls: [], items: [] },
+    ],
+    "Needs work",
+  );
+  const { game, store, result } = await executeGated(model);
+
+  assert.equal(result.status, "replied");
+  assert.equal(result.cooperMessage, "You already run as fast as this game goes, so I made you speed up quicker.");
+  assert.equal(model.scenarioCalls, 0);
+  assert.equal(await store.loadActive("owner-a", game.id), null);
+});
+
+test("a read-only turn is still graded by the guard", async () => {
+  const model = new ScriptedToolModel(
+    [
+      { text: "", toolCalls: [toolCall("read_game_physics", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+      { text: "Which one did you want me to change?", toolCalls: [], items: [] },
+    ],
+    "Needs work",
+  );
+  const { result } = await executeGated(model);
+
+  assert.equal(result.status, "paused");
+  assert.equal(model.scenarioCalls, 1);
+  assert.equal(storedPhysics(), undefined);
+});
+
 test("Reject completes a paused run from preserved output without a model call", async () => {
   const model = new ScriptedModelClient("Draft needs a decision.", "Needs work");
-  const { game, store, result } = await execute(model);
+  const { game, store, result } = await executeGated(model);
   assert.equal(result.status, "paused");
 
   const resumed = await resumeBuildTurn(
     { ownerId: "owner-a", gameId: game.id, action: "reject", feedback: "Keep it as-is" },
-    { modelClient: model, runStore: store },
+    { modelClient: model, runStore: store, flow: GATE_FLOW },
   );
 
   assert.equal(resumed.status, "replied");
@@ -245,10 +302,10 @@ test("Proceed consumes one persisted loop and pauses again", async () => {
     }
   }
   const model = new RetryingModel();
-  const { game, store, result } = await execute(model);
+  const { game, store, result } = await executeGated(model);
   const resumed = await resumeBuildTurn(
     { ownerId: "owner-a", gameId: game.id, action: "proceed", feedback: "Add coins" },
-    { modelClient: model, runStore: store },
+    { modelClient: model, runStore: store, flow: GATE_FLOW },
   );
   assert.equal(resumed.status, "paused");
   assert.equal(model.textCalls, 2);
@@ -269,18 +326,18 @@ test("Proceed consumes one persisted loop and pauses again", async () => {
 
 test("loop exhaustion is enforced across paused resumes", async () => {
   const model = new ScriptedModelClient("Draft", "Needs work");
-  const { game, store } = await execute(model);
+  const { game, store } = await executeGated(model);
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const resumed = await resumeBuildTurn(
       { ownerId: "owner-a", gameId: game.id, action: "proceed" },
-      { modelClient: model, runStore: store },
+      { modelClient: model, runStore: store, flow: GATE_FLOW },
     );
     assert.equal(resumed.status, "paused");
   }
   await assert.rejects(
     () => resumeBuildTurn(
       { ownerId: "owner-a", gameId: game.id, action: "proceed" },
-      { modelClient: model, runStore: store },
+      { modelClient: model, runStore: store, flow: GATE_FLOW },
     ),
     (error: unknown) => error instanceof BuildExecutionError && error.code === "loop_exhausted",
   );
@@ -291,13 +348,13 @@ test("loop exhaustion is enforced across paused resumes", async () => {
 
 test("a paused run with a stale flow hash fails before another model call", async () => {
   const model = new ScriptedModelClient("Draft", "Needs work");
-  const { game, store } = await execute(model);
+  const { game, store } = await executeGated(model);
   globalThis.splatLabAgentFlowRunsMemory![0].flowHash = "stale-flow";
 
   await assert.rejects(
     () => resumeBuildTurn(
       { ownerId: "owner-a", gameId: game.id, action: "proceed" },
-      { modelClient: model, runStore: store },
+      { modelClient: model, runStore: store, flow: GATE_FLOW },
     ),
     (error: unknown) => error instanceof BuildExecutionError && error.code === "flow_hash_mismatch",
   );
@@ -308,7 +365,7 @@ test("a paused run with a stale flow hash fails before another model call", asyn
 
 test("malformed scenario fails the run without a retry", async () => {
   const model = new ScriptedModelClient("Draft", "Maybe");
-  await assert.rejects(() => execute(model), ModelOutputError);
+  await assert.rejects(() => executeGated(model), ModelOutputError);
   assert.equal(model.textCalls, 1);
   assert.equal(model.scenarioCalls, 1);
   assert.equal(globalThis.splatLabAgentFlowRunsMemory?.[0]?.status, "failed");
