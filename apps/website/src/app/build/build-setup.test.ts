@@ -23,14 +23,39 @@ import {
 } from "./build-setup-replies";
 
 test("post-setup prompt suggestions only ask for things Cooper's tools can do", () => {
-  assert.deepEqual(buildPromptSuggestions("platformer"), [
-    "Add another level",
-    "Add more coins",
-    "Add more enemies",
-    "Give me 10 lives",
-    "Make me jump higher",
-    "Make me run faster",
-  ]);
+  const suggestions = buildPromptSuggestions("platformer");
+  assert.deepEqual(
+    suggestions.map((suggestion) => suggestion.label),
+    [
+      "Add another level",
+      "Add more coins",
+      "Add more enemies",
+      "Add a boss",
+      "Add some springs",
+      "Add a checkpoint",
+      "Give me 10 lives",
+      "Make me jump higher",
+      "Make me run faster",
+      "Let me fly",
+    ],
+  );
+});
+
+test("Cooper-bound prompt chips send a polite, punctuated chat message", () => {
+  const suggestions = buildPromptSuggestions("platformer");
+  const addLevel = suggestions[0];
+  assert.equal(addLevel?.label, "Add another level");
+  assert.equal(addLevel?.message, undefined);
+
+  const chatPrompts = suggestions.slice(1);
+  assert.equal(chatPrompts.length > 0, true);
+  for (const suggestion of chatPrompts) {
+    assert.match(
+      suggestion.message ?? "",
+      /^Please .+\.$/,
+      `${suggestion.label} should send a polite sentence`,
+    );
+  }
 });
 
 test("every object suggestion names a kind Cooper is allowed to add", () => {
@@ -38,6 +63,9 @@ test("every object suggestion names a kind Cooper is allowed to add", () => {
 
   assert.equal(addable.has("coin"), true);
   assert.equal(addable.has("enemy"), true);
+  assert.equal(addable.has("boss"), true);
+  assert.equal(addable.has("platform_spring"), true);
+  assert.equal(addable.has("checkpoint"), true);
   assert.equal(addable.has("spawn"), false, "the player start is never addable");
   assert.equal(addable.has("goal"), false, "the goal is never addable");
 });
@@ -56,7 +84,9 @@ test("every platformer suggestion has an editable physics path behind it", () =>
 });
 
 test("a maze is only offered the level picker, since it ignores the physics document", () => {
-  assert.deepEqual(buildPromptSuggestions("maze"), ["Add another level"]);
+  assert.deepEqual(buildPromptSuggestions("maze"), [
+    { label: "Add another level" },
+  ]);
 });
 
 test("a new unsaved game has no locked setup answers", () => {
@@ -239,6 +269,28 @@ test("a resume without feedback only adds Cooper's persisted reply", () => {
   assert.deepEqual(turn.chatHistory, [
     { role: "cooper", message: "Continue?" },
     { role: "cooper", message: "Great, I continued." },
+  ]);
+});
+
+test("an optimistic user bubble is not recorded twice when Cooper replies", () => {
+  const turn = persistedBuildTurn(
+    [
+      { role: "cooper", message: "What should we change?" },
+      { role: "user", message: "Make me jump higher" },
+    ],
+    "Make me jump higher",
+    {
+      status: "replied",
+      cooperMessage: "You can jump higher now.",
+      runId: "run-2",
+      revision: 14,
+    },
+  );
+
+  assert.deepEqual(turn.chatHistory, [
+    { role: "cooper", message: "What should we change?" },
+    { role: "user", message: "Make me jump higher" },
+    { role: "cooper", message: "You can jump higher now." },
   ]);
 });
 

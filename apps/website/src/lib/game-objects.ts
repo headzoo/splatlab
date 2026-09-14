@@ -1,6 +1,7 @@
 import { GAME_PLAYER_CONTENT } from "../game/game-player-content";
 import { gameCampaignMaps } from "../game/game-levels";
 import {
+  applyPlatformerLevelArt,
   applyPlatformerObjectEdits,
   applyPlatformerRules,
   applyPlatformerTerrainEdits,
@@ -8,7 +9,11 @@ import {
   platformerObjectKind,
   platformerTerrainKindAt,
 } from "../game/platformer/map-editing";
-import { charactersFor } from "../game/platformer/character-catalog";
+import { ART_WORLDS } from "../game/platformer/art-catalog";
+import {
+  charactersFor,
+  type CharacterOption,
+} from "../game/platformer/character-catalog";
 import {
   DEFAULT_STARTING_LIVES,
   MAXIMUM_STARTING_LIVES,
@@ -136,12 +141,18 @@ export function resolveActivePlatformerLevel(
   if (!active) return null;
 
   const map = applyPlatformerRules(
-    applyPlatformerObjectEdits(
-      applyPlatformerTerrainEdits(active.map, active.source, spec.platformerTerrainEdits),
+    applyPlatformerLevelArt(
+      applyPlatformerObjectEdits(
+        applyPlatformerTerrainEdits(active.map, active.source, spec.platformerTerrainEdits),
+        active.source,
+        spec.platformerObjectEdits,
+        spec.platformerObjectRemovals,
+        spec.platformerObjectSettings,
+      ),
       active.source,
-      spec.platformerObjectEdits,
-      spec.platformerObjectRemovals,
+      spec.platformerLevelArt,
       spec.platformerObjectSettings,
+      spec.platformerObjectEdits,
     ),
     spec.startingLives,
   );
@@ -294,6 +305,7 @@ export function planObjectAdditions(
   spec: GameDocument,
   level: ActivePlatformerLevel,
   placements: readonly ObjectPlacementRequest[],
+  look = "",
 ): ObjectArrayChange & { added: readonly PlatformerObjectEdit[] } {
   if (placements.length === 0) {
     throw new GameObjectEditError("Cooper needs to know what to add and where.");
@@ -373,8 +385,54 @@ export function planObjectAdditions(
   return {
     platformerObjectEdits,
     platformerObjectRemovals: spec.platformerObjectRemovals,
+    ...(look ? dressAddedCharacters(spec, level, added, look) : {}),
     added,
   };
+}
+
+/**
+ * Gives everything just added the look it was asked for, so "add three ghosts
+ * from the dragon world" is one call. A new object's edit id is also its object
+ * id, so the settings rows can be written before the object exists.
+ */
+function dressAddedCharacters(
+  spec: GameDocument,
+  level: ActivePlatformerLevel,
+  added: readonly PlatformerObjectEdit[],
+  look: string,
+): Required<Pick<CooperSpecChange, "platformerObjectSettings">> {
+  const lookRole = resolveLook(look);
+  const wrongKind = added.find((edit) => edit.kind !== lookRole);
+  if (wrongKind) {
+    throw new GameObjectEditError(
+      lookRole === "boss"
+        ? `That is a boss look, so it only fits a boss, not a ${KIND_LABELS[wrongKind.kind as CooperObjectKind].one}.`
+        : `That look is for an enemy, not a ${KIND_LABELS[wrongKind.kind as CooperObjectKind].one}.`,
+      `look ${look} on kind ${wrongKind.kind}`,
+    );
+  }
+
+  const settings = new Map(
+    spec.platformerObjectSettings.map((item) => [`${item.mapSource}:${item.objectId}`, item]),
+  );
+  for (const edit of added) {
+    settings.set(`${level.mapSource}:${edit.id}`, {
+      mapSource: level.mapSource,
+      objectId: edit.id,
+      assetId: look,
+      behavior: "patroller",
+      direction: "left",
+    });
+  }
+
+  const platformerObjectSettings = [...settings.values()];
+  if (platformerObjectSettings.length > MAX_STORED_ENTRIES) {
+    throw new GameObjectEditError(
+      "This game has too many changes saved to add more.",
+      `${platformerObjectSettings.length} settings`,
+    );
+  }
+  return { platformerObjectSettings };
 }
 
 /**
@@ -457,16 +515,39 @@ export function planObjectRemovals(
 
 
 /**
- * Every enemy and boss with the look it is wearing right now, plus the looks
- * this level's art set offers. A level holds only a handful of these, so they
- * are listed in full and Cooper can answer "change the ghosts to robots"
- * without guessing an asset id.
+ * The looks of one role across every world, grouped by the world that drew
+ * them. A kid asking for "ghosts from the dragon world" while an ice level is
+ * open is asking for art this level does not wear, so the whole catalog is
+ * offered rather than only the active world's corner of it.
+ */
+function looksByWorld(role: "enemy" | "boss") {
+  return ART_WORLDS.map((world) => ({
+    world: world.name,
+    looks: charactersFor(world.id, role),
+  }));
+}
+
+/** The look options of one role from every world, flattened and deduplicated. */
+function everyLook(role: "enemy" | "boss"): readonly CharacterOption[] {
+  const options = new Map<string, CharacterOption>();
+  for (const world of ART_WORLDS) {
+    for (const option of charactersFor(world.id, role)) options.set(option.value, option);
+  }
+  return [...options.values()];
+}
+
+function lookLabel(look: string): string {
+  return [...everyLook("enemy"), ...everyLook("boss")]
+    .find((option) => option.value === look)?.label ?? look;
+}
+
+/**
+ * Every enemy and boss with the look it is wearing right now, plus every look
+ * any world offers. A level holds only a handful of these, so they are listed
+ * in full and Cooper can answer "change the ghosts to robots" without guessing
+ * an asset id.
  */
 export function describeCharacters(level: ActivePlatformerLevel) {
-  const backgroundId = level.map.presentation.backgroundId;
-  const labelFor = (role: "enemy" | "boss", look: string) =>
-    charactersFor(backgroundId, role).find((option) => option.value === look)?.label ?? look;
-
   return {
     inLevel: level.map.objects
       .filter((object) => object.type === "enemy_spawn")
@@ -478,19 +559,34 @@ export function describeCharacters(level: ActivePlatformerLevel) {
           y: Math.floor(object.y),
           role,
           look,
-          label: labelFor(role, look),
+          label: lookLabel(look),
         };
       }),
-    enemyLooks: charactersFor(backgroundId, "enemy"),
-    bossLooks: charactersFor(backgroundId, "boss"),
+    note: "A look from any world may be used on any level.",
+    enemyLooksByWorld: looksByWorld("enemy"),
+    bossLooksByWorld: looksByWorld("boss"),
   };
+}
+
+/**
+ * Which role a look belongs to. An unknown asset id would render as a default
+ * ghost rather than failing, so a look nobody drew is refused here. Any world's
+ * look fits any level: that is what makes "add ghosts from the dragon world"
+ * possible on an ice level.
+ */
+function resolveLook(look: string): "enemy" | "boss" {
+  if (everyLook("boss").some((option) => option.value === look)) return "boss";
+  if (everyLook("enemy").some((option) => option.value === look)) return "enemy";
+  throw new GameObjectEditError(
+    `Cooper does not have a look called "${look}". Pick one from the looks each world has.`,
+    `unknown look ${look}`,
+  );
 }
 
 /**
  * Repaints enemies and bosses. Named cells are repainted, and an empty cell
  * list repaints every enemy or boss whose look matches `fromLook`, or all of
- * them when `fromLook` is blank. The look must come from this level's art set,
- * because an unknown asset id renders as a default ghost rather than failing.
+ * them when `fromLook` is blank.
  */
 export function planAppearanceChange(
   spec: GameDocument,
@@ -500,18 +596,7 @@ export function planAppearanceChange(
   cells: readonly ObjectCellRequest[],
 ): Required<Pick<CooperSpecChange, "platformerObjectSettings">>
   & { changed: readonly { x: number; y: number; look: string }[] } {
-  const backgroundId = level.map.presentation.backgroundId;
-  const allowed = [
-    ...charactersFor(backgroundId, "enemy"),
-    ...charactersFor(backgroundId, "boss"),
-  ];
-  const chosen = allowed.find((option) => option.value === look);
-  if (!chosen) {
-    throw new GameObjectEditError(
-      `Cooper cannot use that look here. This level can use: ${allowed.map((option) => option.label).join(", ")}.`,
-      `unknown look ${look} for ${backgroundId}`,
-    );
-  }
+  const lookRole = resolveLook(look);
   if (cells.length > MAX_PLACEMENTS_PER_CALL) {
     throw new GameObjectEditError(
       `Cooper can only change ${MAX_PLACEMENTS_PER_CALL} of them at a time.`,
@@ -519,8 +604,7 @@ export function planAppearanceChange(
     );
   }
 
-  const isBossLook = charactersFor(backgroundId, "boss")
-    .some((option) => option.value === look);
+  const isBossLook = lookRole === "boss";
   const characters = level.map.objects.filter((object) => object.type === "enemy_spawn");
   const targets = cells.length === 0
     // Sweeping the whole level only touches the ones the look actually fits,

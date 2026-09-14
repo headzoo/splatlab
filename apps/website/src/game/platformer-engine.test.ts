@@ -26,6 +26,19 @@ import {
   FIXED_TICK_RATE,
   FIXED_DELTA_SECONDS,
   interpolatePlatformerState,
+  clampEditorCamera,
+  canStepEditorZoom,
+  centerEditorCameraOnCell,
+  editorHeroCell,
+  editorHeroPlacementForCell,
+  editorViewportForScale,
+  fitEditorViewport,
+  minimumEditorZoomScale,
+  stepEditorZoomScale,
+  translateHeroWithEditorCamera,
+  withEditorSessionSpawn,
+  resolveEditorPlaySpawn,
+  zoomEditorCamera,
   resolveEnemyFacingDirection,
   resolveEnemyProjectilePosition,
   resolveEnemyViewMusicCue,
@@ -642,6 +655,41 @@ test("pausing settles the player and moving actors onto block boundaries", () =>
   assert.equal((settled.flyingObjects[0].y / map.tileSize) % 1, 0.5);
 });
 
+test("the checked-in /build map keeps the hero from running off either screen edge", () => {
+  const viewportWidth = map.camera.columns * map.tileSize;
+  const worldWidth = map.size.columns * map.tileSize;
+  const halfWidth = 16;
+  const run = (start: PlatformerState, moveX: number) => {
+    let state = start;
+    for (let tick = 0; tick < FIXED_TICK_RATE * 2; tick += 1) {
+      state = stepPlatformer(map, spec, state, { ...idleInput, moveX }).state;
+    }
+    return state;
+  };
+  const staysOnScreen = (state: PlatformerState) => {
+    const camera = resolvePlatformerCamera(map, state);
+    assert.equal(state.status, "playing");
+    assert.equal(state.lives, createInitialState(map).lives);
+    assert.ok(state.x - halfWidth >= camera.x);
+    assert.ok(state.x + halfWidth <= camera.x + viewportWidth);
+  };
+
+  const left = run(createInitialState(map), -1);
+  staysOnScreen(left);
+  assert.equal(left.x, halfWidth);
+  assert.equal(left.vx, 0);
+  assert.equal(left.grounded, true);
+
+  const right = run({
+    ...createInitialState(map),
+    x: worldWidth - map.tileSize / 2,
+  }, 1);
+  staysOnScreen(right);
+  assert.equal(right.x, worldWidth - halfWidth);
+  assert.equal(right.vx, 0);
+  assert.equal(right.grounded, true);
+});
+
 test("camera follows the interpolated render position without a second catch-up timeline", () => {
   const initial = createInitialState(map);
   const viewportWidth = map.camera.columns * map.tileSize;
@@ -662,10 +710,243 @@ test("camera follows the interpolated render position without a second catch-up 
   assert.equal(halfway.x - halfwayCamera.x, current.x - currentCamera.x);
 });
 
+test("panning the editor camera keeps the hero at the same viewport offset on a build map", () => {
+  const initial = createInitialState(map);
+  const camera = resolvePlatformerCamera(map, initial);
+  const offsetX = initial.x - camera.x;
+  const offsetY = initial.y - camera.y;
+  const panned = clampEditorCamera(map, {
+    x: camera.x + map.tileSize * 6,
+    y: camera.y - map.tileSize,
+  });
+  const hero = translateHeroWithEditorCamera(map, initial, camera, panned);
+
+  assert.ok(panned.x > camera.x);
+  assert.equal(hero.x - panned.x, offsetX);
+  assert.equal(hero.y - panned.y, offsetY);
+});
+
+test("clamped editor panning does not slide the hero across the viewport", () => {
+  const initial = createInitialState(map);
+  const camera = resolvePlatformerCamera(map, initial);
+  const offsetX = initial.x - camera.x;
+  const inward = clampEditorCamera(map, { x: camera.x + map.tileSize * 8, y: camera.y });
+  const inwardHero = translateHeroWithEditorCamera(map, initial, camera, inward);
+  const leftEdge = clampEditorCamera(map, {
+    x: inward.x - map.tileSize * 20,
+    y: inward.y,
+  });
+  const hero = translateHeroWithEditorCamera(map, inwardHero, inward, leftEdge);
+
+  assert.equal(leftEdge.x, 0);
+  assert.equal(inwardHero.x - inward.x, offsetX);
+  assert.equal(hero.x - leftEdge.x, offsetX);
+  assert.equal(hero.y, initial.y);
+});
+
+test("an editor session spawn is the death return point until the authored spawn is restored", () => {
+  const initial = createInitialState(map);
+  const camera = resolvePlatformerCamera(map, initial);
+  const panned = clampEditorCamera(map, {
+    x: camera.x + map.tileSize * 6,
+    y: camera.y,
+  });
+  const hero = translateHeroWithEditorCamera(map, initial, camera, panned);
+  const session = withEditorSessionSpawn(initial, hero);
+
+  assert.notEqual(hero.x, initial.spawnX);
+  assert.equal(session.x, hero.x);
+  assert.equal(session.spawnX, hero.x);
+  assert.equal(session.spawnY, hero.y);
+  assert.equal(session.checkpointX, hero.x);
+  assert.equal(session.checkpointY, hero.y);
+  assert.equal(session.latestCheckpointId, null);
+  assert.equal(createInitialState(map).spawnX, initial.spawnX);
+
+  const onHazard = {
+    ...session,
+    x: (14 + 0.5) * 64,
+    y: 12 * 64,
+    grounded: false,
+  };
+  let state = stepPlatformer(map, spec, onHazard, idleInput, weapon).state;
+  for (let index = 0; index < state.deathTicksTotal; index += 1) {
+    state = stepPlatformer(map, spec, state, idleInput, weapon).state;
+  }
+
+  assert.equal(state.status, "playing");
+  assert.equal(state.x, hero.x);
+  assert.equal(state.y, hero.y);
+  assert.notEqual(state.x, initial.spawnX);
+});
+
+function editorPlayStandingCell(map: PlatformerMapSpec, x: number, y: number) {
+  return {
+    column: Math.floor(x / map.tileSize),
+    row: Math.floor((y - 0.001) / map.tileSize),
+  };
+}
+
+test("Play after an editor pan moves a buried hero to the nearest open in-bounds tile", () => {
+  const initial = createInitialState(map);
+  const buried = {
+    ...initial,
+    x: (5 + 0.5) * map.tileSize,
+    y: map.size.rows * map.tileSize,
+  };
+  const safe = resolveEditorPlaySpawn(map, buried);
+  const authored = { x: initial.spawnX, y: initial.spawnY };
+  const buriedDistance = (left: { x: number; y: number }) => (
+    (left.x - buried.x) ** 2 + (left.y - buried.y) ** 2
+  );
+
+  assert.ok(safe.x >= map.tileSize / 2);
+  assert.ok(safe.x <= map.size.columns * map.tileSize - map.tileSize / 2);
+  assert.ok(safe.y >= map.tileSize);
+  assert.ok(safe.y <= map.size.rows * map.tileSize);
+  assert.ok(buriedDistance(safe) < buriedDistance(authored));
+  assert.equal(createInitialState(map).spawnX, initial.spawnX);
+
+  const standing = editorPlayStandingCell(map, safe.x, safe.y);
+  const terrain = map.layers.find((layer) => layer.id === "terrain")?.rows ?? [];
+  const symbol = terrain[standing.row]?.[standing.column] ?? ".";
+  assert.equal(map.legend[symbol]?.collision, "none");
+});
+
+test("Play after an editor pan does not start the hero on or beside a living enemy", () => {
+  const initial = createInitialState(map);
+  const enemy = initial.enemies.find((candidate) => candidate.id === "enemy_1");
+  assert.ok(enemy);
+  const dropped = {
+    ...initial,
+    x: enemy.x,
+    y: enemy.y,
+  };
+  const safe = resolveEditorPlaySpawn(map, dropped);
+  const standing = editorPlayStandingCell(map, safe.x, safe.y);
+  const enemyCell = editorPlayStandingCell(map, enemy.x, enemy.y);
+  const columnDistance = Math.abs(standing.column - enemyCell.column);
+  const rowDistance = Math.abs(standing.row - enemyCell.row);
+
+  assert.equal(createInitialState(map).spawnX, initial.spawnX);
+  assert.ok(!(columnDistance === 0 && rowDistance === 0));
+  assert.ok(!(columnDistance + rowDistance === 1));
+});
+
 test("the nearest background remains anchored to the world bottom during vertical camera movement", () => {
   const bottomCameraY = map.size.rows * map.tileSize - map.camera.rows * map.tileSize;
   assert.equal(resolveWorldBottomBackgroundOffset(map, bottomCameraY), 0);
   assert.equal(resolveWorldBottomBackgroundOffset(map, bottomCameraY - 48), 48);
+});
+
+test("editor zoom scale 1 matches the checked-in /build map camera", () => {
+  assert.deepEqual(map.camera, { columns: 16, rows: 9 });
+  assert.deepEqual(editorViewportForScale(map, 1), map.camera);
+});
+
+test("minimum editor zoom fits the checked-in /build map in the camera aspect", () => {
+  const viewport = fitEditorViewport(map);
+  assert.equal(viewport.columns, map.size.columns);
+  assert.ok(viewport.rows >= map.size.rows);
+  assert.equal(viewport.columns / viewport.rows, map.camera.columns / map.camera.rows);
+  const scale = minimumEditorZoomScale(map);
+  assert.deepEqual(editorViewportForScale(map, scale), viewport);
+  assert.equal(canStepEditorZoom(map, scale, "out"), false);
+  assert.equal(canStepEditorZoom(map, 1, "in"), false);
+});
+
+test("editor zoom steps stop at the designed viewpoint and the full-map fit", () => {
+  assert.equal(stepEditorZoomScale(map, 1, "in"), 1);
+  assert.equal(stepEditorZoomScale(map, minimumEditorZoomScale(map), "out"), minimumEditorZoomScale(map));
+  const zoomedOut = stepEditorZoomScale(map, 1, "out");
+  assert.ok(zoomedOut < 1);
+  assert.ok(canStepEditorZoom(map, zoomedOut, "in"));
+  const zoomedIn = stepEditorZoomScale(map, zoomedOut, "in");
+  assert.equal(zoomedIn, 1);
+});
+
+test("zoomed-out editor camera bottom-aligns the checked-in /build map", () => {
+  const viewport = fitEditorViewport(map);
+  const camera = clampEditorCamera(map, { x: 0, y: 0 }, viewport);
+  const worldHeight = map.size.rows * map.tileSize;
+  const viewportHeight = viewport.rows * map.tileSize;
+  assert.equal(camera.x, 0);
+  assert.equal(camera.y, worldHeight - viewportHeight);
+  assert.ok(camera.y < 0);
+  assert.equal(resolveWorldBottomBackgroundOffset(map, camera.y, viewport), 0);
+});
+
+test("editor zoom keeps the visible world centered on a build map", () => {
+  const play = map.camera;
+  const start = clampEditorCamera(map, {
+    x: map.tileSize * 20,
+    y: map.tileSize,
+  });
+  const fit = fitEditorViewport(map);
+  const zoomedOut = zoomEditorCamera(map, start, play, fit);
+  const zoomedIn = zoomEditorCamera(map, zoomedOut, fit, play);
+  const playHeight = play.rows * map.tileSize;
+  assert.equal(zoomedOut.x, 0);
+  assert.equal(zoomedOut.y, map.size.rows * map.tileSize - fit.rows * map.tileSize);
+  assert.ok(zoomedIn.x > 0);
+  assert.ok(zoomedIn.y >= 0);
+  assert.ok(zoomedIn.y <= map.size.rows * map.tileSize - playHeight);
+});
+
+test("editor zoom with a focus cell centers the play camera on that cell", () => {
+  const play = map.camera;
+  const fit = fitEditorViewport(map);
+  const focus = { x: map.size.columns - 2, y: map.size.rows - 2 };
+  const start = clampEditorCamera(map, { x: 0, y: 0 }, fit);
+  const zoomedIn = zoomEditorCamera(map, start, fit, play, focus);
+  const expected = centerEditorCameraOnCell(map, focus, play);
+  const playWidth = play.columns * map.tileSize;
+  const playHeight = play.rows * map.tileSize;
+  const cellCenterX = focus.x * map.tileSize + map.tileSize / 2;
+  const cellCenterY = focus.y * map.tileSize + map.tileSize / 2;
+
+  assert.deepEqual(zoomedIn, expected);
+  assert.ok(zoomedIn.x > 0);
+  assert.ok(cellCenterX >= zoomedIn.x);
+  assert.ok(cellCenterX <= zoomedIn.x + playWidth);
+  assert.ok(cellCenterY >= zoomedIn.y);
+  assert.ok(cellCenterY <= zoomedIn.y + playHeight);
+});
+
+test("clicking a zoomed-out cell stands the hero in that cell", () => {
+  const clicked = { x: 5, y: 10 };
+  const hero = editorHeroPlacementForCell(map, createInitialState(map), clicked);
+
+  assert.deepEqual(editorHeroCell(map, hero), clicked);
+  assert.equal(hero.x, (clicked.x + 0.5) * map.tileSize);
+  assert.equal(hero.y, (clicked.y + 1) * map.tileSize);
+});
+
+test("clicking a blocked cell slides the hero to the nearest legal spot", () => {
+  const insideGround = { x: 20, y: map.size.rows - 1 };
+  const hero = editorHeroPlacementForCell(map, createInitialState(map), insideGround);
+  const cell = editorHeroCell(map, hero);
+
+  assert.notDeepEqual(cell, insideGround);
+  assert.ok(cell.y < insideGround.y);
+  assert.ok(Math.abs(cell.x - insideGround.x) <= 1);
+});
+
+test("zooming in frames the hero the builder placed while zoomed out", () => {
+  const play = map.camera;
+  const fit = fitEditorViewport(map);
+  const clicked = { x: map.size.columns - 20, y: map.size.rows - 2 };
+  const hero = editorHeroPlacementForCell(map, createInitialState(map), clicked);
+  const startCamera = clampEditorCamera(map, { x: 0, y: 0 }, fit);
+  const zoomedIn = zoomEditorCamera(map, startCamera, fit, play, editorHeroCell(map, hero));
+  const playWidth = play.columns * map.tileSize;
+  const playHeight = play.rows * map.tileSize;
+
+  assert.ok(zoomedIn.x > 0);
+  assert.ok(hero.x >= zoomedIn.x);
+  assert.ok(hero.x <= zoomedIn.x + playWidth);
+  assert.ok(hero.y >= zoomedIn.y);
+  assert.ok(hero.y <= zoomedIn.y + playHeight);
 });
 
 test("the player lands on semantic solid terrain", () => {

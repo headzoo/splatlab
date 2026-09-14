@@ -178,6 +178,7 @@ test("Ready completes with preserved coordinator output and one call per model n
     gameRevision: 3,
     physicsDocument: undefined,
     specChange: undefined,
+    gameTitle: undefined,
   });
   assert.equal(model.textCalls, 1);
   assert.equal(model.scenarioCalls, 1);
@@ -341,6 +342,16 @@ test("the coordinator Agent node offers exactly the allowlisted tools", async ()
     "set_starting_lives",
     "set_player_character",
     "set_enemy_appearance",
+    "set_level_art",
+    "read_game",
+    "rename_game",
+    "set_game_type",
+    "set_player_appearance",
+    "add_level",
+    "rename_level",
+    "remove_level",
+    "move_level",
+    "set_active_level",
   ]);
 });
 
@@ -397,7 +408,7 @@ test("turning the ghosts into robots repaints them through the whole flow", asyn
   );
 
   // The looks and their options reach the model so it never invents an id.
-  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"enemyLooks"/);
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"enemyLooksByWorld"/);
 });
 
 test("changing the hero is saved and rides back to the client", async () => {
@@ -451,6 +462,12 @@ test("what a tool change puts on the wire is what the client can parse back", as
     ["set_starting_lives", { lives: 10 }],
     ["set_player_character", { character: "robot", gender: "boy" }],
     ["set_enemy_appearance", { look: "neutral_robot_01", fromLook: "", cells: [] }],
+    ["set_level_art", { part: "platforms", world: "Dragon World" }],
+    ["set_game_type", { gameType: "maze" }],
+    ["set_player_appearance", { skinTone: "skin_02", hairColor: "hair_05" }],
+    ["add_level", { world: "Ice World", name: "Frozen Lake" }],
+    ["rename_level", { level: 1, name: "The Start" }],
+    ["set_active_level", { level: 1 }],
   ];
 
   for (const [name, args] of cases) {
@@ -476,6 +493,84 @@ test("what a tool change puts on the wire is what the client can parse back", as
       `${name} sent a change the client rejects`,
     );
   }
+});
+
+test("borrowing another world's platforms redresses the level the kid is playing", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game_objects", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+    {
+      text: "",
+      toolCalls: [toolCall("set_level_art", { part: "platforms", world: "Dragon World" })],
+      items: [{ type: "function_call" }],
+    },
+    { text: "Your level has dragon platforms now.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.deepEqual(result.specChange?.platformerLevelArt, [
+    { mapSource: "level-1.json", slot: "platform", world: "dragons_emberkeep_01" },
+  ]);
+
+  const spec = storedSpec();
+  assert.ok(spec);
+  const level = resolveActivePlatformerLevel(spec);
+  assert.equal(level?.map.presentation.artBorrows?.platform, "dragons_emberkeep_01");
+
+  // The art each part wears, and who else has one, reach the model.
+  const read = String(model.requests[1]?.toolOutputs?.[0]?.output);
+  assert.match(read, /"part":"platforms"/);
+  assert.match(read, /"canBorrowFrom":\["Green Hills","Graveyard","Space","Dragon World","Ice World"\]/);
+});
+
+test("a world without its own coins is refused by name, and told who has them", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("set_level_art", { part: "coins", world: "Graveyard" })], items: [] },
+    { text: "The graveyard has no coins of its own.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.specChange, undefined);
+  assert.deepEqual(storedSpec()?.platformerLevelArt, []);
+  assert.match(
+    String(model.requests[1]?.toolOutputs?.[0]?.output),
+    /"ok":false.*Graveyard does not have its own coins.*Space, Dragon World or Ice World/,
+  );
+});
+
+test("adding enemies with another world's look dresses them as they land", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game_objects", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+    {
+      text: "",
+      toolCalls: [toolCall("add_game_objects", {
+        placements: [{ kind: "enemy", x: 0, y: 10 }],
+        look: "dragon_ghost_01",
+      })],
+      items: [{ type: "function_call" }],
+    },
+    { text: "A dragon ghost just moved in.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.specChange?.platformerObjectEdits?.length, 1);
+  assert.deepEqual(result.specChange?.platformerObjectSettings, [
+    {
+      mapSource: "level-1.json",
+      objectId: "cooper-enemy-1",
+      assetId: "dragon_ghost_01",
+      behavior: "patroller",
+      direction: "left",
+    },
+  ]);
+
+  const spec = storedSpec();
+  assert.ok(spec);
+  const level = resolveActivePlatformerLevel(spec);
+  assert.equal(
+    level?.map.objects.find((object) => object.id === "cooper-enemy-1")?.assetId,
+    "dragon_ghost_01",
+    "the played map, not just the reply, shows the borrowed look",
+  );
 });
 
 test("removing every coin records a removal for each and leaves the spawn alone", async () => {
@@ -528,6 +623,138 @@ test("Cooper cannot touch objects in a maze game", async () => {
   assert.match(
     String(model.requests[1]?.toolOutputs?.[0]?.output),
     /"ok":false.*only change a platformer this way/,
+  );
+});
+
+test("read_game reports the game's name and its numbered levels", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+    { text: "Your game is called Test game.", toolCalls: [], items: [] },
+  ]);
+  await execute(model);
+
+  const read = String(model.requests[1]?.toolOutputs?.[0]?.output);
+  assert.match(read, /"name":"Test game"/);
+  assert.match(read, /"levels":\[\{"number":1,.*"playing":true\}\]/);
+  assert.match(read, /"worldsYouCanAdd":\["Green Hills","Graveyard","Space","Dragon World","Ice World"\]/);
+});
+
+test("read_game works on a maze game, which the level-object tools refuse", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+    { text: "It is a maze called Test maze.", toolCalls: [], items: [] },
+  ]);
+  resetMemory();
+  const game = await createGame("owner-a", {
+    title: "Test maze",
+    spec: { ...DEFAULT_GAME_DOCUMENT, previewKind: "maze" },
+  });
+  await executeBuildMessage(
+    { ownerId: "owner-a", gameId: game.id, message: "What is this game?" },
+    { modelClient: model, runStore: new AgentFlowRunStore({ forceMemory: true }) },
+  );
+
+  const read = String(model.requests[1]?.toolOutputs?.[0]?.output);
+  assert.match(read, /"ok":true/);
+  assert.match(read, /"gameType":"maze"/);
+  // Ice World has no maze map, so it must not be offered as a world to add.
+  assert.doesNotMatch(read, /Ice World/);
+});
+
+test("renaming the game saves the new name and rides it back to the client", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("rename_game", { name: "Ice World" })], items: [] },
+    { text: "Your game is called Ice World now.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.gameTitle, "Ice World");
+  assert.equal(globalThis.splatLabGamesMemory?.[0]?.title, "Ice World");
+  // The name is stored beside the spec, so it must not leak into the change.
+  assert.equal(result.specChange, undefined);
+  assert.equal(
+    parseBuildTurnResult(
+      {
+        status: result.status,
+        cooperMessage: result.cooperMessage,
+        runId: result.runId,
+        title: result.gameTitle,
+      },
+      String(result.gameRevision),
+    )?.title,
+    "Ice World",
+  );
+});
+
+test("an empty name is refused and the game keeps the one it had", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("rename_game", { name: "   " })], items: [] },
+    { text: "What would you like to call it?", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.gameTitle, undefined);
+  assert.equal(globalThis.splatLabGamesMemory?.[0]?.title, "Test game");
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"ok":false.*needs a name/);
+});
+
+test("adding a level puts it last, starts showing it, and keeps the old one", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+    {
+      text: "",
+      toolCalls: [toolCall("add_level", { world: "Ice World", name: "Frozen Lake" })],
+      items: [{ type: "function_call" }],
+    },
+    { text: "I added an icy level at the end.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  const levels = result.specChange?.platformerLevels;
+  assert.equal(levels?.length, 2, "the level that was showing is kept alongside the new one");
+  assert.equal(levels?.[0].templateSource, "level-1.json");
+  assert.deepEqual(
+    { templateSource: levels?.[1].templateSource, label: levels?.[1].label },
+    { templateSource: "level-5.json", label: "Frozen Lake" },
+  );
+  assert.equal(storedSpec()?.platformerMapSource, levels?.[1].id);
+  assert.equal(
+    globalThis.splatLabGamesMemory?.[0]?.mapSource,
+    levels?.[1].id,
+    "the stored column follows the level being played",
+  );
+
+  const spec = storedSpec();
+  assert.ok(spec);
+  const level = resolveActivePlatformerLevel(spec);
+  assert.ok(level, "the level Cooper added did not resolve to a playable map");
+  assert.equal(level.label, "Frozen Lake");
+  assert.equal(
+    level.map.id,
+    `ice_world_01:${levels?.[1].id}`,
+    "the added level plays the checked-in Ice World map from apps/game/maps",
+  );
+  const started = createInitialState(level.map);
+  assert.deepEqual(
+    { x: started.x, y: started.y },
+    { x: started.spawnX, y: started.spawnY },
+    "the site player starts the level Cooper added on its spawn",
+  );
+});
+
+test("switching to a maze updates the stored game type as well as the spec", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("set_game_type", { gameType: "maze" })], items: [] },
+    { text: "It is a maze now.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.specChange?.previewKind, "maze");
+  assert.equal(storedSpec()?.previewKind, "maze");
+  assert.equal(globalThis.splatLabGamesMemory?.[0]?.gameType, "maze");
+  assert.equal(
+    globalThis.splatLabGamesMemory?.[0]?.mapSource,
+    "maze_green_hills_01.json",
   );
 });
 
@@ -597,18 +824,43 @@ test("a tool the Agent node does not offer fails the run closed", async () => {
   assert.equal(globalThis.splatLabAgentFlowRunsMemory?.[0]?.status, "failed");
 });
 
-test("an Agent node that keeps calling tools stops at the bounded tool budget", async () => {
+test("a text-only close that still returns tool calls fails the run closed", async () => {
   const round = {
     text: "",
     toolCalls: [toolCall("read_game_physics", {})],
     items: [] as ModelTurnResult["items"],
   };
-  const model = new ScriptedToolModel([round, round, round, round]);
+  const model = new ScriptedToolModel([
+    ...Array.from({ length: 6 }, () => round),
+    round,
+  ]);
 
   await assert.rejects(
     () => execute(model),
     (error: unknown) => error instanceof BuildExecutionError && error.code === "execution_budget",
   );
-  assert.equal(model.requests.length, 4);
-  assert.equal(model.scenarioCalls, 0);
+  assert.equal(model.requests.length, 7);
+  assert.equal(model.requests[6]?.tools, undefined);
+});
+
+test("an Agent node that keeps calling tools is closed with a text-only reply", async () => {
+  const round = {
+    text: "",
+    toolCalls: [toolCall("read_game_physics", {})],
+    items: [] as ModelTurnResult["items"],
+  };
+  // Must stay in lockstep with MAX_TOOL_ROUNDS in executor.ts.
+  const model = new ScriptedToolModel([
+    ...Array.from({ length: 6 }, () => round),
+    { text: "You run a bit faster now.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.status, "replied");
+  assert.equal(model.requests.length, 7);
+  assert.equal(model.requests[6]?.tools, undefined);
+  assert.equal(
+    model.requests[6]?.messages.at(-1)?.content,
+    "Reply to the kid now in two or three short sentences. You cannot use tools on this turn.",
+  );
 });

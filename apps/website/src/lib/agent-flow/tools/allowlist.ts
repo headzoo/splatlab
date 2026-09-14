@@ -8,6 +8,16 @@ export const AGENT_TOOL_IDS = [
   "set_starting_lives",
   "set_player_character",
   "set_enemy_appearance",
+  "set_level_art",
+  "read_game",
+  "rename_game",
+  "set_game_type",
+  "set_player_appearance",
+  "add_level",
+  "rename_level",
+  "remove_level",
+  "move_level",
+  "set_active_level",
 ] as const;
 
 export type AgentToolId = (typeof AGENT_TOOL_IDS)[number];

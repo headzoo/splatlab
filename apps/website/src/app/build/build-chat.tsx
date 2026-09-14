@@ -23,8 +23,8 @@ import {
   useBuildSetup,
 } from "./build-setup";
 import {
-  ADD_LEVEL_PROMPT,
   buildPromptSuggestions,
+  type PromptSuggestion,
 } from "./build-prompt-suggestions";
 import { setupChoiceReplyFor } from "./build-setup-replies";
 import styles from "./build.module.css";
@@ -162,6 +162,7 @@ export function BuildChat() {
     displayedGame,
     pausedBuildTurn,
     openLevelPicker,
+    appendLocalUserMessage,
     applyPersistedBuildTurn,
   } = useBuildSetup();
   const [currentQuestion, setCurrentQuestion] =
@@ -175,6 +176,8 @@ export function BuildChat() {
   const conversationRef = useRef<HTMLDivElement>(null);
   const thinkingTimeoutRef = useRef<number | null>(null);
   const isTransitioningRef = useRef(false);
+  const chatHistoryRef = useRef(chatHistory);
+  chatHistoryRef.current = chatHistory;
   const setupReady = setupComplete && currentQuestion === "complete";
   const chatReady =
     setupReady && Boolean(gameIdentity) && !thinking && !pausedBuildTurn;
@@ -328,7 +331,7 @@ export function BuildChat() {
       }
 
       applyPersistedBuildTurn(
-        persistedBuildTurn(chatHistory, submittedMessage, result),
+        persistedBuildTurn(chatHistoryRef.current, submittedMessage, result),
       );
       setDraft("");
       setFeedback("");
@@ -339,21 +342,28 @@ export function BuildChat() {
     }
   }
 
+  function sendUserMessage(message: string) {
+    if (!chatReady) return;
+
+    appendLocalUserMessage(message);
+    setDraft("");
+    void postBuildTurn({ message }, message);
+  }
+
   function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!chatReady || !draft.trim()) return;
 
-    const message = draft.trim();
-    void postBuildTurn({ message }, message);
+    sendUserMessage(draft.trim());
   }
 
-  function sendSuggestedPrompt(message: string) {
+  function sendSuggestedPrompt(suggestion: PromptSuggestion) {
     if (!chatReady) return;
-    if (message === ADD_LEVEL_PROMPT) {
+    if (!suggestion.message) {
       openLevelPicker();
       return;
     }
-    void postBuildTurn({ message }, message);
+    sendUserMessage(suggestion.message);
   }
 
   function submitPausedAction(action: "proceed" | "reject") {
@@ -635,10 +645,10 @@ export function BuildChat() {
             {promptSuggestions.map((suggestion) => (
               <button
                 type="button"
-                key={suggestion}
+                key={suggestion.label}
                 onClick={() => sendSuggestedPrompt(suggestion)}
               >
-                {suggestion}
+                {suggestion.label}
               </button>
             ))}
           </div>

@@ -14,16 +14,29 @@ import type { ToolExecutionContext, ToolExecutionResult } from "./types";
 
 type NotFound = { status: "not_found" };
 type NotPlatformer = { status: "not_platformer" };
-type Loaded = { status: "loaded"; spec: GameDocument; level: ActivePlatformerLevel };
+type GameLoaded = { status: "loaded"; spec: GameDocument; title: string };
+type Loaded = GameLoaded & { level: ActivePlatformerLevel };
+
+/**
+ * For the tools that work on any game, such as renaming it or managing its
+ * levels. Tools that read or write level contents want `loadLevel` instead.
+ */
+export async function loadGame(
+  context: ToolExecutionContext,
+): Promise<NotFound | GameLoaded> {
+  const game = await getGame(context.ownerId, context.gameId);
+  if (!game) return { status: "not_found" };
+  return { status: "loaded", spec: game.spec, title: game.title };
+}
 
 export async function loadLevel(
   context: ToolExecutionContext,
 ): Promise<NotFound | NotPlatformer | Loaded> {
-  const game = await getGame(context.ownerId, context.gameId);
-  if (!game) return { status: "not_found" };
+  const game = await loadGame(context);
+  if (game.status !== "loaded") return game;
   const level = resolveActivePlatformerLevel(game.spec);
   if (!level) return { status: "not_platformer" };
-  return { status: "loaded", spec: game.spec, level };
+  return { ...game, level };
 }
 
 export function toolError(reason: string): ToolExecutionResult {
@@ -48,6 +61,12 @@ export function readString(args: unknown, key: string): string {
   if (!args || typeof args !== "object" || Array.isArray(args)) return "";
   const value = (args as Record<string, unknown>)[key];
   return typeof value === "string" ? value : "";
+}
+
+/** Left as-is when it is not a number, so the planner reports what arrived. */
+export function readValue(args: unknown, key: string): unknown {
+  if (!args || typeof args !== "object" || Array.isArray(args)) return undefined;
+  return (args as Record<string, unknown>)[key];
 }
 
 /** The kind counts as they stand after a write, so Cooper can report totals. */

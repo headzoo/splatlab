@@ -1,4 +1,7 @@
 import type {
+  ArtWorldId,
+  PlatformerArtSlot,
+  PlatformerLevelArt,
   PlatformerMapSource,
   PlatformerObjectEdit,
   PlatformerObjectKind,
@@ -8,6 +11,11 @@ import type {
   PlatformerTerrainKind,
 } from "@/lib/game-contract";
 
+import {
+  themedObjectAssets,
+  worldArtAssetId,
+  type PlatformerArtBorrows,
+} from "./art-catalog";
 import type {
   PlatformerMapObject,
   PlatformerMapSpec,
@@ -16,7 +24,7 @@ import type {
 
 export type PlatformerTerrainStrokeCell = Pick<
   PlatformerTerrainEdit,
-  "x" | "y" | "kind"
+  "x" | "y" | "kind" | "world"
 >;
 
 export type PlatformerEditTool =
@@ -28,7 +36,7 @@ export type PlatformerEditTool =
 
 export type PlatformerObjectPlacement = Pick<
   PlatformerObjectEdit,
-  "id" | "x" | "y" | "kind"
+  "id" | "x" | "y" | "kind" | "world"
 >;
 
 export const PLATFORMER_OBJECT_TOOLS: readonly PlatformerObjectKind[] = [
@@ -43,10 +51,72 @@ export const PLATFORMER_OBJECT_TOOLS: readonly PlatformerObjectKind[] = [
   "goal",
 ];
 
+export function isPlatformerObjectTool(
+  tool: PlatformerEditTool,
+): tool is PlatformerObjectKind {
+  return PLATFORMER_OBJECT_TOOLS.includes(tool as PlatformerObjectKind);
+}
+
+export type PlatformerEditorCursor = "select" | "pan" | "paint" | "erase";
+
+const PLATFORMER_TERRAIN_PAINT_TOOLS = new Set<PlatformerEditTool>([
+  "ground",
+  "platform",
+  "obstacle",
+  "hazard",
+]);
+
+/** Maps the active build tool to the cursor mode shown over the map canvas. */
+export function platformerEditorCursor(
+  tool: PlatformerEditTool | undefined,
+): PlatformerEditorCursor | undefined {
+  if (!tool) return undefined;
+  if (tool === "move") return "pan";
+  if (tool === "select") return "select";
+  if (tool === "erase") return "erase";
+  if (isPlatformerPalettePaintTool(tool)) {
+    return "paint";
+  }
+  return undefined;
+}
+
+/** Terrain and object tools chosen from the build sidebar palette. */
+export function isPlatformerPalettePaintTool(tool: PlatformerEditTool): boolean {
+  return isPlatformerObjectTool(tool) || PLATFORMER_TERRAIN_PAINT_TOOLS.has(tool);
+}
+
+/** Clicking an active palette button again returns to select mode. */
+export function togglePlatformerPaletteTool(
+  activeTool: PlatformerEditTool,
+  tool: PlatformerEditTool,
+): PlatformerEditTool {
+  return activeTool === tool ? "select" : tool;
+}
+
 export type PlatformerObjectSettingsChange = Pick<
   PlatformerObjectSettings,
   "assetId" | "behavior" | "direction"
 >;
+
+export type PlatformerEditorSelection = {
+  objectIds: readonly string[];
+  terrainCells: readonly { x: number; y: number }[];
+};
+
+export type PlatformerEditorHit =
+  | { type: "hud" }
+  | { type: "empty" }
+  | { type: "object"; id: string }
+  | { type: "terrain"; x: number; y: number };
+
+export const EMPTY_PLATFORMER_EDITOR_SELECTION: PlatformerEditorSelection = {
+  objectIds: [],
+  terrainCells: [],
+};
+
+/** HUD pills are drawn about two tiles wide and one tile tall in viewport space. */
+export const PLATFORMER_HUD_WIDTH_TILES = 2;
+export const PLATFORMER_HUD_HEIGHT_TILES = 1;
 
 const FALLBACK_SYMBOLS: Record<PlatformerTerrainKind, string> = {
   empty: ".",
@@ -138,42 +208,38 @@ export function platformerObjectAtPreviewCell(
   }) ?? null;
 }
 
-const THEMED_OBJECT_ASSETS: Record<string, { enemy: string; boss: string; flying: string; spring?: string }> = {
-  neutral_green_hills_01: {
-    enemy: "neutral_ghost_01",
-    boss: "neutral_green_hills_boss_01",
-    flying: "neutral_green_hills_flying_cooper_01",
-  },
-  space_orbital_outpost_01: {
-    enemy: "space_ghost_01",
-    boss: "space_boss_01",
-    flying: "neutral_green_hills_flying_cooper_01",
-  },
-  haunted_graveyard_01: {
-    enemy: "haunted_ghost_01",
-    boss: "haunted_boss_01",
-    flying: "haunted_flying_cooper_bat_01",
-    spring: "haunted_graveyard_platformer_spring_01",
-  },
-  dragons_emberkeep_01: {
-    enemy: "dragon_ghost_01",
-    boss: "dragons_emberkeep_boss_01",
-    flying: "dragons_emberkeep_flying_fireball_01",
-  },
-  ice_world_01: {
-    enemy: "ice_world_ghost_01",
-    boss: "ice_world_boss_01",
-    flying: "neutral_green_hills_flying_cooper_01",
-    spring: "ice_world_platformer_spring_01",
-  },
+/** The part of a level's art each placeable thing wears. */
+const OBJECT_KIND_ART_SLOTS: Partial<Record<PlatformerObjectKind, PlatformerArtSlot>> = {
+  coin: "coin",
+  platform_spring: "spring",
+  enemy: "enemy",
+  boss: "boss",
+  flying_object: "flying",
+  checkpoint: "checkpoint",
+  goal: "goal",
 };
+
+/**
+ * Dresses one placement in the world it was painted from, which is how a level
+ * can hold Graveyard coins beside its own. A placement clones an authored
+ * object of the same kind to inherit its point value and patrol, so the art has
+ * to be stamped on afterwards. Without a chosen world the object is left as it
+ * came, and the level dresses it.
+ */
+function withPlacementArt(
+  object: PlatformerMapObject,
+  edit: PlatformerObjectEdit,
+): PlatformerMapObject {
+  const slot = OBJECT_KIND_ART_SLOTS[edit.kind];
+  if (!edit.world || !slot) return object;
+  return { ...object, assetId: worldArtAssetId(edit.world, slot) };
+}
 
 function defaultObjectForKind(
   map: PlatformerMapSpec,
   edit: PlatformerObjectEdit,
 ): PlatformerMapSpec["objects"][number] {
-  const themedAssets = THEMED_OBJECT_ASSETS[map.presentation.backgroundId]
-    ?? THEMED_OBJECT_ASSETS.neutral_green_hills_01;
+  const themedAssets = themedObjectAssets(map.presentation);
   const base = { id: edit.id, x: edit.x, y: edit.y };
   if (edit.kind === "spawn") return { ...base, type: "player_spawn" };
   if (edit.kind === "coin") return { ...base, type: "collectible", pointValue: 1 };
@@ -182,7 +248,7 @@ function defaultObjectForKind(
     return {
       ...base,
       type: "platform_spring",
-      assetId: themedAssets.spring ?? "ice_world_platformer_spring_01",
+      assetId: themedAssets.spring,
       launchSpeedPxPerSecond: 1200,
     };
   }
@@ -218,6 +284,66 @@ export function applyPlatformerRules(
   return { ...map, rules: { ...map.rules, startingLives } };
 }
 
+/**
+ * Dresses a level in the art it has borrowed from other worlds. Terrain and
+ * pickups read `presentation.artBorrows` when they draw, but springs, flying
+ * things, enemies and bosses each carry their own `assetId`, so those are
+ * re-stamped here.
+ *
+ * An object dressed by hand keeps the look it was given, whether that was a
+ * costume picked in its settings or the world its placement was painted from.
+ * Otherwise a kid who placed one Graveyard enemy would lose it the moment the
+ * level borrowed enemies from somewhere else.
+ */
+export function applyPlatformerLevelArt(
+  map: PlatformerMapSpec,
+  mapSource: PlatformerMapSource,
+  levelArt: readonly PlatformerLevelArt[] = [],
+  settings: readonly PlatformerObjectSettings[] = [],
+  edits: readonly PlatformerObjectEdit[] = [],
+): PlatformerMapSpec {
+  const borrows: PlatformerArtBorrows = {};
+  for (const entry of levelArt) {
+    if (entry.mapSource !== mapSource) continue;
+    if (entry.world === map.presentation.backgroundId) continue;
+    borrows[entry.slot] = entry.world;
+  }
+  if (Object.keys(borrows).length === 0) return map;
+
+  const dressedByHand = new Set([
+    ...settings
+      .filter((item) => item.mapSource === mapSource)
+      .map((item) => item.objectId),
+    ...edits
+      .filter((edit) => edit.mapSource === mapSource && edit.world)
+      .map((edit) => edit.id),
+  ]);
+  const themed = themedObjectAssets({
+    backgroundId: map.presentation.backgroundId,
+    artBorrows: borrows,
+  });
+  return {
+    ...map,
+    presentation: { ...map.presentation, artBorrows: borrows },
+    objects: map.objects.map((object) => {
+      if (dressedByHand.has(object.id)) return object;
+      if (object.type === "platform_spring") {
+        return borrows.spring ? { ...object, assetId: themed.spring } : object;
+      }
+      if (object.type === "flying_object") {
+        return borrows.flying ? { ...object, assetId: themed.flying } : object;
+      }
+      if (object.type === "enemy_spawn") {
+        if (object.role === "boss") {
+          return borrows.boss ? { ...object, assetId: themed.boss } : object;
+        }
+        return borrows.enemy ? { ...object, assetId: themed.enemy } : object;
+      }
+      return object;
+    }),
+  };
+}
+
 export function applyPlatformerObjectEdits(
   map: PlatformerMapSpec,
   mapSource: PlatformerMapSource,
@@ -239,18 +365,32 @@ export function applyPlatformerObjectEdits(
   if (applicable.length === 0 && removedIds.size === 0 && applicableSettings.size === 0) {
     return map;
   }
-  const replacesSpawn = applicable.some((edit) => edit.kind === "spawn");
+  const liveEdits = applicable.filter((edit) => !removedIds.has(edit.id));
+  const editsById = new Map(liveEdits.map((edit) => [edit.id, edit]));
+  const baseIds = new Set(map.objects.map((object) => object.id));
+  const replacesSpawn = liveEdits.some((edit) => edit.kind === "spawn");
   return {
     ...map,
     objects: [
-      ...map.objects.filter((object) => (
-        !removedIds.has(object.id) && !(replacesSpawn && object.type === "player_spawn")
-      )),
-      ...applicable.filter((edit) => !removedIds.has(edit.id)).map((edit) => {
+      // An edit that reuses a base object's id relocates it in place. A new id
+      // is still appended, which is how the place tools add coins and enemies.
+      ...map.objects.flatMap((object) => {
+        if (removedIds.has(object.id)) return [];
+        const edit = editsById.get(object.id);
+        if (object.type === "player_spawn" && replacesSpawn) {
+          return edit?.kind === "spawn" ? [{ ...object, x: edit.x, y: edit.y }] : [];
+        }
+        if (edit) return [{ ...object, x: edit.x, y: edit.y }];
+        return [object];
+      }),
+      ...liveEdits.filter((edit) => !baseIds.has(edit.id)).map((edit) => {
         const template = map.objects.find((object) => objectMatchesKind(object, edit.kind));
-        return template
-          ? { ...template, id: edit.id, x: edit.x, y: edit.y }
-          : defaultObjectForKind(map, edit);
+        return withPlacementArt(
+          template
+            ? { ...template, id: edit.id, x: edit.x, y: edit.y }
+            : defaultObjectForKind(map, edit),
+          edit,
+        );
       }),
     ].map((object) => {
       const objectSettings = applicableSettings.get(object.id);
@@ -332,6 +472,7 @@ export function mergePlatformerObjectEdit(
   mapSource: PlatformerMapSource,
   baseMap: PlatformerMapSpec,
   placement: PlatformerObjectPlacement,
+  world?: ArtWorldId,
 ): PlatformerObjectEdit[] {
   if (
     placement.x < 0 || placement.y < 0 ||
@@ -340,7 +481,66 @@ export function mergePlatformerObjectEdit(
   const retained = placement.kind === "spawn"
     ? existing.filter((edit) => !(edit.mapSource === mapSource && edit.kind === "spawn"))
     : [...existing];
-  return [...retained, { mapSource, ...placement }];
+  return [...retained, platformerObjectEditFor(mapSource, placement, world)];
+}
+
+/**
+ * One placement written down. `world` is the world the kid is painting from; a
+ * placement already naming its own world wins, so dragging a thing keeps its
+ * art.
+ */
+function platformerObjectEditFor(
+  mapSource: PlatformerMapSource,
+  placement: PlatformerObjectPlacement,
+  world: ArtWorldId | undefined,
+): PlatformerObjectEdit {
+  const paintedWorld = placement.world ?? world;
+  return {
+    mapSource,
+    id: placement.id,
+    x: placement.x,
+    y: placement.y,
+    kind: placement.kind,
+    ...(paintedWorld ? { world: paintedWorld } : {}),
+  };
+}
+
+/**
+ * Folds a drag of object placements into one edit list. Spawn stays unique:
+ * later cells in the stroke replace earlier ones, matching a single click.
+ */
+export function mergePlatformerObjectEdits(
+  existing: readonly PlatformerObjectEdit[],
+  mapSource: PlatformerMapSource,
+  baseMap: PlatformerMapSpec,
+  placements: readonly PlatformerObjectPlacement[],
+  world?: ArtWorldId,
+): PlatformerObjectEdit[] {
+  return placements.reduce(
+    (edits, placement) => mergePlatformerObjectEdit(edits, mapSource, baseMap, placement, world),
+    [...existing],
+  );
+}
+
+/**
+ * Turns the cells visited during a pointer stroke into placements. A spawn
+ * stroke keeps only the last cell, because a level has one hero start.
+ */
+export function objectPlacementsFromStroke(
+  kind: PlatformerObjectKind,
+  cells: readonly Pick<PlatformerObjectPlacement, "x" | "y">[],
+  idFor: (
+    cell: Pick<PlatformerObjectPlacement, "x" | "y">,
+    index: number,
+  ) => string,
+): PlatformerObjectPlacement[] {
+  const painted = kind === "spawn" ? cells.slice(-1) : cells;
+  return painted.map((cell, index) => ({
+    id: idFor(cell, index),
+    x: cell.x,
+    y: cell.y,
+    kind,
+  }));
 }
 
 export function platformerTerrainKindAt(
@@ -369,6 +569,12 @@ export function applyPlatformerTerrainEdits(
 
   const rows = [...baseTerrain.rows];
   const editedCells = new Set<string>();
+  /**
+   * A tile painted from a chosen world keeps that world's art, which is how one
+   * level shows Graveyard ground beside its own. The per-cell override outranks
+   * anything the level has borrowed, because it was picked by hand.
+   */
+  const paintedOverrides: NonNullable<typeof baseTerrain.spriteOverrides> = [];
 
   for (const edit of applicableEdits) {
     const row = rows[edit.y];
@@ -376,29 +582,41 @@ export function applyPlatformerTerrainEdits(
     const symbol = symbolForKind(map, edit.kind);
     rows[edit.y] = `${row.slice(0, edit.x)}${symbol}${row.slice(edit.x + 1)}`;
     editedCells.add(`${edit.x},${edit.y}`);
+    if (edit.world && edit.kind !== "empty") {
+      paintedOverrides.push({
+        x: edit.x,
+        y: edit.y,
+        assetId: worldArtAssetId(edit.world, edit.kind),
+      });
+    }
   }
 
   return {
     ...map,
-    layers: map.layers.map((layer) =>
-      layer.id === "terrain"
-        ? {
-            ...layer,
-            rows,
-            spriteOverrides: layer.spriteOverrides?.filter(
-              (override) => !editedCells.has(`${override.x},${override.y}`),
-            ),
-          }
-        : layer,
-    ),
+    layers: map.layers.map((layer) => {
+      if (layer.id !== "terrain") return layer;
+      const kept = layer.spriteOverrides?.filter(
+        (override) => !editedCells.has(`${override.x},${override.y}`),
+      );
+      const spriteOverrides = paintedOverrides.length === 0
+        ? kept
+        : [...(kept ?? []), ...paintedOverrides];
+      return { ...layer, rows, spriteOverrides };
+    }),
   };
 }
 
+/**
+ * Folds a paint stroke into the edit list. `world` is the world the kid is
+ * painting from; a cell already naming its own world wins, so a dragged tile
+ * keeps the art it had.
+ */
 export function mergePlatformerTerrainEdits(
   existing: readonly PlatformerTerrainEdit[],
   mapSource: PlatformerMapSource,
   baseMap: PlatformerMapSpec,
   stroke: readonly PlatformerTerrainStrokeCell[],
+  world?: ArtWorldId,
 ): PlatformerTerrainEdit[] {
   const edits = new Map(
     existing.map((edit) => [`${edit.mapSource}:${edit.x}:${edit.y}`, edit]),
@@ -415,10 +633,22 @@ export function mergePlatformerTerrainEdits(
     }
 
     const key = `${mapSource}:${cell.x}:${cell.y}`;
-    if (platformerTerrainKindAt(baseMap, cell.x, cell.y) === cell.kind) {
+    const paintedWorld = cell.kind === "empty" ? undefined : cell.world ?? world;
+    // A tile repainted as what it already was is only worth recording when it
+    // is also wearing art the level would not have given it.
+    if (
+      platformerTerrainKindAt(baseMap, cell.x, cell.y) === cell.kind &&
+      !paintedWorld
+    ) {
       edits.delete(key);
     } else {
-      edits.set(key, { mapSource, ...cell });
+      edits.set(key, {
+        mapSource,
+        x: cell.x,
+        y: cell.y,
+        kind: cell.kind,
+        ...(paintedWorld ? { world: paintedWorld } : {}),
+      });
     }
   }
 
@@ -426,4 +656,281 @@ export function mergePlatformerTerrainEdits(
     const sourceOrder = left.mapSource.localeCompare(right.mapSource);
     return sourceOrder || left.y - right.y || left.x - right.x;
   });
+}
+
+export function platformerHudAtViewportCell(
+  map: PlatformerMapSpec,
+  column: number,
+  row: number,
+) {
+  return (map.presentation.hud ?? []).find((entry) => (
+    column >= entry.column &&
+    column < entry.column + PLATFORMER_HUD_WIDTH_TILES &&
+    row >= entry.row &&
+    row < entry.row + PLATFORMER_HUD_HEIGHT_TILES
+  )) ?? null;
+}
+
+export function platformerEditorHitAtCell(
+  map: PlatformerMapSpec,
+  state: PlatformerState,
+  x: number,
+  y: number,
+): Exclude<PlatformerEditorHit, { type: "hud" }> {
+  const object = platformerObjectAtPreviewCell(map, state, x, y);
+  if (object) return { type: "object", id: object.id };
+  const kind = platformerTerrainKindAt(map, x, y);
+  if (kind === "empty") return { type: "empty" };
+  return { type: "terrain", x, y };
+}
+
+function sameTerrainCell(
+  left: { x: number; y: number },
+  right: { x: number; y: number },
+) {
+  return left.x === right.x && left.y === right.y;
+}
+
+/**
+ * The hero a click may not select. A click on a zoomed-out map stands the hero
+ * in the clicked cell, and placing the hero is not selecting them, so a
+ * zoomed-out map offers no hero to select.
+ */
+export function platformerUnselectableHeroId(
+  map: PlatformerMapSpec,
+  editorZoomScale: number,
+) {
+  if (editorZoomScale >= 1) return null;
+  return map.objects.find((object) => object.type === "player_spawn")?.id ?? null;
+}
+
+/** Drops one object from a selection, leaving the terrain cells alone. */
+export function platformerSelectionWithoutObject(
+  selection: PlatformerEditorSelection,
+  objectId: string | null,
+): PlatformerEditorSelection {
+  if (!objectId || !selection.objectIds.includes(objectId)) return selection;
+  return {
+    objectIds: selection.objectIds.filter((id) => id !== objectId),
+    terrainCells: selection.terrainCells,
+  };
+}
+
+export function applyPlatformerEditorSelectionClick(
+  selection: PlatformerEditorSelection,
+  hit: PlatformerEditorHit,
+  toggle: boolean,
+): PlatformerEditorSelection | null {
+  if (hit.type === "hud") return null;
+  if (hit.type === "empty") {
+    return toggle ? selection : EMPTY_PLATFORMER_EDITOR_SELECTION;
+  }
+  if (hit.type === "object") {
+    const selected = selection.objectIds.includes(hit.id);
+    return {
+      objectIds: selected
+        ? selection.objectIds.filter((id) => id !== hit.id)
+        : [...selection.objectIds, hit.id],
+      terrainCells: selection.terrainCells,
+    };
+  }
+  const selected = selection.terrainCells.some((cell) => sameTerrainCell(cell, hit));
+  return {
+    objectIds: selection.objectIds,
+    terrainCells: selected
+      ? selection.terrainCells.filter((cell) => !sameTerrainCell(cell, hit))
+      : [...selection.terrainCells, { x: hit.x, y: hit.y }],
+  };
+}
+
+export function platformerEditorSelectionHasCell(
+  map: PlatformerMapSpec,
+  state: PlatformerState,
+  selection: PlatformerEditorSelection,
+  x: number,
+  y: number,
+) {
+  if (selection.terrainCells.some((cell) => cell.x === x && cell.y === y)) return true;
+  const object = platformerObjectAtPreviewCell(map, state, x, y);
+  return Boolean(object && selection.objectIds.includes(object.id));
+}
+
+export function platformerEditorSelectionCells(
+  map: PlatformerMapSpec,
+  state: PlatformerState,
+  selection: PlatformerEditorSelection,
+  delta: { dx: number; dy: number } = { dx: 0, dy: 0 },
+) {
+  const cells = new Map<string, { x: number; y: number }>();
+  for (const objectId of selection.objectIds) {
+    const object = map.objects.find((candidate) => candidate.id === objectId);
+    if (!object) continue;
+    const cell = platformerPreviewCellForObject(map, state, object);
+    if (!cell) continue;
+    const next = { x: cell.x + delta.dx, y: cell.y + delta.dy };
+    cells.set(`${next.x}:${next.y}`, next);
+  }
+  for (const cell of selection.terrainCells) {
+    const next = { x: cell.x + delta.dx, y: cell.y + delta.dy };
+    cells.set(`${next.x}:${next.y}`, next);
+  }
+  return [...cells.values()];
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+export function clampPlatformerSelectionDelta(
+  map: PlatformerMapSpec,
+  cells: readonly { x: number; y: number }[],
+  dx: number,
+  dy: number,
+) {
+  if (cells.length === 0) return { dx: 0, dy: 0 };
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const cell of cells) {
+    minX = Math.min(minX, cell.x);
+    maxX = Math.max(maxX, cell.x);
+    minY = Math.min(minY, cell.y);
+    maxY = Math.max(maxY, cell.y);
+  }
+  return {
+    dx: clamp(dx, -minX, map.size.columns - 1 - maxX),
+    dy: clamp(dy, -minY, map.size.rows - 1 - maxY),
+  };
+}
+
+function upsertPlatformerObjectPlacement(
+  existing: readonly PlatformerObjectEdit[],
+  mapSource: PlatformerMapSource,
+  baseMap: PlatformerMapSpec,
+  placement: PlatformerObjectPlacement,
+): PlatformerObjectEdit[] {
+  if (
+    placement.x < 0 || placement.y < 0 ||
+    placement.x >= baseMap.size.columns || placement.y >= baseMap.size.rows
+  ) return [...existing];
+  return [
+    ...existing.filter((edit) => {
+      if (edit.mapSource !== mapSource) return true;
+      if (edit.id === placement.id) return false;
+      return !(placement.kind === "spawn" && edit.kind === "spawn");
+    }),
+    platformerObjectEditFor(mapSource, placement, undefined),
+  ];
+}
+
+export type PlatformerEditorMoveResult = {
+  platformerObjectEdits: PlatformerObjectEdit[];
+  platformerTerrainEdits: PlatformerTerrainEdit[];
+  delta: { dx: number; dy: number };
+  selection: PlatformerEditorSelection;
+};
+
+/**
+ * Moves the Select-tool group by whole tiles. Terrain is cleared at the old
+ * cells, then painted at the new ones, so a one-tile shift of a row does not
+ * eat itself. Object ids stay the same so settings follow the move.
+ */
+export function movePlatformerEditorSelection(
+  baseMap: PlatformerMapSpec,
+  mapSource: PlatformerMapSource,
+  existingObjectEdits: readonly PlatformerObjectEdit[],
+  existingRemovals: readonly PlatformerObjectRemoval[] = [],
+  existingSettings: readonly PlatformerObjectSettings[] = [],
+  existingTerrainEdits: readonly PlatformerTerrainEdit[] = [],
+  selection: PlatformerEditorSelection,
+  dx: number,
+  dy: number,
+): PlatformerEditorMoveResult {
+  const effectiveMap = applyPlatformerObjectEdits(
+    applyPlatformerTerrainEdits(baseMap, mapSource, existingTerrainEdits),
+    mapSource,
+    existingObjectEdits,
+    existingRemovals,
+    existingSettings,
+  );
+  const movingObjects = selection.objectIds.flatMap((objectId) => {
+    const object = effectiveMap.objects.find((candidate) => candidate.id === objectId);
+    return object
+      ? [{
+          id: object.id,
+          x: Math.floor(object.x),
+          y: Math.floor(object.y),
+          kind: platformerObjectKind(object),
+          // Dragging a thing must not restyle it, so the world it was painted
+          // from travels with it.
+          world: existingObjectEdits.find(
+            (edit) => edit.mapSource === mapSource && edit.id === objectId,
+          )?.world,
+        }]
+      : [];
+  });
+  const originCells = [
+    ...movingObjects.map((object) => ({ x: object.x, y: object.y })),
+    ...selection.terrainCells,
+  ];
+  const delta = clampPlatformerSelectionDelta(effectiveMap, originCells, dx, dy);
+  const nextSelection: PlatformerEditorSelection = {
+    objectIds: selection.objectIds,
+    terrainCells: selection.terrainCells.map((cell) => ({
+      x: cell.x + delta.dx,
+      y: cell.y + delta.dy,
+    })),
+  };
+  if (delta.dx === 0 && delta.dy === 0) {
+    return {
+      platformerObjectEdits: [...existingObjectEdits],
+      platformerTerrainEdits: [...existingTerrainEdits],
+      delta,
+      selection: nextSelection,
+    };
+  }
+
+  let platformerObjectEdits = [...existingObjectEdits];
+  for (const object of movingObjects) {
+    platformerObjectEdits = upsertPlatformerObjectPlacement(
+      platformerObjectEdits,
+      mapSource,
+      baseMap,
+      {
+        id: object.id,
+        x: object.x + delta.dx,
+        y: object.y + delta.dy,
+        kind: object.kind,
+        world: object.world,
+      },
+    );
+  }
+
+  const terrainStroke: PlatformerTerrainStrokeCell[] = [
+    ...selection.terrainCells.map((cell) => ({ ...cell, kind: "empty" as const })),
+    ...selection.terrainCells.map((cell) => ({
+      x: cell.x + delta.dx,
+      y: cell.y + delta.dy,
+      kind: platformerTerrainKindAt(effectiveMap, cell.x, cell.y),
+      world: existingTerrainEdits.find(
+        (edit) => edit.mapSource === mapSource && edit.x === cell.x && edit.y === cell.y,
+      )?.world,
+    })),
+  ];
+  const platformerTerrainEdits = terrainStroke.length === 0
+    ? [...existingTerrainEdits]
+    : mergePlatformerTerrainEdits(
+        existingTerrainEdits,
+        mapSource,
+        baseMap,
+        terrainStroke,
+      );
+
+  return {
+    platformerObjectEdits,
+    platformerTerrainEdits,
+    delta,
+    selection: nextSelection,
+  };
 }

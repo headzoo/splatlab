@@ -75,7 +75,37 @@ export const PLATFORMER_OBJECT_KINDS = [
   "goal",
 ] as const;
 
+/**
+ * The parts of a level whose art one world can lend to another, and the worlds
+ * that can lend it. `apps/website/src/game/platformer/art-catalog.ts` decides
+ * what each pairing actually looks like; this is only the vocabulary a saved
+ * game is allowed to use.
+ */
+export const PLATFORMER_ART_SLOTS = [
+  "ground",
+  "platform",
+  "obstacle",
+  "hazard",
+  "coin",
+  "checkpoint",
+  "goal",
+  "spring",
+  "flying",
+  "enemy",
+  "boss",
+] as const;
+
+export const ART_WORLD_IDS = [
+  "neutral_green_hills_01",
+  "haunted_graveyard_01",
+  "space_orbital_outpost_01",
+  "dragons_emberkeep_01",
+  "ice_world_01",
+] as const;
+
 export type GameTheme = (typeof GAME_THEMES)[number];
+export type PlatformerArtSlot = (typeof PLATFORMER_ART_SLOTS)[number];
+export type ArtWorldId = (typeof ART_WORLD_IDS)[number];
 export type PlayerCharacter = (typeof PLAYER_CHARACTERS)[number];
 export type HumanGender = (typeof HUMAN_GENDERS)[number];
 export type GameSetupQuestion = (typeof GAME_SETUP_QUESTIONS)[number];
@@ -117,12 +147,17 @@ export const mazeLevelSchema = z.object({
 export type PlatformerLevel = z.infer<typeof platformerLevelSchema>;
 export type MazeLevel = z.infer<typeof mazeLevelSchema>;
 
+/**
+ * `world` names the world this tile was painted from, letting one level mix art
+ * per tile. Absent means the tile wears whatever the level wears.
+ */
 export const platformerTerrainEditSchema = z
   .object({
     mapSource: platformerMapSourceSchema,
     x: z.number().int().min(0).max(255),
     y: z.number().int().min(0).max(63),
     kind: z.enum(PLATFORMER_TERRAIN_KINDS),
+    world: z.enum(ART_WORLD_IDS).optional(),
   })
   .strict();
 
@@ -135,6 +170,7 @@ export const platformerObjectEditSchema = z
     x: z.number().int().min(0).max(255),
     y: z.number().int().min(0).max(63),
     kind: z.enum(PLATFORMER_OBJECT_KINDS),
+    world: z.enum(ART_WORLD_IDS).optional(),
   })
   .strict();
 
@@ -160,6 +196,21 @@ export const platformerObjectSettingsSchema = z
   .strict();
 
 export type PlatformerObjectSettings = z.infer<typeof platformerObjectSettingsSchema>;
+
+/**
+ * One level wearing another world's art for one part of itself, such as an ice
+ * level using Dragon World platforms. At most one row per level and slot; a
+ * later row for the same pair replaces the earlier one.
+ */
+export const platformerLevelArtSchema = z
+  .object({
+    mapSource: platformerMapSourceSchema,
+    slot: z.enum(PLATFORMER_ART_SLOTS),
+    world: z.enum(ART_WORLD_IDS),
+  })
+  .strict();
+
+export type PlatformerLevelArt = z.infer<typeof platformerLevelArtSchema>;
 
 export const builderChatTurnSchema = z
   .object({
@@ -278,6 +329,10 @@ export const gameDocumentSchema = z
       .array(platformerObjectSettingsSchema)
       .max(1000)
       .default([]),
+    platformerLevelArt: z
+      .array(platformerLevelArtSchema)
+      .max(220)
+      .default([]),
     // Absent means "use the read-only catalog document". Cooper's first
     // accepted physics patch forks the catalog into this field, and the server
     // owns it from then on.
@@ -347,6 +402,7 @@ export const DEFAULT_GAME_DOCUMENT: GameDocument = {
   platformerObjectEdits: [],
   platformerObjectRemovals: [],
   platformerObjectSettings: [],
+  platformerLevelArt: [],
 };
 
 export const createGameInputSchema = z

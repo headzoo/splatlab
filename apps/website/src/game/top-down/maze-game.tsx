@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
@@ -20,6 +21,7 @@ import {
   resolveMazeJumpVisualOffset,
   stepMazeWithEvents,
 } from "./engine";
+import { fullscreenButtonLabel, useGameFullscreen } from "../fullscreen";
 import { resolveBodyMotionOffset } from "../motion";
 import {
   playerDefeatedEventSheet,
@@ -439,6 +441,7 @@ export function MazeGame({
   const playerDefeatedImageRef = useRef<CanvasImageSource | null>(null);
   const audioRef = useRef<MazeRuntimeAudio | null>(null);
   const completionNotifiedRef = useRef(false);
+  const fullscreen = useGameFullscreen(gameRef);
 
   const syncRuntimeDom = useCallback((state: MazeState, camera: MazeCamera) => {
     if (!gameRef.current) return;
@@ -706,6 +709,12 @@ export function MazeGame({
     window.localStorage.setItem("splat-lab.game-audio-muted.v1", String(nextMuted));
   };
 
+  const toggleFullscreen = () => {
+    void fullscreen.toggle();
+    // Keyboard play only works while focus stays inside the game element.
+    canvasRef.current?.focus();
+  };
+
   const showStartOverlay = Boolean(startOverlayTitle) && !playing && runtimeStatus === "playing";
   const statusMessage = showStartOverlay
     ? null
@@ -743,12 +752,29 @@ export function MazeGame({
           <button type="button" onClick={toggleMuted} aria-pressed={muted}>
             {muted ? "🔇 Muted" : "🔊 Sound"}
           </button>
+          {fullscreen.supported ? (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-pressed={fullscreen.active}
+              aria-label={fullscreen.active ? "Exit full screen" : "Play full screen"}
+              title={fullscreen.active ? "Exit full screen" : "Play full screen"}
+            >
+              {fullscreenButtonLabel(fullscreen.active)}
+            </button>
+          ) : null}
         </div>
         {levelLabel ? <p className={styles.levelLabel}>{levelLabel}</p> : null}
         <p className={styles.controlHint}>Move: W/A/S/D or arrow keys · Jump: Space</p>
       </div>
 
-      <div className={styles.stage} style={{ aspectRatio: `${map.camera.columns} / ${map.camera.rows}` }}>
+      <div
+        className={styles.stage}
+        style={{
+          aspectRatio: `${map.camera.columns} / ${map.camera.rows}`,
+          "--stage-aspect": map.camera.columns / map.camera.rows,
+        } as CSSProperties}
+      >
         <canvas
           className={styles.canvas}
           ref={canvasRef}

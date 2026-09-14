@@ -113,6 +113,25 @@ test("terrain paint strokes participate in history as one edit", () => {
   );
 });
 
+test("object paint strokes participate in history as one edit", () => {
+  const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
+  const painted = {
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerObjectEdits: [
+      { id: "build-coin-1", mapSource: "level-1.json" as const, x: 2, y: 8, kind: "coin" as const },
+      { id: "build-coin-2", mapSource: "level-1.json" as const, x: 3, y: 8, kind: "coin" as const },
+    ],
+  };
+  const changed = gameHistoryReducer(initial, { type: "edit", spec: painted });
+
+  assert.equal(changed.past.length, 1);
+  assert.deepEqual(changed.present.platformerObjectEdits, painted.platformerObjectEdits);
+  assert.deepEqual(
+    gameHistoryReducer(changed, { type: "undo" }).present.platformerObjectEdits,
+    [],
+  );
+});
+
 test("object placements participate in undo history", () => {
   const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
   const placed = {

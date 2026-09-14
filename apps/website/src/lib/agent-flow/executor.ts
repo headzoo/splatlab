@@ -11,11 +11,16 @@ import type { GamePhysicsDocument } from "../game-physics";
 
 const VISIBLE_MESSAGE_LIMIT = 500;
 /**
- * An Agent node makes at most one model call plus this many tool follow-ups.
- * Cooper reads physics or the level grid, writes, then replies, and sometimes
- * needs a second read before the write.
+ * Tool rounds Cooper may spend before it has to talk to the kid. A single ask
+ * can be a read and a write in two domains (physics and the level, or the
+ * game and a new level), so three was not enough: the fourth call threw and
+ * the kid saw a failed turn even after a write had already landed.
  */
-const MAX_TOOL_ROUNDS = 3;
+const MAX_TOOL_ROUNDS = 6;
+const CLOSE_INSTRUCTION = {
+  role: "developer" as const,
+  content: "Reply to the kid now in two or three short sentences. You cannot use tools on this turn.",
+};
 /** Set AGENT_FLOW_DEBUG=1 to trace each tool call and its result. */
 const DEBUG = process.env.AGENT_FLOW_DEBUG === "1";
 type Action = "proceed" | "reject";
@@ -23,7 +28,7 @@ type Budget = { text: number; conditionAgent: number };
 
 export type ExecuteBuildMessageInput = Readonly<{ ownerId: string; gameId: string; message: string; signal?: AbortSignal }>;
 export type ResumeBuildTurnInput = Readonly<{ ownerId: string; gameId: string; action: Action; feedback?: string; signal?: AbortSignal }>;
-export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number; physicsDocument?: GamePhysicsDocument; specChange?: CooperSpecChange }>;
+export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number; physicsDocument?: GamePhysicsDocument; specChange?: CooperSpecChange; gameTitle?: string }>;
 
 export class BuildExecutionError extends Error {
   constructor(message: string, readonly code: string) {
@@ -98,7 +103,8 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
   // Reject or failure. The document rides back so the preview can re-render.
   let physicsDocument: GamePhysicsDocument | undefined;
   let specChange: CooperSpecChange | undefined;
-  const toolContext: ToolExecutionContext = { ownerId, gameId, prompt: run.question, store, signal };
+  let gameTitle: string | undefined;
+  const toolContext: ToolExecutionContext = { ownerId, gameId, prompt: run.question, store, moderator, signal };
   while (current) {
     if (current.kind === "agentAgentflow" || current.kind === "llmAgentflow") {
       if (++budget.text > 1) throw new BuildExecutionError("Build turn exceeded its model budget", "execution_budget");
@@ -107,6 +113,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
       flowState = text.flowState;
       physicsDocument = text.physicsDocument ?? physicsDocument;
       specChange = text.specChange ?? specChange;
+      gameTitle = text.gameTitle ?? gameTitle;
       current = nextRequired(current);
     } else if (current.kind === "conditionAgentAgentflow") {
       if (++budget.conditionAgent > 1) throw new BuildExecutionError("Build turn exceeded its condition budget", "execution_budget");
@@ -131,7 +138,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
       const cooperMessage = await screenTerminalMessage(template, interpolate(template, context(run.question, flowOutput, flowState)), "Direct Reply", moderator, signal);
       const complete = await store.completeDirectReply({ ownerId, gameId, runId: run.id, expectedRevision: revision, currentNodeId: current.id, flowState, flowOutput, loopCounts, cooperMessage });
       if (complete.status !== "updated" || complete.gameRevision === undefined) throw transitionError(complete.status);
-      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision, physicsDocument, specChange };
+      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision, physicsDocument, specChange, gameTitle };
     } else if (current.kind === "humanInputAgentflow") {
       const template = requiredInput(current, "humanInputDescription");
       const cooperMessage = await screenTerminalMessage(template, interpolate(template, context(run.question, flowOutput, flowState)), "Human Input", moderator, signal);
@@ -140,7 +147,7 @@ async function walk(node: CompiledNode, run: AgentFlowRun, revision: number, own
         pendingHumanInput: { nodeId: current.id, branches: current.branches, enableFeedback: current.inputs.humanInputEnableFeedback === true },
       });
       if (checkpoint.status !== "updated" || checkpoint.gameRevision === undefined) throw transitionError(checkpoint.status);
-      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision, physicsDocument, specChange };
+      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision, physicsDocument, specChange, gameTitle };
     } else {
       throw new FlowContractError(`Unsupported executable node "${current.kind}"`);
     }
@@ -156,9 +163,17 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
   let toolOutputs: ModelToolOutput[] | undefined;
   let physicsDocument: GamePhysicsDocument | undefined;
   let specChange: CooperSpecChange | undefined;
+  let gameTitle: string | undefined;
 
   for (let round = 0; ; round += 1) {
-    const turn = await client.completeTurn({ messages, tools, history, toolOutputs, signal: toolContext.signal });
+    const allowTools = round < MAX_TOOL_ROUNDS;
+    const turn = await client.completeTurn({
+      messages: allowTools ? messages : [...messages, CLOSE_INSTRUCTION],
+      tools: allowTools ? tools : undefined,
+      history,
+      toolOutputs,
+      signal: toolContext.signal,
+    });
     if (!turn.toolCalls.length) {
       const flowOutput = normalizeVisible(turn.text, "Model response");
       return {
@@ -166,9 +181,10 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
         flowState: stateEntries(node, `${prefix}UpdateState` as "agentUpdateState" | "llmUpdateState", question, flowOutput, state),
         physicsDocument,
         specChange,
+        gameTitle,
       };
     }
-    if (round >= MAX_TOOL_ROUNDS) {
+    if (!allowTools) {
       console.error(
         "[agent-flow] tool budget exhausted after",
         MAX_TOOL_ROUNDS,
@@ -187,6 +203,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
       const result = await getAgentTool(call.name).execute(parseToolArguments(call.argumentsJson), toolContext);
       physicsDocument = result.physicsDocument ?? physicsDocument;
       specChange = result.specChange ?? specChange;
+      gameTitle = result.gameTitle ?? gameTitle;
       const output = JSON.stringify(result.output);
       // A refused tool call is not an error: the model is told why and is
       // expected to recover. It still needs to be visible when a turn goes

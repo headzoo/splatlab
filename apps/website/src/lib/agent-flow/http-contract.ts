@@ -35,4 +35,10 @@ export type BuildTurnResponseBody = Readonly<{
   physicsDocument?: GamePhysicsDocument;
   /** Present only when this turn added or removed objects. */
   specChange?: CooperSpecChange;
+  /**
+   * Present only when this turn renamed the game. The name is stored beside the
+   * spec, so the builder has to be told about it or its next autosave would
+   * write the old name back.
+   */
+  title?: string;
 }>;

@@ -81,6 +81,131 @@ function clamp(value: number, minimum: number, maximum: number) {
 }
 
 export type PlatformerCamera = { x: number; y: number };
+export type PlatformerViewport = { columns: number; rows: number };
+
+export const EDITOR_ZOOM_STEP = 1.25;
+const EDITOR_ZOOM_EPSILON = 1e-6;
+
+export function viewportPixelSize(
+  map: Pick<PlatformerMapSpec, "tileSize">,
+  viewport: PlatformerViewport,
+) {
+  return {
+    width: viewport.columns * map.tileSize,
+    height: viewport.rows * map.tileSize,
+  };
+}
+
+/**
+ * Scale 1 is the designed play camera. Values below 1 show more of the map.
+ * The floor is the scale that just fits the whole world in the camera aspect.
+ */
+export function minimumEditorZoomScale(map: PlatformerMapSpec) {
+  const fitScale = Math.min(
+    map.camera.columns / map.size.columns,
+    map.camera.rows / map.size.rows,
+  );
+  return Math.min(1, fitScale);
+}
+
+export function clampEditorZoomScale(map: PlatformerMapSpec, scale: number) {
+  const minimum = minimumEditorZoomScale(map);
+  if (!Number.isFinite(scale)) return 1;
+  return clamp(scale, minimum, 1);
+}
+
+export function editorViewportForScale(
+  map: PlatformerMapSpec,
+  scale: number,
+): PlatformerViewport {
+  const clamped = clampEditorZoomScale(map, scale);
+  return {
+    columns: map.camera.columns / clamped,
+    rows: map.camera.rows / clamped,
+  };
+}
+
+export function fitEditorViewport(map: PlatformerMapSpec): PlatformerViewport {
+  return editorViewportForScale(map, minimumEditorZoomScale(map));
+}
+
+export function stepEditorZoomScale(
+  map: PlatformerMapSpec,
+  scale: number,
+  direction: "in" | "out",
+) {
+  const current = clampEditorZoomScale(map, scale);
+  const next = direction === "in"
+    ? current * EDITOR_ZOOM_STEP
+    : current / EDITOR_ZOOM_STEP;
+  return clampEditorZoomScale(map, next);
+}
+
+export function canStepEditorZoom(
+  map: PlatformerMapSpec,
+  scale: number,
+  direction: "in" | "out",
+) {
+  const current = clampEditorZoomScale(map, scale);
+  return Math.abs(stepEditorZoomScale(map, current, direction) - current) >
+    EDITOR_ZOOM_EPSILON;
+}
+
+/**
+ * Place a map cell in the center of the editor viewport, then clamp to the
+ * world. Used when zooming in toward the builder hero's tile.
+ */
+export function centerEditorCameraOnCell(
+  map: PlatformerMapSpec,
+  cell: { x: number; y: number },
+  viewport: PlatformerViewport,
+): PlatformerCamera {
+  const { width, height } = viewportPixelSize(map, viewport);
+  return clampEditorCamera(map, {
+    x: cell.x * map.tileSize + map.tileSize / 2 - width / 2,
+    y: cell.y * map.tileSize + map.tileSize / 2 - height / 2,
+  }, viewport);
+}
+
+/** The map cell the builder hero occupies, standing on the tile below it. */
+export function editorHeroCell(
+  map: Pick<PlatformerMapSpec, "tileSize" | "size">,
+  hero: Pick<PlatformerState, "x" | "y">,
+) {
+  return {
+    x: clamp(Math.floor(hero.x / map.tileSize), 0, map.size.columns - 1),
+    y: clamp(Math.ceil(hero.y / map.tileSize) - 1, 0, map.size.rows - 1),
+  };
+}
+
+/**
+ * Keep the visible world centered while the editor zoom changes. Extra sky
+ * from a taller-than-the-map viewport is ignored so zooming in from a full-map
+ * view lands on the level, not empty space. A focus cell, when set, wins.
+ */
+export function zoomEditorCamera(
+  map: PlatformerMapSpec,
+  camera: PlatformerCamera,
+  fromViewport: PlatformerViewport,
+  toViewport: PlatformerViewport,
+  focusCell?: { x: number; y: number } | null,
+): PlatformerCamera {
+  if (focusCell) {
+    return centerEditorCameraOnCell(map, focusCell, toViewport);
+  }
+  const from = viewportPixelSize(map, fromViewport);
+  const to = viewportPixelSize(map, toViewport);
+  const worldWidth = map.size.columns * map.tileSize;
+  const worldHeight = map.size.rows * map.tileSize;
+  const visibleLeft = Math.max(camera.x, 0);
+  const visibleRight = Math.min(camera.x + from.width, worldWidth);
+  const visibleTop = Math.max(camera.y, 0);
+  const visibleBottom = Math.min(camera.y + from.height, worldHeight);
+  return clampEditorCamera(map, {
+    x: (visibleLeft + visibleRight) / 2 - to.width / 2,
+    y: (visibleTop + visibleBottom) / 2 - to.height / 2,
+  }, toViewport);
+}
 
 export function resolveEnemyFacingDirection(
   enemy: Pick<EnemyState, "direction">,
@@ -127,6 +252,104 @@ export function resolvePlatformerCamera(
       Math.max(0, worldHeight - viewportHeight),
     ),
   };
+}
+
+export function clampEditorCamera(
+  map: PlatformerMapSpec,
+  camera: PlatformerCamera,
+  viewport: PlatformerViewport = map.camera,
+): PlatformerCamera {
+  const { width: viewportWidth, height: viewportHeight } = viewportPixelSize(
+    map,
+    viewport,
+  );
+  const worldWidth = map.size.columns * map.tileSize;
+  const worldHeight = map.size.rows * map.tileSize;
+  const maxX = worldWidth - viewportWidth;
+  const maxY = worldHeight - viewportHeight;
+  return {
+    x: maxX >= 0 ? clamp(camera.x, 0, maxX) : maxX / 2,
+    y: maxY >= 0 ? clamp(camera.y, 0, maxY) : maxY,
+  };
+}
+
+/**
+ * Keep the builder hero glued to the viewport while the map pans. If they
+ * stood two tiles from the left and two from the bottom, they stay there.
+ */
+export function translateHeroWithEditorCamera(
+  map: PlatformerMapSpec,
+  hero: Pick<PlatformerState, "x" | "y">,
+  fromCamera: PlatformerCamera,
+  toCamera: PlatformerCamera,
+): Pick<PlatformerState, "x" | "y"> {
+  const worldWidth = map.size.columns * map.tileSize;
+  const worldHeight = map.size.rows * map.tileSize;
+  return {
+    x: clamp(
+      hero.x + (toCamera.x - fromCamera.x),
+      map.tileSize / 2,
+      worldWidth - map.tileSize / 2,
+    ),
+    y: clamp(
+      hero.y + (toCamera.y - fromCamera.y),
+      map.tileSize,
+      worldHeight,
+    ),
+  };
+}
+
+/**
+ * Treat the builder hero's current world position as this session's start.
+ * Death returns here until Reset, a spawn-tool placement, or a real checkpoint.
+ */
+export function withEditorSessionSpawn(
+  state: PlatformerState,
+  hero: Pick<PlatformerState, "x" | "y">,
+): PlatformerState {
+  return {
+    ...state,
+    x: hero.x,
+    y: hero.y,
+    previousY: hero.y,
+    vx: 0,
+    vy: 0,
+    spawnX: hero.x,
+    spawnY: hero.y,
+    checkpointX: hero.x,
+    checkpointY: hero.y,
+    latestCheckpointId: null,
+  };
+}
+
+export function resolveEditorPlaySpawn(
+  map: PlatformerMapSpec,
+  state: Pick<PlatformerState, "x" | "y" | "enemies">,
+): Pick<PlatformerState, "x" | "y"> {
+  const bannedStandingCells = standingCellsForbiddenByEnemies(map, state.enemies);
+  const found = rankedPlayerGridSlots(map, state.x, state.y).find(({ x, y }) => (
+    editorPlayGridSlotIsOpen(map, x, y, bannedStandingCells)
+  ));
+  if (found) return { x: found.x, y: found.y };
+  const spawn = map.objects.find((object) => object.type === "player_spawn");
+  if (!spawn) throw new Error(`Map ${map.id} does not contain a player spawn.`);
+  return spawnPosition(map, spawn);
+}
+
+/**
+ * Stand the builder hero in a clicked cell, sliding to the nearest legal grid
+ * slot when that cell is blocked or crowded by an enemy.
+ */
+export function editorHeroPlacementForCell(
+  map: PlatformerMapSpec,
+  state: Pick<PlatformerState, "enemies">,
+  cell: { x: number; y: number },
+): Pick<PlatformerState, "x" | "y"> {
+  return resolveEditorPlaySpawn(map, {
+    ...state,
+    x: (cell.x + 0.5) * map.tileSize,
+    y: (cell.y + 1) * map.tileSize,
+  });
 }
 
 export function snapPlatformerStateToGrid(
@@ -223,11 +446,11 @@ export function resolveEnemyViewMusicCue(
 export function resolveWorldBottomBackgroundOffset(
   map: PlatformerMapSpec,
   cameraY: number,
+  viewport: PlatformerViewport = map.camera,
 ) {
-  const viewportHeight = map.camera.rows * map.tileSize;
+  const viewportHeight = viewport.rows * map.tileSize;
   const worldHeight = map.size.rows * map.tileSize;
-  const bottomCameraY = Math.max(0, worldHeight - viewportHeight);
-  return bottomCameraY - cameraY;
+  return worldHeight - viewportHeight - cameraY;
 }
 
 function interpolateCoordinate(
@@ -465,7 +688,10 @@ function isSolidCell(map: PlatformerMapSpec, column: number, row: number) {
   return isSolid(map, column, row) || Boolean(platformSpringAt(map, column, row));
 }
 
-function nearestPlayerGridPosition(
+const PAUSE_BLOCKED_COLLISION = new Set(["solid", "one_way"]);
+const EDITOR_PLAY_BLOCKED_COLLISION = new Set(["solid", "one_way", "hazard"]);
+
+function rankedPlayerGridSlots(
   map: PlatformerMapSpec,
   currentX: number,
   currentY: number,
@@ -483,19 +709,107 @@ function nearestPlayerGridPosition(
     }
   }
   candidates.sort((left, right) => left.distance - right.distance);
-  return candidates.find(({ x, y }) => {
-    const leftColumn = Math.floor((x - PLAYER_HALF_WIDTH + COLLISION_SKIN) / map.tileSize);
-    const rightColumn = Math.floor((x + PLAYER_HALF_WIDTH - COLLISION_SKIN) / map.tileSize);
-    const topRow = Math.floor((y - PLAYER_HEIGHT + COLLISION_SKIN) / map.tileSize);
-    const bottomRow = Math.floor((y - COLLISION_SKIN) / map.tileSize);
-    for (let row = topRow; row <= bottomRow; row += 1) {
-      for (let column = leftColumn; column <= rightColumn; column += 1) {
-        const collision = collisionAt(map, column, row);
-        if (collision === "solid" || collision === "one_way") return false;
+  return candidates;
+}
+
+function playerAabbCells(
+  map: PlatformerMapSpec,
+  x: number,
+  y: number,
+) {
+  return {
+    leftColumn: Math.floor((x - PLAYER_HALF_WIDTH + COLLISION_SKIN) / map.tileSize),
+    rightColumn: Math.floor((x + PLAYER_HALF_WIDTH - COLLISION_SKIN) / map.tileSize),
+    topRow: Math.floor((y - PLAYER_HEIGHT + COLLISION_SKIN) / map.tileSize),
+    bottomRow: Math.floor((y - COLLISION_SKIN) / map.tileSize),
+  };
+}
+
+function playerAabbOverlapsCollision(
+  map: PlatformerMapSpec,
+  x: number,
+  y: number,
+  blocked: ReadonlySet<string>,
+) {
+  const { leftColumn, rightColumn, topRow, bottomRow } = playerAabbCells(map, x, y);
+  for (let row = topRow; row <= bottomRow; row += 1) {
+    for (let column = leftColumn; column <= rightColumn; column += 1) {
+      if (blocked.has(collisionAt(map, column, row))) return true;
+    }
+  }
+  return false;
+}
+
+function standingCellKey(map: PlatformerMapSpec, x: number, y: number) {
+  return `${Math.floor(x / map.tileSize)}:${Math.floor((y - COLLISION_SKIN) / map.tileSize)}`;
+}
+
+function standingCellsForbiddenByEnemies(
+  map: PlatformerMapSpec,
+  enemies: readonly EnemyState[],
+) {
+  const occupied = new Set<string>();
+  for (const enemy of enemies) {
+    if (enemy.defeated) continue;
+    const bounds = enemyBounds(enemy);
+    const firstColumn = Math.max(0, Math.floor(bounds.left / map.tileSize));
+    const lastColumn = Math.min(
+      map.size.columns - 1,
+      Math.floor((bounds.right - COLLISION_SKIN) / map.tileSize),
+    );
+    const firstRow = Math.max(0, Math.floor(bounds.top / map.tileSize));
+    const lastRow = Math.min(
+      map.size.rows - 1,
+      Math.floor((bounds.bottom - COLLISION_SKIN) / map.tileSize),
+    );
+    for (let row = firstRow; row <= lastRow; row += 1) {
+      for (let column = firstColumn; column <= lastColumn; column += 1) {
+        occupied.add(`${column}:${row}`);
       }
     }
-    return true;
-  }) ?? {
+  }
+  const forbidden = new Set(occupied);
+  for (const key of occupied) {
+    const [column, row] = key.split(":").map(Number);
+    for (const [deltaX, deltaY] of [[0, -1], [0, 1], [-1, 0], [1, 0]] as const) {
+      forbidden.add(`${column + deltaX}:${row + deltaY}`);
+    }
+  }
+  return forbidden;
+}
+
+function editorPlayGridSlotIsOpen(
+  map: PlatformerMapSpec,
+  x: number,
+  y: number,
+  bannedStandingCells: ReadonlySet<string>,
+) {
+  const { leftColumn, rightColumn, topRow, bottomRow } = playerAabbCells(map, x, y);
+  if (
+    leftColumn < 0 ||
+    rightColumn >= map.size.columns ||
+    topRow < 0 ||
+    bottomRow >= map.size.rows
+  ) {
+    return false;
+  }
+  if (playerAabbOverlapsCollision(map, x, y, EDITOR_PLAY_BLOCKED_COLLISION)) {
+    return false;
+  }
+  const standing = standingCellKey(map, x, y);
+  const [column, row] = standing.split(":").map(Number);
+  if (platformSpringAt(map, column, row)) return false;
+  return !bannedStandingCells.has(standing);
+}
+
+function nearestPlayerGridPosition(
+  map: PlatformerMapSpec,
+  currentX: number,
+  currentY: number,
+) {
+  return rankedPlayerGridSlots(map, currentX, currentY).find(({ x, y }) => (
+    !playerAabbOverlapsCollision(map, x, y, PAUSE_BLOCKED_COLLISION)
+  )) ?? {
     x: clamp(currentX, map.tileSize / 2, map.size.columns * map.tileSize - map.tileSize / 2),
     y: clamp(currentY, map.tileSize, map.size.rows * map.tileSize),
   };
@@ -509,8 +823,13 @@ function resolveHorizontal(
   halfWidth = PLAYER_HALF_WIDTH,
   height = PLAYER_HEIGHT,
 ) {
-  if (dx === 0) return { position: x, hit: false };
   const tileSize = map.tileSize;
+  const minimumX = halfWidth;
+  const maximumX = map.size.columns * tileSize - halfWidth;
+  if (dx === 0) {
+    const position = clamp(x, minimumX, maximumX);
+    return { position, hit: position !== x };
+  }
   let nextX = x + dx;
   const topRow = Math.floor((y - height + COLLISION_SKIN) / tileSize);
   const bottomRow = Math.floor((y - COLLISION_SKIN) / tileSize);
@@ -539,6 +858,8 @@ function resolveHorizontal(
     }
   }
 
+  if (nextX < minimumX) return { position: minimumX, hit: true };
+  if (nextX > maximumX) return { position: maximumX, hit: true };
   return { position: nextX, hit: false };
 }
 

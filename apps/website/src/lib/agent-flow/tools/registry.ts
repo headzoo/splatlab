@@ -7,10 +7,24 @@ import {
 } from "./game-object-tools";
 import {
   setEnemyAppearanceTool,
+  setLevelArtTool,
   setPlayerCharacterTool,
   setStartingLivesTool,
 } from "./game-look-tools";
 import { patchGamePhysicsTool, readGamePhysicsTool } from "./game-physics-tools";
+import {
+  readGameTool,
+  renameGameTool,
+  setGameTypeTool,
+  setPlayerAppearanceTool,
+} from "./game-detail-tools";
+import {
+  addLevelTool,
+  moveLevelTool,
+  removeLevelTool,
+  renameLevelTool,
+  setActiveLevelTool,
+} from "./game-level-tools";
 import type { AgentTool } from "./types";
 
 const TOOLS: ReadonlyMap<AgentToolId, AgentTool> = new Map([
@@ -22,6 +36,16 @@ const TOOLS: ReadonlyMap<AgentToolId, AgentTool> = new Map([
   [setStartingLivesTool.id as AgentToolId, setStartingLivesTool],
   [setPlayerCharacterTool.id as AgentToolId, setPlayerCharacterTool],
   [setEnemyAppearanceTool.id as AgentToolId, setEnemyAppearanceTool],
+  [setLevelArtTool.id as AgentToolId, setLevelArtTool],
+  [readGameTool.id as AgentToolId, readGameTool],
+  [renameGameTool.id as AgentToolId, renameGameTool],
+  [setGameTypeTool.id as AgentToolId, setGameTypeTool],
+  [setPlayerAppearanceTool.id as AgentToolId, setPlayerAppearanceTool],
+  [addLevelTool.id as AgentToolId, addLevelTool],
+  [renameLevelTool.id as AgentToolId, renameLevelTool],
+  [removeLevelTool.id as AgentToolId, removeLevelTool],
+  [moveLevelTool.id as AgentToolId, moveLevelTool],
+  [setActiveLevelTool.id as AgentToolId, setActiveLevelTool],
 ]);
 
 export function getAgentTool(id: string): AgentTool {

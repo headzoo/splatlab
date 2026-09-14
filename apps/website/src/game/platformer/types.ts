@@ -1,3 +1,5 @@
+import type { PlatformerArtSlot } from "@/lib/game-contract";
+
 import type { MotionSpec } from "../motion";
 
 export type { MotionSpec } from "../motion";
@@ -80,6 +82,12 @@ export type PlatformerMapSpec = {
   };
   presentation: {
     backgroundId: string;
+    /**
+     * Parts of this level wearing another world's art, such as an ice level
+     * using Dragon World platforms. Composed onto the map from the saved
+     * game's `platformerLevelArt`, never authored in a checked-in map.
+     */
+    artBorrows?: Partial<Record<PlatformerArtSlot, string>>;
     victoryEffectId?: string;
     gameOverEffectId?: string;
     hud?: Array<{

@@ -24,6 +24,30 @@ class ScriptedModelClient implements ModelClient {
   }
 }
 
+/** Renames the game on its first turn, then replies without calling a tool. */
+class RenamingModelClient implements ModelClient {
+  private calls = 0;
+
+  async completeTurn() {
+    this.calls += 1;
+    return this.calls === 1
+      ? {
+          text: "",
+          toolCalls: [{
+            callId: "call-rename",
+            name: "rename_game",
+            argumentsJson: JSON.stringify({ name: "Ice World" }),
+          }],
+          items: [],
+        }
+      : { text: "Your game is called Ice World now.", toolCalls: [], items: [] };
+  }
+
+  async selectScenario() {
+    return "Ready";
+  }
+}
+
 function resetMemory() {
   globalThis.splatLabGamesMemory = [];
   globalThis.splatLabAgentFlowRunsMemory = [];
@@ -79,6 +103,27 @@ test("processBuildTurn maps a successful message to the HTTP body shape", async 
   assert.equal(body.cooperMessage, "A scoped and verified maze handoff.");
   assert.match(body.runId, /^[0-9a-f-]{36}$/);
   assert.equal(result.gameRevision, 3);
+  assert.equal("title" in body, false, "a turn that renamed nothing sends no name");
+});
+
+test("processBuildTurn puts a rename on the wire so the builder stops saving the old name", async () => {
+  resetMemory();
+  const game = await createGame("owner-a", { title: "Test game", spec: DEFAULT_GAME_DOCUMENT });
+
+  const result = await processBuildTurn(
+    { ownerId: "owner-a", gameId: game.id, input: { message: "Rename the game to Ice World" } },
+    {
+      modelClient: new RenamingModelClient(),
+      runStore: new AgentFlowRunStore({ forceMemory: true }),
+      rateLimiter: new AgentflowRateLimiter({ forceMemory: true }),
+    },
+  );
+
+  assert.equal(result.kind, "success");
+  if (result.kind !== "success") return;
+
+  assert.equal(result.body.title, "Ice World");
+  assert.equal(globalThis.splatLabGamesMemory?.[0]?.title, "Ice World");
 });
 
 test("processBuildTurn meters Proceed even when there is no paused run", async () => {

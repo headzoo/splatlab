@@ -6,12 +6,23 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type RefObject,
 } from "react";
 
+import {
+  assetUrl,
+  collectedCoinAssetId,
+  hazardSheetForAssetId,
+  imageKeyForAssetId,
+  IMAGE_URLS,
+  resolveMapVisuals,
+  type ImageKey,
+} from "./art-catalog";
 import { MAP_COMPLETION_DELAY_SECONDS } from "./campaign";
 import { drawBossHealthBar } from "./boss-health-bar";
 import {
@@ -27,11 +38,21 @@ import {
   resolveExtraLifeOpacity,
   resolvePlatformSpringCompressionFrame,
   resolvePlatformerCamera,
+  clampEditorCamera,
+  editorHeroCell,
+  editorHeroPlacementForCell,
+  editorViewportForScale,
+  translateHeroWithEditorCamera,
+  withEditorSessionSpawn,
+  resolveEditorPlaySpawn,
   snapPlatformerStateToGrid,
   resolveVisualMotionOffset,
   resolveWorldBottomBackgroundOffset,
   stepPlatformer,
+  viewportPixelSize,
+  zoomEditorCamera,
   type PlatformerCamera,
+  type PlatformerViewport,
 } from "./engine";
 import type {
   PlatformerInput,
@@ -42,22 +63,37 @@ import type {
   WeaponSpec,
 } from "./types";
 import {
+  fullscreenButtonLabel,
+  useGameFullscreen,
+} from "@/game/fullscreen";
+import {
   isCustomizableHumanAsset,
   loadSpriteImage,
   recolorHumanSprite,
 } from "@/game/player-appearance";
 import type {
   HairColor,
+  PlatformerObjectKind,
   PlatformerTerrainKind,
   PlayerAssetId,
   SkinTone,
 } from "@/lib/game-contract";
 import {
-  PLATFORMER_OBJECT_TOOLS,
-  platformerObjectAtPreviewCell,
-  platformerPreviewCellForObject,
+  applyPlatformerEditorSelectionClick,
+  clampPlatformerSelectionDelta,
+  EMPTY_PLATFORMER_EDITOR_SELECTION,
+  isPlatformerObjectTool,
+  objectPlacementsFromStroke,
+  platformerEditorCursor,
+  platformerEditorHitAtCell,
+  platformerEditorSelectionCells,
+  platformerEditorSelectionHasCell,
+  platformerHudAtViewportCell,
+  platformerSelectionWithoutObject,
   platformerTerrainKindAt,
+  platformerUnselectableHeroId,
   type PlatformerEditTool,
+  type PlatformerEditorSelection,
   type PlatformerObjectPlacement,
   type PlatformerTerrainStrokeCell,
 } from "./map-editing";
@@ -99,11 +135,18 @@ type PlatformerGameProps = {
   editorTool?: PlatformerEditTool;
   onEditorToolChange?: (tool: PlatformerEditTool) => void;
   onTerrainStroke?: (stroke: readonly PlatformerTerrainStrokeCell[]) => void;
-  onObjectPlace?: (placement: PlatformerObjectPlacement) => void;
-  selectedObjectId?: string | null;
-  onObjectSelect?: (objectId: string | null) => void;
+  onObjectPlace?: (placements: readonly PlatformerObjectPlacement[]) => void;
+  editorSelection?: PlatformerEditorSelection;
+  onEditorSelectionChange?: (selection: PlatformerEditorSelection) => void;
+  onEditorSelectionMove?: (
+    dx: number,
+    dy: number,
+    selection: PlatformerEditorSelection,
+  ) => void;
   onPlayingChange?: (playing: boolean) => void;
   onComplete?: (livesRemaining: number) => void;
+  editorZoomScale?: number;
+  mapAreaRef?: RefObject<HTMLDivElement | null>;
 };
 
 type ControlAction = "left" | "right" | "down" | "jump" | "weapon";
@@ -112,8 +155,9 @@ type CapturingBinding = { action: ControlAction; index: number } | null;
 type EditorCell = { x: number; y: number };
 type EditorPaintStroke = {
   pointerId: number;
-  kind: PlatformerTerrainKind;
-  cells: Map<string, PlatformerTerrainStrokeCell>;
+  objectKind: PlatformerObjectKind | null;
+  terrainKind: PlatformerTerrainKind | null;
+  cells: Map<string, EditorCell>;
   lastCell: EditorCell;
 };
 type EditorPan = {
@@ -121,6 +165,15 @@ type EditorPan = {
   clientX: number;
   clientY: number;
   camera: PlatformerCamera;
+  hero: { x: number; y: number };
+};
+type EditorMoveStroke = {
+  pointerId: number;
+  origin: EditorCell;
+  originCells: readonly EditorCell[];
+  selection: PlatformerEditorSelection;
+  delta: { dx: number; dy: number };
+  clickUnselects: boolean;
 };
 
 const CONTROL_BINDINGS_STORAGE_KEY = "splat-lab.game-controls.v1";
@@ -190,223 +243,6 @@ function isControlBindings(value: unknown): value is ControlBindings {
       keys.every((key) => typeof key === "string" && normalizeControlKey(key) === key);
   });
 }
-
-const assetUrl = (path: string) => `/game-assets/${path}`;
-
-const IMAGE_URLS = {
-  greenBackgroundFar: assetUrl("backgrounds/background_neutral_green_hills_castle_far_01.png"),
-  greenBackgroundMid: assetUrl("backgrounds/background_neutral_green_hills_waterfalls_mid_01.png"),
-  greenBackgroundNear: assetUrl("backgrounds/background_neutral_green_hills_foliage_near_01.png"),
-  spaceBackgroundFar: assetUrl("backgrounds/background_space_stars_far_01.png"),
-  spaceBackgroundMid: assetUrl("backgrounds/background_space_moon_mid_01.png"),
-  spaceBackgroundNear: assetUrl("backgrounds/background_space_station_near_01.png"),
-  hauntedBackground: assetUrl("backgrounds/background_haunted_graveyard_01.png"),
-  dragonsBackgroundFar: assetUrl("backgrounds/background_dragons_ash_far_01.png"),
-  dragonsBackgroundMid: assetUrl("backgrounds/background_dragons_volcano_mid_01.png"),
-  dragonsBackgroundNear: assetUrl("backgrounds/background_dragons_ruins_near_01.png"),
-  iceBackgroundFar: assetUrl("backgrounds/background_ice_world_mountains_far_01.png"),
-  iceBackgroundMid: assetUrl("backgrounds/background_ice_world_glaciers_mid_01.png"),
-  iceBackgroundNear: assetUrl("backgrounds/background_ice_world_crystals_near_01.png"),
-  greenGround: assetUrl("sprites/neutral_green_hills_platformer_ground_01.png"),
-  greenPlatform: assetUrl("sprites/neutral_green_hills_platformer_platform_01.png"),
-  greenObstacle: assetUrl("sprites/neutral_green_hills_platformer_obstacle_01.png"),
-  greenHazard: assetUrl("sprites/neutral_green_hills_platformer_hazard_01.png"),
-  spaceGround: assetUrl("sprites/space_platformer_ground_01.png"),
-  spacePlatform: assetUrl("sprites/space_platformer_platform_01.png"),
-  spaceObstacle: assetUrl("sprites/space_platformer_obstacle_01.png"),
-  spaceHazard: assetUrl("sprites/space_platformer_hazard_01.png"),
-  hauntedGround: assetUrl("sprites/haunted_graveyard_platformer_ground_01.png"),
-  hauntedPlatform: assetUrl("sprites/haunted_graveyard_platformer_platform_01.png"),
-  hauntedObstacle: assetUrl("sprites/haunted_graveyard_platformer_obstacle_01.png"),
-  hauntedHazard: assetUrl("sprites/haunted_graveyard_platformer_hazard_01.png"),
-  haunted_graveyard_platformer_spring_01: assetUrl("sprites/haunted_graveyard_platformer_spring_01.png"),
-  haunted_graveyard_platformer_spring_01_compressed: assetUrl("sprites/haunted_graveyard_platformer_spring_01_compressed.png"),
-  dragonsGround: assetUrl("sprites/dragons_emberkeep_platformer_ground_01.png"),
-  dragonsPlatform: assetUrl("sprites/dragons_emberkeep_platformer_platform_01.png"),
-  dragonsObstacle: assetUrl("sprites/dragons_emberkeep_platformer_obstacle_01.png"),
-  dragonsHazard: assetUrl("sprites/dragons_emberkeep_platformer_hazard_01.png"),
-  iceGround: assetUrl("sprites/ice_world_platformer_ground_01.png"),
-  icePlatform: assetUrl("sprites/ice_world_platformer_platform_01.png"),
-  iceObstacle: assetUrl("sprites/ice_world_platformer_obstacle_01.png"),
-  iceHazard: assetUrl("sprites/ice_world_platformer_hazard_01.png"),
-  ice_world_cooper_01: assetUrl("sprites/ice_world_cooper_01.png"),
-  ice_world_human_01: assetUrl("sprites/ice_world_human_01.png"),
-  ice_world_girl_01: assetUrl("sprites/ice_world_girl_01.png"),
-  ice_world_ghost_01: assetUrl("sprites/ice_world_ghost_01.png"),
-  ice_world_robot_01: assetUrl("sprites/ice_world_robot_01.png"),
-  ice_world_platformer_spring_01: assetUrl("sprites/ice_world_platformer_spring_01.png"),
-  ice_world_platformer_spring_01_compressed: assetUrl("sprites/ice_world_platformer_spring_01_compressed.png"),
-  neutral_cooper_01: assetUrl("sprites/neutral_cooper_01.png"),
-  neutral_human_01: assetUrl("sprites/neutral_human_01.png"),
-  neutral_girl_01: assetUrl("sprites/neutral_girl_01.png"),
-  neutral_ghost_01: assetUrl("sprites/neutral_ghost_01.png"),
-  neutral_robot_01: assetUrl("sprites/neutral_robot_01.png"),
-  haunted_cooper_01: assetUrl("sprites/haunted_cooper_01.png"),
-  haunted_human_01: assetUrl("sprites/haunted_human_01.png"),
-  haunted_girl_01: assetUrl("sprites/haunted_girl_01.png"),
-  haunted_ghost_01: assetUrl("sprites/haunted_ghost_01.png"),
-  haunted_robot_01: assetUrl("sprites/haunted_robot_01.png"),
-  space_cooper_01: assetUrl("sprites/space_cooper_01.png"),
-  space_human_01: assetUrl("sprites/space_human_01.png"),
-  space_girl_01: assetUrl("sprites/space_girl_01.png"),
-  space_ghost_01: assetUrl("sprites/space_ghost_01.png"),
-  space_robot_01: assetUrl("sprites/space_robot_01.png"),
-  dragon_cooper_01: assetUrl("sprites/dragon_cooper_01.png"),
-  dragon_human_01: assetUrl("sprites/dragon_human_01.png"),
-  dragon_girl_01: assetUrl("sprites/dragon_girl_01.png"),
-  dragon_ghost_01: assetUrl("sprites/dragon_ghost_01.png"),
-  space_cooper_01_attack: assetUrl("sprites/space_cooper_01_attack.png"),
-  space_human_01_attack: assetUrl("sprites/space_human_01_attack.png"),
-  space_cooper_01_defeated: assetUrl("sprites/space_cooper_01_defeated.png"),
-  space_human_01_defeated: assetUrl("sprites/space_human_01_defeated.png"),
-  space_ghost_01_defeated: assetUrl("sprites/space_ghost_01_defeated.png"),
-  space_robot_01_defeated: assetUrl("sprites/space_robot_01_defeated.png"),
-  weapon: assetUrl("sprites/short_sword_v1.png"),
-  spaceCoin: assetUrl("sprites/space_platformer_coin_01.png"),
-  spaceCoinCollected: assetUrl("sprites/space_platformer_coin_01_collected.png"),
-  spaceCheckpoint: assetUrl("sprites/space_platformer_checkpoint_01.png"),
-  spaceGoal: assetUrl("sprites/space_platformer_goal_01.png"),
-  dragonsCoin: assetUrl("sprites/dragons_emberkeep_platformer_coin_01.png"),
-  dragonsCoinCollected: assetUrl("sprites/dragons_emberkeep_platformer_coin_01_collected.png"),
-  iceCoin: assetUrl("sprites/ice_world_platformer_coin_01.png"),
-  iceCoinCollected: assetUrl("sprites/ice_world_platformer_coin_01_collected.png"),
-  dragonsCheckpoint: assetUrl("sprites/dragons_emberkeep_platformer_checkpoint_01.png"),
-  dragonsGoal: assetUrl("sprites/dragons_emberkeep_platformer_goal_01.png"),
-  hudCoin: assetUrl("sprites/space_platformer_hud_coins_01.png"),
-  hudLife: assetUrl("sprites/space_platformer_hud_lives_01.png"),
-  victory: assetUrl("sprites/shared_victory_burst_01.png"),
-  neutral_zombie_01: assetUrl("sprites/neutral_zombie_01.png"),
-  neutral_green_hills_boss_01: assetUrl("sprites/neutral_green_hills_boss_01.png"),
-  neutral_green_hills_flying_cooper_01: assetUrl("sprites/neutral_green_hills_flying_cooper_01.png"),
-  space_boss_01: assetUrl("sprites/space_boss_01.png"),
-  haunted_spirit_orb_01: assetUrl("sprites/haunted_spirit_orb_01.png"),
-  haunted_boss_01: assetUrl("sprites/haunted_boss_01.png"),
-  haunted_flying_cooper_bat_01: assetUrl("sprites/haunted_flying_cooper_bat_01.png"),
-  haunted_tombstone_01: assetUrl("sprites/haunted_tombstone_01.png"),
-  haunted_graveyard_flaming_pumpkin_01: assetUrl("sprites/haunted_graveyard_flaming_pumpkin_01.png"),
-  dragon_dragon_01: assetUrl("sprites/dragon_dragon_01.png"),
-  dragons_emberkeep_fireball_01: assetUrl("sprites/dragons_emberkeep_fireball_01.png"),
-  dragons_emberkeep_flying_fireball_01: assetUrl("sprites/dragons_emberkeep_flying_fireball_01.png"),
-  dragons_emberkeep_boss_01: assetUrl("sprites/dragons_emberkeep_boss_01.png"),
-  ice_world_boss_01: assetUrl("sprites/ice_world_boss_01.png"),
-  ice_world_crystal_projectile_01: assetUrl("sprites/ice_world_crystal_projectile_01.png"),
-} as const;
-
-type ImageKey = keyof typeof IMAGE_URLS;
-
-type MapVisualProfile = {
-  color: string;
-  backgroundLayers: Array<{
-    image: ImageKey;
-    parallax: number;
-    heightRatio: number;
-    opacity: number;
-    verticalAnchor: "center" | "bottom";
-  }>;
-  ground: ImageKey;
-  platform: ImageKey;
-  obstacle: ImageKey;
-  hazard: ImageKey;
-  hazardColumns: number;
-  hazardFrames: number;
-  coin: ImageKey;
-  coinCollected: ImageKey;
-  checkpoint: ImageKey;
-  goal: ImageKey;
-};
-
-const GREEN_HILLS_VISUALS: MapVisualProfile = {
-  color: "#4dbcf2",
-  backgroundLayers: [
-    { image: "greenBackgroundFar", parallax: 0.1, heightRatio: 1, opacity: 0.78, verticalAnchor: "center" },
-    { image: "greenBackgroundMid", parallax: 0.34, heightRatio: 0.94, opacity: 0.88, verticalAnchor: "bottom" },
-    { image: "greenBackgroundNear", parallax: 0.66, heightRatio: 0.82, opacity: 0.94, verticalAnchor: "bottom" },
-  ],
-  ground: "greenGround",
-  platform: "greenPlatform",
-  obstacle: "greenObstacle",
-  hazard: "greenHazard",
-  hazardColumns: 2,
-  hazardFrames: 4,
-  coin: "spaceCoin",
-  coinCollected: "spaceCoinCollected",
-  checkpoint: "spaceCheckpoint",
-  goal: "spaceGoal",
-};
-
-const MAP_VISUALS: Record<string, MapVisualProfile> = {
-  neutral_green_hills_01: GREEN_HILLS_VISUALS,
-  space_orbital_outpost_01: {
-    color: "#07091d",
-    backgroundLayers: [
-      { image: "spaceBackgroundFar", parallax: 0.12, heightRatio: 1, opacity: 0.72, verticalAnchor: "center" },
-      { image: "spaceBackgroundMid", parallax: 0.38, heightRatio: 0.94, opacity: 0.86, verticalAnchor: "bottom" },
-      { image: "spaceBackgroundNear", parallax: 0.68, heightRatio: 0.82, opacity: 0.92, verticalAnchor: "bottom" },
-    ],
-    ground: "spaceGround",
-    platform: "spacePlatform",
-    obstacle: "spaceObstacle",
-    hazard: "spaceHazard",
-    hazardColumns: 2,
-    hazardFrames: 4,
-    coin: "spaceCoin",
-    coinCollected: "spaceCoinCollected",
-    checkpoint: "spaceCheckpoint",
-    goal: "spaceGoal",
-  },
-  haunted_graveyard_01: {
-    color: "#17143f",
-    backgroundLayers: [
-      { image: "hauntedBackground", parallax: 0.24, heightRatio: 1, opacity: 1, verticalAnchor: "bottom" },
-    ],
-    ground: "hauntedGround",
-    platform: "hauntedPlatform",
-    obstacle: "hauntedObstacle",
-    hazard: "hauntedHazard",
-    hazardColumns: 4,
-    hazardFrames: 8,
-    coin: "spaceCoin",
-    coinCollected: "spaceCoinCollected",
-    checkpoint: "spaceCheckpoint",
-    goal: "spaceGoal",
-  },
-  dragons_emberkeep_01: {
-    color: "#241225",
-    backgroundLayers: [
-      { image: "dragonsBackgroundFar", parallax: 0.1, heightRatio: 1, opacity: 0.58, verticalAnchor: "center" },
-      { image: "dragonsBackgroundMid", parallax: 0.34, heightRatio: 0.94, opacity: 0.88, verticalAnchor: "bottom" },
-      { image: "dragonsBackgroundNear", parallax: 0.66, heightRatio: 0.82, opacity: 0.94, verticalAnchor: "bottom" },
-    ],
-    ground: "dragonsGround",
-    platform: "dragonsPlatform",
-    obstacle: "dragonsObstacle",
-    hazard: "dragonsHazard",
-    hazardColumns: 2,
-    hazardFrames: 4,
-    coin: "dragonsCoin",
-    coinCollected: "dragonsCoinCollected",
-    checkpoint: "dragonsCheckpoint",
-    goal: "dragonsGoal",
-  },
-  ice_world_01: {
-    color: "#bcecff",
-    backgroundLayers: [
-      { image: "iceBackgroundFar", parallax: 0.1, heightRatio: 1, opacity: 0.78, verticalAnchor: "center" },
-      { image: "iceBackgroundMid", parallax: 0.34, heightRatio: 0.94, opacity: 0.88, verticalAnchor: "bottom" },
-      { image: "iceBackgroundNear", parallax: 0.66, heightRatio: 0.82, opacity: 0.94, verticalAnchor: "bottom" },
-    ],
-    ground: "iceGround",
-    platform: "icePlatform",
-    obstacle: "iceObstacle",
-    hazard: "iceHazard",
-    hazardColumns: 2,
-    hazardFrames: 4,
-    coin: "iceCoin",
-    coinCollected: "iceCoinCollected",
-    checkpoint: "spaceCheckpoint",
-    goal: "spaceGoal",
-  },
-};
 
 const MUSIC_URLS = {
   gameplay: assetUrl("audio/space_basic_v1/gameplay_loop.wav"),
@@ -499,6 +335,8 @@ const EDITOR_TERRAIN_COLORS: Record<PlatformerTerrainKind, string> = {
   hazard: "rgb(238 68 68 / 48%)",
 };
 
+const EDITOR_OBJECT_COLOR = "rgb(50 121 213 / 46%)";
+
 const EDITOR_TOOL_LABELS: Record<PlatformerEditTool, string> = {
   select: "Select",
   move: "Move",
@@ -521,8 +359,7 @@ const EDITOR_TOOL_LABELS: Record<PlatformerEditTool, string> = {
 function editorPaintKind(
   tool: PlatformerEditTool | undefined,
 ): PlatformerTerrainKind | null {
-  if (!tool || tool === "select" || tool === "move") return null;
-  if (PLATFORMER_OBJECT_TOOLS.includes(tool as (typeof PLATFORMER_OBJECT_TOOLS)[number])) {
+  if (!tool || tool === "select" || tool === "move" || isPlatformerObjectTool(tool)) {
     return null;
   }
   return tool === "erase"
@@ -530,24 +367,15 @@ function editorPaintKind(
     : tool as Exclude<PlatformerTerrainKind, "empty">;
 }
 
-function clampEditorCamera(
-  map: PlatformerMapSpec,
-  camera: PlatformerCamera,
-): PlatformerCamera {
-  const viewportWidth = map.camera.columns * map.tileSize;
-  const viewportHeight = map.camera.rows * map.tileSize;
-  return {
-    x: clamp(
-      camera.x,
-      0,
-      Math.max(0, map.size.columns * map.tileSize - viewportWidth),
-    ),
-    y: clamp(
-      camera.y,
-      0,
-      Math.max(0, map.size.rows * map.tileSize - viewportHeight),
-    ),
-  };
+function playerSpawnCell(map: PlatformerMapSpec) {
+  const spawn = map.objects.find((object) => object.type === "player_spawn");
+  return spawn ? { id: spawn.id, x: spawn.x, y: spawn.y } : null;
+}
+
+function samePlayerSpawn(left: PlatformerMapSpec, right: PlatformerMapSpec) {
+  const previous = playerSpawnCell(left);
+  const next = playerSpawnCell(right);
+  return previous?.id === next?.id && previous?.x === next?.x && previous?.y === next?.y;
 }
 
 function cellsAlongLine(from: EditorCell, to: EditorCell): EditorCell[] {
@@ -570,11 +398,15 @@ function drawEditorOverlay(
   map: PlatformerMapSpec,
   camera: PlatformerCamera,
   cursor: EditorCell | null,
-  selected: EditorCell | null,
-  pending: ReadonlyMap<string, PlatformerTerrainStrokeCell>,
+  selected: readonly EditorCell[],
+  pending: ReadonlyMap<string, EditorCell>,
+  pendingTerrainKind: PlatformerTerrainKind | null,
+  viewport: PlatformerViewport = map.camera,
 ) {
-  const viewportWidth = map.camera.columns * map.tileSize;
-  const viewportHeight = map.camera.rows * map.tileSize;
+  const { width: viewportWidth, height: viewportHeight } = viewportPixelSize(
+    map,
+    viewport,
+  );
   const firstColumn = Math.max(0, Math.floor(camera.x / map.tileSize));
   const lastColumn = Math.min(
     map.size.columns,
@@ -605,9 +437,11 @@ function drawEditorOverlay(
   for (const cell of pending.values()) {
     const x = cell.x * map.tileSize - camera.x;
     const y = cell.y * map.tileSize - camera.y;
-    context.fillStyle = EDITOR_TERRAIN_COLORS[cell.kind];
+    context.fillStyle = pendingTerrainKind
+      ? EDITOR_TERRAIN_COLORS[pendingTerrainKind]
+      : EDITOR_OBJECT_COLOR;
     context.fillRect(x + 2, y + 2, map.tileSize - 4, map.tileSize - 4);
-    if (cell.kind === "empty") {
+    if (pendingTerrainKind === "empty") {
       context.strokeStyle = "rgb(255 255 255 / 88%)";
       context.lineWidth = 4;
       context.beginPath();
@@ -619,12 +453,12 @@ function drawEditorOverlay(
     }
   }
 
-  if (selected) {
+  for (const cell of selected) {
     context.strokeStyle = "#ffd52e";
     context.lineWidth = 5;
     context.strokeRect(
-      selected.x * map.tileSize - camera.x + 3,
-      selected.y * map.tileSize - camera.y + 3,
+      cell.x * map.tileSize - camera.x + 3,
+      cell.y * map.tileSize - camera.y + 3,
       map.tileSize - 6,
       map.tileSize - 6,
     );
@@ -822,13 +656,20 @@ function drawWorld(
   playerAssetId: PlayerAssetId,
   playerImage: CanvasImageSource | undefined,
   victoryElapsedSeconds: number | null,
+  viewport: PlatformerViewport = map.camera,
 ) {
-  const viewportWidth = map.camera.columns * map.tileSize;
-  const viewportHeight = map.camera.rows * map.tileSize;
+  const { width: viewportWidth, height: viewportHeight } = viewportPixelSize(
+    map,
+    viewport,
+  );
   const cameraX = camera.x;
   const cameraY = camera.y;
-  const foregroundVerticalOffset = resolveWorldBottomBackgroundOffset(map, cameraY);
-  const visuals = MAP_VISUALS[map.presentation.backgroundId] ?? GREEN_HILLS_VISUALS;
+  const foregroundVerticalOffset = resolveWorldBottomBackgroundOffset(
+    map,
+    cameraY,
+    viewport,
+  );
+  const visuals = resolveMapVisuals(map.presentation);
 
   context.clearRect(0, 0, viewportWidth, viewportHeight);
   context.fillStyle = visuals.color;
@@ -866,17 +707,34 @@ function drawWorld(
       if (!slot || slot === "empty") continue;
       const x = column * map.tileSize;
       const y = row * map.tileSize;
-      const overrideAssetId = overrides.get(`${column},${row}`)?.assetId as ImageKey | undefined;
+      // A tile painted from another world names its own art here, so one level
+      // can show Graveyard ground beside its own.
+      const overrideAssetId = overrides.get(`${column},${row}`)?.assetId;
+      const overrideKey = imageKeyForAssetId(overrideAssetId)
+        ?? (overrideAssetId as ImageKey | undefined);
       if (slot === "hazard") {
         const startFrame = overrides.get(`${column},${row}`)?.animationStartFrame ?? 1;
-        const frame = (startFrame - 1 + Math.floor(elapsedSeconds * 8)) % visuals.hazardFrames;
-        drawSheetFrame(context, images[visuals.hazard], visuals.hazardColumns, 64, 64, frame, x, y);
+        // Hazard sheets disagree about their layout, so a borrowed spike reads
+        // its own geometry rather than the level's.
+        const sheet = hazardSheetForAssetId(overrideAssetId)
+          ?? { columns: visuals.hazardColumns, frames: visuals.hazardFrames };
+        const frame = (startFrame - 1 + Math.floor(elapsedSeconds * 8)) % sheet.frames;
+        drawSheetFrame(
+          context,
+          images[overrideKey ?? visuals.hazard],
+          sheet.columns,
+          64,
+          64,
+          frame,
+          x,
+          y,
+        );
       } else {
         const imageKey = slot === "ground"
-          ? visuals.ground
+          ? overrideKey ?? visuals.ground
           : slot === "platform"
-            ? visuals.platform
-            : overrideAssetId ?? visuals.obstacle;
+            ? overrideKey ?? visuals.platform
+            : overrideKey ?? visuals.obstacle;
         const image = images[imageKey];
         if (imageKey === "haunted_tombstone_01" && image) {
           context.drawImage(image, x, y - 32, map.tileSize, 96);
@@ -891,12 +749,18 @@ function drawWorld(
   for (const object of map.objects) {
     const x = object.x * map.tileSize;
     const y = object.y * map.tileSize;
+    // A pickup placed from another world names its own art, so a level can hold
+    // Graveyard coins beside its own.
+    const objectKey = imageKeyForAssetId(object.assetId);
     if (object.type === "collectible") {
       const poofFrame = resolveCollectiblePoofFrame(state, object.id);
       if (poofFrame !== null) {
+        const collectedKey = object.assetId
+          ? imageKeyForAssetId(collectedCoinAssetId(object.assetId))
+          : undefined;
         drawSheetFrame(
           context,
-          images[visuals.coinCollected],
+          images[collectedKey ?? visuals.coinCollected],
           2,
           64,
           64,
@@ -905,7 +769,7 @@ function drawWorld(
           y,
         );
       } else if (!state.collectedIds.includes(object.id)) {
-        drawSheetFrame(context, images[visuals.coin], 2, 64, 64, animationFrame, x, y);
+        drawSheetFrame(context, images[objectKey ?? visuals.coin], 2, 64, 64, animationFrame, x, y);
       }
     } else if (object.type === "extra_life") {
       const opacity = resolveExtraLifeOpacity(state, object.id);
@@ -936,9 +800,29 @@ function drawWorld(
         );
       }
     } else if (object.type === "checkpoint") {
-      drawSheetFrame(context, images[visuals.checkpoint], 2, 64, 64, animationFrame, x, y);
+      drawSheetFrame(
+        context,
+        images[objectKey ?? visuals.checkpoint],
+        2,
+        64,
+        64,
+        animationFrame,
+        x,
+        y,
+      );
     } else if (object.type === "goal") {
-      drawSheetFrame(context, images[visuals.goal], 2, 64, 96, animationFrame, x, y - 32, 64, 96);
+      drawSheetFrame(
+        context,
+        images[objectKey ?? visuals.goal],
+        2,
+        64,
+        96,
+        animationFrame,
+        x,
+        y - 32,
+        64,
+        96,
+      );
     }
   }
 
@@ -1297,12 +1181,19 @@ export function PlatformerGame({
   onEditorToolChange,
   onTerrainStroke,
   onObjectPlace,
-  selectedObjectId,
-  onObjectSelect,
+  editorSelection = EMPTY_PLATFORMER_EDITOR_SELECTION,
+  onEditorSelectionChange,
+  onEditorSelectionMove,
   onPlayingChange,
   onComplete,
+  editorZoomScale = 1,
+  mapAreaRef,
 }: PlatformerGameProps) {
   const initialState = useMemo(() => createInitialState(map), [map]);
+  const editorViewport = useMemo(
+    () => editorViewportForScale(map, editorZoomScale),
+    [editorZoomScale, map],
+  );
   const [terminalStatus, setTerminalStatus] = useState<"playing" | "won" | "game_over">("playing");
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -1323,11 +1214,15 @@ export function PlatformerGame({
     map.objects.find((object) => object.type === "player_spawn") ?? { x: 0, y: 0 },
   );
   const editorHoverRef = useRef<EditorCell | null>(null);
-  const editorSelectionRef = useRef<EditorCell | null>(null);
   const editorStrokeRef = useRef<EditorPaintStroke | null>(null);
+  const editorObjectSeqRef = useRef(0);
   const editorPanRef = useRef<EditorPan | null>(null);
+  const editorMoveRef = useRef<EditorMoveStroke | null>(null);
+  const sessionSpawnRef = useRef<{ x: number; y: number } | null>(null);
+  const pausedFromPlayRef = useRef(false);
   const renderedMapRef = useRef(map);
   const previousEditorToolRef = useRef(editorTool);
+  const previousEditorZoomRef = useRef(editorZoomScale);
   const victoryStartedAtRef = useRef<number | null>(null);
   const completionNotifiedRef = useRef(false);
   const autoPlayStartedRef = useRef(false);
@@ -1335,6 +1230,7 @@ export function PlatformerGame({
   const imagesRef = useRef<Partial<Record<ImageKey, HTMLImageElement>>>({});
   const playerImageRef = useRef<CanvasImageSource | null>(null);
   const audioRef = useRef<RuntimeAudio | null>(null);
+  const fullscreen = useGameFullscreen(gameRef);
 
   const syncRuntimeDom = useCallback((state: PlatformerState) => {
     const game = gameRef.current;
@@ -1442,11 +1338,14 @@ export function PlatformerGame({
     if (!canvas) return;
     const context = canvas.getContext("2d");
     if (!context) return;
-    const logicalWidth = map.camera.columns * map.tileSize;
-    const logicalHeight = map.camera.rows * map.tileSize;
+    const viewport = editorTool && !playing ? editorViewport : map.camera;
+    const { width: logicalWidth, height: logicalHeight } = viewportPixelSize(
+      map,
+      viewport,
+    );
     const runtimeCamera = resolvePlatformerCamera(map, renderedState);
     const camera = editorTool && !playing
-      ? clampEditorCamera(map, editorCameraRef.current ?? runtimeCamera)
+      ? clampEditorCamera(map, editorCameraRef.current ?? runtimeCamera, viewport)
       : runtimeCamera;
     if (editorTool && !playing) editorCameraRef.current = camera;
     cameraRef.current = camera;
@@ -1465,23 +1364,27 @@ export function PlatformerGame({
       victoryStartedAtRef.current === null
         ? null
         : elapsedSeconds - victoryStartedAtRef.current,
+      viewport,
     );
     if (editorTool && !playing) {
-      const selectedObject = selectedObjectId
-        ? map.objects.find((object) => object.id === selectedObjectId)
-        : null;
+      const move = editorMoveRef.current;
       drawEditorOverlay(
         context,
         map,
         camera,
         editorHoverRef.current ?? editorCursorRef.current,
-        selectedObject
-          ? platformerPreviewCellForObject(map, renderedState, selectedObject)
-          : editorSelectionRef.current,
+        platformerEditorSelectionCells(
+          map,
+          renderedState,
+          editorSelection,
+          move?.delta,
+        ),
         editorStrokeRef.current?.cells ?? new Map(),
+        editorStrokeRef.current?.terrainKind ?? null,
+        viewport,
       );
     }
-  }, [editorTool, map, playerAssetId, playing, selectedObjectId, weapon]);
+  }, [editorSelection, editorTool, editorViewport, map, playerAssetId, playing, weapon]);
 
   const captureCleanThumbnail = useCallback(async () => {
     if (!assetsReady) {
@@ -1503,7 +1406,7 @@ export function PlatformerGame({
 
     const logicalWidth = map.camera.columns * map.tileSize;
     const logicalHeight = map.camera.rows * map.tileSize;
-    const camera = cameraRef.current ?? resolvePlatformerCamera(map, stateRef.current);
+    const camera = resolvePlatformerCamera(map, stateRef.current);
     context.setTransform(
       thumbnailSource.width / logicalWidth,
       0,
@@ -1567,38 +1470,67 @@ export function PlatformerGame({
 
   useEffect(() => {
     if (renderedMapRef.current === map) return;
+    const previousMap = renderedMapRef.current;
     renderedMapRef.current = map;
     const nextState = createInitialState(map);
-    stateRef.current = nextState;
-    previousStateRef.current = nextState;
+    // Painting must not yank the panned hero back to spawn. A new spawn
+    // still takes the hero, because that tool is how builders move the start.
+    const keptHero = previousMap.id === map.id && samePlayerSpawn(previousMap, map);
+    if (!keptHero) sessionSpawnRef.current = null;
+    const sessionSpawn = sessionSpawnRef.current;
+    const renderedState = keptHero
+      ? sessionSpawn
+        ? withEditorSessionSpawn(
+            { ...nextState, facing: stateRef.current.facing },
+            sessionSpawn,
+          )
+        : {
+            ...nextState,
+            x: stateRef.current.x,
+            y: stateRef.current.y,
+            previousY: stateRef.current.y,
+            facing: stateRef.current.facing,
+            vx: 0,
+            vy: 0,
+            spawnX: stateRef.current.spawnX,
+            spawnY: stateRef.current.spawnY,
+            checkpointX: stateRef.current.checkpointX,
+            checkpointY: stateRef.current.checkpointY,
+            latestCheckpointId: stateRef.current.latestCheckpointId,
+          }
+      : nextState;
+    stateRef.current = renderedState;
+    previousStateRef.current = renderedState;
     editorCameraRef.current = clampEditorCamera(
       map,
       editorCameraRef.current ?? resolvePlatformerCamera(map, nextState),
+      editorViewport,
     );
-    editorSelectionRef.current = null;
     editorStrokeRef.current = null;
     editorPanRef.current = null;
+    editorMoveRef.current = null;
     victoryStartedAtRef.current = null;
     completionNotifiedRef.current = false;
     inputRef.current = emptyInput();
     setTerminalStatus("playing");
     setPlaying(false);
     audioRef.current?.pauseMusic();
-    syncRuntimeDom(nextState);
-    render(performance.now() / 1000, nextState);
+    syncRuntimeDom(renderedState);
+    render(performance.now() / 1000, renderedState);
   }, [map, render, syncRuntimeDom]);
 
   useEffect(() => {
     if (previousEditorToolRef.current === editorTool) return;
     previousEditorToolRef.current = editorTool;
-    editorSelectionRef.current = null;
     editorStrokeRef.current = null;
     editorPanRef.current = null;
+    editorMoveRef.current = null;
     inputRef.current = emptyInput();
     if (editorTool) {
       editorCameraRef.current = clampEditorCamera(
         map,
         cameraRef.current ?? resolvePlatformerCamera(map, stateRef.current),
+        editorViewport,
       );
       audioRef.current?.pauseMusic();
       const stopPlayback = window.setTimeout(() => setPlaying(false), 0);
@@ -1606,7 +1538,29 @@ export function PlatformerGame({
       return () => window.clearTimeout(stopPlayback);
     }
     render(performance.now() / 1000);
-  }, [editorTool, map, render]);
+  }, [editorTool, editorViewport, map, render]);
+
+  if (previousEditorZoomRef.current !== editorZoomScale) {
+    const previousScale = previousEditorZoomRef.current;
+    const fromViewport = editorViewportForScale(map, previousScale);
+    previousEditorZoomRef.current = editorZoomScale;
+    if (editorTool && !playing) {
+      const camera = editorCameraRef.current
+        ?? cameraRef.current
+        ?? resolvePlatformerCamera(map, stateRef.current);
+      // Zooming in frames the hero where the builder left them. The zoom never
+      // drags the hero, so clicking a spot while zoomed out is what moves them.
+      editorCameraRef.current = zoomEditorCamera(
+        map,
+        camera,
+        fromViewport,
+        editorViewport,
+        editorZoomScale > previousScale
+          ? editorHeroCell(map, stateRef.current)
+          : null,
+      );
+    }
+  }
 
   useEffect(() => {
     onPlayingChange?.(playing);
@@ -1758,10 +1712,20 @@ export function PlatformerGame({
     editorStrokeRef.current = null;
     editorPanRef.current = null;
     if (stateRef.current.status === "won" || stateRef.current.status === "game_over") {
-      stateRef.current = createInitialState(map);
+      const restarted = createInitialState(map);
+      const sessionSpawn = sessionSpawnRef.current;
+      stateRef.current = sessionSpawn
+        ? withEditorSessionSpawn(restarted, sessionSpawn)
+        : restarted;
       cameraRef.current = null;
       setTerminalStatus("playing");
     }
+    if (editorTool && !pausedFromPlayRef.current) {
+      const safe = resolveEditorPlaySpawn(map, stateRef.current);
+      stateRef.current = withEditorSessionSpawn(stateRef.current, safe);
+      sessionSpawnRef.current = { x: safe.x, y: safe.y };
+    }
+    pausedFromPlayRef.current = false;
     victoryStartedAtRef.current = null;
     completionNotifiedRef.current = false;
     previousStateRef.current = stateRef.current;
@@ -1773,7 +1737,7 @@ export function PlatformerGame({
       resolveEnemyViewMusicCue(map, stateRef.current, camera),
     ));
     canvasRef.current?.focus();
-  }, [map, onStartOverlayDismiss, syncRuntimeDom]);
+  }, [editorTool, map, onStartOverlayDismiss, syncRuntimeDom]);
 
   const announceEditor = (message: string) => {
     if (srStatusRef.current) srStatusRef.current.textContent = message;
@@ -1799,8 +1763,10 @@ export function PlatformerGame({
     const camera = editorCameraRef.current
       ?? cameraRef.current
       ?? resolvePlatformerCamera(map, stateRef.current);
-    const viewportWidth = map.camera.columns * map.tileSize;
-    const viewportHeight = map.camera.rows * map.tileSize;
+    const { width: viewportWidth, height: viewportHeight } = viewportPixelSize(
+      map,
+      editorViewport,
+    );
     const x = Math.floor(
       (camera.x + ((clientX - bounds.left) / bounds.width) * viewportWidth) /
         map.tileSize,
@@ -1815,9 +1781,91 @@ export function PlatformerGame({
     return { x, y };
   };
 
+  const editorViewportCellFromClientPoint = (
+    clientX: number,
+    clientY: number,
+  ): EditorCell | null => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const bounds = canvas.getBoundingClientRect();
+    if (
+      bounds.width <= 0 ||
+      bounds.height <= 0 ||
+      clientX < bounds.left ||
+      clientX > bounds.right ||
+      clientY < bounds.top ||
+      clientY > bounds.bottom
+    ) {
+      return null;
+    }
+    const { width: viewportWidth, height: viewportHeight } = viewportPixelSize(
+      map,
+      editorViewport,
+    );
+    return {
+      x: Math.floor(((clientX - bounds.left) / bounds.width) * viewportWidth / map.tileSize),
+      y: Math.floor(((clientY - bounds.top) / bounds.height) * viewportHeight / map.tileSize),
+    };
+  };
+
+  const editorViewportCellForWorldCell = (cell: EditorCell): EditorCell => {
+    const camera = editorCameraRef.current
+      ?? cameraRef.current
+      ?? resolvePlatformerCamera(map, stateRef.current);
+    return {
+      x: Math.floor((cell.x * map.tileSize - camera.x) / map.tileSize),
+      y: Math.floor((cell.y * map.tileSize - camera.y) / map.tileSize),
+    };
+  };
+
+  const unselectableHeroId = platformerUnselectableHeroId(map, editorZoomScale);
+  const selectableSelection = platformerSelectionWithoutObject(
+    editorSelection,
+    unselectableHeroId,
+  );
+
+  const applySelectClick = (
+    worldCell: EditorCell,
+    viewportCell: EditorCell | null,
+    toggle: boolean,
+  ) => {
+    const found = viewportCell && platformerHudAtViewportCell(map, viewportCell.x, viewportCell.y)
+      ? { type: "hud" as const }
+      : platformerEditorHitAtCell(map, stateRef.current, worldCell.x, worldCell.y);
+    const hit = found.type === "object" && found.id === unselectableHeroId
+      ? ({ type: "empty" } as const)
+      : found;
+    const nextSelection = applyPlatformerEditorSelectionClick(selectableSelection, hit, toggle);
+    if (nextSelection === null) return null;
+    onEditorSelectionChange?.(nextSelection);
+    const count = nextSelection.objectIds.length + nextSelection.terrainCells.length;
+    if (hit.type === "empty") {
+      announceEditor(`Column ${worldCell.x + 1}, row ${worldCell.y + 1} is empty.`);
+    } else if (hit.type === "object") {
+      announceEditor(
+        nextSelection.objectIds.includes(hit.id)
+          ? `Selected ${hit.id} at column ${worldCell.x + 1}, row ${worldCell.y + 1}. ${count} selected.`
+          : `Removed ${hit.id} from the selection.`,
+      );
+    } else if (hit.type === "terrain") {
+      const kind = platformerTerrainKindAt(map, worldCell.x, worldCell.y);
+      const stillSelected = nextSelection.terrainCells.some(
+        (cell) => cell.x === hit.x && cell.y === hit.y,
+      );
+      announceEditor(
+        stillSelected
+          ? `Selected ${kind} at column ${worldCell.x + 1}, row ${worldCell.y + 1}. ${count} selected.`
+          : `Removed ${kind} from the selection.`,
+      );
+    }
+    return nextSelection;
+  };
+
   const keepEditorCellVisible = (cell: EditorCell) => {
-    const viewportWidth = map.camera.columns * map.tileSize;
-    const viewportHeight = map.camera.rows * map.tileSize;
+    const { width: viewportWidth, height: viewportHeight } = viewportPixelSize(
+      map,
+      editorViewport,
+    );
     const current = editorCameraRef.current
       ?? cameraRef.current
       ?? resolvePlatformerCamera(map, stateRef.current);
@@ -1831,20 +1879,174 @@ export function PlatformerGame({
     else if (cellRight > x + viewportWidth) x = cellRight - viewportWidth;
     if (cellTop < y) y = cellTop;
     else if (cellBottom > y + viewportHeight) y = cellBottom - viewportHeight;
-    editorCameraRef.current = clampEditorCamera(map, { x, y });
+    editorCameraRef.current = clampEditorCamera(map, { x, y }, editorViewport);
+  };
+
+  function applyEditorCamera(
+    nextCamera: PlatformerCamera,
+    fromHero: Pick<PlatformerState, "x" | "y"> = stateRef.current,
+    fromCamera: PlatformerCamera | null = editorCameraRef.current,
+    placedHero?: Pick<PlatformerState, "x" | "y">,
+  ) {
+    const from = fromCamera
+      ?? cameraRef.current
+      ?? resolvePlatformerCamera(map, stateRef.current);
+    const to = clampEditorCamera(map, nextCamera, editorViewport);
+    const hero = placedHero ?? translateHeroWithEditorCamera(map, fromHero, from, to);
+    pausedFromPlayRef.current = false;
+    sessionSpawnRef.current = { x: hero.x, y: hero.y };
+    editorCameraRef.current = to;
+    cameraRef.current = to;
+    stateRef.current = withEditorSessionSpawn(stateRef.current, hero);
+    previousStateRef.current = stateRef.current;
+    syncRuntimeDom(stateRef.current);
+  }
+
+  const placeEditorHeroAtCell = (cell: EditorCell) => {
+    const camera = editorCameraRef.current
+      ?? cameraRef.current
+      ?? resolvePlatformerCamera(map, stateRef.current);
+    const hero = editorHeroPlacementForCell(map, stateRef.current, cell);
+    applyEditorCamera(camera, stateRef.current, camera, hero);
+    const placed = editorHeroCell(map, hero);
+    announceEditor(`Moved the hero to column ${placed.x + 1}, row ${placed.y + 1}.`);
+    render(performance.now() / 1000);
   };
 
   const addCellsToEditorStroke = (
     stroke: EditorPaintStroke,
     nextCell: EditorCell,
   ) => {
-    for (const cell of cellsAlongLine(stroke.lastCell, nextCell)) {
-      stroke.cells.set(`${cell.x}:${cell.y}`, { ...cell, kind: stroke.kind });
+    if (stroke.objectKind === "spawn") {
+      stroke.cells.clear();
+      stroke.cells.set(`${nextCell.x}:${nextCell.y}`, nextCell);
+    } else {
+      for (const cell of cellsAlongLine(stroke.lastCell, nextCell)) {
+        stroke.cells.set(`${cell.x}:${cell.y}`, cell);
+      }
     }
     stroke.lastCell = nextCell;
     editorCursorRef.current = nextCell;
     editorHoverRef.current = nextCell;
     render(performance.now() / 1000);
+  };
+
+  const nextObjectPlacementId = (kind: PlatformerObjectKind, cell: EditorCell) => {
+    editorObjectSeqRef.current += 1;
+    return `build-${kind}-${cell.x}x${cell.y}-${editorObjectSeqRef.current.toString(36)}`;
+  };
+
+  const emitObjectPlacements = (
+    kind: PlatformerObjectKind,
+    cells: readonly EditorCell[],
+  ) => {
+    const placements = objectPlacementsFromStroke(
+      kind,
+      cells,
+      (cell) => nextObjectPlacementId(kind, cell),
+    );
+    if (placements.length === 0) return;
+    onObjectPlace?.(placements);
+    const last = placements[placements.length - 1];
+    announceEditor(
+      kind === "spawn"
+        ? `Set the hero spawn at column ${last.x + 1}, row ${last.y + 1}.`
+        : `Added ${EDITOR_TOOL_LABELS[kind]} to ${placements.length} ${
+            placements.length === 1 ? "tile" : "tiles"
+          }.`,
+    );
+  };
+
+  // Runs before any hero placement, so a selection still hits what the builder
+  // saw under the pointer rather than the hero who is about to stand there.
+  const beginEditorGesture = (
+    event: ReactPointerEvent<HTMLCanvasElement>,
+    cell: EditorCell | null,
+  ) => {
+    if (!editorTool) return;
+
+    if (editorTool === "move") {
+      const camera = editorCameraRef.current
+        ?? cameraRef.current
+        ?? resolvePlatformerCamera(map, stateRef.current);
+      editorPanRef.current = {
+        pointerId: event.pointerId,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        camera,
+        hero: { x: stateRef.current.x, y: stateRef.current.y },
+      };
+      event.currentTarget.dataset.panning = "true";
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
+
+    if (!cell) return;
+    editorCursorRef.current = cell;
+    editorHoverRef.current = cell;
+
+    if (editorTool === "select") {
+      const toggle = event.ctrlKey || event.metaKey;
+      const alreadySelected = platformerEditorSelectionHasCell(
+        map,
+        stateRef.current,
+        selectableSelection,
+        cell.x,
+        cell.y,
+      );
+      // Keep a selected item selected on pointer-down so a drag can still move
+      // it. A click with no drag unselects on pointer-up.
+      if (alreadySelected && !toggle) {
+        editorMoveRef.current = {
+          pointerId: event.pointerId,
+          origin: cell,
+          originCells: platformerEditorSelectionCells(map, stateRef.current, selectableSelection),
+          selection: selectableSelection,
+          delta: { dx: 0, dy: 0 },
+          clickUnselects: true,
+        };
+        event.currentTarget.dataset.moving = "true";
+        event.currentTarget.setPointerCapture(event.pointerId);
+        render(performance.now() / 1000);
+        return;
+      }
+      const nextSelection = applySelectClick(
+        cell,
+        editorViewportCellFromClientPoint(event.clientX, event.clientY),
+        toggle,
+      );
+      if (
+        nextSelection &&
+        platformerEditorSelectionHasCell(map, stateRef.current, nextSelection, cell.x, cell.y)
+      ) {
+        editorMoveRef.current = {
+          pointerId: event.pointerId,
+          origin: cell,
+          originCells: platformerEditorSelectionCells(map, stateRef.current, nextSelection),
+          selection: nextSelection,
+          delta: { dx: 0, dy: 0 },
+          clickUnselects: false,
+        };
+        event.currentTarget.dataset.moving = "true";
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
+      render(performance.now() / 1000);
+      return;
+    }
+
+    if (isPlatformerObjectTool(editorTool) || editorPaintKind(editorTool)) {
+      const stroke: EditorPaintStroke = {
+        pointerId: event.pointerId,
+        objectKind: isPlatformerObjectTool(editorTool) ? editorTool : null,
+        terrainKind: editorPaintKind(editorTool),
+        cells: new Map(),
+        lastCell: cell,
+      };
+      editorStrokeRef.current = stroke;
+      addCellsToEditorStroke(stroke, cell);
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
   };
 
   const handleEditorPointerDown = (
@@ -1861,76 +2063,18 @@ export function PlatformerGame({
     event.currentTarget.focus({ preventScroll: true });
     inputRef.current = emptyInput();
 
-    if (editorTool === "move") {
-      const camera = editorCameraRef.current
-        ?? cameraRef.current
-        ?? resolvePlatformerCamera(map, stateRef.current);
-      editorPanRef.current = {
-        pointerId: event.pointerId,
-        clientX: event.clientX,
-        clientY: event.clientY,
-        camera,
-      };
-      event.currentTarget.dataset.panning = "true";
-      event.currentTarget.setPointerCapture(event.pointerId);
-      return;
-    }
-
     const cell = editorCellFromClientPoint(event.clientX, event.clientY);
-    if (!cell) return;
-    editorCursorRef.current = cell;
-    editorHoverRef.current = cell;
-
-    if (editorTool === "select") {
-      const object = platformerObjectAtPreviewCell(
-        map,
-        stateRef.current,
-        cell.x,
-        cell.y,
-      );
-      if (object) {
-        editorSelectionRef.current = cell;
-        onObjectSelect?.(object.id);
-        announceEditor(`Selected ${object.id} at column ${cell.x + 1}, row ${cell.y + 1}.`);
-        render(performance.now() / 1000);
-        return;
-      }
-      const kind = platformerTerrainKindAt(map, cell.x, cell.y);
-      editorSelectionRef.current = kind === "empty" ? null : cell;
-      onObjectSelect?.(null);
-      announceEditor(
-        kind === "empty"
-          ? `Column ${cell.x + 1}, row ${cell.y + 1} is empty.`
-          : `Selected ${kind} at column ${cell.x + 1}, row ${cell.y + 1}.`,
-      );
-      render(performance.now() / 1000);
-      return;
+    // Clicking a spot on a zoomed-out map stands the hero there, so zooming
+    // back in frames the place the builder picked. Panning is exempt: it
+    // already carries the hero along with the map.
+    const placingHero = Boolean(cell) && editorZoomScale < 1 && editorTool !== "move";
+    // Dropped before the gesture runs so a selection the click makes still
+    // wins, and so the hero the placement moves is left unselected.
+    if (placingHero && selectableSelection !== editorSelection) {
+      onEditorSelectionChange?.(selectableSelection);
     }
-
-    if (PLATFORMER_OBJECT_TOOLS.includes(editorTool as (typeof PLATFORMER_OBJECT_TOOLS)[number])) {
-      onObjectPlace?.({
-        id: `build-${editorTool}-${Date.now().toString(36)}`,
-        x: cell.x,
-        y: cell.y,
-        kind: editorTool as PlatformerObjectPlacement["kind"],
-      });
-      editorSelectionRef.current = cell;
-      announceEditor(`Added ${EDITOR_TOOL_LABELS[editorTool]} at column ${cell.x + 1}, row ${cell.y + 1}.`);
-      return;
-    }
-
-    const kind = editorPaintKind(editorTool);
-    if (!kind) return;
-    editorSelectionRef.current = null;
-    const stroke: EditorPaintStroke = {
-      pointerId: event.pointerId,
-      kind,
-      cells: new Map(),
-      lastCell: cell,
-    };
-    editorStrokeRef.current = stroke;
-    addCellsToEditorStroke(stroke, cell);
-    event.currentTarget.setPointerCapture(event.pointerId);
+    beginEditorGesture(event, cell);
+    if (placingHero && cell) placeEditorHeroAtCell(cell);
   };
 
   const handleEditorPointerMove = (
@@ -1941,15 +2085,39 @@ export function PlatformerGame({
     if (pan?.pointerId === event.pointerId) {
       event.preventDefault();
       const bounds = event.currentTarget.getBoundingClientRect();
-      const viewportWidth = map.camera.columns * map.tileSize;
-      const viewportHeight = map.camera.rows * map.tileSize;
-      editorCameraRef.current = clampEditorCamera(map, {
-        x: pan.camera.x -
-          ((event.clientX - pan.clientX) / Math.max(1, bounds.width)) * viewportWidth,
-        y: pan.camera.y -
-          ((event.clientY - pan.clientY) / Math.max(1, bounds.height)) * viewportHeight,
-      });
+      const { width: viewportWidth, height: viewportHeight } = viewportPixelSize(
+        map,
+        editorViewport,
+      );
+      applyEditorCamera(
+        {
+          x: pan.camera.x -
+            ((event.clientX - pan.clientX) / Math.max(1, bounds.width)) * viewportWidth,
+          y: pan.camera.y -
+            ((event.clientY - pan.clientY) / Math.max(1, bounds.height)) * viewportHeight,
+        },
+        pan.hero,
+        pan.camera,
+      );
       editorHoverRef.current = null;
+      render(performance.now() / 1000);
+      return;
+    }
+
+    const move = editorMoveRef.current;
+    if (move?.pointerId === event.pointerId) {
+      event.preventDefault();
+      const cell = editorCellFromClientPoint(event.clientX, event.clientY);
+      if (cell) {
+        move.delta = clampPlatformerSelectionDelta(
+          map,
+          move.originCells,
+          cell.x - move.origin.x,
+          cell.y - move.origin.y,
+        );
+        editorCursorRef.current = cell;
+        editorHoverRef.current = cell;
+      }
       render(performance.now() / 1000);
       return;
     }
@@ -1976,15 +2144,35 @@ export function PlatformerGame({
       announceEditor("Map moved. Choose a block to keep building.");
     }
 
+    const move = editorMoveRef.current;
+    if (move?.pointerId === event.pointerId) {
+      editorMoveRef.current = null;
+      delete event.currentTarget.dataset.moving;
+      if (move.delta.dx !== 0 || move.delta.dy !== 0) {
+        onEditorSelectionMove?.(move.delta.dx, move.delta.dy, move.selection);
+        announceEditor("Moved the selection.");
+      } else if (move.clickUnselects) {
+        applySelectClick(
+          move.origin,
+          editorViewportCellForWorldCell(move.origin),
+          false,
+        );
+      }
+    }
+
     const stroke = editorStrokeRef.current;
     if (stroke?.pointerId === event.pointerId) {
       const cells = [...stroke.cells.values()];
+      const terrainKind = stroke.terrainKind;
+      const objectKind = stroke.objectKind;
       editorStrokeRef.current = null;
-      if (cells.length > 0) {
-        onTerrainStroke?.(cells);
-        const label = stroke.kind === "empty" ? "block" : stroke.kind;
+      if (objectKind) {
+        emitObjectPlacements(objectKind, cells);
+      } else if (terrainKind && cells.length > 0) {
+        onTerrainStroke?.(cells.map((cell) => ({ ...cell, kind: terrainKind })));
+        const label = terrainKind === "empty" ? "block" : terrainKind;
         announceEditor(
-          stroke.kind === "empty"
+          terrainKind === "empty"
             ? `Erased ${cells.length} ${cells.length === 1 ? "block" : "blocks"}.`
             : `Added ${cells.length} ${label} ${cells.length === 1 ? "block" : "blocks"}.`,
         );
@@ -1998,7 +2186,7 @@ export function PlatformerGame({
   };
 
   const handleEditorPointerLeave = () => {
-    if (editorPanRef.current || editorStrokeRef.current) return;
+    if (editorPanRef.current || editorStrokeRef.current || editorMoveRef.current) return;
     editorHoverRef.current = null;
     render(performance.now() / 1000);
   };
@@ -2028,7 +2216,7 @@ export function PlatformerGame({
           const camera = editorCameraRef.current
             ?? cameraRef.current
             ?? resolvePlatformerCamera(map, stateRef.current);
-          editorCameraRef.current = clampEditorCamera(map, {
+          applyEditorCamera({
             x: camera.x + delta.x * map.tileSize,
             y: camera.y + delta.y * map.tileSize,
           });
@@ -2054,36 +2242,13 @@ export function PlatformerGame({
         const cell = editorCursorRef.current;
         if (!cell || editorTool === "move") return;
         if (editorTool === "select") {
-          const object = platformerObjectAtPreviewCell(
-            map,
-            stateRef.current,
-            cell.x,
-            cell.y,
+          applySelectClick(
+            cell,
+            editorViewportCellForWorldCell(cell),
+            event.ctrlKey || event.metaKey,
           );
-          if (object) {
-            editorSelectionRef.current = cell;
-            onObjectSelect?.(object.id);
-            announceEditor(`Selected ${object.id} at column ${cell.x + 1}, row ${cell.y + 1}.`);
-            render(performance.now() / 1000);
-            return;
-          }
-          const kind = platformerTerrainKindAt(map, cell.x, cell.y);
-          editorSelectionRef.current = kind === "empty" ? null : cell;
-          onObjectSelect?.(null);
-          announceEditor(
-            kind === "empty"
-              ? `Column ${cell.x + 1}, row ${cell.y + 1} is empty.`
-              : `Selected ${kind} at column ${cell.x + 1}, row ${cell.y + 1}.`,
-          );
-        } else if (PLATFORMER_OBJECT_TOOLS.includes(editorTool as (typeof PLATFORMER_OBJECT_TOOLS)[number])) {
-          onObjectPlace?.({
-            id: `build-${editorTool}-${Date.now().toString(36)}`,
-            x: cell.x,
-            y: cell.y,
-            kind: editorTool as PlatformerObjectPlacement["kind"],
-          });
-          editorSelectionRef.current = cell;
-          announceEditor(`Added ${EDITOR_TOOL_LABELS[editorTool]} at column ${cell.x + 1}, row ${cell.y + 1}.`);
+        } else if (isPlatformerObjectTool(editorTool)) {
+          emitObjectPlacements(editorTool, [cell]);
         } else {
           const kind = editorPaintKind(editorTool);
           if (kind) {
@@ -2115,9 +2280,12 @@ export function PlatformerGame({
   const pause = () => {
     const snappedState = snapPlatformerStateToGrid(map, stateRef.current);
     stateRef.current = snappedState;
-    editorCameraRef.current = clampEditorCamera(
+    pausedFromPlayRef.current = true;
+    editorCameraRef.current = zoomEditorCamera(
       map,
       resolvePlatformerCamera(map, snappedState),
+      map.camera,
+      editorViewport,
     );
     setPlaying(false);
     previousStateRef.current = snappedState;
@@ -2139,10 +2307,17 @@ export function PlatformerGame({
     pause();
     victoryStartedAtRef.current = null;
     completionNotifiedRef.current = false;
+    sessionSpawnRef.current = null;
+    pausedFromPlayRef.current = false;
     stateRef.current = createInitialState(map);
     previousStateRef.current = stateRef.current;
     cameraRef.current = null;
-    editorCameraRef.current = resolvePlatformerCamera(map, stateRef.current);
+    editorCameraRef.current = zoomEditorCamera(
+      map,
+      resolvePlatformerCamera(map, stateRef.current),
+      map.camera,
+      editorViewport,
+    );
     setTerminalStatus("playing");
     syncRuntimeDom(stateRef.current);
     render(performance.now() / 1000);
@@ -2154,6 +2329,12 @@ export function PlatformerGame({
     setMuted(nextMuted);
     audioRef.current?.setMuted(nextMuted);
     window.localStorage.setItem("splat-lab.game-audio-muted.v1", String(nextMuted));
+  };
+
+  const toggleFullscreen = () => {
+    void fullscreen.toggle();
+    // Keyboard play only works while focus stays inside the game element.
+    canvasRef.current?.focus();
   };
 
   const setPointerInput = (action: "left" | "right" | "jump" | "weapon", active: boolean) => {
@@ -2236,11 +2417,11 @@ export function PlatformerGame({
     ? editorTool === "move"
       ? "Drag the map to move around"
       : editorTool === "select"
-        ? "Click a block to select it"
+        ? "Click to add, click again to unselect, drag to move"
         : editorTool === "erase"
           ? "Click or drag to erase blocks"
-          : PLATFORMER_OBJECT_TOOLS.includes(editorTool as (typeof PLATFORMER_OBJECT_TOOLS)[number])
-            ? `Click to add ${EDITOR_TOOL_LABELS[editorTool].toLowerCase()}`
+          : isPlatformerObjectTool(editorTool)
+            ? `Click or drag to add ${EDITOR_TOOL_LABELS[editorTool].toLowerCase()}`
             : `Click or drag to add ${editorTool} blocks`
     : "";
 
@@ -2287,6 +2468,17 @@ export function PlatformerGame({
               <button type="button" onClick={toggleMuted} aria-pressed={muted}>
                 {muted ? "🔇 Muted" : "🔊 Sound"}
               </button>
+              {fullscreen.supported ? (
+                <button
+                  type="button"
+                  onClick={toggleFullscreen}
+                  aria-pressed={fullscreen.active}
+                  aria-label={fullscreen.active ? "Exit full screen" : "Play full screen"}
+                  title={fullscreen.active ? "Exit full screen" : "Play full screen"}
+                >
+                  {fullscreenButtonLabel(fullscreen.active)}
+                </button>
+              ) : null}
             </div>
           ) : null}
           {!building && levelLabel ? (
@@ -2298,7 +2490,11 @@ export function PlatformerGame({
         </div>
       ) : null}
 
-      <div className={styles.stage}>
+      <div
+        className={styles.stage}
+        ref={mapAreaRef}
+        style={{ "--stage-aspect": map.camera.columns / map.camera.rows } as CSSProperties}
+      >
         <canvas
           className={styles.canvas}
           ref={canvasRef}
@@ -2309,6 +2505,7 @@ export function PlatformerGame({
               : `Playable ${map.id} platformer. ${controls.replaceAll(" · ", ". ")}.`
           }
           data-editor-tool={editing ? editorTool : undefined}
+          data-editor-cursor={editing ? platformerEditorCursor(editorTool) : undefined}
           onClick={editorTool ? () => canvasRef.current?.focus() : startFromCanvas}
           onContextMenu={(event: ReactMouseEvent<HTMLCanvasElement>) => {
             event.preventDefault();
@@ -2398,8 +2595,11 @@ export function PlatformerGame({
             <button
               type="button"
               aria-pressed={editorTool === "select"}
-              title="Select a block on the map"
-              onClick={() => onEditorToolChange?.("select")}
+              title="Select items, then drag to move them"
+              onClick={(event) => {
+                event.stopPropagation();
+                onEditorToolChange?.("select");
+              }}
             >
               ↖ Select
             </button>
@@ -2407,7 +2607,10 @@ export function PlatformerGame({
               type="button"
               aria-pressed={editorTool === "move"}
               title="Drag the map to see another area"
-              onClick={() => onEditorToolChange?.("move")}
+              onClick={(event) => {
+                event.stopPropagation();
+                onEditorToolChange?.("move");
+              }}
             >
               ✋ Move
             </button>
@@ -2415,7 +2618,10 @@ export function PlatformerGame({
               type="button"
               aria-pressed={editorTool === "erase"}
               title="Drag across blocks to erase them"
-              onClick={() => onEditorToolChange?.("erase")}
+              onClick={(event) => {
+                event.stopPropagation();
+                onEditorToolChange?.("erase");
+              }}
             >
               × Erase
             </button>

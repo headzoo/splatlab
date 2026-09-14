@@ -5,15 +5,25 @@ import { DEFAULT_GAME_DOCUMENT } from "@/lib/game-contract";
 
 import { GAME_PLAYER_CONTENT } from "./game-player-content";
 import { gameCampaignMaps } from "./game-levels";
+import { resolveMapVisuals, worldArtAssetId } from "./platformer/art-catalog";
 import {
+  applyPlatformerEditorSelectionClick,
+  applyPlatformerLevelArt,
   applyPlatformerObjectEdits,
   applyPlatformerTerrainEdits,
+  EMPTY_PLATFORMER_EDITOR_SELECTION,
   erasePlatformerObjectsAtCells,
   mergePlatformerObjectEdit,
+  mergePlatformerObjectEdits,
   mergePlatformerTerrainEdits,
+  movePlatformerEditorSelection,
+  objectPlacementsFromStroke,
+  platformerHudAtViewportCell,
   platformerObjectAtPreviewCell,
   platformerPreviewCellForObject,
+  platformerSelectionWithoutObject,
   platformerTerrainKindAt,
+  platformerUnselectableHeroId,
   upsertPlatformerObjectSettings,
 } from "./platformer/map-editing";
 import { createInitialState, snapPlatformerStateToGrid } from "./platformer/engine";
@@ -160,6 +170,45 @@ test("builder spawn placement replaces the authored spawn and remains map-scoped
   assert.equal(applyPlatformerObjectEdits(checkedInMap, "level-2.json", moved), checkedInMap);
 });
 
+test("a dragged object stroke places one piece per tile and keeps spawn unique", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const coinStroke = objectPlacementsFromStroke(
+    "coin",
+    [{ x: 2, y: 8 }, { x: 3, y: 8 }, { x: 4, y: 8 }],
+    (cell, index) => `build-coin-${index}-${cell.x}`,
+  );
+  const coins = mergePlatformerObjectEdits([], "level-1.json", checkedInMap, coinStroke);
+  const editedMap = applyPlatformerObjectEdits(checkedInMap, "level-1.json", coins);
+
+  assert.deepEqual(
+    coinStroke.map(({ id, x, y, kind }) => ({ id, x, y, kind })),
+    [
+      { id: "build-coin-0-2", x: 2, y: 8, kind: "coin" },
+      { id: "build-coin-1-3", x: 3, y: 8, kind: "coin" },
+      { id: "build-coin-2-4", x: 4, y: 8, kind: "coin" },
+    ],
+  );
+  assert.deepEqual(
+    editedMap.objects
+      .filter((object) => object.id.startsWith("build-coin-"))
+      .map(({ id, x, y }) => ({ id, x, y })),
+    [
+      { id: "build-coin-0-2", x: 2, y: 8 },
+      { id: "build-coin-1-3", x: 3, y: 8 },
+      { id: "build-coin-2-4", x: 4, y: 8 },
+    ],
+  );
+
+  const spawnStroke = objectPlacementsFromStroke(
+    "spawn",
+    [{ x: 2, y: 8 }, { x: 3, y: 8 }, { x: 7, y: 8 }],
+    (cell, index) => `build-spawn-${index}-${cell.x}`,
+  );
+  assert.deepEqual(spawnStroke, [
+    { id: "build-spawn-0-7", x: 7, y: 8, kind: "spawn" },
+  ]);
+});
+
 test("the builder eraser removes added and authored objects but preserves the required spawn", () => {
   const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
   const authoredCoin = checkedInMap.objects.find((object) => object.type === "collectible");
@@ -296,6 +345,110 @@ test("saved builder edits change real checked-in platformer terrain", () => {
   assert.equal(editedMap.legend[editedMap.layers[0].rows[9][3]]?.collision, "solid");
 });
 
+/**
+ * The map sprite dropdowns let a kid mix worlds inside one level, so a painted
+ * tile has to name its own art without dressing the rest of the level in it.
+ */
+test("a tile painted from another world keeps that world's art on this map", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  assert.equal(checkedInMap.presentation.backgroundId, "neutral_green_hills_01");
+
+  const edits = mergePlatformerTerrainEdits(
+    [],
+    "level-1.json",
+    checkedInMap,
+    [
+      { x: 2, y: 9, kind: "ground" },
+      { x: 3, y: 9, kind: "hazard" },
+    ],
+    "haunted_graveyard_01",
+  );
+  const editedMap = applyPlatformerTerrainEdits(checkedInMap, "level-1.json", edits);
+  const terrain = editedMap.layers.find((layer) => layer.id === "terrain");
+  const overrideAt = (x: number, y: number) =>
+    terrain?.spriteOverrides?.find((override) => override.x === x && override.y === y);
+
+  assert.equal(platformerTerrainKindAt(editedMap, 2, 9), "ground");
+  assert.equal(overrideAt(2, 9)?.assetId, worldArtAssetId("haunted_graveyard_01", "ground"));
+  assert.equal(overrideAt(3, 9)?.assetId, worldArtAssetId("haunted_graveyard_01", "hazard"));
+  assert.equal(overrideAt(4, 9), undefined, "an untouched cell is left alone");
+  assert.equal(
+    resolveMapVisuals(editedMap.presentation).ground,
+    "greenGround",
+    "the rest of the level still wears its own art",
+  );
+});
+
+test("repainting a tile as what it already was records the world it now wears", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const rows = checkedInMap.layers.find((layer) => layer.id === "terrain")?.rows ?? [];
+  const ground = rows.flatMap((row, y) => {
+    const x = [...row].findIndex(
+      (symbol) => checkedInMap.legend[symbol]?.visualSlot === "ground",
+    );
+    return x < 0 ? [] : [{ x, y }];
+  })[0];
+  assert.ok(ground, "level-1 has ground to repaint");
+
+  const restyled = mergePlatformerTerrainEdits(
+    [],
+    "level-1.json",
+    checkedInMap,
+    [{ ...ground, kind: "ground" }],
+    "ice_world_01",
+  );
+  const restored = mergePlatformerTerrainEdits(
+    restyled,
+    "level-1.json",
+    checkedInMap,
+    [{ ...ground, kind: "ground" }],
+  );
+
+  assert.deepEqual(restyled, [
+    { mapSource: "level-1.json", ...ground, kind: "ground", world: "ice_world_01" },
+  ]);
+  assert.deepEqual(restored, [], "painting it back from its own world drops the row");
+});
+
+test("a pickup placed from another world wears that world's art", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const edits = mergePlatformerObjectEdits(
+    [],
+    "level-1.json",
+    checkedInMap,
+    [
+      { id: "build-ice-coin", x: 2, y: 8, kind: "coin" },
+      { id: "build-ice-goal", x: 3, y: 8, kind: "goal" },
+      { id: "build-ice-enemy", x: 4, y: 8, kind: "enemy" },
+    ],
+    "ice_world_01",
+  );
+  const placed = applyPlatformerObjectEdits(checkedInMap, "level-1.json", edits);
+  const artOf = (map: typeof placed, id: string) =>
+    map.objects.find((object) => object.id === id)?.assetId;
+
+  assert.equal(artOf(placed, "build-ice-coin"), worldArtAssetId("ice_world_01", "coin"));
+  assert.equal(artOf(placed, "build-ice-goal"), worldArtAssetId("ice_world_01", "goal"));
+  assert.equal(artOf(placed, "build-ice-enemy"), "ice_world_ghost_01");
+
+  // Cooper dressing the whole level afterwards must not undo a hand-picked
+  // thing, or a kid would watch their Ice World ghost turn into a bat.
+  const dressed = applyPlatformerLevelArt(
+    placed,
+    "level-1.json",
+    [{ mapSource: "level-1.json", slot: "enemy", world: "haunted_graveyard_01" }],
+    [],
+    edits,
+  );
+  assert.equal(artOf(dressed, "build-ice-enemy"), "ice_world_ghost_01");
+  assert.equal(
+    dressed.objects.find((object) => object.id !== "build-ice-enemy" && object.type === "enemy_spawn")
+      ?.assetId,
+    "haunted_ghost_01",
+    "an enemy the level placed still follows the borrow",
+  );
+});
+
 test("builder edits are map-scoped and prune restored cells", () => {
   const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
   const added = mergePlatformerTerrainEdits(
@@ -317,4 +470,199 @@ test("builder edits are map-scoped and prune restored cells", () => {
   assert.equal(added.length, 1);
   assert.deepEqual(restored, []);
   assert.equal(untouched, checkedInMap);
+});
+
+test("an object edit that reuses an authored id relocates that object", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const coin = checkedInMap.objects.find((object) => object.type === "collectible");
+  assert.ok(coin);
+  const nextX = Math.min(coin.x + 2, checkedInMap.size.columns - 1);
+  const editedMap = applyPlatformerObjectEdits(checkedInMap, "level-1.json", [{
+    id: coin.id,
+    mapSource: "level-1.json",
+    x: nextX,
+    y: coin.y,
+    kind: "coin",
+  }]);
+  const matches = editedMap.objects.filter((object) => object.id === coin.id);
+
+  assert.deepEqual(matches.map(({ id, x, y, type }) => ({ id, x, y, type })), [
+    { id: coin.id, x: nextX, y: coin.y, type: "collectible" },
+  ]);
+});
+
+test("moving a builder-placed object updates that edit instead of duplicating it", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const placed = mergePlatformerObjectEdit([], "level-1.json", checkedInMap, {
+    id: "build-coin-move", x: 2, y: 8, kind: "coin",
+  });
+  const moved = movePlatformerEditorSelection(
+    checkedInMap,
+    "level-1.json",
+    placed,
+    [],
+    [],
+    [],
+    { objectIds: ["build-coin-move"], terrainCells: [] },
+    3,
+    0,
+  );
+
+  assert.deepEqual(moved.platformerObjectEdits, [{
+    id: "build-coin-move",
+    mapSource: "level-1.json",
+    x: 5,
+    y: 8,
+    kind: "coin",
+  }]);
+  assert.deepEqual(
+    applyPlatformerObjectEdits(checkedInMap, "level-1.json", moved.platformerObjectEdits)
+      .objects
+      .filter((object) => object.id === "build-coin-move")
+      .map(({ x, y }) => ({ x, y })),
+    [{ x: 5, y: 8 }],
+  );
+});
+
+test("select-tool moves keep mixed terrain and objects together", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const coin = checkedInMap.objects.find((object) => object.type === "collectible");
+  assert.ok(coin);
+  const painted = mergePlatformerTerrainEdits(
+    [],
+    "level-1.json",
+    checkedInMap,
+    [{ x: 2, y: 8, kind: "ground" }],
+  );
+  const fromKind = platformerTerrainKindAt(
+    applyPlatformerTerrainEdits(checkedInMap, "level-1.json", painted),
+    2,
+    8,
+  );
+  const moved = movePlatformerEditorSelection(
+    checkedInMap,
+    "level-1.json",
+    [],
+    [],
+    [],
+    painted,
+    { objectIds: [coin.id], terrainCells: [{ x: 2, y: 8 }] },
+    1,
+    0,
+  );
+  const editedMap = applyPlatformerObjectEdits(
+    applyPlatformerTerrainEdits(checkedInMap, "level-1.json", moved.platformerTerrainEdits),
+    "level-1.json",
+    moved.platformerObjectEdits,
+  );
+
+  assert.equal(fromKind, "ground");
+  assert.equal(platformerTerrainKindAt(editedMap, 2, 8), "empty");
+  assert.equal(platformerTerrainKindAt(editedMap, 3, 8), "ground");
+  assert.equal(editedMap.objects.find((object) => object.id === coin.id)?.x, coin.x + 1);
+  assert.deepEqual(moved.selection, {
+    objectIds: [coin.id],
+    terrainCells: [{ x: 3, y: 8 }],
+  });
+});
+
+test("a selection move clamps to the map edge", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const moved = movePlatformerEditorSelection(
+    checkedInMap,
+    "level-1.json",
+    [],
+    [],
+    [],
+    [],
+    { objectIds: [], terrainCells: [{ x: checkedInMap.size.columns - 1, y: 11 }] },
+    8,
+    0,
+  );
+
+  assert.deepEqual(moved.delta, { dx: 0, dy: 0 });
+  assert.deepEqual(moved.platformerTerrainEdits, []);
+});
+
+test("HUD overlay cells are ignored by the select tool", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const lives = platformerHudAtViewportCell(checkedInMap, 5, 0);
+  const coins = platformerHudAtViewportCell(checkedInMap, 9, 0);
+  const besideLives = platformerHudAtViewportCell(checkedInMap, 7, 0);
+
+  assert.equal(lives?.type, "lives");
+  assert.equal(platformerHudAtViewportCell(checkedInMap, 6, 0)?.type, "lives");
+  assert.equal(coins?.type, "coins");
+  assert.equal(besideLives, null);
+  assert.equal(
+    applyPlatformerEditorSelectionClick(
+      EMPTY_PLATFORMER_EDITOR_SELECTION,
+      { type: "hud" },
+      false,
+    ),
+    null,
+  );
+});
+
+test("select-tool clicks add items and clicking again unselects them", () => {
+  const added = applyPlatformerEditorSelectionClick(
+    EMPTY_PLATFORMER_EDITOR_SELECTION,
+    { type: "object", id: "coin_1" },
+    false,
+  );
+  const both = applyPlatformerEditorSelectionClick(
+    added ?? EMPTY_PLATFORMER_EDITOR_SELECTION,
+    { type: "terrain", x: 2, y: 8 },
+    false,
+  );
+  const unselected = applyPlatformerEditorSelectionClick(
+    both ?? EMPTY_PLATFORMER_EDITOR_SELECTION,
+    { type: "object", id: "coin_1" },
+    false,
+  );
+  const toggled = applyPlatformerEditorSelectionClick(
+    both ?? EMPTY_PLATFORMER_EDITOR_SELECTION,
+    { type: "terrain", x: 2, y: 8 },
+    true,
+  );
+  const cleared = applyPlatformerEditorSelectionClick(
+    both ?? EMPTY_PLATFORMER_EDITOR_SELECTION,
+    { type: "empty" },
+    false,
+  );
+
+  assert.deepEqual(added, { objectIds: ["coin_1"], terrainCells: [] });
+  assert.deepEqual(both, {
+    objectIds: ["coin_1"],
+    terrainCells: [{ x: 2, y: 8 }],
+  });
+  assert.deepEqual(unselected, { objectIds: [], terrainCells: [{ x: 2, y: 8 }] });
+  assert.deepEqual(toggled, { objectIds: ["coin_1"], terrainCells: [] });
+  assert.deepEqual(cleared, EMPTY_PLATFORMER_EDITOR_SELECTION);
+});
+
+test("a zoomed-out map has no hero to select, so a placement opens no settings", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const heroId = checkedInMap.objects.find(
+    (object) => object.type === "player_spawn",
+  )?.id;
+  const selection = { objectIds: [heroId ?? "", "coin_1"], terrainCells: [{ x: 2, y: 8 }] };
+
+  assert.ok(heroId);
+  assert.equal(platformerUnselectableHeroId(checkedInMap, 1), null);
+  assert.equal(platformerUnselectableHeroId(checkedInMap, 0.8), heroId);
+  assert.deepEqual(
+    platformerSelectionWithoutObject(
+      selection,
+      platformerUnselectableHeroId(checkedInMap, 0.8),
+    ),
+    { objectIds: ["coin_1"], terrainCells: [{ x: 2, y: 8 }] },
+  );
+  assert.equal(
+    platformerSelectionWithoutObject(
+      selection,
+      platformerUnselectableHeroId(checkedInMap, 1),
+    ),
+    selection,
+  );
 });

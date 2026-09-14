@@ -1,12 +1,20 @@
 "use client";
 
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 
 import {
+  applyPlatformerLevelArt,
   applyPlatformerObjectEdits,
   applyPlatformerRules,
   applyPlatformerTerrainEdits,
   type PlatformerEditTool,
+  type PlatformerEditorSelection,
   type PlatformerObjectPlacement,
   type PlatformerTerrainStrokeCell,
 } from "@/game/platformer/map-editing";
@@ -66,13 +74,16 @@ type GamePlayerProps = GamePlayerContentProps & {
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
   onUpdateThumbnail?: () => Promise<void>;
   startOverlayTitle?: string;
+  editorZoomScale?: number;
+  mapAreaRef?: RefObject<HTMLDivElement | null>;
   platformerEditor?: {
     tool: PlatformerEditTool;
     onToolChange: (tool: PlatformerEditTool) => void;
     onTerrainStroke: (stroke: readonly PlatformerTerrainStrokeCell[]) => void;
-    onObjectPlace: (placement: PlatformerObjectPlacement) => void;
-    selectedObjectId: string | null;
-    onObjectSelect: (objectId: string | null) => void;
+    onObjectPlace: (placements: readonly PlatformerObjectPlacement[]) => void;
+    selection: PlatformerEditorSelection;
+    onSelectionChange: (selection: PlatformerEditorSelection) => void;
+    onSelectionMove: (dx: number, dy: number, selection: PlatformerEditorSelection) => void;
   };
 };
 
@@ -90,6 +101,8 @@ export function GamePlayer({
   onThumbnailCaptureReady,
   onUpdateThumbnail,
   startOverlayTitle,
+  editorZoomScale,
+  mapAreaRef,
   platformerEditor,
 }: GamePlayerProps) {
   const campaignMaps = useMemo(() => gameCampaignMaps(spec, maps), [maps, spec]);
@@ -130,16 +143,22 @@ export function GamePlayer({
     () =>
       current
         ? applyPlatformerRules(
-            applyPlatformerObjectEdits(
-              applyPlatformerTerrainEdits(
-                current.map,
+            applyPlatformerLevelArt(
+              applyPlatformerObjectEdits(
+                applyPlatformerTerrainEdits(
+                  current.map,
+                  current.source,
+                  spec.platformerTerrainEdits,
+                ),
                 current.source,
-                spec.platformerTerrainEdits,
+                spec.platformerObjectEdits,
+                spec.platformerObjectRemovals,
+                spec.platformerObjectSettings,
               ),
               current.source,
-              spec.platformerObjectEdits,
-              spec.platformerObjectRemovals,
+              spec.platformerLevelArt,
               spec.platformerObjectSettings,
+              spec.platformerObjectEdits,
             ),
             carriedLives ?? spec.startingLives,
           )
@@ -147,6 +166,7 @@ export function GamePlayer({
     [
       carriedLives,
       current,
+      spec.platformerLevelArt,
       spec.platformerObjectEdits,
       spec.platformerObjectRemovals,
       spec.platformerObjectSettings,
@@ -203,10 +223,13 @@ export function GamePlayer({
       onEditorToolChange={platformerEditor?.onToolChange}
       onTerrainStroke={platformerEditor?.onTerrainStroke}
       onObjectPlace={platformerEditor?.onObjectPlace}
-      selectedObjectId={platformerEditor?.selectedObjectId}
-      onObjectSelect={platformerEditor?.onObjectSelect}
+      editorSelection={platformerEditor?.selection}
+      onEditorSelectionChange={platformerEditor?.onSelectionChange}
+      onEditorSelectionMove={platformerEditor?.onSelectionMove}
       onPlayingChange={onPlatformerPlayingChange}
       onComplete={handlePlatformerComplete}
+      editorZoomScale={editorZoomScale}
+      mapAreaRef={mapAreaRef}
     />
   );
 }

@@ -292,15 +292,18 @@ test("an unknown starting-lives value on a map falls back rather than breaking p
   assert.equal(createInitialState(broken).lives, DEFAULT_STARTING_LIVES);
 });
 
-test("read_game_objects lists each enemy with its look and this level's options", () => {
+test("read_game_objects lists each enemy with its look and every world's options", () => {
   const { characters } = describeLevel(level());
 
   assert.ok(characters.inLevel.length > 0, "level-1 should ship with enemies");
   for (const character of characters.inLevel) {
     assert.ok(character.look, `${character.role} at ${character.x},${character.y} has no look`);
   }
+  const greenHills = characters.enemyLooksByWorld.find(
+    (entry) => entry.world === "Green Hills",
+  );
   assert.deepEqual(
-    characters.enemyLooks.map((option) => option.value),
+    greenHills?.looks.map((option) => option.value),
     [
       "neutral_cooper_01",
       "neutral_human_01",
@@ -308,6 +311,12 @@ test("read_game_objects lists each enemy with its look and this level's options"
       "neutral_robot_01",
       "neutral_zombie_01",
     ],
+  );
+  assert.ok(
+    characters.enemyLooksByWorld
+      .find((entry) => entry.world === "Dragon World")
+      ?.looks.some((option) => option.value === "dragon_ghost_01"),
+    "a Green Hills level should still be offered Dragon World looks",
   );
 });
 
@@ -372,14 +381,22 @@ test("only the enemies in the named cells are repainted", () => {
   assert.deepEqual(change.changed, [{ x: target.x, y: target.y, look: "neutral_robot_01" }]);
 });
 
-test("a look this level's art set does not have is refused", () => {
-  rejects(
-    () => planAppearanceChange(DEFAULT_GAME_DOCUMENT, level(), "space_robot_01", "", []),
-    /cannot use that look here/,
+test("another world's look is allowed but a look nobody drew is refused", () => {
+  const change = planAppearanceChange(
+    DEFAULT_GAME_DOCUMENT,
+    level(),
+    "dragon_ghost_01",
+    "",
+    [],
   );
+  assert.ok(change.changed.length > 0, "a Green Hills level should take a Dragon World look");
+  for (const entry of change.platformerObjectSettings) {
+    assert.equal(entry.assetId, "dragon_ghost_01");
+  }
+
   rejects(
     () => planAppearanceChange(DEFAULT_GAME_DOCUMENT, level(), "not_a_sprite", "", []),
-    /cannot use that look here/,
+    /does not have a look called/,
   );
 });
 

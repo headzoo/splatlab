@@ -6,6 +6,11 @@ import {
   planAppearanceChange,
   planStartingLives,
 } from "../../game-objects";
+import {
+  LEVEL_ART_PARTS,
+  LEVEL_ART_WORLD_NAMES,
+  planLevelArt,
+} from "../../game-art-editing";
 import type { CooperSpecChange } from "../../cooper-spec-change";
 import { HUMAN_GENDERS, PLAYER_CHARACTERS } from "../../game-contract";
 import {
@@ -60,7 +65,7 @@ const APPEARANCE_PARAMETERS = {
     look: {
       type: "string",
       description:
-        "The new look, copied exactly from enemyLooks or bossLooks in read_game_objects. A boss look only fits a boss.",
+        "The new look, copied exactly from enemyLooksByWorld or bossLooksByWorld in read_game_objects. Any world's look works on any level. A boss look only fits a boss.",
     },
     fromLook: {
       type: "string",
@@ -79,6 +84,25 @@ const APPEARANCE_PARAMETERS = {
           y: { type: "integer", description: "Row, counting from 0 at the top." },
         },
       },
+    },
+  },
+} as const;
+
+const LEVEL_ART_PARAMETERS = {
+  type: "object",
+  additionalProperties: false,
+  required: ["part", "world"],
+  properties: {
+    part: {
+      type: "string",
+      enum: [...LEVEL_ART_PARTS],
+      description: "Which part of the level changes its art.",
+    },
+    world: {
+      type: "string",
+      enum: [...LEVEL_ART_WORLD_NAMES],
+      description:
+        "The world the art comes from. Check canBorrowFrom for that part in read_game_objects first: not every world drew its own coins, springs or checkpoints.",
     },
   },
 } as const;
@@ -168,5 +192,36 @@ export const setEnemyAppearanceTool: AgentTool = Object.freeze({
     }
 
     return persist(context, loaded.spec, change, { changed: change.changed });
+  },
+});
+
+export const setLevelArtTool: AgentTool = Object.freeze({
+  id: "set_level_art",
+  definition: {
+    name: "set_level_art",
+    description:
+      "Dress one part of the level being shown in another world's art, so an ice level can use Dragon World platforms. It changes every one of them already in the level and the button the kid paints new ones with. Read the art list from read_game_objects first to see which worlds have their own version of that part. Takes effect right away.",
+    parameters: LEVEL_ART_PARAMETERS,
+  },
+  async execute(args: unknown, context: ToolExecutionContext): Promise<ToolExecutionResult> {
+    const loaded = await loadLevel(context);
+    if (loaded.status !== "loaded") return loadError(loaded.status);
+
+    let change: ReturnType<typeof planLevelArt>;
+    try {
+      change = planLevelArt(
+        loaded.spec,
+        loaded.level,
+        readString(args, "part"),
+        readString(args, "world"),
+      );
+    } catch (error) {
+      if (error instanceof GameObjectEditError) return toolError(error.reason);
+      throw error;
+    }
+
+    return persist(context, loaded.spec, change, {
+      art: { part: change.part, world: change.world },
+    });
   },
 });

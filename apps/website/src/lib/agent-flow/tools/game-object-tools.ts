@@ -9,6 +9,7 @@ import {
   type ObjectCellRequest,
   type ObjectPlacementRequest,
 } from "../../game-objects";
+import { describeLevelArt } from "../../game-art-editing";
 import {
   loadLevel,
   loadError,
@@ -39,7 +40,7 @@ const CELL_PROPERTIES = {
 const ADD_PARAMETERS = {
   type: "object",
   additionalProperties: false,
-  required: ["placements"],
+  required: ["placements", "look"],
   properties: {
     placements: {
       type: "array",
@@ -54,6 +55,11 @@ const ADD_PARAMETERS = {
           ...CELL_PROPERTIES,
         },
       },
+    },
+    look: {
+      type: "string",
+      description:
+        "The look every added enemy or boss should wear, taken from enemyLooksByWorld or bossLooksByWorld in read_game_objects. Any world's look works on any level, so \"ghosts from the dragon world\" is one call. Send an empty string to use this level's own art.",
     },
   },
 } as const;
@@ -83,13 +89,19 @@ export const readGameObjectsTool: AgentTool = Object.freeze({
   definition: {
     name: "read_game_objects",
     description:
-      "Read the level the kid is looking at: its size, the terrain grid, a matching grid of what is already placed in every cell, and the kinds you may add or remove. Call this before add_game_objects or remove_game_objects so you pick real empty cells.",
+      "Read the level the kid is looking at: its size, the terrain grid, a matching grid of what is already placed in every cell, the kinds you may add or remove, the art each part is wearing, and every look an enemy or boss can be given. Call this before add_game_objects, remove_game_objects, set_enemy_appearance or set_level_art.",
     parameters: NO_PARAMETERS,
   },
   async execute(_args: unknown, context: ToolExecutionContext): Promise<ToolExecutionResult> {
     const loaded = await loadLevel(context);
     if (loaded.status !== "loaded") return loadError(loaded.status);
-    return { output: { ok: true, ...describeLevel(loaded.level) } };
+    return {
+      output: {
+        ok: true,
+        ...describeLevel(loaded.level),
+        art: describeLevelArt(loaded.level),
+      },
+    };
   },
 });
 
@@ -111,6 +123,7 @@ export const addGameObjectsTool: AgentTool = Object.freeze({
         loaded.spec,
         loaded.level,
         readArray<ObjectPlacementRequest>(args, "placements"),
+        readString(args, "look"),
       );
     } catch (error) {
       if (error instanceof GameObjectEditError) return toolError(error.reason);

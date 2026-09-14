@@ -1,7 +1,8 @@
 .game {
   display: grid;
   min-width: 0;
-  gap: 8px;
+  gap: 0;
+  overflow: visible;
 }
 
 .toolbar {
@@ -71,6 +72,60 @@
 
 .editorToolbar {
   justify-content: flex-end;
+}
+
+/*
+ * Fullscreen keeps the stage at the camera aspect so the canvas transform never
+ * stretches the art. min() is width-bound in portrait, height-bound otherwise.
+ */
+.game:fullscreen,
+.game:-webkit-full-screen {
+  /* Padding, toolbar, control row, and the two grid gaps around the stage. */
+  --fullscreen-chrome: 124px;
+  --fullscreen-stage-width: min(
+    100%,
+    calc((100dvh - var(--fullscreen-chrome)) * var(--stage-aspect, 1.7778))
+  );
+
+  box-sizing: border-box;
+  height: 100%;
+  padding: 10px;
+  overflow: hidden;
+  align-content: center;
+  gap: 14px;
+  background: #07143f;
+}
+
+.game:fullscreen .stage,
+.game:-webkit-full-screen .stage {
+  width: var(--fullscreen-stage-width);
+  margin-inline: auto;
+}
+
+.game:fullscreen .toolbar,
+.game:-webkit-full-screen .toolbar {
+  width: var(--fullscreen-stage-width);
+  margin-inline: auto;
+  justify-content: center;
+  align-items: center;
+}
+
+.game:fullscreen .controlRow,
+.game:-webkit-full-screen .controlRow {
+  width: var(--fullscreen-stage-width);
+  margin-inline: auto;
+  justify-content: center;
+  align-items: center;
+}
+
+.game:fullscreen .touchControls,
+.game:-webkit-full-screen .touchControls {
+  justify-content: center;
+}
+
+.game:fullscreen .controlHint,
+.game:-webkit-full-screen .controlHint {
+  display: none;
 }
 
 .stage {
@@ -161,24 +216,28 @@
   transform: none;
 }
 
-.canvas[data-editor-tool="select"] {
+.canvas[data-editor-cursor="paint"] {
+  cursor: url("/brand/build/paint-brush-cursor.png") 6 26, crosshair;
+}
+
+.canvas[data-editor-cursor="erase"] {
+  cursor: url("/brand/build/eraser-cursor.png") 8 24, crosshair;
+}
+
+.canvas[data-editor-cursor="select"] {
   cursor: default;
 }
 
-.canvas[data-editor-tool="move"] {
-  cursor: grab;
-}
-
-.canvas[data-editor-tool="move"][data-panning="true"] {
+.canvas[data-editor-cursor="select"][data-moving="true"] {
   cursor: grabbing;
 }
 
-.canvas[data-editor-tool="erase"],
-.canvas[data-editor-tool="ground"],
-.canvas[data-editor-tool="platform"],
-.canvas[data-editor-tool="obstacle"],
-.canvas[data-editor-tool="hazard"] {
-  cursor: crosshair;
+.canvas[data-editor-cursor="pan"] {
+  cursor: grab;
+}
+
+.canvas[data-editor-cursor="pan"][data-panning="true"] {
+  cursor: grabbing;
 }
 
 .editorBadge {
@@ -231,15 +290,21 @@
 
 .controlRow {
   display: flex;
+  height: 68px;
   min-width: 0;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  padding-block: 15px;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
 }
 
 .editorControlRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
 }
 
 .buildPlaybackControls {
@@ -248,14 +313,16 @@
   align-items: center;
   justify-content: center;
   gap: 9px;
+  overflow: visible;
 }
 
 .buildPlaybackControls .buildPlaybackButton {
   display: grid;
-  width: 58px;
-  min-width: 58px;
-  height: 58px;
-  min-height: 58px;
+  width: 78px;
+  min-width: 78px;
+  height: 78px;
+  min-height: 78px;
+  margin-block: -20px;
   padding: 0;
   color: #fff;
   background: #24b947;
@@ -263,7 +330,9 @@
   border-radius: 50%;
   place-items: center;
   box-shadow: 0 4px 0 #0f7f2b, 0 7px 12px rgb(18 104 47 / 22%);
-  font-size: 23px;
+  font-size: 32px;
+  position: relative;
+  z-index: 2;
 }
 
 .playbackIcon {
@@ -515,12 +584,28 @@
   .controlRow {
     align-items: stretch;
     flex-direction: column;
+    height: auto;
   }
 
-  .buttonGroup,
   .touchControls {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* Playback buttons share one row and wrap once full screen makes five. */
+  .buttonGroup {
+    flex-wrap: wrap;
+  }
+
+  .buttonGroup button {
+    flex: 1 1 62px;
+    white-space: nowrap;
+  }
+
+  /* The toolbar stacks below this width, so fullscreen loses more height to it. */
+  .game:fullscreen,
+  .game:-webkit-full-screen {
+    --fullscreen-chrome: 160px;
   }
 
   .toolbar button,

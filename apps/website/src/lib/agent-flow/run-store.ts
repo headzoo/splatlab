@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 
-import { builderChatTurnSchema, gameDocumentSchema, type BuilderChatTurn } from "../game-contract";
+import {
+  activeMapSource,
+  builderChatTurnSchema,
+  gameDocumentSchema,
+  type BuilderChatTurn,
+} from "../game-contract";
 import type { GamePhysicsDocument } from "../game-physics";
 import { applyCooperSpecChange, type CooperSpecChange } from "../cooper-spec-change";
 import { memoryGames, type StoredGame } from "../games";
@@ -139,6 +144,16 @@ export type ApplySpecChangeInput = {
 
 export type ApplySpecChangeResult =
   | { status: "updated"; gameRevision: number; change: CooperSpecChange }
+  | { status: "not_found" };
+
+export type ApplyGameTitleInput = {
+  ownerId: string;
+  gameId: string;
+  title: string;
+};
+
+export type ApplyGameTitleResult =
+  | { status: "updated"; gameRevision: number; title: string }
   | { status: "not_found" };
 
 export type StartRunResult =
@@ -321,7 +336,10 @@ export class AgentFlowRunStore {
     if (this.useMemory) {
       const game = memoryGames().find((item) => item.id === input.gameId && item.ownerId === input.ownerId);
       if (!game) return { status: "not_found" };
-      game.spec = gameDocumentSchema.parse(applyCooperSpecChange(game.spec, input.change));
+      const spec = gameDocumentSchema.parse(applyCooperSpecChange(game.spec, input.change));
+      game.spec = spec;
+      game.gameType = spec.previewKind;
+      game.mapSource = activeMapSource(spec);
       game.revision += 1;
       game.updatedAt = new Date();
       return { status: "updated", gameRevision: game.revision, change: clone(input.change) };
@@ -329,13 +347,47 @@ export class AgentFlowRunStore {
     return this.transactionWithTranscriptRetry(() => getPrisma().$transaction(async (tx) => {
       const game = await tx.game.findFirst({ where: { id: input.gameId, ownerId: input.ownerId } });
       if (!game) return { status: "not_found" } as ApplySpecChangeResult;
-      const spec = gameDocumentSchema.parse(game.spec);
+      const spec = applyCooperSpecChange(gameDocumentSchema.parse(game.spec), input.change);
       const result = await tx.game.updateMany({
         where: { id: game.id, revision: game.revision },
-        data: { spec: applyCooperSpecChange(spec, input.change), revision: { increment: 1 } },
+        // Cooper can now switch the game type and the level being played, and
+        // these two columns are what the game list and the player read.
+        data: {
+          spec,
+          gameType: spec.previewKind,
+          mapSource: activeMapSource(spec),
+          revision: { increment: 1 },
+        },
       });
       if (!result.count) throw TRANSCRIPT_CONFLICT;
       return { status: "updated", gameRevision: game.revision + 1, change: clone(input.change) };
+    }));
+  }
+
+  /**
+   * The game's name lives beside the spec rather than inside it, so Cooper's
+   * rename cannot ride along on a `CooperSpecChange`. It commits on its own for
+   * the same reason the others do: an applied rename has to survive a later
+   * Reject or a failed turn.
+   */
+  async applyGameTitle(input: ApplyGameTitleInput): Promise<ApplyGameTitleResult> {
+    if (this.useMemory) {
+      const game = memoryGames().find((item) => item.id === input.gameId && item.ownerId === input.ownerId);
+      if (!game) return { status: "not_found" };
+      game.title = input.title;
+      game.revision += 1;
+      game.updatedAt = new Date();
+      return { status: "updated", gameRevision: game.revision, title: input.title };
+    }
+    return this.transactionWithTranscriptRetry(() => getPrisma().$transaction(async (tx) => {
+      const game = await tx.game.findFirst({ where: { id: input.gameId, ownerId: input.ownerId } });
+      if (!game) return { status: "not_found" } as ApplyGameTitleResult;
+      const result = await tx.game.updateMany({
+        where: { id: game.id, revision: game.revision },
+        data: { title: input.title, revision: { increment: 1 } },
+      });
+      if (!result.count) throw TRANSCRIPT_CONFLICT;
+      return { status: "updated", gameRevision: game.revision + 1, title: input.title };
     }));
   }
 

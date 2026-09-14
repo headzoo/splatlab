@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { z } from "zod";
 
 import {
   activeGameTheme,
@@ -173,6 +174,8 @@ export type BuildTurnResult = {
   physicsDocument?: GamePhysicsDocument;
   /** Present only when Cooper added or removed objects on this turn. */
   specChange?: CooperSpecChange;
+  /** Present only when Cooper renamed the game on this turn. */
+  title?: string;
 };
 
 export type PersistedBuildTurn = BuildTurnResult & {
@@ -194,6 +197,7 @@ const NON_CHAT_GAME_FIELDS = [
   "setupStep",
   "builderSetupHistory",
   "platformerTerrainEdits",
+  "platformerLevelArt",
   // The three object arrays are deliberately absent: Cooper and the level
   // editor both append to them, so they are unioned below rather than won
   // outright by either side. `physicsDocument` and `startingLives` are absent
@@ -247,6 +251,13 @@ export function parseBuildTurnResult(
     : undefined;
   if (objects && !objects.success) return null;
 
+  // Matches `createGameInputSchema.title`, so a name the server would refuse on
+  // the next autosave never reaches the builder in the first place.
+  const title = "title" in body
+    ? z.string().trim().min(1).max(80).safeParse(body.title)
+    : undefined;
+  if (title && !title.success) return null;
+
   return {
     status: body.status as BuildTurnResult["status"],
     cooperMessage: body.cooperMessage.trim(),
@@ -254,6 +265,7 @@ export function parseBuildTurnResult(
     revision,
     ...(physics ? { physicsDocument: physics.data } : {}),
     ...(objects ? { specChange: objects.data } : {}),
+    ...(title ? { title: title.data } : {}),
   };
 }
 
@@ -262,9 +274,15 @@ export function persistedBuildTurn(
   submittedMessage: string,
   result: BuildTurnResult,
 ): PersistedBuildTurn {
-  const userTurns = submittedMessage
-    ? [{ role: "user" as const, message: submittedMessage }]
-    : [];
+  const last = history.at(-1);
+  const alreadyRecorded =
+    Boolean(submittedMessage) &&
+    last?.role === "user" &&
+    last.message === submittedMessage;
+  const userTurns =
+    submittedMessage && !alreadyRecorded
+      ? [{ role: "user" as const, message: submittedMessage }]
+      : [];
 
   return {
     ...result,
@@ -298,6 +316,7 @@ type BuildSetupContextValue = {
   selectGameName: (gameName: string, nextStep?: GameSetupStep) => void;
   openLevelPicker: () => void;
   closeLevelPicker: () => void;
+  appendLocalUserMessage: (message: string) => void;
   saveChatHistory: (turns: BuilderChatTurn[]) => void;
   publishGameIdentity: (identity: BuildGameIdentity) => void;
   publishDisplayedGame: (displayedGame: DisplayedGame) => void;
@@ -534,6 +553,12 @@ export function BuildSetupProvider({
     setLevelPickerOpen(false);
   }, []);
 
+  const appendLocalUserMessage = useCallback((message: string) => {
+    setChatHistory((current) =>
+      [...current, { role: "user" as const, message }].slice(-MAX_CHAT_TURNS),
+    );
+  }, []);
+
   const saveChatHistory = useCallback((turns: BuilderChatTurn[]) => {
     const boundedTurns = turns.slice(-50);
     setChatHistory(boundedTurns);
@@ -592,6 +617,7 @@ export function BuildSetupProvider({
       selectGameName,
       openLevelPicker,
       closeLevelPicker,
+      appendLocalUserMessage,
       saveChatHistory,
       publishGameIdentity,
       publishDisplayedGame,
@@ -616,6 +642,7 @@ export function BuildSetupProvider({
       selections,
       selectSkinTone,
       selectTheme,
+      appendLocalUserMessage,
       saveChatHistory,
       publishGameIdentity,
       publishDisplayedGame,
