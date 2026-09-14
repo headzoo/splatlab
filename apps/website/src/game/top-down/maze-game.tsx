@@ -12,6 +12,13 @@ import {
 } from "react";
 
 import {
+  assetUrl,
+  MAZE_IMAGE_URLS,
+  mazeLoadingBackdrop,
+  resolveMazeVisuals,
+  type MazeImageKey,
+} from "./art-catalog";
+import {
   createInitialMazeState,
   MAZE_DEATH_DURATION_TICKS,
   MAZE_FIXED_DELTA_SECONDS,
@@ -27,11 +34,12 @@ import {
   playerDefeatedEventSheet,
   playerDefeatedEventVisual,
 } from "../platformer/player-death";
+import { GameLoadingOverlay } from "../game-loading-overlay";
 import {
   isCustomizableHumanAsset,
-  loadSpriteImage,
   recolorHumanSprite,
 } from "../player-appearance";
+import { createSpritePreloader, spritePreloadTotal } from "../sprite-preload";
 import {
   CanvasScreenshotMenu,
   type CanvasScreenshotMenuHandle,
@@ -79,10 +87,6 @@ type InputState = {
   jumpHeld: boolean;
   jumpPressed: boolean;
 };
-type VisualSlot = "floor" | "wall" | "obstacle" | "key" | "door";
-type ThemePrefix = "green" | "haunted" | "space" | "dragons";
-type ImageKey = `${ThemePrefix}${Capitalize<VisualSlot>}` | "enemy" | "hazard";
-
 const emptyInput = (): InputState => ({
   left: false,
   right: false,
@@ -91,31 +95,6 @@ const emptyInput = (): InputState => ({
   jumpHeld: false,
   jumpPressed: false,
 });
-const assetUrl = (path: string) => `/game-assets/${path}`;
-const IMAGE_URLS: Record<ImageKey, string> = {
-  greenFloor: assetUrl("sprites/neutral_green_hills_maze_floor_01.png"),
-  greenWall: assetUrl("sprites/neutral_green_hills_maze_wall_01.png"),
-  greenObstacle: assetUrl("sprites/neutral_green_hills_maze_obstacle_01.png"),
-  greenKey: assetUrl("sprites/neutral_green_hills_maze_key_01.png"),
-  greenDoor: assetUrl("sprites/neutral_green_hills_maze_door_01.png"),
-  hauntedFloor: assetUrl("sprites/haunted_graveyard_maze_floor_01.png"),
-  hauntedWall: assetUrl("sprites/haunted_graveyard_maze_wall_01.png"),
-  hauntedObstacle: assetUrl("sprites/haunted_graveyard_maze_obstacle_01.png"),
-  hauntedKey: assetUrl("sprites/haunted_graveyard_maze_key_01.png"),
-  hauntedDoor: assetUrl("sprites/haunted_graveyard_maze_door_01.png"),
-  spaceFloor: assetUrl("sprites/space_maze_floor_01.png"),
-  spaceWall: assetUrl("sprites/space_maze_wall_01.png"),
-  spaceObstacle: assetUrl("sprites/space_maze_obstacle_01.png"),
-  spaceKey: assetUrl("sprites/space_maze_key_01.png"),
-  spaceDoor: assetUrl("sprites/space_maze_door_01.png"),
-  dragonsFloor: assetUrl("sprites/dragons_emberkeep_maze_floor_01.png"),
-  dragonsWall: assetUrl("sprites/dragons_emberkeep_maze_wall_01.png"),
-  dragonsObstacle: assetUrl("sprites/dragons_emberkeep_maze_obstacle_01.png"),
-  dragonsKey: assetUrl("sprites/dragons_emberkeep_maze_key_01.png"),
-  dragonsDoor: assetUrl("sprites/dragons_emberkeep_maze_door_01.png"),
-  enemy: assetUrl("sprites/neutral_ghost_01.png"),
-  hazard: assetUrl("sprites/shared_hole_hazard_01.png"),
-};
 
 const MAZE_MUSIC_URL = assetUrl("audio/space_basic_v1/gameplay_loop.wav");
 const MAZE_AUDIO_URLS = {
@@ -169,27 +148,6 @@ class MazeRuntimeAudio {
     void effect.play().catch(() => undefined);
   }
 }
-
-type MazeVisualProfile = Record<VisualSlot, ImageKey> & { color: string };
-
-function visualProfile(prefix: ThemePrefix, color: string): MazeVisualProfile {
-  return {
-    color,
-    floor: `${prefix}Floor`,
-    wall: `${prefix}Wall`,
-    obstacle: `${prefix}Obstacle`,
-    key: `${prefix}Key`,
-    door: `${prefix}Door`,
-  };
-}
-
-const GREEN_MAZE_VISUALS = visualProfile("green", "#8fcf68");
-const MAZE_VISUALS: Record<string, MazeVisualProfile> = {
-  maze_green_hills_01: GREEN_MAZE_VISUALS,
-  maze_graveyard_01: visualProfile("haunted", "#322842"),
-  maze_space_01: visualProfile("space", "#111936"),
-  maze_dragon_world_01: visualProfile("dragons", "#472731"),
-};
 
 const DIRECTION_ROWS: Record<MazeDirection, number> = {
   down: 0,
@@ -261,14 +219,14 @@ function drawMaze(
   map: MazeMapSpec,
   state: MazeState,
   camera: MazeCamera,
-  images: Partial<Record<ImageKey, HTMLImageElement>>,
+  images: Partial<Record<MazeImageKey, HTMLImageElement>>,
   playerImage: CanvasImageSource | undefined,
   playerDefeatedImage: CanvasImageSource | undefined,
   playerAssetId: PlayerAssetId,
   elapsedSeconds: number,
 ) {
   const tileSize = map.tileSize;
-  const visuals = MAZE_VISUALS[map.id] ?? GREEN_MAZE_VISUALS;
+  const visuals = resolveMazeVisuals(map.id);
   const motionElapsedMilliseconds = state.tick * MAZE_FIXED_DELTA_SECONDS * 1000;
   const viewportWidth = map.camera.columns * tileSize;
   const viewportHeight = map.camera.rows * tileSize;
@@ -429,6 +387,7 @@ export function MazeGame({
   const initialState = useMemo(() => createInitialMazeState(map), [map]);
   const [playing, setPlaying] = useState(false);
   const [assetsReady, setAssetsReady] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
   const [runtimeStatus, setRuntimeStatus] = useState<MazeState["status"]>("playing");
   const [muted, setMuted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -436,7 +395,7 @@ export function MazeGame({
   const gameRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef(initialState);
   const inputRef = useRef<InputState>(emptyInput());
-  const imagesRef = useRef<Partial<Record<ImageKey, HTMLImageElement>>>({});
+  const imagesRef = useRef<Partial<Record<MazeImageKey, HTMLImageElement>>>({});
   const playerImageRef = useRef<CanvasImageSource | null>(null);
   const playerDefeatedImageRef = useRef<CanvasImageSource | null>(null);
   const audioRef = useRef<MazeRuntimeAudio | null>(null);
@@ -514,20 +473,35 @@ export function MazeGame({
 
   useEffect(() => {
     let cancelled = false;
+    setLoadProgress(0);
 
     void (async () => {
-      await Promise.all(Object.entries(IMAGE_URLS).map(async ([key, url]) => {
-        const image = await loadSpriteImage(url);
-        if (image) imagesRef.current[key as ImageKey] = image;
+      const defeatedSheet = playerDefeatedEventSheet(playerAssetId);
+      const sheets = Object.entries(MAZE_IMAGE_URLS);
+      const track = createSpritePreloader(
+        spritePreloadTotal({
+          sheetCount: sheets.length,
+          playerAssetId,
+          // The player's own sheet, plus its defeat sheet when one exists.
+          extraSheets: defeatedSheet ? 2 : 1,
+        }),
+        (fraction) => {
+          if (!cancelled) setLoadProgress(fraction);
+        },
+      );
+
+      await Promise.all(sheets.map(async ([key, url]) => {
+        const image = await track(url);
+        if (image) imagesRef.current[key as MazeImageKey] = image;
       }));
 
-      const basePlayerImage = await loadSpriteImage(
+      const basePlayerImage = await track(
         assetUrl(`sprites/${playerAssetId}.png`),
       );
       if (basePlayerImage && isCustomizableHumanAsset(playerAssetId)) {
         const [skinMask, hairMask] = await Promise.all([
-          loadSpriteImage(assetUrl(`sprite-masks/${playerAssetId}-skin-mask.png`)),
-          loadSpriteImage(assetUrl(`sprite-masks/${playerAssetId}-hair-mask.png`)),
+          track(assetUrl(`sprite-masks/${playerAssetId}-skin-mask.png`)),
+          track(assetUrl(`sprite-masks/${playerAssetId}-hair-mask.png`)),
         ]);
         playerImageRef.current = skinMask && hairMask
           ? recolorHumanSprite(
@@ -542,9 +516,8 @@ export function MazeGame({
         playerImageRef.current = basePlayerImage ?? null;
       }
 
-      const defeatedSheet = playerDefeatedEventSheet(playerAssetId);
       playerDefeatedImageRef.current = defeatedSheet
-        ? await loadSpriteImage(assetUrl(`sprites/${defeatedSheet.imageAssetId}.png`)) ?? null
+        ? await track(assetUrl(`sprites/${defeatedSheet.imageAssetId}.png`)) ?? null
         : null;
 
       if (!cancelled) setAssetsReady(true);
@@ -723,7 +696,7 @@ export function MazeGame({
       : runtimeStatus === "dying"
         ? "Hero defeated — returning to start…"
         : !assetsReady
-          ? "Loading maze…"
+          ? null
           : !playing
             ? "Press Play, then move with the arrow keys or W/A/S/D and jump with Space"
             : null;
@@ -809,6 +782,12 @@ export function MazeGame({
           </button>
         ) : null}
         {statusMessage ? <div className={styles.stageMessage} aria-hidden="true"><strong>{statusMessage}</strong></div> : null}
+        {!assetsReady ? (
+          <GameLoadingOverlay
+            progress={loadProgress}
+            {...mazeLoadingBackdrop(map.id)}
+          />
+        ) : null}
       </div>
 
       <div className={styles.controlRow}>

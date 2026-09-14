@@ -111,6 +111,19 @@ function ExternalLinkIcon() {
   );
 }
 
+function ShareIcon() {
+  return (
+    <svg
+      className={styles.playGameIcon}
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M12 10.5a2.2 2.2 0 0 0-1.3.4l-3.5-2a2.3 2.3 0 0 0 0-1.8l3.5-2a2.2 2.2 0 0 0 1.3.4 2.3 2.3 0 1 0-.7-1.7l-3.5 2a2.3 2.3 0 0 0-2.6 0l-3.5-2A2.3 2.3 0 1 0 2.3 6.5a2.2 2.2 0 0 0 1.3-.4l3.5 2a2.3 2.3 0 0 0 0 1.8l-3.5 2a2.2 2.2 0 0 0-1.3-.4A2.3 2.3 0 1 0 4 13.7a2.3 2.3 0 0 0 2.6 0l3.5-2a2.2 2.2 0 0 0 1.3.4 2.3 2.3 0 1 0 2.3-2.3Z" />
+    </svg>
+  );
+}
+
 function ResetZoomIcon() {
   return (
     <svg
@@ -212,7 +225,11 @@ export function BuildGamePreview({
   const [pendingLevel, setPendingLevel] = useState<PendingLevel | null>(null);
   const [levelName, setLevelName] = useState("");
   const [levelSettingsOpen, setLevelSettingsOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [sharePlayUrl, setSharePlayUrl] = useState("");
+  const [shareUrlCopied, setShareUrlCopied] = useState(false);
   const levelDialogRef = useRef<HTMLDialogElement>(null);
+  const shareDialogRef = useRef<HTMLDialogElement>(null);
   const levelNameDialogRef = useRef<HTMLDialogElement>(null);
   const levelNameInputRef = useRef<HTMLInputElement>(null);
   const levelSettingsDialogRef = useRef<HTMLDialogElement>(null);
@@ -638,6 +655,39 @@ export function BuildGamePreview({
     if (!levelSettingsOpen && dialog.open) dialog.close();
   }, [levelSettingsOpen]);
 
+  useEffect(() => {
+    const dialog = shareDialogRef.current;
+    if (!dialog) return;
+    if (shareDialogOpen && !dialog.open) dialog.showModal();
+    if (!shareDialogOpen && dialog.open) dialog.close();
+  }, [shareDialogOpen]);
+
+  const playHref = gameIdentity ? playGamePath(gameIdentity.id) : null;
+
+  const openShareDialog = useCallback(() => {
+    if (!playHref) return;
+
+    setSharePlayUrl(`${window.location.origin}${playHref}`);
+    setShareUrlCopied(false);
+    setShareDialogOpen(true);
+  }, [playHref]);
+
+  const closeShareDialog = useCallback(() => {
+    setShareDialogOpen(false);
+    setShareUrlCopied(false);
+  }, []);
+
+  const copyShareUrl = useCallback(async () => {
+    if (!sharePlayUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(sharePlayUrl);
+      setShareUrlCopied(true);
+    } catch {
+      setShareUrlCopied(false);
+    }
+  }, [sharePlayUrl]);
+
   const { previewKind } = history.present;
   const campaignMaps = useMemo(
     () => gameCampaignMaps(history.present, maps),
@@ -848,7 +898,6 @@ export function BuildGamePreview({
       ),
     });
   };
-  const playHref = gameIdentity ? playGamePath(gameIdentity.id) : null;
   const zoomEnabled = previewKind !== "maze" && !platformerPlaying;
   const clampedEditorZoom = clampEditorZoomScale(current.map, editorZoomScale);
   const canZoomOut = zoomEnabled && canStepEditorZoom(current.map, clampedEditorZoom, "out");
@@ -876,28 +925,40 @@ export function BuildGamePreview({
   return (
     <>
       <header className={styles.previewHeading}>
-        {playHref ? (
-          <a
-            className={styles.playGameButton}
-            href={playHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Play this game in a new tab"
-          >
-            <span>Play</span>
-            <ExternalLinkIcon />
-          </a>
-        ) : (
+        <div className={styles.previewPlayActions}>
+          {playHref ? (
+            <a
+              className={styles.playGameButton}
+              href={playHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Play this game in a new tab"
+            >
+              <span>Play</span>
+              <ExternalLinkIcon />
+            </a>
+          ) : (
+            <button
+              className={styles.playGameButton}
+              type="button"
+              disabled
+              aria-label="Play will be available after this game saves"
+            >
+              <span>Play</span>
+              <ExternalLinkIcon />
+            </button>
+          )}
           <button
-            className={styles.playGameButton}
+            className={styles.shareGameButton}
             type="button"
-            disabled
-            aria-label="Play will be available after this game saves"
+            disabled={!playHref}
+            aria-label="Share play link"
+            onClick={openShareDialog}
           >
-            <span>Play</span>
-            <ExternalLinkIcon />
+            <span>Share</span>
+            <ShareIcon />
           </button>
-        )}
+        </div>
         <h2 className={styles.previewGameName}>
           {displayTitle.trim() || defaultGameTitle(history.present)}
         </h2>
@@ -1110,6 +1171,39 @@ export function BuildGamePreview({
             <button type="submit">Create level</button>
           </div>
         </form>
+      </dialog>
+
+      <dialog
+        className={styles.shareDialog}
+        ref={shareDialogRef}
+        aria-labelledby="share-play-title"
+        onClose={closeShareDialog}
+        onCancel={closeShareDialog}
+      >
+        <header>
+          <div>
+            <span>Share your game</span>
+            <h2 id="share-play-title">Play link</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Close share dialog"
+            onClick={closeShareDialog}
+          >
+            ×
+          </button>
+        </header>
+        <div className={styles.shareDialogBody}>
+          <p>Anyone with this link can play your game in a new tab.</p>
+          <output className={styles.shareUrlOutput}>{sharePlayUrl}</output>
+          <button
+            className={styles.shareCopyButton}
+            type="button"
+            onClick={() => void copyShareUrl()}
+          >
+            {shareUrlCopied ? "Copied!" : "Copy link"}
+          </button>
+        </div>
       </dialog>
 
       <dialog

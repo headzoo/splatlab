@@ -696,12 +696,18 @@
   gap: 7px;
 }
 
+.previewPlayActions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  justify-self: start;
+}
+
 .playGameButton {
   display: inline-flex;
   min-height: 27px;
   align-items: center;
   justify-content: center;
-  justify-self: start;
   gap: 6px;
   padding: 0 12px;
   color: #fff;
@@ -712,6 +718,33 @@
   font: 900 12px/1 "Nunito", sans-serif;
   text-decoration: none;
   cursor: pointer;
+}
+
+.shareGameButton {
+  display: inline-flex;
+  min-height: 27px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  color: #3155a3;
+  background: #edf4fb;
+  border: 1px solid #b6c9df;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
+  font: 900 12px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.shareGameButton:hover {
+  background: #dfeaf7;
+}
+
+.shareGameButton:disabled {
+  color: #8ea3c4;
+  background: #f3f7fb;
+  border-color: #d3deeb;
+  cursor: not-allowed;
 }
 
 .playGameButton:hover {
@@ -818,7 +851,8 @@
   outline-offset: 2px;
 }
 
-.levelDialog {
+.levelDialog,
+.shareDialog {
   width: min(calc(100% - 32px), 590px);
   margin: auto;
   padding: 0;
@@ -829,12 +863,14 @@
   box-shadow: inset 0 0 0 3px #fff, 0 18px 40px rgb(7 20 63 / 32%);
 }
 
-.levelDialog::backdrop {
+.levelDialog::backdrop,
+.shareDialog::backdrop {
   background: rgb(7 20 63 / 64%);
   backdrop-filter: blur(3px);
 }
 
-.levelDialog header {
+.levelDialog header,
+.shareDialog header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -844,7 +880,8 @@
   border-bottom: 2px solid #e9b92a;
 }
 
-.levelDialog header span {
+.levelDialog header span,
+.shareDialog header span {
   color: #6f3f00;
   font-size: 9px;
   font-weight: 1000;
@@ -852,12 +889,14 @@
   text-transform: uppercase;
 }
 
-.levelDialog h2 {
+.levelDialog h2,
+.shareDialog h2 {
   margin-top: 3px;
   font: 400 28px/1 "Chewy", cursive;
 }
 
-.levelDialog header button {
+.levelDialog header button,
+.shareDialog header button {
   width: 38px;
   height: 38px;
   padding: 0;
@@ -898,7 +937,52 @@
 }
 
 .levelThemeGrid button:focus-visible,
-.levelDialog header button:focus-visible {
+.levelDialog header button:focus-visible,
+.shareDialog header button:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.shareDialogBody {
+  padding: 18px 20px 20px;
+}
+
+.shareDialogBody p {
+  margin: 0;
+  color: #3155a3;
+  font: 600 14px/1.45 "Nunito", sans-serif;
+}
+
+.shareUrlOutput {
+  display: block;
+  margin: 16px 0 14px;
+  padding: 14px 12px;
+  color: #12234e;
+  background: #fff7c6;
+  border: 2px solid #efb900;
+  border-radius: 10px;
+  font: 700 14px/1.35 "Nunito", sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.shareCopyButton {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 14px;
+  color: #fff;
+  background: #238447;
+  border: 1px solid #176b35;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
+  font: 900 13px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.shareCopyButton:hover {
+  background: #1c723b;
+}
+
+.shareCopyButton:focus-visible {
   outline: 4px solid #ffd52e;
   outline-offset: 2px;
 }
@@ -1104,6 +1188,7 @@
 .historyControls button:focus-visible,
 .zoomControls button:focus-visible,
 .playGameButton:focus-visible,
+.shareGameButton:focus-visible,
 .levelSelect select:focus-visible {
   outline: 4px solid #ffd52e;
   outline-offset: 2px;
@@ -1810,7 +1895,7 @@
     padding: 0 3px 10px;
   }
 
-  .playGameButton {
+  .previewPlayActions {
     grid-area: play;
     justify-self: start;
   }

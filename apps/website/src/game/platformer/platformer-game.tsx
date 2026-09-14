@@ -20,6 +20,7 @@ import {
   hazardSheetForAssetId,
   imageKeyForAssetId,
   IMAGE_URLS,
+  loadingBackdrop,
   resolveMapVisuals,
   type ImageKey,
 } from "./art-catalog";
@@ -66,11 +67,16 @@ import {
   fullscreenButtonLabel,
   useGameFullscreen,
 } from "@/game/fullscreen";
+import { GameLoadingOverlay } from "@/game/game-loading-overlay";
 import {
   isCustomizableHumanAsset,
   loadSpriteImage,
   recolorHumanSprite,
 } from "@/game/player-appearance";
+import {
+  createSpritePreloader,
+  spritePreloadTotal,
+} from "@/game/sprite-preload";
 import type {
   HairColor,
   PlatformerObjectKind,
@@ -1198,6 +1204,7 @@ export function PlatformerGame({
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [assetsReady, setAssetsReady] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
   const [controlBindings, setControlBindings] = useState<ControlBindings>(copyDefaultControlBindings);
   const [capturingBinding, setCapturingBinding] = useState<CapturingBinding>(null);
   const [controlError, setControlError] = useState("");
@@ -1231,6 +1238,12 @@ export function PlatformerGame({
   const playerImageRef = useRef<CanvasImageSource | null>(null);
   const audioRef = useRef<RuntimeAudio | null>(null);
   const fullscreen = useGameFullscreen(gameRef);
+
+  const backdrop = useMemo(
+    () => loadingBackdrop(map.presentation),
+    [map.presentation],
+  );
+  const backdropImageUrl = backdrop.imageUrl;
 
   const syncRuntimeDom = useCallback((state: PlatformerState) => {
     const game = gameRef.current;
@@ -1295,22 +1308,34 @@ export function PlatformerGame({
 
   useEffect(() => {
     let cancelled = false;
+    setLoadProgress(0);
 
     void (async () => {
+      const sheets = Object.entries(IMAGE_URLS) as Array<[ImageKey, string]>;
+      const track = createSpritePreloader(
+        spritePreloadTotal({ sheetCount: sheets.length, playerAssetId }),
+        (fraction) => {
+          if (!cancelled) setLoadProgress(fraction);
+        },
+      );
+      const loadSheet = async ([key, url]: [ImageKey, string]) => {
+        const image = await track(url);
+        if (image) imagesRef.current[key] = image;
+      };
+
+      // The loading screen shows the furthest background, so it is fetched
+      // first rather than queued behind a hundred sprites on a slow line.
+      const backdropSheet = sheets.find(([, url]) => url === backdropImageUrl);
+      if (backdropSheet) await loadSheet(backdropSheet);
       await Promise.all(
-        (Object.entries(IMAGE_URLS) as Array<[ImageKey, string]>).map(
-          async ([key, url]) => {
-            const image = await loadSpriteImage(url);
-            if (image) imagesRef.current[key] = image;
-          },
-        ),
+        sheets.filter((sheet) => sheet !== backdropSheet).map(loadSheet),
       );
 
       const basePlayerImage = imagesRef.current[playerAssetId];
       if (basePlayerImage && isCustomizableHumanAsset(playerAssetId)) {
         const [skinMask, hairMask] = await Promise.all([
-          loadSpriteImage(assetUrl(`sprite-masks/${playerAssetId}-skin-mask.png`)),
-          loadSpriteImage(assetUrl(`sprite-masks/${playerAssetId}-hair-mask.png`)),
+          track(assetUrl(`sprite-masks/${playerAssetId}-skin-mask.png`)),
+          track(assetUrl(`sprite-masks/${playerAssetId}-hair-mask.png`)),
         ]);
         playerImageRef.current = skinMask && hairMask
           ? recolorHumanSprite(
@@ -1331,7 +1356,7 @@ export function PlatformerGame({
     return () => {
       cancelled = true;
     };
-  }, [hairColor, playerAssetId, skinTone]);
+  }, [backdropImageUrl, hairColor, playerAssetId, skinTone]);
 
   const render = useCallback((elapsedSeconds: number, renderedState = stateRef.current) => {
     const canvas = canvasRef.current;
@@ -2433,7 +2458,7 @@ export function PlatformerGame({
       : terminalStatus === "game_over"
         ? "Game over — reset to try again"
         : !assetsReady
-          ? "Loading level…"
+          ? null
           : editing
             ? null
           : !playing
@@ -2550,6 +2575,9 @@ export function PlatformerGame({
           <div className={styles.stageMessage} aria-hidden="true">
             <strong>{statusMessage}</strong>
           </div>
+        ) : null}
+        {!assetsReady ? (
+          <GameLoadingOverlay progress={loadProgress} {...backdrop} />
         ) : null}
       </div>
 

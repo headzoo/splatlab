@@ -63,13 +63,30 @@ function imageData(image: HTMLImageElement) {
   return context.getImageData(0, 0, canvas.width, canvas.height);
 }
 
+/**
+ * Sprite URLs are served immutable, and switching levels remounts the game, so
+ * the second visit to a sheet must not make the player wait through the loading
+ * screen again. Caching the promise also collapses the duplicate requests two
+ * mounts would otherwise race.
+ */
+const spriteImageCache = new Map<string, Promise<HTMLImageElement | undefined>>();
+
 export function loadSpriteImage(url: string) {
-  return new Promise<HTMLImageElement | undefined>((resolve) => {
+  const cached = spriteImageCache.get(url);
+  if (cached) return cached;
+
+  const loading = new Promise<HTMLImageElement | undefined>((resolve) => {
     const image = new Image();
     image.onload = () => resolve(image);
-    image.onerror = () => resolve(undefined);
+    image.onerror = () => {
+      // A dropped request should stay retryable rather than fail every reload.
+      spriteImageCache.delete(url);
+      resolve(undefined);
+    };
     image.src = url;
   });
+  spriteImageCache.set(url, loading);
+  return loading;
 }
 
 export function isCustomizableHumanAsset(playerAssetId: PlayerAssetId) {

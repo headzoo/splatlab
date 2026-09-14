@@ -468,6 +468,23 @@ export function resolveMapVisuals(presentation: {
 }
 
 /**
+ * What the loading screen shows while the sprites download: the level's
+ * furthest background layer, which is the one image that can be drawn before
+ * anything else has arrived.
+ */
+export function loadingBackdrop(presentation: {
+  backgroundId: string;
+  artBorrows?: PlatformerArtBorrows;
+}) {
+  const visuals = resolveMapVisuals(presentation);
+  const furthest = visuals.backgroundLayers[0];
+  return {
+    color: visuals.color,
+    imageUrl: furthest ? IMAGE_URLS[furthest.image] : undefined,
+  };
+}
+
+/**
  * The art newly placed objects wear on this level, borrowed slots included.
  * Green Hills stands in for any world without its own object art.
  */
