@@ -5,7 +5,7 @@ const THUMBNAIL_WEBP_QUALITY = 0.82;
 
 type ScreenshotCanvas = Pick<HTMLCanvasElement, "toBlob">;
 
-export type GameThumbnailCapture = () => Promise<string>;
+export type GameThumbnailCapture = () => Promise<Blob>;
 
 export function buildScreenshotFilename(
   gameId: string,
@@ -52,7 +52,7 @@ export function gameThumbnailDimensions(width: number, height: number) {
   };
 }
 
-function createCanvasThumbnailBlob(canvas: ScreenshotCanvas) {
+function encodeCanvasThumbnailBlob(canvas: ScreenshotCanvas) {
   return new Promise<Blob>((resolve, reject) => {
     try {
       canvas.toBlob((blob) => {
@@ -68,24 +68,7 @@ function createCanvasThumbnailBlob(canvas: ScreenshotCanvas) {
   });
 }
 
-function blobToDataUrl(blob: Blob) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-        return;
-      }
-      reject(new Error("The game thumbnail could not be read."));
-    }, { once: true });
-    reader.addEventListener("error", () => {
-      reject(reader.error ?? new Error("The game thumbnail could not be read."));
-    }, { once: true });
-    reader.readAsDataURL(blob);
-  });
-}
-
-export async function createCanvasThumbnailDataUrl(
+export async function createCanvasThumbnailBlob(
   source: HTMLCanvasElement,
 ) {
   const dimensions = gameThumbnailDimensions(source.width, source.height);
@@ -100,17 +83,12 @@ export async function createCanvasThumbnailDataUrl(
 
   context.imageSmoothingEnabled = false;
   context.drawImage(source, 0, 0, dimensions.width, dimensions.height);
-  return blobToDataUrl(await createCanvasThumbnailBlob(thumbnail));
+  return encodeCanvasThumbnailBlob(thumbnail);
 }
 
-export async function downloadCanvasScreenshot(
-  canvas: ScreenshotCanvas,
-  gameId: string,
-) {
-  const blob = await createCanvasScreenshotBlob(canvas);
+export function triggerBrowserDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  const filename = buildScreenshotFilename(gameId);
 
   link.href = url;
   link.download = filename;
@@ -119,6 +97,12 @@ export async function downloadCanvasScreenshot(
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
-  return filename;
+export async function downloadBlobFromUrl(url: string, filename: string) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("The image could not be downloaded.");
+  }
+  triggerBrowserDownload(await response.blob(), filename);
 }

@@ -3,6 +3,7 @@ import { memoryAdapter, type MemoryDB } from "better-auth/adapters/memory";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { anonymous } from "better-auth/plugins";
 
+import { UNSET_DISPLAY_NAME } from "./display-name";
 import { labKeyPlugin } from "./lab-key-plugin";
 import { getPrisma } from "./prisma";
 
@@ -81,7 +82,7 @@ export const auth = betterAuth({
   },
   plugins: [
     anonymous({
-      generateName: () => "Lab Creator",
+      generateName: () => UNSET_DISPLAY_NAME,
     }),
     labKeyPlugin({ pepper: requiredSecret("LAB_KEY_PEPPER") }),
   ],

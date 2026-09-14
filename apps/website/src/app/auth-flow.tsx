@@ -11,24 +11,76 @@ import {
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
+import { hasChosenDisplayName } from "@/lib/display-name";
+
+import { DisplayNamePicker } from "./display-name-picker";
 
 type AuthMode = "start" | "sign-in" | "sign-out";
 
 type AuthFlowContextValue = {
   busy: boolean;
   isSignedIn: boolean;
+  displayName: string | null;
+  image: string | null;
   markSignedIn: () => void;
   open: (mode: AuthMode) => void;
 };
 
 const AuthFlowContext = createContext<AuthFlowContextValue | null>(null);
 
+function profileFromUser(user: { name: string; image?: string | null } | null) {
+  if (!user || !hasChosenDisplayName(user.name)) {
+    return {
+      isSignedIn: Boolean(user),
+      displayName: null as string | null,
+      image: null as string | null,
+      needsDisplayName: Boolean(user),
+    };
+  }
+
+  return {
+    isSignedIn: true,
+    displayName: user.name,
+    image: user.image ?? null,
+    needsDisplayName: false,
+  };
+}
+
 export function AuthFlowProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
+  const [needsDisplayName, setNeedsDisplayName] = useState(false);
 
-  const markSignedIn = useCallback(() => setIsSignedIn(true), []);
+  const applyProfile = useCallback(
+    (user: { name: string; image?: string | null } | null) => {
+      const next = profileFromUser(user);
+      setIsSignedIn(next.isSignedIn);
+      setDisplayName(next.displayName);
+      setImage(next.image);
+      setNeedsDisplayName(next.needsDisplayName);
+    },
+    [],
+  );
+
+  const refreshProfile = useCallback(async () => {
+    const current = await authClient.getSession();
+    applyProfile(current.data?.user ?? null);
+  }, [applyProfile]);
+
+  const markSignedIn = useCallback(() => {
+    setIsSignedIn(true);
+    void refreshProfile();
+  }, [refreshProfile]);
+
+  const setDisplayProfile = useCallback((name: string, nextImage: string) => {
+    setIsSignedIn(true);
+    setDisplayName(name);
+    setImage(nextImage);
+    setNeedsDisplayName(false);
+  }, []);
 
   const signOut = useCallback(async () => {
     if (busy) {
@@ -44,7 +96,7 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
         throw new Error(result.error.message);
       }
 
-      setIsSignedIn(false);
+      applyProfile(null);
       router.push("/");
       router.refresh();
     } catch {
@@ -52,7 +104,7 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
     } finally {
       setBusy(false);
     }
-  }, [busy, router]);
+  }, [applyProfile, busy, router]);
 
   const open = useCallback(
     (mode: AuthMode) => {
@@ -71,20 +123,27 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
 
     void authClient.getSession().then((current) => {
       if (active) {
-        setIsSignedIn(Boolean(current.data));
+        applyProfile(current.data?.user ?? null);
       }
     });
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [applyProfile]);
 
   return (
     <AuthFlowContext.Provider
-      value={{ busy, isSignedIn, markSignedIn, open }}
+      value={{ busy, isSignedIn, displayName, image, markSignedIn, open }}
     >
       {children}
+      {needsDisplayName ? (
+        <DisplayNamePicker
+          onChosen={({ name, image: nextImage }) => {
+            setDisplayProfile(name, nextImage);
+          }}
+        />
+      ) : null}
     </AuthFlowContext.Provider>
   );
 }
@@ -106,6 +165,7 @@ export function AuthAction({
   hideWhenSignedOut = false,
   signedInMode,
   signedInChildren,
+  signedInLabel,
 }: {
   mode: AuthMode;
   className?: string;
@@ -113,6 +173,7 @@ export function AuthAction({
   hideWhenSignedOut?: boolean;
   signedInMode?: AuthMode;
   signedInChildren?: ReactNode;
+  signedInLabel?: string;
 }) {
   const context = useAuthFlow();
 
@@ -122,15 +183,17 @@ export function AuthAction({
 
   const actionMode =
     context.isSignedIn && signedInMode ? signedInMode : mode;
+  const showingSignedIn = Boolean(context.isSignedIn && signedInChildren);
 
   return (
     <button
       className={className}
       type="button"
       disabled={context.busy}
+      aria-label={showingSignedIn ? signedInLabel : undefined}
       onClick={() => context.open(actionMode)}
     >
-      {context.isSignedIn && signedInChildren ? signedInChildren : children}
+      {showingSignedIn ? signedInChildren : children}
     </button>
   );
 }

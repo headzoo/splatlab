@@ -35,6 +35,7 @@ import {
   clampEditorZoomScale,
   stepEditorZoomScale,
 } from "@/game/platformer/engine";
+import { uploadLabImage } from "@/lib/blob-upload";
 import {
   activeGameTheme,
   activePlayerAssetId,
@@ -151,7 +152,10 @@ function errorMessage(payload: unknown, fallback: string) {
   return fallback;
 }
 
-async function putGameThumbnail(gameId: string, thumbnailDataUrl: string) {
+async function putGameThumbnail(
+  gameId: string,
+  thumbnail: { url: string; pathname: string },
+) {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -160,7 +164,7 @@ async function putGameThumbnail(gameId: string, thumbnailDataUrl: string) {
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ thumbnailDataUrl }),
+        body: JSON.stringify(thumbnail),
       },
     );
 
@@ -174,6 +178,17 @@ async function putGameThumbnail(gameId: string, thumbnailDataUrl: string) {
   }
 
   throw lastError ?? new Error("We couldn't save your game image.");
+}
+
+async function uploadGameThumbnail(gameId: string, thumbnailBlob: Blob) {
+  const file = new File([thumbnailBlob], "thumbnail.webp", {
+    type: "image/webp",
+  });
+  const uploaded = await uploadLabImage(file, "thumbnail", gameId);
+  await putGameThumbnail(gameId, {
+    url: uploaded.url,
+    pathname: uploaded.pathname,
+  });
 }
 
 export function BuildGamePreview({
@@ -525,8 +540,8 @@ export function BuildGamePreview({
       const identity = identityRef.current;
       if (!identity || savedThumbnailGameIdsRef.current.has(identity.id)) return;
 
-      const thumbnailDataUrl = await thumbnailCapture();
-      await putGameThumbnail(identity.id, thumbnailDataUrl);
+      const thumbnailBlob = await thumbnailCapture();
+      await uploadGameThumbnail(identity.id, thumbnailBlob);
       savedThumbnailGameIdsRef.current.add(identity.id);
     };
 
@@ -552,8 +567,8 @@ export function BuildGamePreview({
     }
 
     const promise = (async () => {
-      const thumbnailDataUrl = await thumbnailCapture();
-      await putGameThumbnail(identity.id, thumbnailDataUrl);
+      const thumbnailBlob = await thumbnailCapture();
+      await uploadGameThumbnail(identity.id, thumbnailBlob);
       savedThumbnailGameIdsRef.current.add(identity.id);
     })();
     thumbnailSavePromiseRef.current = promise;
@@ -1056,6 +1071,7 @@ export function BuildGamePreview({
           </div>
         )}
         hidePlatformerEditorLabels
+        savedGameId={gameIdentity?.id}
         onThumbnailCaptureReady={handleThumbnailCaptureReady}
         onUpdateThumbnail={
           gameIdentity && thumbnailCapture ? updateThumbnail : undefined

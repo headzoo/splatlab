@@ -73,6 +73,7 @@ type GamePlayerProps = GamePlayerContentProps & {
   onPlatformerPlayingChange?: (playing: boolean) => void;
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
   onUpdateThumbnail?: () => Promise<void>;
+  savedGameId?: string;
   startOverlayTitle?: string;
   editorZoomScale?: number;
   mapAreaRef?: RefObject<HTMLDivElement | null>;
@@ -100,6 +101,7 @@ export function GamePlayer({
   onPlatformerPlayingChange,
   onThumbnailCaptureReady,
   onUpdateThumbnail,
+  savedGameId,
   startOverlayTitle,
   editorZoomScale,
   mapAreaRef,
@@ -199,6 +201,7 @@ export function GamePlayer({
       onStartOverlayDismiss={() => setStartOverlayDismissed(true)}
       onThumbnailCaptureReady={onThumbnailCaptureReady}
       onUpdateThumbnail={onUpdateThumbnail}
+      savedGameId={savedGameId}
       onComplete={advanceLevel}
     />
   ) : (
@@ -219,6 +222,7 @@ export function GamePlayer({
       onStartOverlayDismiss={() => setStartOverlayDismissed(true)}
       onThumbnailCaptureReady={onThumbnailCaptureReady}
       onUpdateThumbnail={onUpdateThumbnail}
+      savedGameId={savedGameId}
       editorTool={platformerEditor?.tool}
       onEditorToolChange={platformerEditor?.onToolChange}
       onTerrainStroke={platformerEditor?.onTerrainStroke}

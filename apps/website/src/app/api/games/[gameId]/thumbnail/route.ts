@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import {
+  blobUrlMatchesPathname,
+  isOwnedThumbnailPathname,
+} from "@/lib/blob-path";
 import { gameThumbnailInputSchema } from "@/lib/game-contract";
 import { saveGameThumbnail } from "@/lib/games";
 
@@ -31,12 +35,23 @@ export async function PUT(request: Request, context: RouteContext) {
     );
   }
 
+  const { gameId } = await context.params;
+
+  if (
+    !blobUrlMatchesPathname(parsed.data.url, parsed.data.pathname) ||
+    !isOwnedThumbnailPathname(session.user.id, gameId, parsed.data.pathname)
+  ) {
+    return NextResponse.json(
+      { message: "That game image was not valid." },
+      { status: 400 },
+    );
+  }
+
   try {
-    const { gameId } = await context.params;
     const saved = await saveGameThumbnail(
       session.user.id,
       gameId,
-      parsed.data.thumbnailDataUrl,
+      parsed.data.url,
     );
 
     if (!saved) {

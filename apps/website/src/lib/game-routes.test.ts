@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildGamePath, playGamePath } from "./game-routes";
+import { buildGamePath, mediaSharePath, playGamePath } from "./game-routes";
 
 test("existing games use a build path segment instead of a query parameter", () => {
   assert.equal(buildGamePath("game-123"), "/build/game-123");
@@ -11,4 +11,9 @@ test("existing games use a build path segment instead of a query parameter", () 
 test("shared games use a play path segment", () => {
   assert.equal(playGamePath("game-123"), "/play/game-123");
   assert.equal(playGamePath("game/with spaces"), "/play/game%2Fwith%20spaces");
+});
+
+test("shared screenshots use a media path segment", () => {
+  assert.equal(mediaSharePath("shot-123"), "/media/shot-123");
+  assert.equal(mediaSharePath("shot/with spaces"), "/media/shot%2Fwith%20spaces");
 });

@@ -412,6 +412,25 @@
   font-size: 32px;
 }
 
+.headerCtaAvatar {
+  gap: 8px;
+  padding: 3px 16px 3px 4px;
+}
+
+.headerCtaAvatar img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.accountName {
+  max-width: 150px;
+  overflow: hidden;
+  font: 400 22px/1 "Chewy", cursive;
+  text-overflow: ellipsis;
+}
+
 .headerCta:disabled,
 .cta:disabled,
 .signIn:disabled {
@@ -976,6 +995,15 @@
     font-size: 28px;
   }
 
+  .headerCtaAvatar {
+    padding: 3px 12px 3px 3px;
+  }
+
+  .headerCtaAvatar img {
+    width: 42px;
+    height: 42px;
+  }
+
   .heroCopy h1 {
     font-size: 61px;
   }
@@ -1210,6 +1238,19 @@
     min-height: 48px;
     padding-inline: 16px;
     font-size: 30px;
+  }
+
+  .headerCtaAvatar {
+    padding: 3px;
+  }
+
+  .headerCtaAvatar img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .accountName {
+    display: none;
   }
 
   .hero {

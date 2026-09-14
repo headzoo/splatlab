@@ -115,7 +115,7 @@ import {
   type CanvasScreenshotMenuHandle,
 } from "../canvas-screenshot-menu";
 import {
-  createCanvasThumbnailDataUrl,
+  createCanvasThumbnailBlob,
   type GameThumbnailCapture,
 } from "../canvas-screenshot";
 import styles from "./platformer-game.module.css";
@@ -137,6 +137,7 @@ type PlatformerGameProps = {
   onStartOverlayDismiss?: () => void;
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
   onUpdateThumbnail?: () => Promise<void>;
+  savedGameId?: string;
   editorTool?: PlatformerEditTool;
   onEditorToolChange?: (tool: PlatformerEditTool) => void;
   onTerrainStroke?: (stroke: readonly PlatformerTerrainStrokeCell[]) => void;
@@ -1182,6 +1183,7 @@ export function PlatformerGame({
   onStartOverlayDismiss,
   onThumbnailCaptureReady,
   onUpdateThumbnail,
+  savedGameId,
   editorTool,
   onEditorToolChange,
   onTerrainStroke,
@@ -1456,7 +1458,7 @@ export function PlatformerGame({
         : performance.now() / 1000 - victoryStartedAtRef.current,
     );
 
-    return createCanvasThumbnailDataUrl(thumbnailSource);
+    return createCanvasThumbnailBlob(thumbnailSource);
   }, [assetsReady, map, playerAssetId, weapon]);
 
   useEffect(() => {
@@ -2546,7 +2548,7 @@ export function PlatformerGame({
         <CanvasScreenshotMenu
           ref={screenshotMenuRef}
           canvasRef={canvasRef}
-          gameId={map.id}
+          savedGameId={savedGameId}
           onUpdateThumbnail={onUpdateThumbnail}
         />
         {editing && !hideEditorLabels ? (

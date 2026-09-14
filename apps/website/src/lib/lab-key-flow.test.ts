@@ -6,6 +6,10 @@ import { memoryAdapter } from "better-auth/adapters/memory";
 import { anonymous } from "better-auth/plugins";
 
 import { labKeyPlugin } from "./lab-key-plugin";
+import {
+  UNSET_DISPLAY_NAME,
+  buildDisplayNameOptions,
+} from "./display-name";
 
 const origin = "http://localhost:3000";
 
@@ -23,7 +27,7 @@ function createTestAuth() {
     }),
     rateLimit: { enabled: false },
     plugins: [
-      anonymous({ generateName: () => "Lab Creator" }),
+      anonymous({ generateName: () => UNSET_DISPLAY_NAME }),
       labKeyPlugin({ pepper: "test-only-lab-key-pepper" }),
     ],
   });
@@ -149,4 +153,71 @@ test("an anonymous workspace can issue, replace, and restore a Lab Key", async (
   assert.equal(restoredWorkspace.workspaceId, initialWorkspace.workspaceId);
   assert.equal(restoredWorkspace.hasLabKey, true);
   assert.equal(restoredWorkspace.keyVersion, 2);
+});
+
+test("a chosen Lab name and portrait stay attached after Lab Key restore", async () => {
+  const auth = createTestAuth();
+  const anonymousResponse = await callAuth(auth, "/sign-in/anonymous");
+  assert.equal(anonymousResponse.status, 200);
+  const sessionCookie = responseCookies(anonymousResponse);
+
+  const invalidName = await callAuth(auth, "/display-name", {
+    body: { name: "Not A Name", image: "lab-name-01" },
+    cookie: sessionCookie,
+  });
+  assert.equal(invalidName.status, 400);
+
+  const [name] = buildDisplayNameOptions(1);
+  const firstSave = await callAuth(auth, "/display-name", {
+    body: { name, image: "lab-name-04" },
+    cookie: sessionCookie,
+  });
+  assert.equal(firstSave.status, 200);
+  const saved = (await firstSave.json()) as { name: string; image: string };
+  assert.equal(saved.name, name);
+  assert.equal(saved.image, "lab-name-04");
+
+  const secondSave = await callAuth(auth, "/display-name", {
+    body: { name: buildDisplayNameOptions(1)[0], image: "lab-name-01" },
+    cookie: sessionCookie,
+  });
+  assert.equal(secondSave.status, 400);
+
+  const invalidSave = await callAuth(auth, "/display-name", {
+    body: { name: "Not A Name", image: "lab-name-01" },
+  });
+  assert.equal(invalidSave.status, 401);
+
+  const issueResponse = await callAuth(auth, "/lab-key/issue", {
+    body: {},
+    cookie: sessionCookie,
+  });
+  assert.equal(issueResponse.status, 200);
+  const issued = (await issueResponse.json()) as { labKey: string };
+
+  const otherAnonymousResponse = await callAuth(auth, "/sign-in/anonymous");
+  assert.equal(otherAnonymousResponse.status, 200);
+  const otherCookie = responseCookies(otherAnonymousResponse);
+
+  const restoredResponse = await callAuth(auth, "/sign-in/lab-key", {
+    body: { labKey: issued.labKey },
+    cookie: otherCookie,
+  });
+  assert.equal(restoredResponse.status, 200);
+  const restored = (await restoredResponse.json()) as {
+    user: { name: string; image: string | null };
+  };
+  assert.equal(restored.user.name, name);
+  assert.equal(restored.user.image, "lab-name-04");
+
+  const restoredSession = await callAuth(auth, "/get-session", {
+    method: "GET",
+    cookie: responseCookies(restoredResponse),
+  });
+  assert.equal(restoredSession.status, 200);
+  const session = (await restoredSession.json()) as {
+    user: { name: string; image: string | null };
+  };
+  assert.equal(session.user.name, name);
+  assert.equal(session.user.image, "lab-name-04");
 });

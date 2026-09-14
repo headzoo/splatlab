@@ -147,6 +147,7 @@
 }
 
 .games,
+.mediaLibrary,
 .labKeyPanel,
 .pageError {
   width: 100%;
@@ -419,6 +420,87 @@
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.mediaLibrary {
+  margin-top: 17px;
+  min-height: 0;
+}
+
+.mediaCardButton {
+  width: 100%;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mediaDialog {
+  position: relative;
+  width: min(calc(100% - 32px), 860px);
+  margin: auto;
+  padding: 28px 24px 22px;
+  color: #07143f;
+  background: #fffdf8;
+  border: 3px solid #42b8ec;
+  border-radius: 22px;
+  box-shadow: 0 16px 0 rgb(7 20 63 / 18%);
+}
+
+.mediaDialog::backdrop {
+  background: rgb(7 20 63 / 70%);
+  backdrop-filter: blur(3px);
+}
+
+.mediaPreview {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  margin: 18px 0 16px;
+  background: #dfeaf7;
+  border: 2px solid #b9cce2;
+  border-radius: 14px;
+}
+
+.mediaPreview img {
+  object-fit: contain;
+}
+
+.mediaDialogActions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mediaDialogActions button {
+  min-height: 44px;
+  border: 2px solid;
+  border-radius: 999px;
+  font: 400 18px/1 "Chewy", cursive;
+  cursor: pointer;
+}
+
+.mediaShare,
+.mediaDownload {
+  color: #0d1b4e;
+  background: linear-gradient(#ffdc37, #ffca24);
+  border-color: #efa90e;
+}
+
+.mediaDelete {
+  color: #fff;
+  background: #ed3f27;
+  border-color: #c92919;
+}
+
+.mediaStatus {
+  margin-top: 12px;
+  color: #3155a3;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
 }
 
 .gameMenu {
@@ -829,6 +911,7 @@
 .createButton:focus-visible,
 .gameCardTopper:focus-visible,
 .gameCardButton:focus-visible,
+.mediaCardButton:focus-visible,
 .gameMenu summary:focus-visible,
 .gameMenu button:focus-visible,
 .keyButton:focus-visible,
@@ -838,7 +921,8 @@
 .cancelButton:focus-visible,
 .replaceButton:focus-visible,
 .copyButton:focus-visible,
-.savedButton:focus-visible {
+.savedButton:focus-visible,
+.mediaDialogActions button:focus-visible {
   outline: 3px solid #ffd42f;
   outline-offset: 3px;
 }
@@ -902,6 +986,10 @@
     padding-inline: 24px;
   }
 
+  .mediaLibrary {
+    padding-inline: 24px;
+  }
+
   .emptyState {
     grid-template-columns: 1fr;
   }
@@ -913,6 +1001,10 @@
 
   .gameGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mediaDialogActions {
+    grid-template-columns: 1fr;
   }
 
   .labKeyPanel {
@@ -998,6 +1090,12 @@
   }
 
   .games {
+    min-height: 0;
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .mediaLibrary {
     min-height: 0;
     padding: 18px;
     border-radius: 18px;

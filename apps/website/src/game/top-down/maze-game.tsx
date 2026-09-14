@@ -45,7 +45,7 @@ import {
   type CanvasScreenshotMenuHandle,
 } from "../canvas-screenshot-menu";
 import {
-  createCanvasThumbnailDataUrl,
+  createCanvasThumbnailBlob,
   type GameThumbnailCapture,
 } from "../canvas-screenshot";
 import type {
@@ -76,6 +76,7 @@ type MazeGameProps = {
   onStartOverlayDismiss?: () => void;
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
   onUpdateThumbnail?: () => Promise<void>;
+  savedGameId?: string;
   onComplete?: () => void;
 };
 
@@ -382,6 +383,7 @@ export function MazeGame({
   onStartOverlayDismiss,
   onThumbnailCaptureReady,
   onUpdateThumbnail,
+  savedGameId,
   onComplete,
 }: MazeGameProps) {
   const initialState = useMemo(() => createInitialMazeState(map), [map]);
@@ -447,7 +449,7 @@ export function MazeGame({
     if (!canvas) {
       throw new Error("The game canvas is unavailable.");
     }
-    return createCanvasThumbnailDataUrl(canvas);
+    return createCanvasThumbnailBlob(canvas);
   }, [assetsReady]);
 
   useEffect(() => {
@@ -763,7 +765,7 @@ export function MazeGame({
         <CanvasScreenshotMenu
           ref={screenshotMenuRef}
           canvasRef={canvasRef}
-          gameId={map.id}
+          savedGameId={savedGameId}
           onUpdateThumbnail={onUpdateThumbnail}
         />
         {statusMessage ? <div className={styles.stageMessage} aria-hidden="true"><strong>{statusMessage}</strong></div> : null}

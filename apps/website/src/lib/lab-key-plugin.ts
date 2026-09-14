@@ -9,6 +9,11 @@ import { setSessionCookie } from "better-auth/cookies";
 import { z } from "zod";
 
 import {
+  hasChosenDisplayName,
+  isValidDisplayNameAvatarId,
+  isValidGeneratedDisplayName,
+} from "./display-name";
+import {
   createLabKeyLookup,
   generateLabKey,
   hashLabKey,
@@ -32,6 +37,11 @@ type LabKeyPluginOptions = {
 
 const labKeyBody = z.object({
   labKey: z.string().min(1).max(96),
+});
+
+const displayNameBody = z.object({
+  name: z.string().min(1).max(64),
+  image: z.string().min(1).max(32),
 });
 
 const genericKeyError = () =>
@@ -275,8 +285,59 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
 
           return ctx.json({
             token: session.token,
-            user: { id: anonymousUser.id, name: anonymousUser.name },
+            user: {
+              id: anonymousUser.id,
+              name: anonymousUser.name,
+              image: anonymousUser.image ?? null,
+            },
             workspaceId: workspace.id,
+          });
+        },
+      ),
+      setDisplayName: createAuthEndpoint(
+        "/display-name",
+        {
+          method: "POST",
+          body: displayNameBody,
+          requireHeaders: true,
+          use: [formCsrfMiddleware, sessionMiddleware],
+        },
+        async (ctx) => {
+          const currentUser = ctx.context.session.user;
+
+          if (hasChosenDisplayName(currentUser.name)) {
+            throw new APIError("BAD_REQUEST", {
+              message: "Your Lab name is already set.",
+            });
+          }
+
+          if (
+            !isValidGeneratedDisplayName(ctx.body.name) ||
+            !isValidDisplayNameAvatarId(ctx.body.image)
+          ) {
+            throw new APIError("BAD_REQUEST", {
+              message: "Pick one of the names on the cards.",
+            });
+          }
+
+          const updatedUser = await ctx.context.internalAdapter.updateUser(
+            currentUser.id,
+            {
+              name: ctx.body.name,
+              image: ctx.body.image,
+            },
+          );
+
+          if (!updatedUser) {
+            throw new APIError("INTERNAL_SERVER_ERROR", {
+              message: "We couldn't save that Lab name yet.",
+            });
+          }
+
+          ctx.setHeader("Cache-Control", "no-store");
+          return ctx.json({
+            name: updatedUser.name,
+            image: updatedUser.image ?? ctx.body.image,
           });
         },
       ),
@@ -291,6 +352,11 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
         pathMatcher: (path) => path.startsWith("/lab-key/issue"),
         window: 60,
         max: 3,
+      },
+      {
+        pathMatcher: (path) => path.startsWith("/display-name"),
+        window: 60,
+        max: 8,
       },
     ],
     schema: {

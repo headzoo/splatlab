@@ -20,6 +20,7 @@ model User {
   accounts      Account[]
   labWorkspace  LabWorkspace?
   games         Game[]
+  mediaAssets   MediaAsset[]
   agentFlowRuns AgentFlowRun[]
 
   @@map("user")
@@ -107,9 +108,27 @@ model Game {
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
   owner            User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   agentFlowRuns AgentFlowRun[]
+  mediaAssets      MediaAsset[]
 
   @@index([ownerId, updatedAt(sort: Desc)], map: "game_owner_id_updated_at_idx")
   @@map("game")
+}
+
+model MediaAsset {
+  id          String   @id @default(cuid())
+  ownerId     String   @map("owner_id")
+  gameId      String?  @map("game_id")
+  kind        String
+  url         String
+  pathname    String   @unique
+  contentType String   @map("content_type")
+  byteSize    Int      @map("byte_size")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  game        Game?    @relation(fields: [gameId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, createdAt(sort: Desc)], map: "media_asset_owner_id_created_at_idx")
+  @@map("media_asset")
 }
 
 enum AgentFlowRunStatus {

@@ -1,7 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+
+import { displayNameAvatarSrc } from "@/lib/display-name";
+
+import { AuthAction, useAuthFlow } from "./auth-flow";
 import styles from "./page.module.css";
-import { AuthAction } from "./auth-flow";
 
 type SiteHeaderProps = {
   currentPage?: "about" | "parents";
@@ -48,6 +53,9 @@ function NavIcon({ name }: { name: "features" | "examples" | "parents" | "about"
 }
 
 export function SiteHeader({ currentPage }: SiteHeaderProps) {
+  const { displayName, image } = useAuthFlow();
+  const portraitSrc = displayNameAvatarSrc(image);
+
   return (
     <header className={styles.header}>
       <div className={styles.navbarShell}>
@@ -88,9 +96,27 @@ export function SiteHeader({ currentPage }: SiteHeaderProps) {
           Sign in
         </AuthAction>
         <AuthAction
-          className={styles.headerCta}
+          className={`${styles.headerCta}${portraitSrc ? ` ${styles.headerCtaAvatar}` : ""}`}
           mode="start"
-          signedInChildren="Go to Lab"
+          signedInLabel={displayName ? `Go to Lab as ${displayName}` : "Go to Lab"}
+          signedInChildren={
+            portraitSrc ? (
+              <>
+                <Image
+                  src={portraitSrc}
+                  alt=""
+                  width={512}
+                  height={512}
+                  unoptimized
+                />
+                {displayName ? (
+                  <span className={styles.accountName}>{displayName}</span>
+                ) : null}
+              </>
+            ) : (
+              "Go to Lab"
+            )
+          }
         >
           Get Started
         </AuthAction>

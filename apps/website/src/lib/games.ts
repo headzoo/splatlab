@@ -9,6 +9,7 @@ import {
   type SavedGameSummaryDto,
 } from "./game-contract";
 import { mergeObjectArrays } from "./cooper-spec-change";
+import { deleteOwnedBlob } from "./blob-store";
 import { getPrisma, hasDatabase } from "./prisma";
 
 export type StoredGame = {
@@ -248,17 +249,23 @@ export async function updateGame(
 }
 
 export async function deleteGame(ownerId: string, id: string) {
+  const existing = await getGame(ownerId, id);
+  if (!existing) return false;
+
   if (!hasDatabase()) {
     const index = memoryGames().findIndex(
       (candidate) => candidate.id === id && candidate.ownerId === ownerId,
     );
     if (index < 0) return false;
     memoryGames().splice(index, 1);
+    await deleteOwnedBlob(existing.thumbnailDataUrl);
     return true;
   }
 
   const result = await getPrisma().game.deleteMany({ where: { id, ownerId } });
-  return result.count === 1;
+  if (result.count !== 1) return false;
+  await deleteOwnedBlob(existing.thumbnailDataUrl);
+  return true;
 }
 
 export async function saveGameThumbnail(
@@ -266,6 +273,9 @@ export async function saveGameThumbnail(
   id: string,
   thumbnailDataUrl: string,
 ) {
+  const existing = await getGame(ownerId, id);
+  if (!existing) return false;
+
   if (!hasDatabase()) {
     const game = memoryGames().find(
       (candidate) => candidate.id === id && candidate.ownerId === ownerId,
@@ -273,6 +283,9 @@ export async function saveGameThumbnail(
     if (!game) return false;
     game.thumbnailDataUrl = thumbnailDataUrl;
     game.updatedAt = new Date();
+    if (existing.thumbnailDataUrl !== thumbnailDataUrl) {
+      await deleteOwnedBlob(existing.thumbnailDataUrl);
+    }
     return true;
   }
 
@@ -280,5 +293,9 @@ export async function saveGameThumbnail(
     where: { id, ownerId },
     data: { thumbnailDataUrl },
   });
-  return result.count === 1;
+  if (result.count !== 1) return false;
+  if (existing.thumbnailDataUrl !== thumbnailDataUrl) {
+    await deleteOwnedBlob(existing.thumbnailDataUrl);
+  }
+  return true;
 }

@@ -55,6 +55,7 @@ export default async function PlayPage({ params }: PlayPageProps) {
         <div className={styles.playerPanel}>
           <PublicGamePlayer
             {...GAME_PLAYER_CONTENT}
+            gameId={game.id}
             gameTitle={game.title}
             initialSpec={game.spec}
           />

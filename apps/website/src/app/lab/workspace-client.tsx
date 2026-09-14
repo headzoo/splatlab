@@ -14,9 +14,11 @@ import {
 import { authClient } from "@/lib/auth-client";
 import type { SavedGameSummaryDto } from "@/lib/game-contract";
 import { buildGamePath } from "@/lib/game-routes";
+import type { MediaAssetDto } from "@/lib/media";
 
 import { useAuthFlow } from "../auth-flow";
 import { SiteHeader } from "../site-header";
+import { MediaLibrary } from "./media-library";
 
 import styles from "./workspace.module.css";
 
@@ -58,22 +60,29 @@ export function WorkspaceClient() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [games, setGames] = useState<SavedGameSummaryDto[] | null>(null);
+  const [media, setMedia] = useState<MediaAssetDto[] | null>(null);
   const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
+  const [deletingMediaId, setDeletingMediaId] = useState<string | null>(null);
   const [labKey, setLabKey] = useState("");
   const [initializing, setInitializing] = useState(true);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
 
   const loadWorkspaceData = useCallback(async () => {
-    const [workspaceResponse, gamesResponse] = await Promise.all([
+    const [workspaceResponse, gamesResponse, mediaResponse] = await Promise.all([
       fetch("/api/auth/lab-workspace", { cache: "no-store" }),
       fetch("/api/games", { cache: "no-store" }),
+      fetch("/api/media", { cache: "no-store" }),
     ]);
-    const [workspacePayload, gamesPayload]: [unknown, unknown] =
-      await Promise.all([
-        workspaceResponse.json().catch(() => null),
-        gamesResponse.json().catch(() => null),
-      ]);
+    const [workspacePayload, gamesPayload, mediaPayload]: [
+      unknown,
+      unknown,
+      unknown,
+    ] = await Promise.all([
+      workspaceResponse.json().catch(() => null),
+      gamesResponse.json().catch(() => null),
+      mediaResponse.json().catch(() => null),
+    ]);
 
     if (!workspaceResponse.ok) {
       throw new Error(
@@ -85,9 +94,14 @@ export function WorkspaceClient() {
       throw new Error(getErrorMessage(gamesPayload, "We couldn't load your games."));
     }
 
+    const media = mediaResponse.ok
+      ? (mediaPayload as { media: MediaAssetDto[] }).media
+      : [];
+
     return {
       workspace: workspacePayload as Workspace,
       games: (gamesPayload as { games: SavedGameSummaryDto[] }).games,
+      media,
     };
   }, []);
 
@@ -112,10 +126,12 @@ export function WorkspaceClient() {
         if (active) {
           setWorkspace(data.workspace);
           setGames(data.games);
+          setMedia(data.media);
         }
       } catch (caught) {
         if (active) {
           setGames([]);
+          setMedia([]);
           setError(
             caught instanceof Error
               ? caught.message
@@ -234,6 +250,7 @@ export function WorkspaceClient() {
       const data = await loadWorkspaceData();
       setWorkspace(data.workspace);
       setGames(data.games);
+      setMedia(data.media);
       setLabKey("");
       setError("");
       markSignedIn();
@@ -269,6 +286,36 @@ export function WorkspaceClient() {
       );
     } finally {
       setDeletingGameId(null);
+    }
+  }
+
+  async function removeMedia(item: MediaAssetDto) {
+    setDeletingMediaId(item.id);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/media/${encodeURIComponent(item.id)}`,
+        { method: "DELETE" },
+      );
+
+      if (!response.ok) {
+        const payload: unknown = await response.json().catch(() => null);
+        throw new Error(
+          getErrorMessage(payload, "We couldn't delete that image."),
+        );
+      }
+
+      setMedia((current) =>
+        current?.filter((candidate) => candidate.id !== item.id) ?? [],
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "We couldn't delete that image.",
+      );
+      throw caught;
+    } finally {
+      setDeletingMediaId(null);
     }
   }
 
@@ -431,6 +478,12 @@ export function WorkspaceClient() {
             )}
           </div>
         </section>
+
+        <MediaLibrary
+          items={media}
+          deletingId={deletingMediaId}
+          onDelete={removeMedia}
+        />
 
         <section className={styles.labKeyPanel} aria-labelledby="lab-key-title">
           <div className={styles.keyCopy}>

@@ -14,8 +14,6 @@ import {
   THEME_MAP_SOURCES,
 } from "./game-contract";
 
-const TEST_THUMBNAIL = "data:image/webp;base64,UklGRg==";
-
 test("platformer maps use the campaign order", () => {
   assert.deepEqual(PLATFORMER_MAP_SOURCES, [
     "level-1.json",
@@ -220,20 +218,24 @@ test("game documents reject unknown maps and extra executable-looking data", () 
   );
 });
 
-test("game thumbnails only accept bounded PNG or WebP data URLs", () => {
+test("game thumbnails only accept blob confirm payloads", () => {
   assert.equal(
-    gameThumbnailInputSchema.safeParse({ thumbnailDataUrl: TEST_THUMBNAIL }).success,
+    gameThumbnailInputSchema.safeParse({
+      url: "https://abc.public.blob.vercel-storage.com/users/owner-a/games/game-1/thumbnail.webp",
+      pathname: "users/owner-a/games/game-1/thumbnail.webp",
+    }).success,
     true,
   );
   assert.equal(
     gameThumbnailInputSchema.safeParse({
-      thumbnailDataUrl: "https://example.com/untrusted.png",
+      thumbnailDataUrl: "data:image/webp;base64,UklGRg==",
     }).success,
     false,
   );
   assert.equal(
     gameThumbnailInputSchema.safeParse({
-      thumbnailDataUrl: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+      url: "not-a-url",
+      pathname: "users/owner-a/games/game-1/thumbnail.webp",
     }).success,
     false,
   );

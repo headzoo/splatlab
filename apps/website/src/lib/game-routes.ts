@@ -5,3 +5,7 @@ export function buildGamePath(gameId: string) {
 export function playGamePath(gameId: string) {
   return `/play/${encodeURIComponent(gameId)}`;
 }
+
+export function mediaSharePath(mediaId: string) {
+  return `/media/${encodeURIComponent(mediaId)}`;
+}

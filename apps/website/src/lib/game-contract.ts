@@ -420,14 +420,10 @@ export const updateGameInputSchema = z
   })
   .strict();
 
-export const GAME_THUMBNAIL_MAX_DATA_URL_LENGTH = 750_000;
-
 export const gameThumbnailInputSchema = z
   .object({
-    thumbnailDataUrl: z
-      .string()
-      .max(GAME_THUMBNAIL_MAX_DATA_URL_LENGTH)
-      .regex(/^data:image\/(?:png|webp);base64,[A-Za-z0-9+/]+={0,2}$/),
+    url: z.string().url().max(2048),
+    pathname: z.string().min(1).max(512),
   })
   .strict();
 

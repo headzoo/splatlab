@@ -10,12 +10,13 @@ import {
   type RefObject,
 } from "react";
 
-import { downloadCanvasScreenshot } from "./canvas-screenshot";
+import { uploadLabImage } from "@/lib/blob-upload";
+import { createCanvasScreenshotBlob } from "./canvas-screenshot";
 import styles from "./canvas-screenshot-menu.module.css";
 
 type CanvasScreenshotMenuProps = {
   canvasRef: RefObject<HTMLCanvasElement | null>;
-  gameId: string;
+  savedGameId?: string;
   onUpdateThumbnail?: () => Promise<void>;
 };
 
@@ -36,11 +37,24 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
 }
 
+function errorMessage(payload: unknown, fallback: string) {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "message" in payload &&
+    typeof payload.message === "string"
+  ) {
+    return payload.message;
+  }
+
+  return fallback;
+}
+
 export const CanvasScreenshotMenu = forwardRef<
   CanvasScreenshotMenuHandle,
   CanvasScreenshotMenuProps
 >(function CanvasScreenshotMenu(
-  { canvasRef, gameId, onUpdateThumbnail },
+  { canvasRef, savedGameId, onUpdateThumbnail },
   ref,
 ) {
   const [position, setPosition] = useState<MenuPosition | null>(null);
@@ -123,12 +137,33 @@ export const CanvasScreenshotMenu = forwardRef<
     setPendingAction("screenshot");
     setError("");
     try {
-      await downloadCanvasScreenshot(canvas, gameId);
+      const blob = await createCanvasScreenshotBlob(canvas);
+      const file = new File([blob], "screenshot.png", { type: "image/png" });
+      const uploaded = await uploadLabImage(file, "screenshot", savedGameId);
+      const response = await fetch("/api/media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: uploaded.url,
+          pathname: uploaded.pathname,
+          contentType: "image/png",
+          byteSize: blob.size,
+          gameId: savedGameId ?? null,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload: unknown = await response.json().catch(() => null);
+        throw new Error(errorMessage(payload, "Could not save this image."));
+      }
+
       closeMenu();
       canvas.focus({ preventScroll: true });
-    } catch {
+    } catch (caught) {
       setPendingAction(null);
-      setError("Could not save this image.");
+      setError(
+        caught instanceof Error ? caught.message : "Could not save this image.",
+      );
     }
   };
 

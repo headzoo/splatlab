@@ -4,11 +4,13 @@ import { GamePlayer, type GamePlayerContentProps } from "@/game/game-player";
 import type { GameDocument } from "@/lib/game-contract";
 
 type PublicGamePlayerProps = GamePlayerContentProps & {
+  gameId: string;
   gameTitle: string;
   initialSpec: GameDocument;
 };
 
 export function PublicGamePlayer({
+  gameId,
   gameTitle,
   initialSpec,
   maps,
@@ -24,6 +26,7 @@ export function PublicGamePlayer({
       physics={physics}
       weapon={weapon}
       playAllLevels
+      savedGameId={gameId}
       startOverlayTitle={gameTitle}
     />
   );
