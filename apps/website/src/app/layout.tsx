@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@fontsource/chewy/400.css";
 import "@fontsource/nunito/400.css";
 import "@fontsource/nunito/600.css";
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <AuthFlowProvider>{children}</AuthFlowProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
