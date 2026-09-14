@@ -62,8 +62,10 @@ type GamePlayerProps = GamePlayerContentProps & {
   onPlatformerComplete?: () => void;
   controlRowLeading?: ReactNode;
   hidePlatformerEditorLabels?: boolean;
+  onPlatformerPlayingChange?: (playing: boolean) => void;
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
   onUpdateThumbnail?: () => Promise<void>;
+  startOverlayTitle?: string;
   platformerEditor?: {
     tool: PlatformerEditTool;
     onToolChange: (tool: PlatformerEditTool) => void;
@@ -84,8 +86,10 @@ export function GamePlayer({
   onPlatformerComplete,
   controlRowLeading,
   hidePlatformerEditorLabels,
+  onPlatformerPlayingChange,
   onThumbnailCaptureReady,
   onUpdateThumbnail,
+  startOverlayTitle,
   platformerEditor,
 }: GamePlayerProps) {
   const campaignMaps = useMemo(() => gameCampaignMaps(spec, maps), [maps, spec]);
@@ -107,6 +111,7 @@ export function GamePlayer({
   // Lives follow the player from level to level; coins start over because each
   // level counts its own.
   const [carriedLives, setCarriedLives] = useState<number | null>(null);
+  const [startOverlayDismissed, setStartOverlayDismissed] = useState(false);
   const advanceLevel = useCallback((livesRemaining?: number) => {
     if (!playAllLevels) return;
     const next = nextCampaignMapIndex(levelIndex, levelCount);
@@ -158,6 +163,7 @@ export function GamePlayer({
   const completionMessage = (levelMessage: string) => playAllLevels
     ? levelCompletionMessage(levelIndex, levelCount, levelMessage)
     : undefined;
+  const visibleStartOverlayTitle = startOverlayDismissed ? undefined : startOverlayTitle;
 
   return isMaze ? (
     <MazeGame
@@ -169,6 +175,8 @@ export function GamePlayer({
       controlRowLeading={controlRowLeading}
       levelLabel={levelLabel}
       completionMessage={completionMessage("Maze complete!")}
+      startOverlayTitle={visibleStartOverlayTitle}
+      onStartOverlayDismiss={() => setStartOverlayDismissed(true)}
       onThumbnailCaptureReady={onThumbnailCaptureReady}
       onUpdateThumbnail={onUpdateThumbnail}
       onComplete={advanceLevel}
@@ -185,8 +193,10 @@ export function GamePlayer({
       controlRowLeading={controlRowLeading}
       levelLabel={levelLabel}
       completionMessage={completionMessage("Level complete!")}
-      autoPlay={!platformerEditor}
+      autoPlay={!platformerEditor && !startOverlayTitle}
       hideEditorLabels={hidePlatformerEditorLabels}
+      startOverlayTitle={visibleStartOverlayTitle}
+      onStartOverlayDismiss={() => setStartOverlayDismissed(true)}
       onThumbnailCaptureReady={onThumbnailCaptureReady}
       onUpdateThumbnail={onUpdateThumbnail}
       editorTool={platformerEditor?.tool}
@@ -195,6 +205,7 @@ export function GamePlayer({
       onObjectPlace={platformerEditor?.onObjectPlace}
       selectedObjectId={platformerEditor?.selectedObjectId}
       onObjectSelect={platformerEditor?.onObjectSelect}
+      onPlayingChange={onPlatformerPlayingChange}
       onComplete={handlePlatformerComplete}
     />
   );

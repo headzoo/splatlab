@@ -36,7 +36,7 @@ import {
   type SavedGameDto,
 } from "@/lib/game-contract";
 import { applyCooperSpecChange, specChangeFrom } from "@/lib/cooper-spec-change";
-import { buildGamePath } from "@/lib/game-routes";
+import { buildGamePath, playGamePath } from "@/lib/game-routes";
 import {
   createGameHistory,
   gameHistoryReducer,
@@ -73,6 +73,21 @@ const WORLD_ICONS: Record<string, string> = {
   "maze_graveyard_01.json": "👻",
   "maze_dragon_world_01.json": "🐉",
 };
+
+function ExternalLinkIcon() {
+  return (
+    <svg
+      className={styles.playGameIcon}
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M6 4H3.5A1.5 1.5 0 0 0 2 5.5v7A1.5 1.5 0 0 0 3.5 14h7A1.5 1.5 0 0 0 12 12.5V10" />
+      <path d="M9 2h5v5" />
+      <path d="m8 8 6-6" />
+    </svg>
+  );
+}
 
 function errorMessage(payload: unknown, fallback: string) {
   if (
@@ -147,6 +162,7 @@ export function BuildGamePreview({
   const [, setSaveError] = useState("");
   const [activeTool, setActiveTool] = useState<PlatformerEditTool>("select");
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
+  const [platformerPlaying, setPlatformerPlaying] = useState(false);
   const [pendingLevel, setPendingLevel] = useState<PendingLevel | null>(null);
   const [levelName, setLevelName] = useState("");
   const [levelSettingsOpen, setLevelSettingsOpen] = useState(false);
@@ -848,11 +864,34 @@ export function BuildGamePreview({
     history.present.platformerObjectRemovals.filter(
       (removal) => removal.mapSource === current.source,
     ).length;
+  const playHref = gameIdentity ? playGamePath(gameIdentity.id) : null;
 
   return (
     <>
       <header className={styles.previewHeading}>
         <div className={styles.previewActions}>
+          {playHref ? (
+            <a
+              className={styles.playGameButton}
+              href={playHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Play this game in a new tab"
+            >
+              <span>Play</span>
+              <ExternalLinkIcon />
+            </a>
+          ) : (
+            <button
+              className={styles.playGameButton}
+              type="button"
+              disabled
+              aria-label="Play will be available after this game saves"
+            >
+              <span>Play</span>
+              <ExternalLinkIcon />
+            </button>
+          )}
           <div className={styles.historyControls} aria-label="Edit history">
             <button
               type="button"
@@ -917,6 +956,7 @@ export function BuildGamePreview({
         onUpdateThumbnail={
           gameIdentity && thumbnailCapture ? updateThumbnail : undefined
         }
+        onPlatformerPlayingChange={setPlatformerPlaying}
         platformerEditor={{
           tool: activeTool,
           onToolChange: setActiveTool,
@@ -930,7 +970,12 @@ export function BuildGamePreview({
       <BuildTools
         activeTool={activeTool}
         backgroundId={current.map.presentation.backgroundId}
-        disabled={previewKind !== "platformer"}
+        disabled={previewKind !== "platformer" || platformerPlaying}
+        disabledMessage={
+          platformerPlaying
+            ? "Pause the game to add blocks and objects."
+            : undefined
+        }
         objectEditCount={currentObjectEditCount}
         terrainEditCount={currentTerrainEditCount}
         onToolChange={setActiveTool}

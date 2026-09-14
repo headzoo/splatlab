@@ -10,6 +10,7 @@ type BuildToolsProps = {
   activeTool: PlatformerEditTool;
   backgroundId: string;
   disabled: boolean;
+  disabledMessage?: string;
   objectEditCount: number;
   terrainEditCount: number;
   onToolChange: (tool: PlatformerEditTool) => void;
@@ -112,7 +113,8 @@ function ToolButton({
 }
 
 export function BuildTools(props: BuildToolsProps) {
-  const disabledMessage = "Choose Platformer above to add blocks to a map.";
+  const disabledMessage =
+    props.disabledMessage ?? "Choose Platformer above to add blocks to a map.";
 
   return (
     <div className={styles.buildTools} aria-label="Map build tools">

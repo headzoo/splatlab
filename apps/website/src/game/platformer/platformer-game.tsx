@@ -92,6 +92,8 @@ type PlatformerGameProps = {
   completionMessage?: string;
   autoPlay?: boolean;
   hideEditorLabels?: boolean;
+  startOverlayTitle?: string;
+  onStartOverlayDismiss?: () => void;
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
   onUpdateThumbnail?: () => Promise<void>;
   editorTool?: PlatformerEditTool;
@@ -100,6 +102,7 @@ type PlatformerGameProps = {
   onObjectPlace?: (placement: PlatformerObjectPlacement) => void;
   selectedObjectId?: string | null;
   onObjectSelect?: (objectId: string | null) => void;
+  onPlayingChange?: (playing: boolean) => void;
   onComplete?: (livesRemaining: number) => void;
 };
 
@@ -1286,6 +1289,8 @@ export function PlatformerGame({
   completionMessage = "Level complete!",
   autoPlay = false,
   hideEditorLabels = false,
+  startOverlayTitle,
+  onStartOverlayDismiss,
   onThumbnailCaptureReady,
   onUpdateThumbnail,
   editorTool,
@@ -1294,6 +1299,7 @@ export function PlatformerGame({
   onObjectPlace,
   selectedObjectId,
   onObjectSelect,
+  onPlayingChange,
   onComplete,
 }: PlatformerGameProps) {
   const initialState = useMemo(() => createInitialState(map), [map]);
@@ -1603,6 +1609,14 @@ export function PlatformerGame({
   }, [editorTool, map, render]);
 
   useEffect(() => {
+    onPlayingChange?.(playing);
+  }, [onPlayingChange, playing]);
+
+  useEffect(() => () => {
+    onPlayingChange?.(false);
+  }, [onPlayingChange]);
+
+  useEffect(() => {
     if (!playing) return;
     let animationFrame = 0;
     let previousTime = performance.now();
@@ -1753,12 +1767,13 @@ export function PlatformerGame({
     previousStateRef.current = stateRef.current;
     syncRuntimeDom(stateRef.current);
     setPlaying(true);
+    onStartOverlayDismiss?.();
     const camera = resolvePlatformerCamera(map, stateRef.current);
     audioRef.current?.startMusic(resolveRuntimeMusicCue(
       resolveEnemyViewMusicCue(map, stateRef.current, camera),
     ));
     canvasRef.current?.focus();
-  }, [map, syncRuntimeDom]);
+  }, [map, onStartOverlayDismiss, syncRuntimeDom]);
 
   const announceEditor = (message: string) => {
     if (srStatusRef.current) srStatusRef.current.textContent = message;
@@ -2092,10 +2107,10 @@ export function PlatformerGame({
   };
 
   useEffect(() => {
-    if (!autoPlay || !assetsReady || autoPlayStartedRef.current) return;
+    if (!autoPlay || startOverlayTitle || !assetsReady || autoPlayStartedRef.current) return;
     autoPlayStartedRef.current = true;
     start();
-  }, [assetsReady, autoPlay, start]);
+  }, [assetsReady, autoPlay, start, startOverlayTitle]);
 
   const pause = () => {
     const snappedState = snapPlatformerStateToGrid(map, stateRef.current);
@@ -2216,6 +2231,7 @@ export function PlatformerGame({
   const building = Boolean(editorTool);
   const editing = building && !playing;
   const showToolbar = !(building && hideEditorLabels);
+  const showStartOverlay = Boolean(startOverlayTitle) && !playing && terminalStatus === "playing";
   const editorInstruction = editorTool
     ? editorTool === "move"
       ? "Drag the map to move around"
@@ -2229,7 +2245,9 @@ export function PlatformerGame({
     : "";
 
   const statusMessage =
-    terminalStatus === "won"
+    showStartOverlay
+      ? null
+      : terminalStatus === "won"
       ? playing ? null : completionMessage
       : terminalStatus === "game_over"
         ? "Game over — reset to try again"
@@ -2309,6 +2327,22 @@ export function PlatformerGame({
           gameId={map.id}
           onUpdateThumbnail={onUpdateThumbnail}
         />
+        {showStartOverlay ? (
+          <button
+            className={styles.startOverlay}
+            type="button"
+            onClick={startFromCanvas}
+            disabled={!assetsReady}
+            aria-label={assetsReady ? `Play ${startOverlayTitle}` : `Loading ${startOverlayTitle}`}
+          >
+            <span className={styles.startOverlayContent}>
+              <span className={styles.startOverlayTitle}>{startOverlayTitle}</span>
+              <span className={styles.startOverlayPlay} aria-hidden="true">
+                {assetsReady ? "▶" : "..."}
+              </span>
+            </span>
+          </button>
+        ) : null}
         {editing && !hideEditorLabels ? (
           <div className={styles.editorBadge} aria-hidden="true">
             <span>Build mode</span>

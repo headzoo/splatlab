@@ -51,15 +51,11 @@ export default async function PlayPage({ params }: PlayPageProps) {
       <div className={styles.pageWash} />
       <SiteHeader />
 
-      <section className={styles.gameShell} aria-labelledby="game-title">
-        <header className={styles.gameHeading}>
-          <span>Made with Splat Lab!</span>
-          <h1 id="game-title">{game.title}</h1>
-          <p>Jump in and play this shared game.</p>
-        </header>
+      <section className={styles.gameShell} aria-label={game.title}>
         <div className={styles.playerPanel}>
           <PublicGamePlayer
             {...GAME_PLAYER_CONTENT}
+            gameTitle={game.title}
             initialSpec={game.spec}
           />
         </div>

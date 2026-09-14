@@ -615,7 +615,7 @@
   min-height: 0;
   grid-template-columns: 1fr;
   align-items: center;
-  justify-items: end;
+  justify-items: stretch;
   gap: 0;
   padding: 0 4px 8px;
 }
@@ -662,14 +662,55 @@
 }
 
 .previewActions {
-  display: grid;
-  justify-items: end;
-  gap: 5px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .historyControls {
   display: flex;
   gap: 7px;
+}
+
+.playGameButton {
+  display: inline-flex;
+  min-height: 27px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  color: #fff;
+  background: #238447;
+  border: 1px solid #176b35;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
+  font: 900 10px/1 "Nunito", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.playGameButton:hover {
+  background: #1c723b;
+}
+
+.playGameButton:disabled {
+  color: #f7fff9;
+  background: #8ab89a;
+  border-color: #75a684;
+  cursor: not-allowed;
+}
+
+.playGameIcon {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .levelSelect {
@@ -1014,6 +1055,7 @@
 }
 
 .historyControls button:focus-visible,
+.playGameButton:focus-visible,
 .levelSelect select:focus-visible {
   outline: 4px solid #ffd52e;
   outline-offset: 2px;
@@ -1357,7 +1399,7 @@
 }
 
 .objectSummary dt,
-.objectSettingsFields span {
+.objectControlGroup legend {
   display: block;
   margin-bottom: 3px;
   color: #667b9e;
@@ -1378,23 +1420,169 @@
 
 .objectSettingsFields {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
-.objectSettingsFields select {
+.objectControlGroup {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.characterChoiceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.characterChoice {
+  position: relative;
+  min-width: 0;
+}
+
+.objectOptionInput {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  padding: 9px 10px;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.characterChoiceContent,
+.objectOptionButton {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
   color: #243657;
   background: #fff;
   border: 2px solid #cad9e9;
   border-radius: 8px;
-  font: 800 12px/1.2 "Nunito", sans-serif;
+  font: 900 11px/1.1 "Nunito", sans-serif;
 }
 
-.objectSettingsFields select:focus-visible,
+.characterChoiceContent {
+  min-height: 54px;
+  padding: 6px 7px;
+}
+
+.characterChoiceContent > span:last-child,
+.objectOptionButton > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.characterChoicePreview {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  background-image: var(--character-sprite);
+  background-position: left top;
+  background-repeat: no-repeat;
+  background-size: 210px 168px;
+  image-rendering: pixelated;
+}
+
+.objectSegmentedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.objectOptionButton {
+  min-height: 44px;
+  padding: 7px 8px;
+  font-family: "Nunito", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.objectOptionInput:checked + .characterChoiceContent,
+.objectOptionButton[aria-pressed="true"] {
+  background: #fff5b9;
+  border-color: #34b95b;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #34b95b;
+}
+
+.objectOptionInput:focus-visible + .characterChoiceContent,
+.objectOptionButton:focus-visible,
 .objectToolboxHandle button:focus-visible {
   outline: 3px solid #ffd52e;
   outline-offset: 2px;
+}
+
+.objectOptionIcon {
+  position: relative;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  background: #e8f2ff;
+  border: 1px solid #bad2eb;
+  border-radius: 8px;
+}
+
+.objectPatrolIcon::before {
+  position: absolute;
+  right: 5px;
+  left: 5px;
+  top: 12px;
+  border-top: 2px dashed #3464a4;
+  content: "";
+}
+
+.objectPatrolIcon::after {
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  background: #ff7a2f;
+  border-radius: 999px;
+  box-shadow: 13px 0 0 #2f7add;
+  content: "";
+}
+
+.objectChaseIcon {
+  border-radius: 999px;
+}
+
+.objectChaseIcon::before {
+  width: 15px;
+  height: 15px;
+  border: 2px solid #7a51cc;
+  border-radius: 999px;
+  content: "";
+}
+
+.objectChaseIcon::after {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #ff7a2f;
+  border-radius: 999px;
+  content: "";
+}
+
+.objectDirectionLeftIcon::before,
+.objectDirectionRightIcon::before {
+  width: 12px;
+  height: 12px;
+  border-bottom: 3px solid #3464a4;
+  border-left: 3px solid #3464a4;
+  content: "";
+}
+
+.objectDirectionLeftIcon::before {
+  transform: translateX(3px) rotate(45deg);
+}
+
+.objectDirectionRightIcon::before {
+  transform: translateX(-3px) rotate(225deg);
 }
 
 .objectSettingsEmpty {
@@ -1553,10 +1741,13 @@
   }
 
   .previewActions {
-    justify-items: stretch;
+    align-items: center;
+    gap: 6px;
   }
 
   .historyControls {
+    flex: 1;
+    justify-content: flex-end;
     margin-top: 0;
   }
 

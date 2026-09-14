@@ -62,6 +62,8 @@ type MazeGameProps = {
   controlRowLeading?: ReactNode;
   levelLabel?: string;
   completionMessage?: string;
+  startOverlayTitle?: string;
+  onStartOverlayDismiss?: () => void;
   onThumbnailCaptureReady?: (capture: GameThumbnailCapture | null) => void;
   onUpdateThumbnail?: () => Promise<void>;
   onComplete?: () => void;
@@ -416,6 +418,8 @@ export function MazeGame({
   controlRowLeading,
   levelLabel,
   completionMessage = "Maze complete!",
+  startOverlayTitle,
+  onStartOverlayDismiss,
   onThumbnailCaptureReady,
   onUpdateThumbnail,
   onComplete,
@@ -661,6 +665,7 @@ export function MazeGame({
       setRuntimeStatus("playing");
     }
     setPlaying(true);
+    onStartOverlayDismiss?.();
     audioRef.current?.startMusic();
     canvasRef.current?.focus();
   };
@@ -701,15 +706,18 @@ export function MazeGame({
     window.localStorage.setItem("splat-lab.game-audio-muted.v1", String(nextMuted));
   };
 
-  const statusMessage = runtimeStatus === "won"
-    ? completionMessage
-    : runtimeStatus === "dying"
-      ? "Hero defeated — returning to start…"
-    : !assetsReady
-      ? "Loading maze…"
-      : !playing
-        ? "Press Play, then move with the arrow keys or W/A/S/D and jump with Space"
-        : null;
+  const showStartOverlay = Boolean(startOverlayTitle) && !playing && runtimeStatus === "playing";
+  const statusMessage = showStartOverlay
+    ? null
+    : runtimeStatus === "won"
+      ? completionMessage
+      : runtimeStatus === "dying"
+        ? "Hero defeated — returning to start…"
+        : !assetsReady
+          ? "Loading maze…"
+          : !playing
+            ? "Press Play, then move with the arrow keys or W/A/S/D and jump with Space"
+            : null;
 
   return (
     <div
@@ -758,6 +766,22 @@ export function MazeGame({
           gameId={map.id}
           onUpdateThumbnail={onUpdateThumbnail}
         />
+        {showStartOverlay ? (
+          <button
+            className={styles.startOverlay}
+            type="button"
+            onClick={() => { if (assetsReady) start(); }}
+            disabled={!assetsReady}
+            aria-label={assetsReady ? `Play ${startOverlayTitle}` : `Loading ${startOverlayTitle}`}
+          >
+            <span className={styles.startOverlayContent}>
+              <span className={styles.startOverlayTitle}>{startOverlayTitle}</span>
+              <span className={styles.startOverlayPlay} aria-hidden="true">
+                {assetsReady ? "▶" : "..."}
+              </span>
+            </span>
+          </button>
+        ) : null}
         {statusMessage ? <div className={styles.stageMessage} aria-hidden="true"><strong>{statusMessage}</strong></div> : null}
       </div>
 

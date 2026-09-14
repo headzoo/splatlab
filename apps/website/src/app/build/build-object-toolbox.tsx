@@ -14,6 +14,16 @@ import type { PlatformerMapObject } from "@/game/platformer/types";
 
 import styles from "./build.module.css";
 
+const BEHAVIOR_OPTIONS = [
+  { value: "patroller", label: "Patrolling", iconClass: "objectPatrolIcon" },
+  { value: "chaser", label: "Chasing", iconClass: "objectChaseIcon" },
+] as const;
+
+const DIRECTION_OPTIONS = [
+  { value: "left", label: "Moving left", iconClass: "objectDirectionLeftIcon" },
+  { value: "right", label: "Moving right", iconClass: "objectDirectionRightIcon" },
+] as const;
+
 type BuildObjectToolboxProps = {
   backgroundId: string;
   object: PlatformerMapObject;
@@ -105,28 +115,87 @@ export function BuildObjectToolbox({
 
         {isEnemy ? (
           <div className={styles.objectSettingsFields}>
-            <label>
-              <span>Character</span>
-              <select value={assetId} onChange={(event) => emitChange({ assetId: event.target.value })}>
-                {characterOptions.map((option) => (
-                  <option value={option.value} key={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Behavior</span>
-              <select value={behavior} onChange={(event) => emitChange({ behavior: event.target.value as "patroller" | "chaser" })}>
-                <option value="patroller">Patrolling</option>
-                <option value="chaser">Chasing</option>
-              </select>
-            </label>
-            <label>
-              <span>Starting direction</span>
-              <select value={direction} onChange={(event) => emitChange({ direction: event.target.value as "left" | "right" })}>
-                <option value="left">Moving left</option>
-                <option value="right">Moving right</option>
-              </select>
-            </label>
+            <fieldset className={styles.objectControlGroup}>
+              <legend>Character</legend>
+              <div className={styles.characterChoiceGrid}>
+                {characterOptions.map((option) => {
+                  const selected = option.value === assetId;
+                  return (
+                    <label
+                      className={styles.characterChoice}
+                      key={option.value}
+                    >
+                      <input
+                        checked={selected}
+                        className={styles.objectOptionInput}
+                        name={`${object.id}-character`}
+                        onChange={() => emitChange({ assetId: option.value })}
+                        type="radio"
+                        value={option.value}
+                      />
+                      <span className={styles.characterChoiceContent}>
+                        <span
+                          aria-hidden="true"
+                          className={styles.characterChoicePreview}
+                          style={
+                            {
+                              "--character-sprite": `url("/game-assets/sprites/${option.value}.png")`,
+                            } as CSSProperties
+                          }
+                        />
+                        <span>{option.label}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+            <fieldset className={styles.objectControlGroup}>
+              <legend>Behavior</legend>
+              <div className={styles.objectSegmentedGrid}>
+                {BEHAVIOR_OPTIONS.map((option) => {
+                  const selected = option.value === behavior;
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={styles.objectOptionButton}
+                      key={option.value}
+                      onClick={() => emitChange({ behavior: option.value })}
+                      type="button"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`${styles.objectOptionIcon} ${styles[option.iconClass]}`}
+                      />
+                      <span>{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+            <fieldset className={styles.objectControlGroup}>
+              <legend>Starting direction</legend>
+              <div className={styles.objectSegmentedGrid}>
+                {DIRECTION_OPTIONS.map((option) => {
+                  const selected = option.value === direction;
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={styles.objectOptionButton}
+                      key={option.value}
+                      onClick={() => emitChange({ direction: option.value })}
+                      type="button"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`${styles.objectOptionIcon} ${styles[option.iconClass]}`}
+                      />
+                      <span>{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
           </div>
         ) : (
           <p className={styles.objectSettingsEmpty}>This object has no additional settings.</p>
