@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "neutral_green_hills_v1",
+  "kind": "sound_pack",
+  "name": "Green Hills",
+  "themeTags": [
+    "neutral",
+    "green_hills"
+  ],
+  "music": {
+    "gameplay": {
+      "assetId": "neutral_green_hills_gameplay_loop_01",
+      "path": "audio/neutral_green_hills_v1/gameplay_loop.wav",
+      "loop": true,
+      "tempo": {
+        "bpm": 126,
+        "bars": 32
+      },
+      "defaultGain": 0.3
+    },
+    "boss": {
+      "assetId": "shared_boss_menace_loop_01",
+      "name": "Menacing boss",
+      "path": "audio/neutral_green_hills_v1/boss_loop.wav",
+      "loop": true,
+      "tempo": {
+        "bpm": 120,
+        "bars": 8
+      },
+      "defaultGain": 0.38
+    }
+  },
+  "effects": {
+    "jump": {
+      "path": "audio/neutral_green_hills_v1/jump.wav",
+      "defaultGain": 0.54,
+      "maxVoices": 2
+    },
+    "land": {
+      "path": "audio/neutral_green_hills_v1/land.wav",
+      "defaultGain": 0.48,
+      "maxVoices": 2
+    },
+    "collectible": {
+      "path": "audio/neutral_green_hills_v1/collectible.wav",
+      "defaultGain": 0.52,
+      "maxVoices": 4
+    },
+    "enemy_defeat": {
+      "path": "audio/neutral_green_hills_v1/enemy_defeat.wav",
+      "defaultGain": 0.58,
+      "maxVoices": 2
+    },
+    "player_damage": {
+      "path": "audio/neutral_green_hills_v1/player_damage.wav",
+      "defaultGain": 0.54,
+      "maxVoices": 2
+    },
+    "player_death": {
+      "path": "audio/neutral_green_hills_v1/player_death.wav",
+      "defaultGain": 0.62,
+      "maxVoices": 1
+    },
+    "respawn": {
+      "path": "audio/neutral_green_hills_v1/respawn.wav",
+      "defaultGain": 0.5,
+      "maxVoices": 1
+    },
+    "weapon_swing": {
+      "path": "audio/neutral_green_hills_v1/weapon_swing.wav",
+      "defaultGain": 0.46,
+      "maxVoices": 2
+    },
+    "weapon_hit": {
+      "path": "audio/neutral_green_hills_v1/weapon_hit.wav",
+      "defaultGain": 0.58,
+      "maxVoices": 3
+    },
+    "fire": {
+      "path": "audio/neutral_green_hills_v1/fire.wav",
+      "defaultGain": 0.56,
+      "maxVoices": 4
+    },
+    "checkpoint": {
+      "path": "audio/neutral_green_hills_v1/checkpoint.wav",
+      "defaultGain": 0.52,
+      "maxVoices": 1
+    },
+    "goal": {
+      "path": "audio/neutral_green_hills_v1/goal.wav",
+      "defaultGain": 0.62,
+      "maxVoices": 1
+    }
+  }
+}

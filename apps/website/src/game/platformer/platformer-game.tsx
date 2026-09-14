@@ -68,6 +68,14 @@ import {
   useGameFullscreen,
 } from "@/game/fullscreen";
 import { GameLoadingOverlay } from "@/game/game-loading-overlay";
+import { MusicPlayer } from "@/game/music-player";
+import {
+  resolveSoundPackId,
+  soundPackEffectUrl,
+  soundPackMusicTracks,
+  type SoundPackEffectCue,
+  type SoundPackId,
+} from "@/game/sound-packs";
 import {
   isCustomizableHumanAsset,
   recolorHumanSprite,
@@ -250,36 +258,28 @@ function isControlBindings(value: unknown): value is ControlBindings {
   });
 }
 
-const MUSIC_URLS = {
-  gameplay: assetUrl("audio/space_basic_v1/gameplay_loop.wav"),
-  boss: assetUrl("audio/space_basic_v1/boss_loop.wav"),
-} as const;
+type RuntimeMusicCue = "gameplay" | "boss";
 
-type RuntimeMusicCue = keyof typeof MUSIC_URLS;
+/** Runtime event name -> the pack cue it plays. Two events borrow another cue's
+ * sample, so this is not a straight identity mapping. */
+const AUDIO_CUES = {
+  jump: "jump",
+  land: "land",
+  collectible: "collectible",
+  extra_life: "collectible",
+  platform_spring: "jump",
+  checkpoint: "checkpoint",
+  goal: "goal",
+  enemy_defeat: "enemy_defeat",
+  player_damage: "player_damage",
+  player_death: "player_death",
+  respawn: "respawn",
+  weapon_swing: "weapon_swing",
+  weapon_hit: "weapon_hit",
+  fire: "fire",
+} as const satisfies Record<string, SoundPackEffectCue>;
 
-const MUSIC_VOLUME: Record<RuntimeMusicCue, number> = {
-  gameplay: 0.32,
-  boss: 0.38,
-};
-
-const AUDIO_URLS = {
-  jump: assetUrl("audio/space_basic_v1/jump.wav"),
-  land: assetUrl("audio/space_basic_v1/land.wav"),
-  collectible: assetUrl("audio/space_basic_v1/collectible.wav"),
-  extra_life: assetUrl("audio/space_basic_v1/collectible.wav"),
-  platform_spring: assetUrl("audio/space_basic_v1/jump.wav"),
-  checkpoint: assetUrl("audio/space_basic_v1/checkpoint.wav"),
-  goal: assetUrl("audio/space_basic_v1/goal.wav"),
-  enemy_defeat: assetUrl("audio/space_basic_v1/enemy_defeat.wav"),
-  player_damage: assetUrl("audio/space_basic_v1/player_damage.wav"),
-  player_death: assetUrl("audio/space_basic_v1/player_death.wav"),
-  respawn: assetUrl("audio/space_basic_v1/respawn.wav"),
-  weapon_swing: assetUrl("audio/space_basic_v1/weapon_swing.wav"),
-  weapon_hit: assetUrl("audio/space_basic_v1/weapon_hit.wav"),
-  fire: assetUrl("audio/space_basic_v1/fire.wav"),
-} as const;
-
-const AUDIO_VOLUME: Partial<Record<keyof typeof AUDIO_URLS, number>> = {
+const AUDIO_VOLUME: Partial<Record<keyof typeof AUDIO_CUES, number>> = {
   jump: 0.38,
   land: 0.3,
   collectible: 0.4,
@@ -1112,42 +1112,38 @@ function drawWorld(
 }
 
 class RuntimeAudio {
-  private music = new Map<RuntimeMusicCue, HTMLAudioElement>();
-  private activeMusicCue: RuntimeMusicCue | null = null;
+  private readonly packId: SoundPackId;
+  private readonly music: MusicPlayer<RuntimeMusicCue>;
   private muted = false;
+
+  constructor(packId: SoundPackId) {
+    this.packId = packId;
+    this.music = new MusicPlayer<RuntimeMusicCue>(soundPackMusicTracks(packId));
+  }
 
   setMuted(muted: boolean) {
     this.muted = muted;
-    for (const music of this.music.values()) music.muted = muted;
+    this.music.setMuted(muted);
   }
 
   startMusic(cue: RuntimeMusicCue = "gameplay") {
-    if (this.activeMusicCue !== cue) {
-      if (this.activeMusicCue) this.music.get(this.activeMusicCue)?.pause();
-      this.activeMusicCue = cue;
-    }
-    let music = this.music.get(cue);
-    if (!music) {
-      music = new Audio(MUSIC_URLS[cue]);
-      music.loop = true;
-      music.volume = MUSIC_VOLUME[cue];
-      this.music.set(cue, music);
-    }
-    music.muted = this.muted;
-    if (music.paused) void music.play().catch(() => undefined);
+    this.music.start(cue);
   }
 
   pauseMusic() {
-    if (this.activeMusicCue) this.music.get(this.activeMusicCue)?.pause();
-    this.activeMusicCue = null;
+    this.music.stop();
+  }
+
+  dispose() {
+    this.music.dispose();
   }
 
   play(event: RuntimeEvent["type"]) {
     if (this.muted || event === "game_over") return;
-    const url = AUDIO_URLS[event as keyof typeof AUDIO_URLS];
-    if (!url) return;
-    const effect = new Audio(url);
-    effect.volume = AUDIO_VOLUME[event as keyof typeof AUDIO_URLS] ?? 0.4;
+    const cue = AUDIO_CUES[event as keyof typeof AUDIO_CUES];
+    if (!cue) return;
+    const effect = new Audio(soundPackEffectUrl(this.packId, cue));
+    effect.volume = AUDIO_VOLUME[event as keyof typeof AUDIO_CUES] ?? 0.4;
     void effect.play().catch(() => undefined);
   }
 }
@@ -1245,6 +1241,7 @@ export function PlatformerGame({
     [map.presentation],
   );
   const backdropImageUrl = backdrop.imageUrl;
+  const soundPackId = resolveSoundPackId(map.presentation?.backgroundId);
 
   const syncRuntimeDom = useCallback((state: PlatformerState) => {
     const game = gameRef.current;
@@ -1283,15 +1280,15 @@ export function PlatformerGame({
   }, [completionMessage, playerAssetId]);
 
   useEffect(() => {
-    audioRef.current = new RuntimeAudio();
+    audioRef.current = new RuntimeAudio(soundPackId);
     const savedMuted = window.localStorage.getItem("splat-lab.game-audio-muted.v1") === "true";
     audioRef.current.setMuted(savedMuted);
     const syncPreference = window.setTimeout(() => setMuted(savedMuted), 0);
     return () => {
       window.clearTimeout(syncPreference);
-      audioRef.current?.pauseMusic();
+      audioRef.current?.dispose();
     };
-  }, []);
+  }, [soundPackId]);
 
   useEffect(() => {
     const savedBindings = window.localStorage.getItem(CONTROL_BINDINGS_STORAGE_KEY);

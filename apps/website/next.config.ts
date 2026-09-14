@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const gameRuntimeFiles = [
-  "../game/audio/space_basic_v1/*.wav",
+  "../game/audio/*/*.wav",
   "../game/backgrounds/background_neutral_green_hills_*.png",
   "../game/backgrounds/background_ice_world_*.png",
   "../game/sprites/short_sword_v1.png",

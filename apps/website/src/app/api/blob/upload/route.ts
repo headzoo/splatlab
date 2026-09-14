@@ -1,105 +1,140 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import {
-  isOwnedUploadPathname,
   SCREENSHOT_MAX_BYTES,
   THUMBNAIL_MAX_BYTES,
+  screenshotBlobPathname,
+  thumbnailBlobPathname,
   type LabUploadKind,
 } from "@/lib/blob-path";
-import { blobReadWriteToken } from "@/lib/blob-store";
+import { hasBlobStore, putOwnedBlob } from "@/lib/blob-store";
 import { getGame } from "@/lib/games";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const uploadPayloadSchema = z
-  .object({
-    kind: z.enum(["screenshot", "thumbnail"]),
-    gameId: z.string().trim().min(1).max(80).nullable().optional(),
-  })
-  .strict();
+const kindSchema = z.enum(["screenshot", "thumbnail"]);
+const gameIdSchema = z.string().trim().min(1).max(80);
 
-function parseUploadPayload(clientPayload: string | null) {
-  if (!clientPayload) return null;
-  try {
-    return uploadPayloadSchema.parse(JSON.parse(clientPayload));
-  } catch {
-    return null;
+function formString(form: FormData, name: string) {
+  const value = form.get(name);
+  return typeof value === "string" ? value : null;
+}
+
+function uploadErrorResponse(error: unknown) {
+  const configuredMessage =
+    error instanceof Error && error.message.startsWith("Image storage isn't")
+      ? error.message
+      : null;
+  if (!configuredMessage) {
+    console.error("Failed to upload blob", error);
   }
+  return NextResponse.json(
+    { message: configuredMessage ?? "We couldn't save that image." },
+    { status: configuredMessage ? 503 : 400 },
+  );
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => null)) as HandleUploadBody | null;
-  if (!body) {
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) {
+    return NextResponse.json(
+      { message: "Sign in to save that image." },
+      { status: 401 },
+    );
+  }
+
+  if (!hasBlobStore()) {
+    return NextResponse.json(
+      {
+        message:
+          "Image storage isn't configured on this server. Connect the Vercel Blob store to this project and redeploy.",
+      },
+      { status: 503 },
+    );
+  }
+
+  const form = await request.formData().catch(() => null);
+  const file = form?.get("file");
+  const kindResult = form
+    ? kindSchema.safeParse(formString(form, "kind"))
+    : null;
+
+  if (!form || !(file instanceof File) || !kindResult?.success) {
     return NextResponse.json(
       { message: "That image upload was not valid." },
       { status: 400 },
     );
   }
 
-  const session = await auth.api.getSession({ headers: request.headers });
-
-  try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      token: blobReadWriteToken(),
-      onBeforeGenerateToken: async (pathname, clientPayload) => {
-        if (!session) {
-          throw new Error("Sign in to save that image.");
-        }
-
-        const payload = parseUploadPayload(clientPayload);
-        if (!payload) {
-          throw new Error("That image upload was not valid.");
-        }
-
-        const kind: LabUploadKind = payload.kind;
-        const gameId = payload.gameId ?? null;
-
-        if (kind === "thumbnail") {
-          if (!gameId) {
-            throw new Error("That game image was not valid.");
-          }
-          const game = await getGame(session.user.id, gameId);
-          if (!game) {
-            throw new Error("Game not found.");
-          }
-        }
-
-        if (!isOwnedUploadPathname(session.user.id, pathname, kind, gameId)) {
-          throw new Error("That image upload was not valid.");
-        }
-
-        return {
-          allowedContentTypes:
-            kind === "thumbnail" ? ["image/webp"] : ["image/png"],
-          addRandomSuffix: true,
-          maximumSizeInBytes:
-            kind === "thumbnail" ? THUMBNAIL_MAX_BYTES : SCREENSHOT_MAX_BYTES,
-          validUntil: Date.now() + 60_000,
-          tokenPayload: JSON.stringify({
-            userId: session.user.id,
-            kind,
-            gameId,
-          }),
-        };
-      },
-      onUploadCompleted: async () => {
-        // Metadata is stored by the confirm APIs so local development works
-        // without the Blob completion webhook.
-      },
-    });
-
-    return NextResponse.json(jsonResponse);
-  } catch (error) {
-    console.error("Failed to authorize blob upload", error);
+  const kind: LabUploadKind = kindResult.data;
+  const rawGameId = formString(form, "gameId");
+  const gameIdResult = rawGameId ? gameIdSchema.safeParse(rawGameId) : null;
+  if (rawGameId && !gameIdResult?.success) {
     return NextResponse.json(
-      { message: "We couldn't save that image." },
+      { message: "That image upload was not valid." },
       { status: 400 },
     );
   }
+
+  const gameId = gameIdResult?.success ? gameIdResult.data : null;
+  const expectedType = kind === "thumbnail" ? "image/webp" : "image/png";
+  const maxBytes = kind === "thumbnail" ? THUMBNAIL_MAX_BYTES : SCREENSHOT_MAX_BYTES;
+
+  if (file.type !== expectedType || file.size <= 0 || file.size > maxBytes) {
+    return NextResponse.json(
+      { message: "That image upload was not valid." },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const pathname =
+      kind === "thumbnail"
+        ? await thumbnailPathForGame(session.user.id, gameId)
+        : screenshotBlobPathname(session.user.id, randomUUID());
+
+    const uploaded = await putOwnedBlob({
+      pathname,
+      body: file,
+      contentType: expectedType,
+    });
+
+    return NextResponse.json({
+      url: uploaded.url,
+      pathname: uploaded.pathname,
+      contentType: uploaded.contentType,
+    });
+  } catch (error) {
+    if (error instanceof UploadRequestError) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: error.status },
+      );
+    }
+    return uploadErrorResponse(error);
+  }
+}
+
+class UploadRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
+
+async function thumbnailPathForGame(userId: string, gameId: string | null) {
+  if (!gameId) {
+    throw new UploadRequestError("That game image was not valid.", 400);
+  }
+  const game = await getGame(userId, gameId);
+  if (!game) {
+    throw new UploadRequestError("Game not found.", 404);
+  }
+  return thumbnailBlobPathname(userId, gameId);
 }

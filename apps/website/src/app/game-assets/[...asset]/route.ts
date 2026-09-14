@@ -1,20 +1,21 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { SOUND_PACK_EFFECT_CUES, SOUND_PACK_IDS } from "@/game/sound-packs";
+
+/** Every sound pack ships the same file names, so the audio half of the
+ * allowlist is expanded from the pack and cue lists rather than hand-listed. */
+const audioFiles: Record<string, string> = Object.fromEntries(
+  SOUND_PACK_IDS.flatMap((packId) =>
+    ["gameplay_loop", "boss_loop", ...SOUND_PACK_EFFECT_CUES].map((file) => [
+      `audio/${packId}/${file}.wav`,
+      path.resolve(process.cwd(), `../game/audio/${packId}/${file}.wav`),
+    ]),
+  ),
+);
+
 const assetFiles: Record<string, string> = {
-  "audio/space_basic_v1/checkpoint.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/checkpoint.wav"),
-  "audio/space_basic_v1/collectible.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/collectible.wav"),
-  "audio/space_basic_v1/enemy_defeat.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/enemy_defeat.wav"),
-  "audio/space_basic_v1/gameplay_loop.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/gameplay_loop.wav"),
-  "audio/space_basic_v1/boss_loop.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/boss_loop.wav"),
-  "audio/space_basic_v1/goal.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/goal.wav"),
-  "audio/space_basic_v1/jump.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/jump.wav"),
-  "audio/space_basic_v1/land.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/land.wav"),
-  "audio/space_basic_v1/player_damage.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/player_damage.wav"),
-  "audio/space_basic_v1/player_death.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/player_death.wav"),
-  "audio/space_basic_v1/respawn.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/respawn.wav"),
-  "audio/space_basic_v1/weapon_hit.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/weapon_hit.wav"),
-  "audio/space_basic_v1/weapon_swing.wav": path.resolve(process.cwd(), "../game/audio/space_basic_v1/weapon_swing.wav"),
+  ...audioFiles,
   "backgrounds/background_neutral_green_hills_castle_far_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_castle_far_01.png"),
   "backgrounds/background_neutral_green_hills_foliage_near_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_foliage_near_01.png"),
   "backgrounds/background_neutral_green_hills_waterfalls_mid_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_waterfalls_mid_01.png"),

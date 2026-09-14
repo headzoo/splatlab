@@ -312,10 +312,11 @@ health remain outside this campaign contract.
 
 ## Music and sound effects
 
-The HackYard build ships five configurable sound packs: `space_basic_v1` for
-the first Platformer map, `dragons_emberkeep_v1` for the second,
-`neutral_green_hills_v1` for the third, `haunted_graveyard_v1` for the fourth,
-and `ice_world_v1` for the fifth.
+The HackYard build ships five configurable sound packs, one per theme rather
+than one per campaign position: `neutral_green_hills_v1`, `space_basic_v1`,
+`haunted_graveyard_v1`, `dragons_emberkeep_v1`, and `ice_world_v1`. A map's
+theme ID selects its pack at runtime, so reordering the campaign or adding a
+theme variant does not move any audio.
 Each provides one seamless background loop plus short effects for `jump`,
 `land`, `collectible`, `enemy_defeat`, `player_damage`, `player_death`,
 `respawn`, `weapon_swing`, `weapon_hit`, `fire`, `checkpoint`, and `goal`.

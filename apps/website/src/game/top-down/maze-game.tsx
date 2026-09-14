@@ -35,6 +35,14 @@ import {
   playerDefeatedEventVisual,
 } from "../platformer/player-death";
 import { GameLoadingOverlay } from "../game-loading-overlay";
+import { MusicPlayer } from "../music-player";
+import {
+  resolveSoundPackId,
+  soundPackEffectUrl,
+  soundPackMusicTracks,
+  type SoundPackEffectCue,
+  type SoundPackId,
+} from "../sound-packs";
 import {
   isCustomizableHumanAsset,
   recolorHumanSprite,
@@ -97,18 +105,17 @@ const emptyInput = (): InputState => ({
   jumpPressed: false,
 });
 
-const MAZE_MUSIC_URL = assetUrl("audio/space_basic_v1/gameplay_loop.wav");
-const MAZE_AUDIO_URLS = {
-  jump: assetUrl("audio/space_basic_v1/jump.wav"),
-  land: assetUrl("audio/space_basic_v1/land.wav"),
-  collectible: assetUrl("audio/space_basic_v1/collectible.wav"),
-  enemy_defeat: assetUrl("audio/space_basic_v1/enemy_defeat.wav"),
-  player_death: assetUrl("audio/space_basic_v1/player_death.wav"),
-  respawn: assetUrl("audio/space_basic_v1/respawn.wav"),
-  goal: assetUrl("audio/space_basic_v1/goal.wav"),
-} as const;
+const MAZE_AUDIO_CUES = {
+  jump: "jump",
+  land: "land",
+  collectible: "collectible",
+  enemy_defeat: "enemy_defeat",
+  player_death: "player_death",
+  respawn: "respawn",
+  goal: "goal",
+} as const satisfies Record<string, SoundPackEffectCue>;
 
-const MAZE_AUDIO_VOLUME: Record<keyof typeof MAZE_AUDIO_URLS, number> = {
+const MAZE_AUDIO_VOLUME: Record<keyof typeof MAZE_AUDIO_CUES, number> = {
   jump: 0.38,
   land: 0.3,
   collectible: 0.4,
@@ -119,32 +126,36 @@ const MAZE_AUDIO_VOLUME: Record<keyof typeof MAZE_AUDIO_URLS, number> = {
 };
 
 class MazeRuntimeAudio {
-  private music: HTMLAudioElement | null = null;
+  private readonly packId: SoundPackId;
+  private readonly music: MusicPlayer<"gameplay">;
   private muted = false;
+
+  constructor(packId: SoundPackId) {
+    this.packId = packId;
+    const { gameplay } = soundPackMusicTracks(packId);
+    this.music = new MusicPlayer<"gameplay">({ gameplay });
+  }
 
   setMuted(muted: boolean) {
     this.muted = muted;
-    if (this.music) this.music.muted = muted;
+    this.music.setMuted(muted);
   }
 
   startMusic() {
-    if (!this.music) {
-      this.music = new Audio(MAZE_MUSIC_URL);
-      this.music.loop = true;
-      this.music.volume = 0.32;
-    }
-    this.music.muted = this.muted;
-    if (this.music.paused) void this.music.play().catch(() => undefined);
+    this.music.start("gameplay");
   }
 
   pauseMusic() {
-    this.music?.pause();
+    this.music.stop();
+  }
+
+  dispose() {
+    this.music.dispose();
   }
 
   play(event: MazeRuntimeEvent["type"]) {
     if (this.muted) return;
-    const url = MAZE_AUDIO_URLS[event];
-    const effect = new Audio(url);
+    const effect = new Audio(soundPackEffectUrl(this.packId, MAZE_AUDIO_CUES[event]));
     effect.volume = MAZE_AUDIO_VOLUME[event];
     void effect.play().catch(() => undefined);
   }
@@ -403,6 +414,7 @@ export function MazeGame({
   const audioRef = useRef<MazeRuntimeAudio | null>(null);
   const completionNotifiedRef = useRef(false);
   const fullscreen = useGameFullscreen(gameRef);
+  const soundPackId = resolveSoundPackId(map.presentation?.mazeThemeId);
 
   const syncRuntimeDom = useCallback((state: MazeState, camera: MazeCamera) => {
     if (!gameRef.current) return;
@@ -463,15 +475,15 @@ export function MazeGame({
   }, [assetsReady, captureCleanThumbnail, onThumbnailCaptureReady]);
 
   useEffect(() => {
-    audioRef.current = new MazeRuntimeAudio();
+    audioRef.current = new MazeRuntimeAudio(soundPackId);
     const savedMuted = window.localStorage.getItem("splat-lab.game-audio-muted.v1") === "true";
     audioRef.current.setMuted(savedMuted);
     const syncPreference = window.setTimeout(() => setMuted(savedMuted), 0);
     return () => {
       window.clearTimeout(syncPreference);
-      audioRef.current?.pauseMusic();
+      audioRef.current?.dispose();
     };
-  }, []);
+  }, [soundPackId]);
 
   useEffect(() => {
     let cancelled = false;

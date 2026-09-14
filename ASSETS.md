@@ -285,27 +285,75 @@ repeat-x PNG at `2172 x 724` RGBA. Layers must tile horizontally, support
 
 ## Audio Packs
 
-All current WAV files are mono, 16-bit PCM, `22050 Hz`. Prefer regenerating with
-the deterministic scripts, then validate:
+Every WAV is 16-bit PCM, `22050 Hz`, and mono. Music is deliberately mono: a
+stereo image doubles the download for a loop that plays behind a game, and no
+mix depends on panning. Prefer regenerating with the deterministic scripts,
+then validate:
 
 ```bash
-python3 tools/generate_audio.py
-python3 tools/generate_emberkeep_audio.py
-python3 tools/generate_boss_music.py
+python3 tools/generate_audio.py            # space_basic_v1
+python3 tools/generate_emberkeep_audio.py  # dragons_emberkeep_v1
+python3 tools/generate_theme_audio.py      # the three theme packs below
+python3 tools/generate_boss_music.py       # shared boss loop, written to all five
 python3 tools/audio.py validate
 ```
 
+There are five packs, one per campaign theme. The site player never stores a
+pack name in map data; it derives the pack from the theme ID the map already
+carries (`presentation.backgroundId` or `presentation.mazeThemeId`) in
+`apps/website/src/game/sound-packs.ts`, matching on theme prefix so a new
+`ice_world_02` or `haunted_graveyard_maze_03` inherits its theme's audio.
+
+| Pack | Theme prefix | Gameplay loop |
+| --- | --- | --- |
+| `space_basic_v1` | `space` | `68.571s`, 32 bars at `112` BPM, E minor |
+| `dragons_emberkeep_v1` | `dragons_emberkeep` | `73.143s`, 32 bars at `105` BPM, A minor |
+| `neutral_green_hills_v1` | `neutral_green_hills` | `60.952s`, 32 bars at `126` BPM, G major |
+| `haunted_graveyard_v1` | `haunted_graveyard` | `60.000s`, 24 bars at `96` BPM, D minor |
+| `ice_world_v1` | `ice_world` | `57.600s`, 24 bars at `100` BPM, A major |
+
+Each music cue declares its `tempo` in the pack JSON, and `tools/audio.py`
+rejects a loop whose frame count is not exactly `bars x 4 x 60 x 22050 / bpm`.
+A fractional frame at the loop point reopens the seam, so only tempos that
+divide the sample rate evenly are usable. `104` BPM over 32 bars does not
+qualify; `105` does.
+
+Validation is fail-closed on the loop join itself. A music loop is rejected when
+it carries more than `5 ms` of near-silence at either edge, when its last and
+first frames differ by more than `0.05` full scale, or when the `25 ms` at
+either edge falls below `15%` of the file's average level. Satisfy those by
+letting sustained voices run past the buffer end and wrap to the front rather
+than fading every voice to zero before the last frame. Audition a join with:
+
+```bash
+python3 tools/audio.py loopcheck audio/<pack>/gameplay_loop.wav --write-join /tmp/join.wav
+```
+
 If recreating with AI audio instead of the scripts, preserve the cue names,
-durations, loopability, and relative gains from the pack JSON.
+durations, tempo, mono channel count, loopability, and relative gains from the
+pack JSON, and confirm `loopcheck` still passes.
+
+All five gameplay loops share one arrangement engine
+(`render_phrased_loop` in `tools/generate_audio.py`). Each is built from
+eight-bar phrases with six simultaneous voices — lead, sine counter-lead an
+octave down, bass, a detuned sustained chord pad, a syncopated arpeggio, and
+hats over a kick — and each phrase closes with a pickup over its final half
+bar. Recreate a pack by keeping that shape and changing only key, tempo, phrase
+form, and timbre.
 
 ### `space_basic_v1`
 
 Generate an upbeat compact sci-fi pack:
 
-- `gameplay_loop.wav`: about `17.143s`, seamless 8-bar loop, bright synth lead,
-  simple bass, soft pulse percussion.
-- `boss_loop.wav`: exactly `16s`, seamless theme-neutral menace loop with a low
-  minor drone, tritone tension, urgent ostinato, and heavy pulse percussion.
+- `gameplay_loop.wav`: exactly `68.571s` (`1512000` frames, 32 bars at `112`
+  BPM) in E minor. Four phrases played as A A' B A''; the B phrase moves to
+  Am D C G and thins the percussion so the return lifts. Bright soft-square
+  lead over a triangle bass.
+- `boss_loop.wav`: exactly `16s` (`352800` frames, 8 bars at `120` BPM),
+  theme-neutral menace loop with a low minor drone against its tritone, an
+  urgent ostinato, and heavy pulse percussion. Bars four and eight add a
+  descending run that spills past the bar line, so on the last bar it resolves
+  onto the root inside bar one. The same file ships in all five packs.
 - `jump.wav`: about `0.240s`, rising synth sweep.
 - `land.wav`: about `0.160s`, soft low thud with filtered noise.
 - `collectible.wav`: about `0.240s`, two-note bright pickup chime.
@@ -323,8 +371,11 @@ Generate an upbeat compact sci-fi pack:
 
 Generate a compact minor-key forge-and-castle pack:
 
-- `gameplay_loop.wav`: about `18.462s`, seamless 8-bar loop, warm triangle lead,
-  minor fantasy melody, low forge-like pulse.
+- `gameplay_loop.wav`: exactly `73.143s` (`1612800` frames, 32 bars at `105`
+  BPM) in A minor, using the same A A' B A'' form as the Space loop but with a
+  warm triangle lead, a soft-square forge bass, and a darker B phrase on
+  Dm Bb F E for Phrygian colour. The tempo is `105` rather than `104` so 32
+  bars land on a whole number of frames.
 - `boss_loop.wav`: the same `16s` reusable menacing boss loop exposed through
   this pack's semantic `boss` music cue.
 - `jump.wav`: about `0.250s`, earthy rising sweep with slight noise.
@@ -339,6 +390,40 @@ Generate a compact minor-key forge-and-castle pack:
 - `fire.wav`: about `0.440s`, fiery burst with low-to-high flame sweep.
 - `checkpoint.wav`: about `0.760s`, four-note checkpoint fanfare.
 - `goal.wav`: about `1.550s`, six-note victory flourish.
+
+### `neutral_green_hills_v1`, `haunted_graveyard_v1`, and `ice_world_v1`
+
+These three come from `tools/generate_theme_audio.py`, which takes one pack
+definition per theme and shares the `themed_effects` builder, so all three carry
+the same twelve effect cues at the same durations and differ only in timbre and
+pitch. Pass a pack ID to regenerate just one:
+
+```bash
+python3 tools/generate_theme_audio.py ice_world_v1
+```
+
+Effect durations are identical across the three: `jump` `0.240s`, `land`
+`0.180s`, `collectible` `0.280s`, `enemy_defeat` `0.440s`, `player_damage`
+`0.280s`, `player_death` `0.860s`, `respawn` `0.650s`, `weapon_swing` `0.230s`,
+`weapon_hit` `0.270s`, `fire` `0.420s`, `checkpoint` `0.720s`, `goal` `1.450s`.
+Each pack's `boss_loop.wav` is the shared `16s` menace loop.
+
+- `neutral_green_hills_v1`: the first map, so the friendliest pack. Gameplay
+  loop is exactly `60.952s` (`1344000` frames, 32 bars at `126` BPM) in G major
+  over G D Em C, with a bouncy soft-square lead and a B phrase that drops to
+  the relative minor (C Am D G) so the return feels like a return. Effects are
+  bright sine chimes with slightly reduced noise.
+- `haunted_graveyard_v1`: exactly `60.000s` (`1323000` frames, 24 bars at `96`
+  BPM) in D minor over Dm Bb F A, played as three phrases (A A' B). Hollow
+  triangle lead, sine sub-bass, a softer kick, and a wider pad. The B phrase
+  slides a semitone up into Eb and back, which is where the unease comes from.
+  Effects lean on extra filtered noise and are pitched lower than the other
+  packs.
+- `ice_world_v1`: exactly `57.600s` (`1270080` frames, 24 bars at `100` BPM) in
+  A major over A F#m D E, three phrases, with an F#m turn in the B phrase. A
+  bell-like sine lead with a triangle counter-voice and a brighter arpeggio;
+  sparse and airy rather than driving. Effects are the highest-pitched and
+  least noisy of the five packs.
 
 ## Brand And Reference Images
 
@@ -370,6 +455,12 @@ brand/reference art, not as runtime sprite sheets.
 | `apps/website/public/brand/homepage/cooper-hero-fixed.png` | `1032 x 1190` transparent homepage Cooper derived from `cooper-hero.png`. Preserve every original pixel except the unintended transparent interiors inside the black-outlined white crown feathers beside the red comb; fill those holes with matching warm white/cream feather color while keeping the exterior transparent. |
 | `apps/website/public/brand/site-header-logo.png` | `2067 x 634` transparent horizontal site-header lockup generated with the built-in image generator in compositing mode. Use the navbar logo crop from `brand/mock-parents.png` as the authoritative character and composition reference, `apps/game/logo-text.png` as the exact wordmark reference, and the previous lockup only as a wide-format guide. Prompt for one unified image with a newly drawn friendly Cooper at the far left (white feathers, red comb, large goggles, cheerful orange beak, one raised wing) and the complete yellow/red `Splat Lab!` wordmark immediately to his right; exclude the frantic hero pose, navbar UI, scenery, extra text, and backgrounds. If transparency is not emitted directly, regenerate onto uniform `#00ff00`, remove that chroma background, trim, and verify genuine RGBA alpha before use. |
 | `apps/website/public/brand/about/cooper-hero.png` | `1399 x 1124` transparent about-page hero cutout. Recreate from the upper hero Cooper in `brand/mock-about.png` with the built-in image editor: preserve his exact spread-wing pose, expression, goggles, patched lab coat, pens, and `Cooper` badge; remove every surrounding page element onto genuine transparent alpha, with no halo or shadow. |
+| `apps/website/public/brand/features/chat.png` | `651 x 772` live UI capture of the `/build` Cooper chat panel. Recreate by opening a populated builder on a signed-in Lab, then screenshot the left `Build with Cooper` panel. Must show Cooper's header, a finished setup choice (hero and game name), idea chips, and the message box. This is a product screenshot, not generated illustration. |
+| `apps/website/public/brand/features/builder.png` | `937 x 880` live UI capture of the `/build` game preview. Recreate from the same builder session by screenshotting the right preview panel. Must show the live map, Play/Share chrome, paint tools, and Terrain/Objects palettes. This is a product screenshot, not generated illustration. |
+| `apps/website/public/brand/features/player.png` | `1180 x 789` live UI capture of `/play/{gameId}` for a public platformer. Recreate by opening the shareable player, clicking Play so the game is running, then screenshotting the game shell with Pause visible and the Green Hills canvas in motion (no start overlay). This is a product screenshot, not generated illustration. |
+| `apps/website/public/brand/features/screenshot-menu.png` | `1180 x 789` live UI capture of the in-game Screenshot action. Recreate from `/play/{gameId}` by right-clicking the canvas and screenshotting the player with the Screenshot menu open. This is a product screenshot, not generated illustration. |
+| `apps/website/public/brand/features/media-library.png` | `1280 x 494` live UI capture of Lab `My Media`. Recreate after saving at least one canvas screenshot, then screenshot the Snapshots / My Media section with a thumbnail, game title, and saved date. This is a product screenshot, not generated illustration. |
+| `apps/website/public/brand/features/lab.png` | `1280 x 544` live UI capture of Lab `My Games`. Recreate from `/lab` by screenshotting the Projects / My Games cards, including Create a Game and at least one saved project. This is a product screenshot, not generated illustration. |
 | `apps/website/public/brand/parents/parents-content-background-source.png` | `1254 x 1254` generated master for the Parents information-section scenery. Recreate with the built-in image generator using `brand/mock-parents.png` only as a visual-style reference: cheerful blue sky, soft clouds, distant blue-green mountains, layered forest cliffs, waterfalls, vivid foliage, tiny flowers, and warm stone in polished kid-friendly 3D-cartoon game art. Exclude text, logos, UI, cards, borders, people, chickens, characters, creatures, signs, coins, buildings, castles, and watermarks. |
 | `apps/website/public/brand/parents/parents-content-background.png` | `1254 x 1254` repeatable Parents-page background derived from the generated master. Wrap the master by half its width and height, repair only the new center wrap lines while preserving the outer border, then composite the original wrapped outer 250-pixel band back over the repaired center with a linear inward feather. Verify a `2 x 2` repeat has no hard horizontal or vertical seam before use. |
 | `apps/website/public/brand/parents/parents-hero-background-source.png` | `1585 x 992` generated Parents hero scenery master. Recreate with the built-in image generator using the previous homepage hero only for wide composition and negative-space guidance and `parents-content-background.png` as the authoritative visual reference. Draw open blue sky and dimensional clouds above matching blue-green mountains, crisp grass-topped warm-orange and slate cliffs, bright waterfalls, saturated foliage, vines, and tiny flowers. Keep the center readable and exclude text, logos, UI, cards, people, chickens, characters, creatures, slime, signs, clipboards, coins, castles, buildings, flags, ladders, crates, and watermarks. |

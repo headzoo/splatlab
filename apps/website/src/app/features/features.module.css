@@ -1,0 +1,873 @@
+.page {
+  min-height: 100vh;
+  overflow: hidden;
+  color: #07143f;
+  background: #5dc9f4;
+}
+
+.skipLink {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 50;
+  padding: 10px 14px;
+  color: #07143f;
+  background: #ffd43b;
+  border: 2px solid #07143f;
+  border-radius: 4px;
+  font-weight: 800;
+  transform: translateY(-180%);
+}
+
+.skipLink:focus {
+  transform: translateY(0);
+}
+
+.hero {
+  position: relative;
+  min-height: 670px;
+  overflow: hidden;
+  background: #55bef1;
+}
+
+.hero :global(header) {
+  position: relative;
+  z-index: 8;
+}
+
+.heroBackground,
+.finalBackground {
+  z-index: 0;
+  object-fit: cover;
+}
+
+.heroBackground {
+  object-position: center 64%;
+}
+
+.heroShade,
+.finalWash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.heroShade {
+  background: linear-gradient(90deg, rgb(103 203 246 / 8%), rgb(255 255 255 / 12%) 50%, rgb(83 184 234 / 8%));
+}
+
+.heroSeam {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  height: 180px;
+  background-image: url("/brand/parents/parents-content-background.png");
+  background-position: center bottom;
+  background-repeat: repeat-x;
+  background-size: 1254px 1254px;
+  mask-image: linear-gradient(to bottom, transparent, black 88%);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(410px, 0.9fr) minmax(500px, 1.1fr);
+  width: min(100% - 64px, 1360px);
+  min-height: 544px;
+  margin-inline: auto;
+}
+
+.heroCopy {
+  z-index: 3;
+  align-self: center;
+  max-width: 510px;
+  padding: 8px 0 62px 18px;
+}
+
+.heroCopy > h2,
+.heroCopy > p,
+.finalCopy h2,
+.finalCopy p {
+  text-shadow:
+    -1px -1px 0 rgb(255 255 255 / 82%),
+    1px -1px 0 rgb(255 255 255 / 82%),
+    -1px 1px 0 rgb(255 255 255 / 82%),
+    1px 1px 0 rgb(255 255 255 / 82%),
+    0 4px 10px rgb(255 255 255 / 72%);
+}
+
+.titlePlaque {
+  position: relative;
+  display: inline-block;
+  min-width: 300px;
+  padding: 12px 32px 13px;
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 10%), transparent 20% 78%, rgb(56 23 6 / 15%)),
+    linear-gradient(#a65325, #713316);
+  border: 5px solid #512712;
+  border-radius: 9px;
+  box-shadow:
+    inset 0 0 0 3px rgb(255 177 85 / 32%),
+    0 6px 0 #3f210f,
+    0 12px 18px rgb(39 59 76 / 24%);
+  font-family: "Chewy", cursive;
+  text-align: center;
+  text-shadow: 0 3px 0 #4b1f0d;
+  transform: rotate(-2deg);
+}
+
+.titlePlaque::before,
+.titlePlaque::after {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  content: "";
+  background: #e5a151;
+  border: 2px solid #4e260f;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.titlePlaque::before {
+  left: 10px;
+}
+
+.titlePlaque::after {
+  right: 10px;
+}
+
+.titlePlaque span {
+  display: block;
+  font-size: 40px;
+  line-height: 0.92;
+}
+
+.titlePlaque h1 {
+  color: #ffd52f;
+  font-size: 70px;
+  font-weight: 400;
+  line-height: 0.82;
+  -webkit-text-stroke: 2px #7f160e;
+  text-shadow:
+    0 3px 0 #bc1d15,
+    0 6px 0 #62130f;
+}
+
+.heroCopy > h2,
+.featureCopy h2,
+.finalInner h2 {
+  font-family: "Chewy", cursive;
+  font-weight: 400;
+}
+
+.heroCopy > h2 {
+  max-width: 420px;
+  margin-top: 20px;
+  font-size: 35px;
+  line-height: 1.02;
+  text-align: center;
+}
+
+.heroCopy > p {
+  max-width: 430px;
+  margin-top: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 0 28px;
+  color: #11172f;
+  background: #ffd43b;
+  border: 2px solid #efb917;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 rgb(204 137 0 / 20%);
+  font: 400 21px/1 "Chewy", cursive;
+  white-space: nowrap;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.cta:not(:disabled) {
+  cursor: pointer;
+}
+
+.cta:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.cta:hover {
+  background: #ffe05c;
+  box-shadow: 0 6px 0 rgb(204 137 0 / 22%);
+  transform: translateY(-2px);
+}
+
+.cta span {
+  margin-left: 10px;
+  font-family: Arial, sans-serif;
+  font-weight: 900;
+}
+
+.heroCta {
+  min-width: 265px;
+  margin-top: 18px;
+}
+
+.heroCharacter {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.cooperHero {
+  position: absolute;
+  right: auto;
+  bottom: -46px;
+  left: 57%;
+  z-index: 2;
+  width: min(720px, 110%);
+  height: auto;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 14px 10px rgb(29 69 91 / 20%));
+}
+
+.speechBubble {
+  position: absolute;
+  top: 34px;
+  right: clamp(72px, 8vw, 150px);
+  z-index: 4;
+  width: 224px;
+  height: 177px;
+  color: #07143f;
+  text-align: center;
+  transform: rotate(-4deg);
+}
+
+.speechBubbleShape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 9px 10px rgb(24 68 101 / 14%));
+}
+
+.speechBubbleShape path {
+  fill: #fff;
+  stroke: #07143f;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+}
+
+.speechBubbleCopy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 141px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 19px 25px 10px;
+  font: 400 24px/0.98 "Chewy", cursive;
+}
+
+.speechBubbleCopy strong {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.speechBubbleSmile {
+  margin-top: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+}
+
+.contentStage {
+  position: relative;
+  z-index: 4;
+  isolation: isolate;
+  overflow: visible;
+  background: #5dc9f4;
+}
+
+.kingdomClip {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.kingdomBackdrop {
+  position: absolute;
+  top: -240px;
+  right: 0;
+  bottom: -240px;
+  left: 0;
+  z-index: 0;
+  background-image: url("/brand/parents/parents-content-background.png");
+  background-position: center 240px;
+  background-repeat: repeat;
+  background-size: 1254px 1254px;
+}
+
+@supports (animation-timeline: scroll()) {
+  .kingdomBackdrop {
+    animation: kingdom-parallax linear both;
+    animation-timeline: scroll(root block);
+    will-change: transform;
+  }
+}
+
+@keyframes kingdom-parallax {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, 240px, 0); }
+}
+
+.contentStage::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  height: 180px;
+  background-image: url("/brand/parents/parents-content-background.png");
+  background-position: center bottom;
+  background-repeat: repeat-x;
+  background-size: 1254px 1254px;
+  content: "";
+  mask-image: linear-gradient(to bottom, transparent, black 88%);
+  pointer-events: none;
+}
+
+.contentBackdrop {
+  position: relative;
+  top: -40px;
+  z-index: 2;
+  display: grid;
+  gap: 18px;
+  margin-top: -6px;
+  margin-bottom: -40px;
+  padding-bottom: 18px;
+}
+
+.panel {
+  position: relative;
+  z-index: 2;
+  width: min(100% - 32px, 1420px);
+  margin-inline: auto;
+  background: rgb(250 253 255 / 97%);
+  border: 5px solid #38afea;
+  border-radius: 23px;
+  box-shadow:
+    inset 0 0 0 4px #fff,
+    0 10px 22px rgb(22 91 126 / 24%);
+}
+
+.feature {
+  padding: 28px 32px;
+}
+
+.featureRow,
+.featureRowReverse {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(200px, 360px);
+  align-items: center;
+  gap: 28px 32px;
+}
+
+.featureRowReverse {
+  grid-template-columns: minmax(200px, 360px) minmax(280px, 1fr);
+}
+
+.featureRowReverse .featureCopy {
+  order: 2;
+}
+
+.featureCopy {
+  min-width: 0;
+}
+
+.featureKicker {
+  display: block;
+  margin-bottom: 8px;
+  color: #1761b7;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.featureCopy h2 {
+  max-width: 16ch;
+  font-size: 42px;
+  line-height: 0.98;
+}
+
+.featureCopy p {
+  max-width: 46ch;
+  margin-top: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.featureShots {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 360px);
+  min-width: 0;
+  justify-self: center;
+}
+
+.featureShot {
+  overflow: hidden;
+  background: #f7fbff;
+  border: 2px solid #d6e6f4;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+.featureShot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.finalCta {
+  position: relative;
+  isolation: isolate;
+  min-height: 260px;
+  overflow: hidden;
+  background: #58bde9;
+}
+
+.finalBackground {
+  object-position: center 50%;
+}
+
+.finalWash {
+  background: radial-gradient(circle at 50% 36%, rgb(255 255 255 / 34%), transparent 42%);
+}
+
+.finalCta::before {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 126px;
+  background-image: url("/brand/parents/parents-content-background.png");
+  background-position: center top;
+  background-repeat: repeat-x;
+  background-size: 1254px 1254px;
+  content: "";
+  mask-image: linear-gradient(to bottom, black, transparent 94%);
+  pointer-events: none;
+}
+
+.finalInner {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 145px 285px minmax(420px, 1fr) 185px;
+  align-items: center;
+  width: min(100% - 48px, 1280px);
+  min-height: 260px;
+  margin-inline: auto;
+  gap: 18px;
+}
+
+.finalCooper {
+  position: relative;
+  grid-column: 2;
+  align-self: stretch;
+}
+
+.finalCooper img {
+  position: absolute;
+  right: -18px;
+  bottom: -34px;
+  width: 320px;
+  height: auto;
+  filter: drop-shadow(0 9px 7px rgb(13 67 79 / 20%));
+}
+
+.finalCopy {
+  position: relative;
+  z-index: 2;
+  grid-column: 3;
+  text-align: center;
+}
+
+.finalCopy h2 {
+  font: 400 36px/1 "Chewy", cursive;
+}
+
+.finalCopy p {
+  margin: 5px auto 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.finalCopy .cta {
+  min-width: 278px;
+  gap: 12px;
+  padding-inline: 25px;
+  font-size: 22px;
+}
+
+.finalCopy .cta span {
+  margin-left: 0;
+}
+
+.skipLink:focus-visible,
+.cta:focus-visible {
+  outline: 3px solid #07143f;
+  outline-offset: 4px;
+}
+
+@media (min-width: 1500px) {
+  .hero {
+    min-height: 740px;
+  }
+
+  .heroInner {
+    min-height: 614px;
+  }
+
+  .heroCopy {
+    transform: scale(1.06);
+    transform-origin: left center;
+  }
+
+  .cooperHero {
+    width: 780px;
+  }
+
+  .finalInner {
+    width: min(100% - 80px, 1440px);
+  }
+}
+
+@media (max-width: 1120px) {
+  .heroInner {
+    grid-template-columns: minmax(360px, 0.88fr) minmax(440px, 1.12fr);
+  }
+
+  .cooperHero {
+    left: 60%;
+    width: min(660px, 110%);
+  }
+
+  .speechBubble {
+    right: 48px;
+    width: 190px;
+    height: 150px;
+  }
+
+  .speechBubbleCopy {
+    height: 119px;
+    padding: 16px 22px 9px;
+    font-size: 21px;
+  }
+
+  .speechBubbleCopy strong {
+    font-size: 21px;
+  }
+
+  .feature {
+    padding: 22px 20px;
+  }
+
+  .featureRow,
+  .featureRowReverse {
+    grid-template-columns: minmax(240px, 1fr) minmax(180px, 300px);
+    gap: 20px;
+  }
+
+  .featureRowReverse {
+    grid-template-columns: minmax(180px, 300px) minmax(240px, 1fr);
+  }
+
+  .featureShots {
+    width: min(100%, 300px);
+  }
+
+  .featureCopy h2 {
+    font-size: 34px;
+  }
+
+  .finalInner {
+    grid-template-columns: 112px 230px minmax(360px, 1fr) 150px;
+    gap: 10px;
+  }
+
+  .finalCooper img {
+    width: 270px;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: 870px;
+  }
+
+  .heroInner {
+    display: block;
+    width: min(100% - 40px, 760px);
+    min-height: 776px;
+  }
+
+  .heroCopy {
+    max-width: 520px;
+    margin-inline: auto;
+    padding: 28px 0 0;
+    text-align: center;
+  }
+
+  .heroCopy > h2,
+  .heroCopy > p {
+    margin-inline: auto;
+  }
+
+  .heroCharacter {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    top: auto;
+    height: 475px;
+  }
+
+  .cooperHero {
+    left: auto;
+    right: 50%;
+    bottom: -25px;
+    width: 600px;
+    max-width: none;
+    transform: translateX(50%);
+  }
+
+  .speechBubble {
+    top: 30px;
+    right: max(8%, calc(50% - 220px));
+  }
+
+  .featureRow,
+  .featureRowReverse {
+    grid-template-columns: 1fr;
+  }
+
+  .featureRowReverse .featureCopy {
+    order: 0;
+  }
+
+  .featureCopy {
+    text-align: center;
+  }
+
+  .featureCopy h2,
+  .featureCopy p {
+    max-width: none;
+    margin-inline: auto;
+  }
+
+  .featureShots {
+    width: min(100%, 300px);
+    margin-inline: auto;
+  }
+
+  .finalInner {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .finalCooper {
+    grid-column: 1;
+  }
+
+  .finalCopy {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 660px) {
+  .hero {
+    min-height: 805px;
+  }
+
+  .heroInner {
+    width: min(100% - 28px, 600px);
+    min-height: 723px;
+  }
+
+  .heroCopy {
+    padding-top: 16px;
+  }
+
+  .titlePlaque {
+    min-width: 250px;
+    padding: 10px 25px 12px;
+  }
+
+  .titlePlaque span {
+    font-size: 31px;
+  }
+
+  .titlePlaque h1 {
+    font-size: 56px;
+  }
+
+  .heroCopy > h2 {
+    max-width: 340px;
+    margin-top: 16px;
+    font-size: 29px;
+  }
+
+  .heroCopy > p {
+    max-width: 390px;
+    margin-top: 10px;
+    font-size: 15px;
+  }
+
+  .heroCta {
+    min-width: min(265px, calc(100vw - 48px));
+    margin-top: 14px;
+  }
+
+  .heroCharacter {
+    height: 405px;
+  }
+
+  .cooperHero {
+    bottom: -12px;
+    width: 500px;
+  }
+
+  .speechBubble {
+    top: 12px;
+    right: -5px;
+    width: 145px;
+    height: 115px;
+  }
+
+  .speechBubbleCopy {
+    height: 91px;
+    padding: 12px 14px 7px;
+    font-size: 16px;
+  }
+
+  .speechBubbleCopy strong {
+    font-size: 16px;
+  }
+
+  .speechBubbleSmile {
+    margin-top: 3px;
+    font-size: 18px;
+  }
+
+  .panel {
+    width: min(100% - 18px, 620px);
+    border-width: 4px;
+    border-radius: 18px;
+  }
+
+  .feature {
+    padding: 18px 12px;
+  }
+
+  .featureCopy h2 {
+    font-size: 33px;
+  }
+
+  .finalCta,
+  .finalInner {
+    min-height: 310px;
+  }
+
+  .finalInner {
+    display: block;
+    width: min(100% - 24px, 1280px);
+    padding-top: 24px;
+  }
+
+  .finalCooper {
+    position: absolute;
+    right: -44px;
+    bottom: 0;
+    width: 170px;
+    height: 185px;
+    opacity: 0.78;
+  }
+
+  .finalCooper img {
+    right: 0;
+    bottom: -25px;
+    width: 220px;
+  }
+
+  .finalCopy {
+    position: relative;
+    z-index: 2;
+  }
+
+  .finalCopy h2 {
+    font-size: 35px;
+  }
+
+  .finalCopy p {
+    max-width: 290px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero {
+    min-height: 825px;
+  }
+
+  .titlePlaque {
+    min-width: 230px;
+  }
+
+  .titlePlaque h1 {
+    font-size: 50px;
+  }
+
+  .heroCopy > p {
+    max-width: 330px;
+  }
+
+  .cooperHero {
+    width: 445px;
+  }
+
+  .speechBubble {
+    right: -12px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skipLink {
+    transition: transform 140ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kingdomBackdrop {
+    animation: none;
+    will-change: auto;
+  }
+}

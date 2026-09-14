@@ -251,6 +251,7 @@
 .emptyMessage {
   position: relative;
   z-index: 2;
+  grid-column: 2;
 }
 
 .emptyGlyph {
@@ -992,6 +993,10 @@
 
   .emptyState {
     grid-template-columns: 1fr;
+  }
+
+  .emptyMessage {
+    grid-column: auto;
   }
 
   .emptyDoodleLeft,

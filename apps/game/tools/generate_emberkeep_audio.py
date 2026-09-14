@@ -6,11 +6,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from generate_audio import (
+    Phrase,
     add_noise,
     add_note,
     add_sweep,
     empty,
     midi,
+    render_phrased_loop,
     soft_square,
     sine,
     triangle,
@@ -20,31 +22,79 @@ from generate_audio import (
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "audio" / "dragons_emberkeep_v1"
 
+# 105 rather than 104 BPM: at 22050 Hz, 104 BPM over 32 bars lands on
+# 1,628,307.69 frames, and the fractional frame reopens the loop seam.
+EMBERKEEP_BPM = 105
+EMBERKEEP_BARS = 32
+
+# Four eight-bar phrases in A minor, played as A A' B A''. The B phrase drops to
+# Dm Bb F E for a Phrygian forge colour before the final phrase returns home.
+EMBERKEEP_PHRASES = (
+    Phrase(
+        roots=(45, 45, 41, 41, 43, 43, 40, 40),
+        melody=(
+            69, 72, 76, 74, 69, 67, 64, 67,
+            69, 72, 77, 76, 72, 69, 67, 64,
+            72, 76, 79, 77, 76, 72, 69, 67,
+            65, 69, 72, 76, 74, 72, 69, 65,
+        ),
+        shifts=(0, 0, 0, 0, 0, 0, 12, 0),
+    ),
+    Phrase(
+        roots=(45, 45, 41, 41, 43, 43, 40, 40),
+        melody=(
+            76, 79, 81, 79, 76, 72, 69, 72,
+            74, 72, 69, 72, 74, 76, 79, 76,
+            77, 76, 72, 69, 72, 76, 79, 81,
+            79, 76, 72, 69, 67, 65, 64, 67,
+        ),
+        shifts=(0, 0, 0, 0, -12, 0, 0, 0),
+        drive=1.05,
+    ),
+    Phrase(
+        roots=(50, 50, 46, 46, 41, 41, 40, 40),
+        melody=(
+            74, 77, 81, 77, 74, 72, 69, 72,
+            70, 74, 77, 74, 70, 69, 65, 69,
+            72, 69, 65, 69, 72, 77, 76, 72,
+            68, 69, 72, 76, 74, 72, 69, 68,
+        ),
+        shifts=(0, 0, 0, 0, 0, 12, 0, 0),
+        turnaround=(19, 17, 15, 12),
+        drive=0.72,
+    ),
+    Phrase(
+        roots=(45, 45, 41, 41, 43, 43, 40, 40),
+        melody=(
+            69, 72, 76, 81, 79, 76, 72, 69,
+            72, 76, 81, 84, 81, 76, 72, 69,
+            74, 77, 81, 86, 84, 81, 77, 74,
+            76, 79, 84, 88, 86, 84, 79, 76,
+        ),
+        drive=1.18,
+    ),
+)
+
 
 def gameplay_loop() -> list[float]:
-    """Eight bars of a compact minor-key forge-and-castle loop."""
-    bpm = 104
-    beat = 60 / bpm
-    bars = 8
-    samples = empty(bars * 4 * beat)
-    melody = [69, 72, 76, 74, 69, 67, 64, 67, 69, 72, 77, 76, 72, 69, 67, 64]
-    bass = [45, 45, 41, 41, 43, 43, 40, 40]
-    for step in range(bars * 8):
-        start = step * beat / 2
-        note = melody[step % len(melody)]
-        add_note(samples, start, beat * 0.44, midi(note), 0.11, triangle)
-        add_note(samples, start, beat * 0.36, midi(note + 12), 0.035, sine)
-    for bar in range(bars):
-        root = bass[bar]
-        for quarter in range(4):
-            start = (bar * 4 + quarter) * beat
-            add_note(samples, start, beat * 0.82, midi(root), 0.17, soft_square)
-            if quarter in {0, 2}:
-                add_sweep(samples, start, 0.13, 92, 48, 0.15, sine)
-                add_noise(samples, start, 0.07, 0.065, seed=300 + bar * 4 + quarter)
-        for note in (root + 12, root + 19, root + 24):
-            add_note(samples, bar * 4 * beat, beat * 3.85, midi(note), 0.026, sine)
-    return samples
+    """Thirty-two bars of a minor-key forge-and-castle loop."""
+    return render_phrased_loop(
+        EMBERKEEP_BPM,
+        EMBERKEEP_PHRASES,
+        lead=triangle,
+        counter=sine,
+        bass=soft_square,
+        lead_gain=0.095,
+        counter_gain=0.032,
+        bass_gain=0.155,
+        pad_gain=0.024,
+        arpeggio_gain=0.028,
+        kick=(92.0, 48.0),
+        kick_gain=0.15,
+        snare_gain=0.065,
+        hat_gain=0.045,
+        seed=2700,
+    )
 
 
 def generate_effects() -> dict[str, list[float]]:

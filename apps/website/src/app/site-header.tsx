@@ -9,10 +9,10 @@ import { AuthAction, useAuthFlow } from "./auth-flow";
 import styles from "./page.module.css";
 
 type SiteHeaderProps = {
-  currentPage?: "about" | "parents";
+  currentPage?: "features" | "about" | "parents";
 };
 
-function NavIcon({ name }: { name: "features" | "examples" | "parents" | "about" }) {
+function NavIcon({ name }: { name: "features" | "parents" | "about" }) {
   if (name === "features") {
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -20,16 +20,6 @@ function NavIcon({ name }: { name: "features" | "examples" | "parents" | "about"
         <path d="M7 11v4M5 13h4" />
         <circle cx="17" cy="12" r=".8" />
         <circle cx="19" cy="14" r=".8" />
-      </svg>
-    );
-  }
-
-  if (name === "examples") {
-    return (
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <rect x="3.5" y="5" width="17" height="14" rx="2" />
-        <circle cx="8.5" cy="9.5" r="1.3" />
-        <path d="m5.5 17 4.2-4 3.1 2.8 2.2-2 3.5 3.2" />
       </svg>
     );
   }
@@ -71,8 +61,12 @@ export function SiteHeader({ currentPage }: SiteHeaderProps) {
         </Link>
 
         <nav className={styles.nav} aria-label="Primary navigation">
-          <Link href="/#features"><NavIcon name="features" />Features</Link>
-          <Link href="/#examples"><NavIcon name="examples" />Examples</Link>
+          <Link
+            href="/features"
+            aria-current={currentPage === "features" ? "page" : undefined}
+          >
+            <NavIcon name="features" />Features
+          </Link>
           <Link
             href="/parents"
             aria-current={currentPage === "parents" ? "page" : undefined}

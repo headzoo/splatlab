@@ -11,6 +11,7 @@
       "assetId": "dragons_emberkeep_gameplay_loop_01",
       "path": "audio/dragons_emberkeep_v1/gameplay_loop.wav",
       "loop": true,
+      "tempo": { "bpm": 105, "bars": 32 },
       "defaultGain": 0.3
     },
     "boss": {
@@ -18,6 +19,7 @@
       "name": "Menacing boss",
       "path": "audio/dragons_emberkeep_v1/boss_loop.wav",
       "loop": true,
+      "tempo": { "bpm": 120, "bars": 8 },
       "defaultGain": 0.38
     }
   },
