@@ -61,6 +61,16 @@ test("every object button previews a real frame of the sprite its map uses", asy
   }
 });
 
+test("extra-life buttons use the shared Easter egg instead of the HUD portrait", async () => {
+  const frame = platformerObjectSpriteFrame(
+    { backgroundId: "neutral_green_hills_01" },
+    "extra_life",
+    "neutral_cooper_01",
+  );
+  assert.equal(frame.assetId, "shared_platformer_easter_egg_01");
+  await assertFrameFitsSheet(frame, "shared Easter egg extra life");
+});
+
 test("the spawn button previews whichever hero the game is set to", async () => {
   for (const { source } of GAME_PLAYER_CONTENT.maps) {
     for (const playerCharacter of PLAYER_CHARACTERS) {

@@ -9,60 +9,52 @@ const benefits = [
     title: "Bring Ideas to Life",
     copy: "Describe what you want and watch it become a real game.",
     image: "/brand/homepage/icon-ideas.png",
-    width: 110,
-    height: 94,
+    width: 150,
+    height: 88,
   },
   {
     title: "Play Online",
     copy: "Share your games and play with 1-4 friends, right in your browser.",
     image: "/brand/homepage/icon-online.png",
-    width: 170,
-    height: 94,
+    width: 150,
+    height: 88,
   },
   {
     title: "No Coding Needed",
     copy: "Just creativity. Splat Lab handles the technical stuff.",
     image: "/brand/homepage/icon-no-code.png",
-    width: 120,
-    height: 94,
+    width: 150,
+    height: 88,
   },
   {
     title: "Made for Kids",
     copy: "A safe, fun, and friendly place to learn, create, and play.",
     image: "/brand/homepage/icon-kids.png",
-    width: 120,
-    height: 94,
+    width: 150,
+    height: 88,
   },
 ] as const;
 
 const games = [
   {
-    title: "Chicken Quest",
-    creator: "Alex, age 10",
-    likes: 243,
-    image: "/brand/homepage/game-chicken-quest.png",
-    width: 238,
+    title: "Meadow Coin Quest",
+    href: "https://splatlab.games/play/cmu0hdkqc000104jnc9od9t8c",
+    image: "/brand/homepage/game-meadow-coin-quest.webp",
   },
   {
-    title: "Astro Slimes",
-    creator: "Priya, age 11",
-    likes: 189,
-    image: "/brand/homepage/game-astro-slimes.png",
-    width: 238,
+    title: "Cooper's Ghost Quest",
+    href: "https://splatlab.games/play/cmu06onhe000004l5djp754cv",
+    image: "/brand/homepage/game-coopers-ghost-quest.webp",
   },
   {
-    title: "Penguin Panic",
-    creator: "Mateo, age 9",
-    likes: 312,
-    image: "/brand/homepage/game-penguin-panic.png",
-    width: 238,
+    title: "Cooper's Star Mission",
+    href: "https://splatlab.games/play/cmu07vdyc000004l404jcm0wj",
+    image: "/brand/homepage/game-coopers-star-mission.webp",
   },
   {
-    title: "Dragon's Lair",
-    creator: "Sam, age 12",
-    likes: 276,
-    image: "/brand/homepage/game-dragons-lair.png",
-    width: 239,
+    title: "Dragon Cooper Jump",
+    href: "https://splatlab.games/play/cmu0h41ng000004jn4er6ro6a",
+    image: "/brand/homepage/game-dragon-cooper-jump.webp",
   },
 ] as const;
 
@@ -195,21 +187,22 @@ export default function Home() {
         <div className={styles.gameGrid}>
           {games.map((game) => (
             <article className={styles.gameCard} key={game.title}>
-              <Image
-                className={styles.gameImage}
-                src={game.image}
-                alt={`Preview of ${game.title}`}
-                width={game.width}
-                height={130}
-                unoptimized
-              />
-              <div className={styles.gameTitleRow}>
-                <h3>{game.title}</h3>
-                <span className={styles.likes} aria-label={`${game.likes} likes`}>
-                  <span aria-hidden="true">♥</span> {game.likes}
-                </span>
-              </div>
-              <p>by {game.creator}</p>
+              <a className={styles.gameCardLink} href={game.href}>
+                <Image
+                  className={styles.gameImage}
+                  src={game.image}
+                  alt={`Preview of ${game.title}`}
+                  width={720}
+                  height={403}
+                  unoptimized
+                />
+                <div className={styles.gameTitleRow}>
+                  <h3>{game.title}</h3>
+                  <span className={styles.playGame}>
+                    Play <span aria-hidden="true">→</span>
+                  </span>
+                </div>
+              </a>
             </article>
           ))}
         </div>

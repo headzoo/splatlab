@@ -107,7 +107,7 @@ function CooperAvatar() {
   return (
     <span className={styles.cooperAvatar} aria-hidden="true">
       <Image
-        src="/brand/about/cooper-hero.png"
+        src="/brand/features/cooper-hero.png"
         alt=""
         width={1399}
         height={1124}

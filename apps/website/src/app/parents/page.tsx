@@ -315,7 +315,7 @@ export default function ParentsPage() {
         <div className={styles.finalInner}>
           <div className={styles.finalCooper}>
             <Image
-              src="/brand/about/cooper-hero.png"
+              src="/brand/features/cooper-hero.png"
               alt="Cooper cheering with his wings spread"
               width={1399}
               height={1124}

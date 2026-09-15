@@ -519,7 +519,7 @@ This prevents an unusual AI request from breaking the game when an exact sprite 
 Mechanics should use semantic slots. Themes provide the visual skin.
 
 - `collectible_common`: increases score
-- `extra_life`: increases remaining lives by one, fades from the world, and plays one shared firework burst
+- `extra_life`: uses one shared decorated Easter-egg sprite, increases remaining lives by one, fades from the world, and plays one shared firework burst
 - `key`: unlocks a door or exit
 - `health`: restores health
 - `speed_boost`: temporarily increases movement speed

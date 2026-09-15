@@ -677,15 +677,15 @@
 
 .featureIcon {
   display: flex;
-  height: 90px;
+  height: 152.1px;
   align-items: center;
   justify-content: center;
 }
 
 .featureIcon img {
   width: auto;
-  max-width: 150px;
-  height: 88px;
+  max-width: 253.5px;
+  height: 148.72px;
   object-fit: contain;
 }
 
@@ -735,22 +735,39 @@
 
 .gameGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 22px;
 }
 
 .gameCard {
   min-width: 0;
 }
 
+.gameCardLink {
+  display: block;
+  color: inherit;
+  border-radius: 7px;
+}
+
+.gameCardLink:focus-visible {
+  outline: 3px solid #278bd1;
+  outline-offset: 4px;
+}
+
 .gameImage {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 238 / 130;
+  aspect-ratio: 720 / 403;
   object-fit: cover;
   border: 1px solid rgb(7 20 63 / 20%);
   border-radius: 7px;
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+
+.gameCardLink:hover .gameImage {
+  box-shadow: 0 8px 18px rgb(7 20 63 / 16%);
+  transform: translateY(-2px);
 }
 
 .gameTitleRow {
@@ -765,24 +782,21 @@
   min-width: 0;
   font-size: 20px;
   line-height: 1;
+  transition: color 150ms ease;
 }
 
-.gameCard > p {
-  margin-top: 6px;
-  font-size: 13px;
-  line-height: 1.2;
+.gameCardLink:hover h3 {
+  color: #1761b7;
 }
 
-.likes {
+.playGame {
   flex: 0 0 auto;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.likes span {
-  color: #f42e48;
-  font-size: 20px;
-  -webkit-text-stroke: 1px #a81227;
+  padding: 5px 10px;
+  color: #07143f;
+  background: #ffd43b;
+  border: 1px solid #efb917;
+  border-radius: 999px;
+  font: 700 13px/1 "Nunito", sans-serif;
 }
 
 .parents {

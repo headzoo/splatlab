@@ -341,7 +341,7 @@ export function WorkspaceClient() {
             </div>
             <Image
               className={styles.cooper}
-              src="/brand/about/cooper-hero.png"
+              src="/brand/features/cooper-hero.png"
               alt=""
               width={1399}
               height={1124}
@@ -388,7 +388,7 @@ export function WorkspaceClient() {
                 <div className={styles.emptyDoodleLeft} aria-hidden="true">
                   <span>GOOD<br />IDEAS<br />LIVE HERE!</span>
                   <Image
-                    src="/brand/about/cooper-hero.png"
+                    src="/brand/features/cooper-hero.png"
                     alt=""
                     width={1399}
                     height={1124}

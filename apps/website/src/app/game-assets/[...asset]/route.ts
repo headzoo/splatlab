@@ -128,6 +128,7 @@ const assetFiles: Record<string, string> = {
   "sprites/ice_world_boss_01_defeated.png": path.resolve(process.cwd(), "../game/sprites/ice_world_boss_01_defeated.png"),
   "sprites/ice_world_crystal_projectile_01.png": path.resolve(process.cwd(), "../game/sprites/ice_world_crystal_projectile_01.png"),
   "sprites/shared_game_over_01.png": path.resolve(process.cwd(), "../game/sprites/shared_game_over_01.png"),
+  "sprites/shared_platformer_easter_egg_01.png": path.resolve(process.cwd(), "../game/sprites/shared_platformer_easter_egg_01.png"),
   "sprites/shared_victory_burst_01.png": path.resolve(process.cwd(), "../game/sprites/shared_victory_burst_01.png"),
   "sprites/space_platformer_checkpoint_01.png": path.resolve(process.cwd(), "../game/sprites/space_platformer_checkpoint_01.png"),
   "sprites/space_platformer_coin_01.png": path.resolve(process.cwd(), "../game/sprites/space_platformer_coin_01.png"),

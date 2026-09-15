@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "shared_platformer_easter_egg_01",
+  "kind": "collectible",
+  "runtime": "platformer_v1",
+  "themeTags": [
+    "shared"
+  ],
+  "visualSlot": "extra_life",
+  "collision": "collectible",
+  "source": "sprites/shared_platformer_easter_egg_01-source.png",
+  "output": "sprites/shared_platformer_easter_egg_01.png",
+  "sourceLayout": {
+    "columns": 1,
+    "rows": 1
+  },
+  "sheet": {
+    "columns": 1,
+    "rows": 1,
+    "frameWidth": 64,
+    "frameHeight": 64
+  },
+  "frameLabels": [
+    "static"
+  ],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.01,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "center",
+    "anchor": {
+      "x": 32,
+      "y": 32
+    },
+    "contentBox": {
+      "width": 52,
+      "height": 58
+    },
+    "resizeMode": "contain_each"
+  },
+  "animation": {
+    "fps": 1,
+    "loop": false
+  },
+  "validation": {
+    "requiredPadding": 0,
+    "pivotTolerance": 1,
+    "centerDriftWarning": 4
+  },
+  "preview": {
+    "scale": 5
+  }
+}

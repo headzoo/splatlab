@@ -28,8 +28,8 @@ const TILE_SHEET: SheetGeometry = { columns: 2, rows: 2, frameWidth: 64, frameHe
 const GOAL_SHEET: SheetGeometry = { columns: 2, rows: 2, frameWidth: 64, frameHeight: 96 };
 const SINGLE_FRAME: SheetGeometry = { columns: 1, rows: 1, frameWidth: 64, frameHeight: 64 };
 
-/** Extra lives reuse the HUD life icon on every background. */
-const EXTRA_LIFE_ASSET_ID = "space_platformer_hud_lives_01";
+/** Extra lives use one shared Easter egg on every background. */
+const EXTRA_LIFE_ASSET_ID = "shared_platformer_easter_egg_01";
 
 /** What a level looks like: its world, plus whatever art it has borrowed. */
 export type PlatformerArtPresentation = {

@@ -165,7 +165,7 @@ export default function AboutPage() {
             </div>
             <Image
               className={styles.cooperHero}
-              src="/brand/about/cooper-hero.png"
+              src="/brand/features/cooper-hero.png"
               alt="Cooper, Splat Lab's enthusiastic chicken scientist"
               width={1399}
               height={1124}
@@ -341,7 +341,7 @@ export default function AboutPage() {
         <div className={styles.finalInner}>
           <div className={styles.finalCooper}>
             <Image
-              src="/brand/about/cooper-hero.png"
+              src="/brand/features/cooper-hero.png"
               alt="Cooper cheering with his wings spread"
               width={1399}
               height={1124}

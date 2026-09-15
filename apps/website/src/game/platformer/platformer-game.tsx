@@ -779,10 +779,10 @@ function drawWorld(
       }
     } else if (object.type === "extra_life") {
       const opacity = resolveExtraLifeOpacity(state, object.id);
-      if (opacity > 0 && images.hudLife) {
+      if (opacity > 0 && images.extraLife) {
         context.save();
         context.globalAlpha = opacity;
-        context.drawImage(images.hudLife, x, y, 64, 64);
+        context.drawImage(images.extraLife, x, y, 64, 64);
         context.restore();
       }
     } else if (object.type === "platform_spring") {

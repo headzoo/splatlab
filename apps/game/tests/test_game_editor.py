@@ -2950,14 +2950,38 @@ class PlatformerMapEditorAssetTests(unittest.TestCase):
         self.assertIn("function drawExtraLifeFireworks", source)
         self.assertIn("state.victoryEffects.get(DEFAULT_VICTORY_EFFECT_ID)", source)
         self.assertIn("drawExtraLifeFireworks(startX, startY, cellSize)", source)
-        self.assertIn("space_platformer_hud_lives_01/image", styles)
-
         for filename in ("level-1.json", "level-2.json", "level-3.json", "level-4.json", "level-5.json"):
             map_spec = json.loads((root / "maps" / filename).read_text(encoding="utf-8"))
             extra_lives = [
                 item for item in map_spec["objects"] if item["type"] == "extra_life"
             ]
             self.assertEqual(len(extra_lives), 1, filename)
+
+    def test_platformer_extra_life_uses_shared_easter_egg_sprite(self) -> None:
+        root = GAME_ROOT
+        source = (EDITOR_ROOT / "map-editor.js").read_text(encoding="utf-8")
+        styles = (EDITOR_ROOT / "styles.css").read_text(encoding="utf-8")
+        recipe = json.loads(
+            (root / "sprite-specs/shared_platformer_easter_egg_01.json").read_text(
+                encoding="utf-8"
+            )
+        )
+
+        self.assertIn(
+            'extra_life: { id: "shared_platformer_easter_egg_01"', source
+        )
+        self.assertGreaterEqual(
+            source.count('object.type === "extra_life"\n        ? "extra_life"'),
+            2,
+        )
+        self.assertIn("shared_platformer_easter_egg_01/image", styles)
+        self.assertEqual(recipe["visualSlot"], "extra_life")
+        self.assertEqual(recipe["sheet"], {
+            "columns": 1,
+            "rows": 1,
+            "frameWidth": 64,
+            "frameHeight": 64,
+        })
 
     def test_first_platformer_map_has_semantic_enemy_behaviors(self) -> None:
         root = GAME_ROOT

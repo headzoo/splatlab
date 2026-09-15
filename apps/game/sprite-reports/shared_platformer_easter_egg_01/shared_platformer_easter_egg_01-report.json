@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "assetId": "shared_platformer_easter_egg_01",
+  "frameLabels": [
+    "static"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "shared_platformer_easter_egg_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprites/shared_platformer_easter_egg_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          3,
+          53,
+          61
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        43,
+        43
+      ],
+      "bboxHeightRange": [
+        58,
+        58
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        31.5
+      ],
+      "bboxCenterYRange": [
+        32.0,
+        32.0
+      ],
+      "bboxBottomRange": [
+        61,
+        61
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/shared_platformer_easter_egg_01/shared_platformer_easter_egg_01-contact.png",
+    "animationPreview": "sprite-reports/shared_platformer_easter_egg_01/shared_platformer_easter_egg_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

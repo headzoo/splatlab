@@ -83,7 +83,7 @@ export default async function BuildPage({ searchParams }: BuildPageProps) {
             <header className={styles.builderHeading}>
               <Image
                 className={styles.headingCooper}
-                src="/brand/about/cooper-hero.png"
+                src="/brand/features/cooper-hero.png"
                 alt="Cooper, your game-building guide"
                 width={1399}
                 height={1124}

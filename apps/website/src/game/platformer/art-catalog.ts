@@ -99,6 +99,7 @@ export const IMAGE_URLS = {
   dragonsGoal: assetUrl("sprites/dragons_emberkeep_platformer_goal_01.png"),
   hudCoin: assetUrl("sprites/space_platformer_hud_coins_01.png"),
   hudLife: assetUrl("sprites/space_platformer_hud_lives_01.png"),
+  extraLife: assetUrl("sprites/shared_platformer_easter_egg_01.png"),
   victory: assetUrl("sprites/shared_victory_burst_01.png"),
   neutral_zombie_01: assetUrl("sprites/neutral_zombie_01.png"),
   neutral_green_hills_boss_01: assetUrl("sprites/neutral_green_hills_boss_01.png"),

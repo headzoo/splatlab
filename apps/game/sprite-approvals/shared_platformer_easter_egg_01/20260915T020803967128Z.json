@@ -1,0 +1,8 @@
+{
+  "assetId": "shared_platformer_easter_egg_01",
+  "approvedAt": "2026-09-15T02:08:03.967128+00:00",
+  "recipe": "sprite-specs/shared_platformer_easter_egg_01.json",
+  "runtimeImage": "sprites/shared_platformer_easter_egg_01.png",
+  "sha256": "7eeccaa519e4923559a42b7163050d770262e530bbd002ff962603471e50bf2b",
+  "validationReport": "sprite-reports/shared_platformer_easter_egg_01/shared_platformer_easter_egg_01-report.json"
+}

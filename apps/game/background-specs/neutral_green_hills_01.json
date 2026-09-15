@@ -5,7 +5,7 @@
   "kind": "platformer_background",
   "runtime": "platformer_v1",
   "theme": "neutral",
-  "description": "A bright storybook valley with a distant castle, blue-green mountain forests, waterfalls, and lush foreground foliage.",
+  "description": "A bright chicken-settled storybook valley with snowy peaks, blue-green pine forests, grass-topped cliffs, waterfalls, coop cottages, bridges, and lush foreground foliage. This pack intentionally contains no castle.",
   "color": "#4dbcf2",
   "layers": [
     {

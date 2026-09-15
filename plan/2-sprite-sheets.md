@@ -486,6 +486,7 @@ seven semantic block types plus two HUD icons:
 - `sprites/space_platformer_goal_01_level_complete-source.png` -> `sprite-build/space_platformer_goal_01_level_complete.png`
 - `sprites/space_platformer_hud_lives_01-source.png` -> `sprite-build/space_platformer_hud_lives_01.png`
 - `sprites/space_platformer_hud_coins_01-source.png` -> `sprite-build/space_platformer_hud_coins_01.png`
+- `sprites/shared_platformer_easter_egg_01-source.png` -> `sprite-build/shared_platformer_easter_egg_01.png`
 
 Ground, platform, and obstacle use one static `64 × 64` frame. Coin, hazard,
 and checkpoint use four-frame `2 × 2` sheets of `64 × 64` frames: the coin rotates at 4 FPS,
@@ -511,6 +512,12 @@ baked into either sprite. Their MapSpec entries store only fixed screen-space
 layout inside `presentation.hud`; remaining lives and collected-coin state are
 owned by gameplay. Both HUD icons remain staged until approved in the Sprite
 Viewer.
+
+The shared extra-life asset is a static `64 x 64` decorated Easter egg with
+`visualSlot: "extra_life"`. It is deliberately separate from the lives HUD
+portrait and uses the same artwork on every Platformer map. The current asset
+has passed the Sprite Viewer approval gate and is the suffix-free runtime file;
+future replacements remain staged until approved through the same flow.
 
 ### Platformer spring object set
 
