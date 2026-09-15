@@ -72,6 +72,22 @@ test("local development uses the read-write token", () => {
   );
 });
 
+test("current opaque Blob tokens are accepted without a legacy prefix", () => {
+  withEnv(
+    {
+      BLOB_READ_WRITE_TOKEN: "vbl_opaque-token-value",
+      BLOB_STORE_ID: "store_liveStore",
+    },
+    () => {
+      assert.equal(blobReadWriteToken(), "vbl_opaque-token-value");
+      assert.deepEqual(blobCommandOptions(), {
+        token: "vbl_opaque-token-value",
+      });
+      assert.equal(hasBlobStore(), true);
+    },
+  );
+});
+
 test("Vercel prefers the connected store over a stale read-write token", () => {
   withEnv(
     {

@@ -24,7 +24,7 @@ function isPlaceholder(value: string) {
 
 export function blobReadWriteToken() {
   const token = envValue("BLOB_READ_WRITE_TOKEN");
-  if (!token || isPlaceholder(token) || !token.startsWith("vercel_blob_rw_")) {
+  if (!token || isPlaceholder(token)) {
     return undefined;
   }
   return token;
