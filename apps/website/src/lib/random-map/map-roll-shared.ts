@@ -21,6 +21,7 @@ export function hasSourceEdits(spec: GameDocument, source = activeMapSource(spec
     spec.platformerObjectEdits,
     spec.platformerObjectRemovals,
     spec.platformerObjectSettings,
+    spec.platformerTerrainSettings,
     spec.platformerLevelArt,
   ].some((entries) => entries.some((entry) => entry.mapSource === source));
 }

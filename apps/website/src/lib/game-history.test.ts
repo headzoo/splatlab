@@ -164,6 +164,55 @@ test("object placements participate in undo history", () => {
   assert.deepEqual(gameHistoryReducer(changed, { type: "undo" }).present.platformerObjectSettings, []);
 });
 
+test("extended enemy settings participate in undo history", () => {
+  const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
+  const placed = {
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerObjectSettings: [
+      {
+        mapSource: "level-1.json" as const,
+        objectId: "enemy_1",
+        assetId: "neutral_robot_01",
+        behavior: "patroller" as const,
+        direction: "left" as const,
+        speedPxPerSecond: 32,
+        defeatMode: "weapon" as const,
+        motion: {
+          version: 1 as const,
+          travel: { type: "stationary" as const },
+          visual: { type: "none" as const },
+        },
+      },
+    ],
+  };
+  const changed = gameHistoryReducer(initial, { type: "edit", spec: placed });
+
+  assert.equal(changed.past.length, 1);
+  assert.deepEqual(changed.present.platformerObjectSettings, placed.platformerObjectSettings);
+  assert.deepEqual(
+    gameHistoryReducer(changed, { type: "undo" }).present.platformerObjectSettings,
+    [],
+  );
+});
+
+test("terrain animation settings participate in undo history", () => {
+  const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
+  const placed = {
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerTerrainSettings: [
+      { mapSource: "level-1.json" as const, x: 15, y: 11, animationStartFrame: 4 },
+    ],
+  };
+  const changed = gameHistoryReducer(initial, { type: "edit", spec: placed });
+
+  assert.equal(changed.past.length, 1);
+  assert.deepEqual(changed.present.platformerTerrainSettings, placed.platformerTerrainSettings);
+  assert.deepEqual(
+    gameHistoryReducer(changed, { type: "undo" }).present.platformerTerrainSettings,
+    [],
+  );
+});
+
 test("chat turns save without becoming game undo entries", () => {
   const initial = createGameHistory(DEFAULT_GAME_DOCUMENT);
   const edited = gameHistoryReducer(initial, {

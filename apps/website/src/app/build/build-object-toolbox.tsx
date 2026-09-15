@@ -7,11 +7,21 @@ import {
   ENEMY_CHARACTERS,
 } from "@/game/platformer/character-catalog";
 import {
+  DEFAULT_BOSS_HITS_TO_DEFEAT,
+  DEFAULT_ENEMY_DEFEAT_MODE,
+  DEFAULT_ENEMY_SPEED_PX_PER_SECOND,
+  ENEMY_DEFEAT_MODE_LABELS,
+  ENEMY_SPEED_PRESETS,
+  enemyMotionFromSettings,
+  speedPresetForValue,
+} from "@/game/platformer/motion-defaults";
+import {
   platformerObjectKind,
   type PlatformerObjectSettingsChange,
 } from "@/game/platformer/map-editing";
 import type { PlatformerMapObject } from "@/game/platformer/types";
 
+import { BuildMotionSettings } from "./build-motion-settings";
 import styles from "./build.module.css";
 
 const BEHAVIOR_OPTIONS = [
@@ -22,6 +32,18 @@ const BEHAVIOR_OPTIONS = [
 const DIRECTION_OPTIONS = [
   { value: "left", label: "Moving left", iconClass: "objectDirectionLeftIcon" },
   { value: "right", label: "Moving right", iconClass: "objectDirectionRightIcon" },
+] as const;
+
+const SPEED_OPTIONS = [
+  { value: "slow", label: "Slow", speed: ENEMY_SPEED_PRESETS.slow },
+  { value: "normal", label: "Normal", speed: ENEMY_SPEED_PRESETS.normal },
+  { value: "fast", label: "Fast", speed: ENEMY_SPEED_PRESETS.fast },
+] as const;
+
+const DEFEAT_MODE_OPTIONS = [
+  { value: "stomp", label: ENEMY_DEFEAT_MODE_LABELS.stomp },
+  { value: "weapon", label: ENEMY_DEFEAT_MODE_LABELS.weapon },
+  { value: "both", label: ENEMY_DEFEAT_MODE_LABELS.both },
 ] as const;
 
 type BuildObjectToolboxProps = {
@@ -40,20 +62,37 @@ export function BuildObjectToolbox({
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
   const isEnemy = object.type === "enemy_spawn";
+  const isBoss = object.role === "boss";
   const kind = platformerObjectKind(object);
   const title = kind.split("_").map(
     (word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`,
   ).join(" ");
-  const characterOptions = (object.role === "boss" ? BOSS_CHARACTERS : ENEMY_CHARACTERS)[backgroundId]
+  const characterOptions = (isBoss ? BOSS_CHARACTERS : ENEMY_CHARACTERS)[backgroundId]
     ?? ENEMY_CHARACTERS.neutral_green_hills_01;
   const assetId = object.assetId ?? characterOptions[0]?.value ?? "neutral_ghost_01";
   const behavior = object.behavior ?? "patroller";
   const direction = object.direction ?? "left";
+  const speedPxPerSecond = object.speedPxPerSecond ?? DEFAULT_ENEMY_SPEED_PX_PER_SECOND;
+  const defeatMode = object.defeatMode ?? DEFAULT_ENEMY_DEFEAT_MODE;
+  const hitsToDefeat = object.hitsToDefeat ?? DEFAULT_BOSS_HITS_TO_DEFEAT;
+  const motion = enemyMotionFromSettings(object.motion);
+  const speedPreset = speedPresetForValue(speedPxPerSecond);
+
   const emitChange = (change: Partial<PlatformerObjectSettingsChange>) => {
-    onChange({ assetId, behavior, direction, ...change });
+    onChange({
+      assetId,
+      behavior,
+      direction,
+      speedPxPerSecond,
+      defeatMode,
+      ...(isBoss ? { hitsToDefeat } : {}),
+      motion,
+      ...change,
+    });
   };
+
   const startDrag = (event: PointerEvent<HTMLElement>) => {
-    if ((event.target as HTMLElement).closest("button")) return;
+    if ((event.target as HTMLElement).closest("button, select, input")) return;
     const bounds = event.currentTarget.parentElement?.getBoundingClientRect();
     if (!bounds) return;
     dragRef.current = {
@@ -82,7 +121,12 @@ export function BuildObjectToolbox({
     }
   };
   const positionStyle = position
-    ? ({ left: position.x, top: position.y, right: "auto" } satisfies CSSProperties)
+    ? ({
+        left: position.x,
+        top: position.y,
+        right: "auto",
+        maxHeight: `calc(100svh - ${position.y}px - 8px)`,
+      } satisfies CSSProperties)
     : undefined;
 
   return (
@@ -150,6 +194,32 @@ export function BuildObjectToolbox({
                 })}
               </div>
             </fieldset>
+            {isBoss ? (
+              <fieldset className={styles.objectControlGroup}>
+                <legend>Hits to defeat</legend>
+                <div className={styles.objectStepperRow}>
+                  <button
+                    aria-label="Fewer hits to defeat"
+                    className={styles.objectStepperButton}
+                    disabled={hitsToDefeat <= 2}
+                    onClick={() => emitChange({ hitsToDefeat: Math.max(2, hitsToDefeat - 1) })}
+                    type="button"
+                  >
+                    −
+                  </button>
+                  <span className={styles.objectStepperValue}>{hitsToDefeat}</span>
+                  <button
+                    aria-label="More hits to defeat"
+                    className={styles.objectStepperButton}
+                    disabled={hitsToDefeat >= 99}
+                    onClick={() => emitChange({ hitsToDefeat: Math.min(99, hitsToDefeat + 1) })}
+                    type="button"
+                  >
+                    +
+                  </button>
+                </div>
+              </fieldset>
+            ) : null}
             <fieldset className={styles.objectControlGroup}>
               <legend>Behavior</legend>
               <div className={styles.objectSegmentedGrid}>
@@ -196,6 +266,48 @@ export function BuildObjectToolbox({
                 })}
               </div>
             </fieldset>
+            <fieldset className={styles.objectControlGroup}>
+              <legend>Speed</legend>
+              <div className={styles.objectSegmentedGrid}>
+                {SPEED_OPTIONS.map((option) => {
+                  const selected = option.value === speedPreset;
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={styles.objectOptionButton}
+                      key={option.value}
+                      onClick={() => emitChange({ speedPxPerSecond: option.speed })}
+                      type="button"
+                    >
+                      <span>{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+            <fieldset className={styles.objectControlGroup}>
+              <legend>Can be defeated by</legend>
+              <div className={styles.objectSegmentedGrid}>
+                {DEFEAT_MODE_OPTIONS.map((option) => {
+                  const selected = option.value === defeatMode;
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={styles.objectOptionButton}
+                      key={option.value}
+                      onClick={() => emitChange({ defeatMode: option.value })}
+                      type="button"
+                    >
+                      <span>{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+            <BuildMotionSettings
+              motion={motion}
+              onChange={(nextMotion) => emitChange({ motion: nextMotion })}
+            />
           </div>
         ) : (
           <p className={styles.objectSettingsEmpty}>This object has no additional settings.</p>

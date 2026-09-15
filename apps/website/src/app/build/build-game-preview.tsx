@@ -25,18 +25,25 @@ import { ART_WORLDS, artWorld } from "@/game/platformer/art-catalog";
 import {
   applyPlatformerLevelArt,
   applyPlatformerObjectEdits,
+  applyPlatformerTerrainEdits,
+  applyPlatformerTerrainSettings,
   erasePlatformerObjectsAtCells,
+  erasePlatformerTerrainSettingsAtCells,
   EMPTY_PLATFORMER_EDITOR_SELECTION,
   isPlatformerPalettePaintTool,
   mergePlatformerObjectEdits,
   mergePlatformerTerrainEdits,
   movePlatformerEditorSelection,
+  platformerTerrainKindAt,
+  terrainAnimationStartFrame,
   type PlatformerEditTool,
   type PlatformerEditorSelection,
   type PlatformerObjectPlacement,
   type PlatformerObjectSettingsChange,
   type PlatformerTerrainStrokeCell,
   upsertPlatformerObjectSettings,
+  upsertPlatformerTerrainSettings,
+  type PlatformerTerrainSettingsChange,
 } from "@/game/platformer/map-editing";
 import {
   canStepEditorZoom,
@@ -91,6 +98,7 @@ import {
   useBuildSetup,
 } from "./build-setup";
 import { BuildObjectToolbox } from "./build-object-toolbox";
+import { BuildTerrainToolbox } from "./build-terrain-toolbox";
 import { BuildTools } from "./build-tools";
 import styles from "./build.module.css";
 
@@ -395,6 +403,7 @@ export function BuildGamePreview({
           | "platformerObjectEdits"
           | "platformerObjectRemovals"
           | "platformerObjectSettings"
+          | "platformerTerrainSettings"
         >
       >,
     ) => {
@@ -1028,17 +1037,35 @@ export function BuildGamePreview({
   const currentMapIndex = campaignMapIndex(history.present, campaignMaps);
   const current = campaignMaps[currentMapIndex];
   const currentMaze = availableMazes[mazeMapIndex(history.present, availableMazes)];
-  const editableObjectMap = useMemo(
+  const editableTerrainMap = useMemo(
     () => current
-      ? applyPlatformerLevelArt(
-          applyPlatformerObjectEdits(
+      ? applyPlatformerTerrainSettings(
+          applyPlatformerTerrainEdits(
             current.map,
             current.source,
+            history.present.platformerTerrainEdits,
+          ),
+          current.source,
+          history.present.platformerTerrainSettings,
+        )
+      : null,
+    [
+      current,
+      history.present.platformerTerrainEdits,
+      history.present.platformerTerrainSettings,
+    ],
+  );
+  const editableObjectMap = useMemo(
+    () => editableTerrainMap
+      ? applyPlatformerLevelArt(
+          applyPlatformerObjectEdits(
+            editableTerrainMap,
+            current!.source,
             history.present.platformerObjectEdits,
             history.present.platformerObjectRemovals,
             history.present.platformerObjectSettings,
           ),
-          current.source,
+          current!.source,
           history.present.platformerLevelArt,
           history.present.platformerObjectSettings,
           history.present.platformerObjectEdits,
@@ -1046,6 +1073,7 @@ export function BuildGamePreview({
       : null,
     [
       current,
+      editableTerrainMap,
       history.present.platformerLevelArt,
       history.present.platformerObjectEdits,
       history.present.platformerObjectRemovals,
@@ -1070,6 +1098,16 @@ export function BuildGamePreview({
   const selectedObject = editorSelection.objectIds.length === 1
     ? editableObjectMap.objects.find((object) => object.id === editorSelection.objectIds[0]) ?? null
     : null;
+  const selectedTerrainCell = !selectedObject && editorSelection.terrainCells.length === 1
+    ? editorSelection.terrainCells[0]
+    : null;
+  const selectedTerrainIsHazard = selectedTerrainCell && editableTerrainMap
+    ? platformerTerrainKindAt(
+        editableTerrainMap,
+        selectedTerrainCell.x,
+        selectedTerrainCell.y,
+      ) === "hazard"
+    : false;
   const selectedLevel = previewKind === "maze" ? currentMaze : current;
   const availableLevels = previewKind === "maze" ? availableMazes : campaignMaps;
   const selectedLevelIndex = availableLevels.findIndex(
@@ -1188,6 +1226,11 @@ export function BuildGamePreview({
         platformerObjectEdits: erased.edits,
         platformerObjectRemovals: erased.removals,
         platformerObjectSettings: erased.settings,
+        platformerTerrainSettings: erasePlatformerTerrainSettingsAtCells(
+          history.present.platformerTerrainSettings,
+          current.source,
+          stroke.filter((cell) => cell.kind === "empty"),
+        ),
       });
       return;
     }
@@ -1224,6 +1267,7 @@ export function BuildGamePreview({
       history.present.platformerObjectRemovals,
       history.present.platformerObjectSettings,
       history.present.platformerTerrainEdits,
+      history.present.platformerTerrainSettings,
       selection,
       dx,
       dy,
@@ -1232,6 +1276,7 @@ export function BuildGamePreview({
     commit({
       platformerObjectEdits: moved.platformerObjectEdits,
       platformerTerrainEdits: moved.platformerTerrainEdits,
+      platformerTerrainSettings: moved.platformerTerrainSettings,
     });
     setEditorSelection(moved.selection);
   };
@@ -1243,6 +1288,18 @@ export function BuildGamePreview({
         history.present.platformerObjectSettings,
         current.source,
         objectId,
+        change,
+      ),
+    });
+  };
+  const changeSelectedTerrainSettings = (change: PlatformerTerrainSettingsChange) => {
+    if (!selectedTerrainCell) return;
+    commit({
+      platformerTerrainSettings: upsertPlatformerTerrainSettings(
+        history.present.platformerTerrainSettings,
+        current.source,
+        selectedTerrainCell.x,
+        selectedTerrainCell.y,
         change,
       ),
     });
@@ -1761,6 +1818,24 @@ export function BuildGamePreview({
           onClose={() => setEditorSelection({
             objectIds: [],
             terrainCells: editorSelection.terrainCells,
+          })}
+        />
+      ) : null}
+      {selectedTerrainCell && selectedTerrainIsHazard && editableTerrainMap ? (
+        <BuildTerrainToolbox
+          animationStartFrame={terrainAnimationStartFrame(
+            editableTerrainMap,
+            current.source,
+            selectedTerrainCell.x,
+            selectedTerrainCell.y,
+            history.present.platformerTerrainSettings,
+          )}
+          cell={selectedTerrainCell}
+          map={editableTerrainMap}
+          onChange={changeSelectedTerrainSettings}
+          onClose={() => setEditorSelection({
+            objectIds: editorSelection.objectIds,
+            terrainCells: [],
           })}
         />
       ) : null}

@@ -16,10 +16,12 @@ import {
   platformerObjectRemovalSchema,
   platformerObjectSettingsSchema,
   platformerTerrainEditSchema,
+  platformerTerrainSettingsSchema,
   type GameDocument,
   type PlatformerObjectEdit,
   type PlatformerObjectRemoval,
   type PlatformerObjectSettings,
+  type PlatformerTerrainSettings,
 } from "./game-contract";
 
 /**
@@ -38,6 +40,7 @@ export const cooperSpecChangeSchema = z
     platformerObjectEdits: z.array(platformerObjectEditSchema).max(1000).optional(),
     platformerObjectRemovals: z.array(platformerObjectRemovalSchema).max(1000).optional(),
     platformerObjectSettings: z.array(platformerObjectSettingsSchema).max(1000).optional(),
+    platformerTerrainSettings: z.array(platformerTerrainSettingsSchema).max(5000).optional(),
     platformerLevelArt: z.array(platformerLevelArtSchema).max(220).optional(),
     playerCharacter: z.enum(PLAYER_CHARACTERS).optional(),
     humanGender: z.enum(HUMAN_GENDERS).optional(),
@@ -82,6 +85,7 @@ const EDIT_ARRAY_FIELDS = [
   "platformerObjectEdits",
   "platformerObjectRemovals",
   "platformerObjectSettings",
+  "platformerTerrainSettings",
 ] as const satisfies readonly (keyof GameDocument)[];
 
 const CHANGEABLE_FIELDS = [
@@ -92,7 +96,10 @@ const CHANGEABLE_FIELDS = [
 
 type ObjectArrayFields = Pick<
   GameDocument,
-  "platformerObjectEdits" | "platformerObjectRemovals" | "platformerObjectSettings"
+  | "platformerObjectEdits"
+  | "platformerObjectRemovals"
+  | "platformerObjectSettings"
+  | "platformerTerrainSettings"
 >;
 
 /** Every array whose entries name the level they belong to. */
@@ -116,6 +123,8 @@ const removalKey = (removal: PlatformerObjectRemoval) =>
   `${removal.mapSource}:${removal.objectId}`;
 const settingsKey = (settings: PlatformerObjectSettings) =>
   `${settings.mapSource}:${settings.objectId}`;
+const terrainSettingsKey = (settings: PlatformerTerrainSettings) =>
+  `${settings.mapSource}:${settings.x}:${settings.y}`;
 
 /**
  * Cooper and the kid's level editor both append to these arrays, so neither
@@ -146,6 +155,11 @@ export function mergeObjectArrays(
       incoming.platformerObjectSettings ?? [],
       settingsKey,
     ),
+    platformerTerrainSettings: unionBy(
+      base.platformerTerrainSettings,
+      incoming.platformerTerrainSettings ?? [],
+      terrainSettingsKey,
+    ),
   };
 }
 
@@ -168,6 +182,7 @@ export function pruneRemovedMapSources(
     platformerObjectEdits: kept(fields.platformerObjectEdits),
     platformerObjectRemovals: kept(fields.platformerObjectRemovals),
     platformerObjectSettings: kept(fields.platformerObjectSettings),
+    platformerTerrainSettings: kept(fields.platformerTerrainSettings),
     platformerLevelArt: kept(fields.platformerLevelArt),
   };
 }
@@ -190,6 +205,7 @@ export function pruneOrphanedMapSourceEdits(
     ...spec.platformerObjectEdits,
     ...spec.platformerObjectRemovals,
     ...spec.platformerObjectSettings,
+    ...spec.platformerTerrainSettings,
     ...spec.platformerLevelArt,
   ]
     .map((entry) => entry.mapSource)
@@ -370,6 +386,7 @@ export function specChangeFrom(spec: GameDocument): CooperSpecChange {
     platformerObjectEdits: spec.platformerObjectEdits,
     platformerObjectRemovals: spec.platformerObjectRemovals,
     platformerObjectSettings: spec.platformerObjectSettings,
+    platformerTerrainSettings: spec.platformerTerrainSettings,
     platformerLevelArt: spec.platformerLevelArt,
     playerCharacter: spec.playerCharacter,
     humanGender: spec.humanGender,

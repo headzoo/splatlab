@@ -1700,7 +1700,10 @@
   z-index: 30;
   top: 150px;
   right: 24px;
+  display: flex;
   width: min(330px, calc(100vw - 16px));
+  max-height: calc(100svh - 150px - 8px);
+  flex-direction: column;
   overflow: hidden;
   color: #243657;
   background: #fff;
@@ -1711,6 +1714,7 @@
 
 .objectToolboxHandle {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -1758,7 +1762,11 @@
 }
 
 .objectToolboxBody {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 13px 14px 15px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .objectSummary {
@@ -1967,6 +1975,58 @@
   color: #667b9e;
   font-size: 12px;
   font-weight: 800;
+}
+
+.objectSelect {
+  width: 100%;
+  padding: 8px 10px;
+  color: #243657;
+  background: #fff;
+  border: 2px solid #cad9e9;
+  border-radius: 8px;
+  font: 900 11px/1.2 "Nunito", sans-serif;
+}
+
+.objectSelect:focus-visible {
+  outline: 3px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.objectStepperRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.objectStepperButton {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: #243657;
+  background: #fff;
+  border: 2px solid #cad9e9;
+  border-radius: 8px;
+  font: 900 18px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.objectStepperButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.objectStepperButton:focus-visible {
+  outline: 3px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.objectStepperValue {
+  min-width: 2.5rem;
+  color: #243657;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
 }
 
 @media (min-width: 1700px) {

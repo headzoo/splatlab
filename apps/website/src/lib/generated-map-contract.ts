@@ -15,7 +15,7 @@ const MAX_GENERATED_LEGEND_ENTRIES = 16;
 const MAX_GENERATED_ART_BORROWS = 16;
 const MAX_GENERATED_HUD_ENTRIES = 16;
 const MAX_GENERATED_SPRITE_OVERRIDES = 512;
-const motionSchema = z.object({
+export const platformerMotionSchema = z.object({
   version: z.literal(1),
   lifecycle: z.object({
     trigger: z.literal("camera_reaches_spawn"),
@@ -62,7 +62,7 @@ const platformerObjectSchema = z.object({
     z.object({ type: z.literal("lobbed_projectile"), projectileAssetId: id, rangeTiles: z.number().min(1).max(64), cooldownMs: z.number().int().min(1).max(60_000), arcHeightTiles: z.number().min(0.5).max(12) }).strict(),
     z.object({ type: z.literal("laser_beam"), rangeTiles: z.number().min(1).max(64), cooldownMs: z.number().int().min(1).max(60_000), chargeMs: z.number().int().min(1).max(60_000), durationMs: z.number().int().min(1).max(60_000) }).strict(),
   ]).optional(),
-  motion: motionSchema.optional(),
+  motion: platformerMotionSchema.optional(),
 }).strict();
 
 export const generatedPlatformerMapSchema = z.object({
@@ -189,7 +189,7 @@ const mazeObjectSchema = z.object({
   damage: z.number().int().min(0).max(999).optional(),
   animationStartFrame: z.number().int().min(0).optional(),
   collision: z.literal("solid").optional(),
-  motion: motionSchema.optional(),
+  motion: platformerMotionSchema.optional(),
 }).strict();
 
 export const generatedMazeMapSchema = z.object({

@@ -9,6 +9,7 @@ import type {
   PlatformerObjectSettings,
   PlatformerTerrainEdit,
   PlatformerTerrainKind,
+  PlatformerTerrainSettings,
 } from "@/lib/game-contract";
 
 import {
@@ -95,7 +96,18 @@ export function togglePlatformerPaletteTool(
 
 export type PlatformerObjectSettingsChange = Pick<
   PlatformerObjectSettings,
-  "assetId" | "behavior" | "direction"
+  | "assetId"
+  | "behavior"
+  | "direction"
+  | "hitsToDefeat"
+  | "speedPxPerSecond"
+  | "defeatMode"
+  | "motion"
+>;
+
+export type PlatformerTerrainSettingsChange = Pick<
+  PlatformerTerrainSettings,
+  "animationStartFrame"
 >;
 
 export type PlatformerEditorSelection = {
@@ -400,6 +412,16 @@ export function applyPlatformerObjectEdits(
         assetId: objectSettings.assetId,
         behavior: objectSettings.behavior,
         direction: objectSettings.direction,
+        ...(objectSettings.speedPxPerSecond !== undefined
+          ? { speedPxPerSecond: objectSettings.speedPxPerSecond }
+          : {}),
+        ...(objectSettings.defeatMode !== undefined
+          ? { defeatMode: objectSettings.defeatMode }
+          : {}),
+        ...(object.role === "boss" && objectSettings.hitsToDefeat !== undefined
+          ? { hitsToDefeat: objectSettings.hitsToDefeat }
+          : {}),
+        ...(objectSettings.motion !== undefined ? { motion: objectSettings.motion } : {}),
         ...(objectSettings.behavior === "chaser"
           ? {
               viewLeftTiles: object.viewLeftTiles ?? 8,
@@ -412,6 +434,106 @@ export function applyPlatformerObjectEdits(
       };
     }),
   };
+}
+
+export function applyPlatformerTerrainSettings(
+  map: PlatformerMapSpec,
+  mapSource: PlatformerMapSource,
+  settings: readonly PlatformerTerrainSettings[],
+): PlatformerMapSpec {
+  const applicable = settings.filter(
+    (item) =>
+      item.mapSource === mapSource &&
+      item.animationStartFrame !== undefined &&
+      item.x < map.size.columns &&
+      item.y < map.size.rows,
+  );
+  if (applicable.length === 0) return map;
+
+  return {
+    ...map,
+    layers: map.layers.map((layer) => {
+      if (layer.id !== "terrain") return layer;
+      const overrides = new Map(
+        (layer.spriteOverrides ?? []).map((override) => [
+          `${override.x},${override.y}`,
+          { ...override },
+        ]),
+      );
+      for (const item of applicable) {
+        const key = `${item.x},${item.y}`;
+        const existing = overrides.get(key) ?? { x: item.x, y: item.y };
+        if (item.animationStartFrame === 1) {
+          const { animationStartFrame: _removed, ...rest } = existing;
+          if (Object.keys(rest).length <= 2 && rest.assetId === undefined) {
+            overrides.delete(key);
+          } else {
+            overrides.set(key, rest);
+          }
+          continue;
+        }
+        overrides.set(key, {
+          ...existing,
+          animationStartFrame: item.animationStartFrame,
+        });
+      }
+      const spriteOverrides = [...overrides.values()];
+      return {
+        ...layer,
+        spriteOverrides: spriteOverrides.length > 0 ? spriteOverrides : undefined,
+      };
+    }),
+  };
+}
+
+export function upsertPlatformerTerrainSettings(
+  existing: readonly PlatformerTerrainSettings[],
+  mapSource: PlatformerMapSource,
+  x: number,
+  y: number,
+  change: PlatformerTerrainSettingsChange,
+) {
+  const next = {
+    mapSource,
+    x,
+    y,
+    ...(change.animationStartFrame !== undefined && change.animationStartFrame !== 1
+      ? { animationStartFrame: change.animationStartFrame }
+      : {}),
+  };
+  const filtered = existing.filter(
+    (item) => !(item.mapSource === mapSource && item.x === x && item.y === y),
+  );
+  if (next.animationStartFrame === undefined) return filtered;
+  return [...filtered, next];
+}
+
+export function erasePlatformerTerrainSettingsAtCells(
+  settings: readonly PlatformerTerrainSettings[],
+  mapSource: PlatformerMapSource,
+  cells: readonly Pick<PlatformerTerrainStrokeCell, "x" | "y">[],
+) {
+  const cellKeys = new Set(cells.map((cell) => `${cell.x},${cell.y}`));
+  return settings.filter(
+    (item) => !(item.mapSource === mapSource && cellKeys.has(`${item.x},${item.y}`)),
+  );
+}
+
+function movePlatformerTerrainSettings(
+  existing: readonly PlatformerTerrainSettings[],
+  mapSource: PlatformerMapSource,
+  cells: readonly { x: number; y: number }[],
+  dx: number,
+  dy: number,
+) {
+  const movingKeys = new Set(cells.map((cell) => `${cell.x},${cell.y}`));
+  const kept = existing.filter(
+    (item) => !(item.mapSource === mapSource && movingKeys.has(`${item.x},${item.y}`)),
+  );
+  const moved = existing
+    .filter((item) => item.mapSource === mapSource && movingKeys.has(`${item.x},${item.y}`))
+    .map((item) => ({ ...item, x: item.x + dx, y: item.y + dy }));
+  return [...kept, ...moved];
 }
 
 export function upsertPlatformerObjectSettings(
@@ -541,6 +663,23 @@ export function objectPlacementsFromStroke(
     y: cell.y,
     kind,
   }));
+}
+
+export function terrainAnimationStartFrame(
+  map: PlatformerMapSpec,
+  mapSource: PlatformerMapSource,
+  x: number,
+  y: number,
+  settings: readonly PlatformerTerrainSettings[],
+): number {
+  const fromSettings = settings.find(
+    (item) => item.mapSource === mapSource && item.x === x && item.y === y,
+  )?.animationStartFrame;
+  if (fromSettings !== undefined) return fromSettings;
+  const override = terrainLayer(map)?.spriteOverrides?.find(
+    (item) => item.x === x && item.y === y,
+  );
+  return override?.animationStartFrame ?? 1;
 }
 
 export function platformerTerrainKindAt(
@@ -827,6 +966,7 @@ function upsertPlatformerObjectPlacement(
 export type PlatformerEditorMoveResult = {
   platformerObjectEdits: PlatformerObjectEdit[];
   platformerTerrainEdits: PlatformerTerrainEdit[];
+  platformerTerrainSettings: PlatformerTerrainSettings[];
   delta: { dx: number; dy: number };
   selection: PlatformerEditorSelection;
 };
@@ -843,12 +983,17 @@ export function movePlatformerEditorSelection(
   existingRemovals: readonly PlatformerObjectRemoval[] = [],
   existingSettings: readonly PlatformerObjectSettings[] = [],
   existingTerrainEdits: readonly PlatformerTerrainEdit[] = [],
+  existingTerrainSettings: readonly PlatformerTerrainSettings[] = [],
   selection: PlatformerEditorSelection,
   dx: number,
   dy: number,
 ): PlatformerEditorMoveResult {
   const effectiveMap = applyPlatformerObjectEdits(
-    applyPlatformerTerrainEdits(baseMap, mapSource, existingTerrainEdits),
+    applyPlatformerTerrainSettings(
+      applyPlatformerTerrainEdits(baseMap, mapSource, existingTerrainEdits),
+      mapSource,
+      existingTerrainSettings,
+    ),
     mapSource,
     existingObjectEdits,
     existingRemovals,
@@ -886,6 +1031,7 @@ export function movePlatformerEditorSelection(
     return {
       platformerObjectEdits: [...existingObjectEdits],
       platformerTerrainEdits: [...existingTerrainEdits],
+      platformerTerrainSettings: [...existingTerrainSettings],
       delta,
       selection: nextSelection,
     };
@@ -930,6 +1076,13 @@ export function movePlatformerEditorSelection(
   return {
     platformerObjectEdits,
     platformerTerrainEdits,
+    platformerTerrainSettings: movePlatformerTerrainSettings(
+      existingTerrainSettings,
+      mapSource,
+      selection.terrainCells,
+      delta.dx,
+      delta.dy,
+    ),
     delta,
     selection: nextSelection,
   };

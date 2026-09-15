@@ -93,6 +93,7 @@ type PlatformerEdits = Pick<
   | "platformerObjectEdits"
   | "platformerObjectRemovals"
   | "platformerObjectSettings"
+  | "platformerTerrainSettings"
 >;
 
 type Editable<Level> = {
@@ -146,6 +147,7 @@ function editablePlatformerLevels(spec: GameDocument): Editable<PlatformerLevel>
       platformerObjectEdits: remap(spec.platformerObjectEdits),
       platformerObjectRemovals: remap(spec.platformerObjectRemovals),
       platformerObjectSettings: remap(spec.platformerObjectSettings),
+      platformerTerrainSettings: remap(spec.platformerTerrainSettings),
     },
   };
 }

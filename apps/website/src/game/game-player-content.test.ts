@@ -11,6 +11,7 @@ import {
   applyPlatformerLevelArt,
   applyPlatformerObjectEdits,
   applyPlatformerTerrainEdits,
+  applyPlatformerTerrainSettings,
   EMPTY_PLATFORMER_EDITOR_SELECTION,
   erasePlatformerObjectsAtCells,
   mergePlatformerObjectEdit,
@@ -25,7 +26,9 @@ import {
   platformerTerrainKindAt,
   platformerUnselectableHeroId,
   upsertPlatformerObjectSettings,
+  upsertPlatformerTerrainSettings,
 } from "./platformer/map-editing";
+import { defaultRammingTravel } from "./platformer/motion-defaults";
 import { createInitialState, snapPlatformerStateToGrid } from "./platformer/engine";
 
 test("platformer content follows the displayed campaign order", () => {
@@ -534,6 +537,7 @@ test("moving a builder-placed object updates that edit instead of duplicating it
     [],
     [],
     [],
+    [],
     { objectIds: ["build-coin-move"], terrainCells: [] },
     3,
     0,
@@ -577,6 +581,7 @@ test("select-tool moves keep mixed terrain and objects together", () => {
     [],
     [],
     painted,
+    [],
     { objectIds: [coin.id], terrainCells: [{ x: 2, y: 8 }] },
     1,
     0,
@@ -602,6 +607,7 @@ test("a selection move clamps to the map edge", () => {
   const moved = movePlatformerEditorSelection(
     checkedInMap,
     "level-1.json",
+    [],
     [],
     [],
     [],
@@ -696,4 +702,50 @@ test("a zoomed-out map has no hero to select, so a placement opens no settings",
     ),
     selection,
   );
+});
+
+test("builder enemy settings round-trip through the overlay", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const settings = upsertPlatformerObjectSettings([], "level-1.json", "enemy_1", {
+    assetId: "neutral_robot_01",
+    behavior: "chaser",
+    direction: "right",
+    speedPxPerSecond: 80,
+    defeatMode: "stomp",
+    motion: {
+      version: 1,
+      travel: defaultRammingTravel(),
+      visual: { type: "none" },
+    },
+  });
+  const edited = applyPlatformerObjectEdits(
+    checkedInMap,
+    "level-1.json",
+    [],
+    [],
+    settings,
+  );
+  const enemy = edited.objects.find((object) => object.id === "enemy_1");
+  assert.ok(enemy);
+  assert.equal(enemy.behavior, "chaser");
+  assert.equal(enemy.direction, "right");
+  assert.equal(enemy.speedPxPerSecond, 80);
+  assert.equal(enemy.defeatMode, "stomp");
+  assert.equal(enemy.motion?.travel.type, "ramming");
+});
+
+test("builder hazard animation settings round-trip through the overlay", () => {
+  const checkedInMap = GAME_PLAYER_CONTENT.maps[0].map;
+  const settings = upsertPlatformerTerrainSettings([], "level-1.json", 15, 11, {
+    animationStartFrame: 4,
+  });
+  const edited = applyPlatformerTerrainSettings(
+    checkedInMap,
+    "level-1.json",
+    settings,
+  );
+  const override = edited.layers[0]?.spriteOverrides?.find(
+    (item) => item.x === 15 && item.y === 11,
+  );
+  assert.equal(override?.animationStartFrame, 4);
 });

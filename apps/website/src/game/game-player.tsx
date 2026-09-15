@@ -13,6 +13,7 @@ import {
   applyPlatformerObjectEdits,
   applyPlatformerRules,
   applyPlatformerTerrainEdits,
+  applyPlatformerTerrainSettings,
   type PlatformerEditTool,
   type PlatformerEditorSelection,
   type PlatformerObjectPlacement,
@@ -147,10 +148,14 @@ export function GamePlayer({
         ? applyPlatformerRules(
             applyPlatformerLevelArt(
               applyPlatformerObjectEdits(
-                applyPlatformerTerrainEdits(
-                  current.map,
+                applyPlatformerTerrainSettings(
+                  applyPlatformerTerrainEdits(
+                    current.map,
+                    current.source,
+                    spec.platformerTerrainEdits,
+                  ),
                   current.source,
-                  spec.platformerTerrainEdits,
+                  spec.platformerTerrainSettings,
                 ),
                 current.source,
                 spec.platformerObjectEdits,
@@ -173,6 +178,7 @@ export function GamePlayer({
       spec.platformerObjectRemovals,
       spec.platformerObjectSettings,
       spec.platformerTerrainEdits,
+      spec.platformerTerrainSettings,
       spec.startingLives,
     ],
   );

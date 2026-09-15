@@ -119,7 +119,24 @@ function sameObjectSettings(left: GameDocument, right: GameDocument) {
       const other = right.platformerObjectSettings[index];
       return settings.mapSource === other?.mapSource &&
         settings.objectId === other.objectId && settings.assetId === other.assetId &&
-        settings.behavior === other.behavior && settings.direction === other.direction;
+        settings.behavior === other.behavior && settings.direction === other.direction &&
+        settings.hitsToDefeat === other.hitsToDefeat &&
+        settings.speedPxPerSecond === other.speedPxPerSecond &&
+        settings.defeatMode === other.defeatMode &&
+        JSON.stringify(settings.motion) === JSON.stringify(other.motion);
+    })
+  );
+}
+
+function sameTerrainSettings(left: GameDocument, right: GameDocument) {
+  return (
+    left.platformerTerrainSettings.length === right.platformerTerrainSettings.length &&
+    left.platformerTerrainSettings.every((settings, index) => {
+      const other = right.platformerTerrainSettings[index];
+      return settings.mapSource === other?.mapSource &&
+        settings.x === other.x &&
+        settings.y === other.y &&
+        settings.animationStartFrame === other.animationStartFrame;
     })
   );
 }
@@ -149,6 +166,7 @@ export function sameGameDocument(left: GameDocument, right: GameDocument) {
     sameObjectEdits(left, right) &&
     sameObjectRemovals(left, right) &&
     sameObjectSettings(left, right) &&
+    sameTerrainSettings(left, right) &&
     samePhysics(left, right) &&
     sameChatHistory(left.builderChatHistory, right.builderChatHistory)
   );

@@ -101,6 +101,7 @@ test("deleting a level throws away everything that was put in it", () => {
       },
     ],
     platformerTerrainEdits: [{ mapSource: doomed, x: 1, y: 2, kind: "ground" }],
+    platformerTerrainSettings: [{ mapSource: doomed, x: 1, y: 2, animationStartFrame: 2 }],
   };
 
   const removed = apply(edited, (spec) => planRemoveLevel(spec, second.number));
@@ -114,6 +115,7 @@ test("deleting a level throws away everything that was put in it", () => {
   assert.deepEqual(removed.platformerObjectRemovals, []);
   assert.deepEqual(removed.platformerObjectSettings, []);
   assert.deepEqual(removed.platformerTerrainEdits, []);
+  assert.deepEqual(removed.platformerTerrainSettings, []);
 });
 
 test("deleting the level being played moves on to the next one", () => {

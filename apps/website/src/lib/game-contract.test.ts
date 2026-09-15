@@ -123,6 +123,7 @@ test("older saved game documents default new setup fields safely", () => {
   assert.deepEqual(parsed.platformerObjectEdits, []);
   assert.deepEqual(parsed.platformerObjectRemovals, []);
   assert.deepEqual(parsed.platformerObjectSettings, []);
+  assert.deepEqual(parsed.platformerTerrainSettings, []);
   assert.deepEqual(parsed.platformerLevels, []);
   assert.deepEqual(parsed.mazeLevels, []);
 });

@@ -5,6 +5,7 @@ import {
   applyPlatformerObjectEdits,
   applyPlatformerRules,
   applyPlatformerTerrainEdits,
+  applyPlatformerTerrainSettings,
   platformerObjectAtCell,
   platformerObjectKind,
   platformerTerrainKindAt,
@@ -143,7 +144,11 @@ export function resolveActivePlatformerLevel(
   const map = applyPlatformerRules(
     applyPlatformerLevelArt(
       applyPlatformerObjectEdits(
-        applyPlatformerTerrainEdits(active.map, active.source, spec.platformerTerrainEdits),
+        applyPlatformerTerrainSettings(
+          applyPlatformerTerrainEdits(active.map, active.source, spec.platformerTerrainEdits),
+          active.source,
+          spec.platformerTerrainSettings,
+        ),
         active.source,
         spec.platformerObjectEdits,
         spec.platformerObjectRemovals,

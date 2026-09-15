@@ -6,6 +6,7 @@ import {
   generatedPlatformerMapSchema,
   MAP_LENGTHS,
   MAP_STYLES,
+  platformerMotionSchema,
 } from "./generated-map-contract";
 
 export const PLATFORMER_MAP_SOURCES = [
@@ -239,10 +240,25 @@ export const platformerObjectSettingsSchema = z
     assetId: z.string().trim().min(1).max(100),
     behavior: z.enum(["patroller", "chaser"]),
     direction: z.enum(["left", "right"]),
+    hitsToDefeat: z.number().int().min(2).max(99).optional(),
+    speedPxPerSecond: z.number().int().min(16).max(160).optional(),
+    defeatMode: z.enum(["stomp", "weapon", "both"]).optional(),
+    motion: platformerMotionSchema.optional(),
   })
   .strict();
 
 export type PlatformerObjectSettings = z.infer<typeof platformerObjectSettingsSchema>;
+
+export const platformerTerrainSettingsSchema = z
+  .object({
+    mapSource: platformerMapSourceSchema,
+    x: z.number().int().min(0).max(255),
+    y: z.number().int().min(0).max(63),
+    animationStartFrame: z.number().int().min(1).max(32).optional(),
+  })
+  .strict();
+
+export type PlatformerTerrainSettings = z.infer<typeof platformerTerrainSettingsSchema>;
 
 /**
  * One level wearing another world's art for one part of itself, such as an ice
@@ -380,6 +396,10 @@ export const gameDocumentSchema = z
       .array(platformerObjectSettingsSchema)
       .max(1000)
       .default([]),
+    platformerTerrainSettings: z
+      .array(platformerTerrainSettingsSchema)
+      .max(5000)
+      .default([]),
     platformerLevelArt: z
       .array(platformerLevelArtSchema)
       .max(220)
@@ -497,6 +517,7 @@ export type PublicGameDocument = Pick<
   | "platformerObjectEdits"
   | "platformerObjectRemovals"
   | "platformerObjectSettings"
+  | "platformerTerrainSettings"
   | "platformerLevelArt"
   | "physicsDocument"
   | "startingLives"
@@ -525,6 +546,7 @@ export function toPublicGameDocument(
     platformerObjectEdits: parsed.platformerObjectEdits,
     platformerObjectRemovals: parsed.platformerObjectRemovals,
     platformerObjectSettings: parsed.platformerObjectSettings,
+    platformerTerrainSettings: parsed.platformerTerrainSettings,
     platformerLevelArt: parsed.platformerLevelArt,
     physicsDocument: parsed.physicsDocument,
     startingLives: parsed.startingLives,
@@ -553,6 +575,7 @@ export const DEFAULT_GAME_DOCUMENT: GameDocument = {
   platformerObjectEdits: [],
   platformerObjectRemovals: [],
   platformerObjectSettings: [],
+  platformerTerrainSettings: [],
   platformerLevelArt: [],
 };
 
