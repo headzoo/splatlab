@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  blobAuthCandidates,
   blobCommandOptions,
   blobReadWriteToken,
   blobStoreId,
@@ -88,7 +89,27 @@ test("current opaque Blob tokens are accepted without a legacy prefix", () => {
   );
 });
 
-test("Vercel prefers the connected store over a stale read-write token", () => {
+test("Vercel uses a matching read-write token before OIDC", () => {
+  withEnv(
+    {
+      VERCEL: "1",
+      VERCEL_OIDC_TOKEN: "oidc-token",
+      BLOB_STORE_ID: "store_liveStore",
+      BLOB_READ_WRITE_TOKEN: "vercel_blob_rw_liveStore_secret",
+    },
+    () => {
+      assert.deepEqual(blobAuthCandidates(), [
+        { token: "vercel_blob_rw_liveStore_secret" },
+        { storeId: "store_liveStore" },
+      ]);
+      assert.deepEqual(blobCommandOptions(), {
+        token: "vercel_blob_rw_liveStore_secret",
+      });
+    },
+  );
+});
+
+test("Vercel keeps OIDC first when the read-write token targets another store", () => {
   withEnv(
     {
       VERCEL: "1",
@@ -97,6 +118,10 @@ test("Vercel prefers the connected store over a stale read-write token", () => {
       BLOB_READ_WRITE_TOKEN: "vercel_blob_rw_deletedStore_secret",
     },
     () => {
+      assert.deepEqual(blobAuthCandidates(), [
+        { storeId: "store_connectedStore" },
+        { token: "vercel_blob_rw_deletedStore_secret" },
+      ]);
       assert.deepEqual(blobCommandOptions(), {
         storeId: "store_connectedStore",
       });

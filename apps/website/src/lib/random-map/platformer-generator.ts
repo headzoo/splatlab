@@ -29,18 +29,48 @@ export const PLATFORMER_GENERATED_WIDTHS: Readonly<Record<PlatformerMapLength, n
 };
 export const PLATFORMER_FLAT_START_COLUMNS = 8;
 export const PLATFORMER_FINAL_ARENA_COLUMNS = 18;
-export const PLATFORMER_GENERATOR_VERSION = 3;
+export const PLATFORMER_GENERATOR_VERSION = 4;
 export const HIGH_CLIMB_TILES = 7;
 export const HIGH_SECTION_COUNTS: Readonly<Record<PlatformerMapLength, number>> = {
   short: 1,
   medium: 2,
   long: 3,
 };
-const HIGH_SECTION_WIDTH = 18;
-const STAIR_STEP_WIDTH = 2;
-const PEAK_PLATFORM_WIDTH = 4;
-const DESCENT_COLUMNS = 6;
+const MAX_PEAK_RISE = 10;
 const APPROACH_COLUMNS = 2;
+const MAX_SECTION_WIDTH: Readonly<Record<PlatformerMapLength, number>> = {
+  short: 20,
+  medium: 22,
+  long: 24,
+};
+const MIN_HAZARD_RANGE_COLUMNS = 4;
+const MIN_ARENA_CONNECTOR_COLUMNS = 4;
+const MIN_ASCENT_STAIR_SEGMENTS = 3;
+const COMPLEX_CLUSTER_COUNTS: Readonly<Record<PlatformerMapLength, number>> = {
+  short: 1,
+  medium: 2,
+  long: 3,
+};
+const MIN_PLATFORM_TILES_ABOVE_FLOOR = 4;
+const MIN_OBSTACLE_TILES_ABOVE_FLOOR = 6;
+
+export type HighSectionSegment = {
+  kind: "stair" | "landing";
+  run: number;
+  height: number;
+  gapBefore: boolean;
+};
+
+export type HighSectionPlan = {
+  peakRise: number;
+  ascent: HighSectionSegment[];
+  peak: { width: number };
+  descent: {
+    kind: "walkOff" | "stairs";
+    segments: HighSectionSegment[];
+    tailGround: number;
+  };
+};
 const COLLECTIBLE_SPACING_COLUMNS = 2;
 const ENEMY_COUNTS: Readonly<Record<PlatformerMapLength, number>> = {
   short: 3,
@@ -48,7 +78,7 @@ const ENEMY_COUNTS: Readonly<Record<PlatformerMapLength, number>> = {
   long: 7,
 };
 
-const MAX_GENERATION_ATTEMPTS = 24;
+const MAX_GENERATION_ATTEMPTS = 48;
 const EMPTY = ".";
 
 type RandomSource = {
@@ -132,22 +162,230 @@ function collisionSymbols(donor: PlatformerMapSpec) {
   };
 }
 
-function highSectionStarts(width: number, length: PlatformerMapLength) {
+function segmentColumns(segment: HighSectionSegment) {
+  return segment.gapBefore ? segment.run + 1 : segment.run;
+}
+
+export function highSectionPlanWidth(plan: HighSectionPlan) {
+  const descentColumns = plan.descent.kind === "walkOff"
+    ? plan.descent.tailGround
+    : plan.descent.segments.reduce((total, segment) => total + segmentColumns(segment), 0)
+      + plan.descent.tailGround;
+  return APPROACH_COLUMNS
+    + plan.ascent.reduce((total, segment) => total + segmentColumns(segment), 0)
+    + plan.peak.width
+    + descentColumns;
+}
+
+function buildSegmentChain(
+  random: RandomSource,
+  fromHeight: number,
+  toHeight: number,
+  direction: "up" | "down",
+): HighSectionSegment[] {
+  const segments: HighSectionSegment[] = [];
+  let height = fromHeight;
+  const maxRise = PLATFORMER_LEVEL_DESIGN.maximumDirectRiseTiles;
+
+  while (direction === "up" ? height < toHeight : height > toHeight) {
+    const remaining = Math.abs(toHeight - height);
+    const step = remaining === 1
+      ? 1
+      : random.pick([2, 2, 2, 1] as const);
+    const delta = Math.min(step, remaining);
+    height += direction === "up" ? delta : -delta;
+    const run = direction === "up"
+      ? random.pick([2, 2, 2, 3, 1] as const)
+      : random.pick([2, 2, 3, 1] as const);
+    const stairSegments = segments.filter((segment) => segment.kind === "stair").length;
+    const kind = (
+      direction === "up"
+      && height < toHeight
+      && stairSegments >= 2
+      && random.next() < 0.16
+    ) ? "landing" as const : "stair" as const;
+    segments.push({
+      kind,
+      run,
+      height,
+      gapBefore: run === 1 && delta === maxRise,
+    });
+  }
+  return segments;
+}
+
+function ascentStairSegments(plan: HighSectionPlan) {
+  return plan.ascent.filter((segment) => segment.kind === "stair").length;
+}
+
+function trimHighSectionPlan(plan: HighSectionPlan, maxWidth: number): HighSectionPlan {
+  const trimmed: HighSectionPlan = structuredClone(plan);
+  while (highSectionPlanWidth(trimmed) > maxWidth) {
+    const landingIndex = trimmed.ascent.findLastIndex((segment) => segment.kind === "landing");
+    if (landingIndex >= 0) {
+      trimmed.ascent.splice(landingIndex, 1);
+      continue;
+    }
+    if (trimmed.descent.tailGround > 2) {
+      trimmed.descent.tailGround -= 1;
+      continue;
+    }
+    if (trimmed.descent.segments.length > 0) {
+      trimmed.descent.segments.pop();
+      continue;
+    }
+    if (trimmed.ascent.length > MIN_ASCENT_STAIR_SEGMENTS) {
+      trimmed.ascent.pop();
+      continue;
+    }
+    if (trimmed.peak.width > 4) {
+      trimmed.peak.width -= 1;
+      continue;
+    }
+    break;
+  }
+  while (ascentStairSegments(trimmed) < MIN_ASCENT_STAIR_SEGMENTS) {
+    const landingIndex = trimmed.ascent.findIndex((segment) => segment.kind === "landing");
+    if (landingIndex >= 0) {
+      trimmed.ascent[landingIndex] = { ...trimmed.ascent[landingIndex], kind: "stair" };
+      continue;
+    }
+    break;
+  }
+  return trimmed;
+}
+
+function buildFallbackHighSectionPlan(
+  bottom: number,
+  isFinalSection: boolean,
+): HighSectionPlan {
+  const peakRise = Math.min(8, bottom - 1);
+  return {
+    peakRise,
+    ascent: [
+      { kind: "stair", run: 2, height: 2, gapBefore: false },
+      { kind: "stair", run: 2, height: 4, gapBefore: false },
+      { kind: "stair", run: 2, height: 6, gapBefore: false },
+    ],
+    peak: { width: 4 },
+    descent: {
+      kind: "walkOff",
+      segments: [],
+      tailGround: isFinalSection ? 4 : 5,
+    },
+  };
+}
+
+export function buildHighSectionPlan(
+  random: RandomSource,
+  bottom: number,
+  length: PlatformerMapLength,
+  options?: { isFinalSection?: boolean; maxPeakRise?: number },
+): HighSectionPlan {
+  const isFinalSection = options?.isFinalSection ?? false;
+  const peakCap = Math.min(
+    options?.maxPeakRise ?? MAX_PEAK_RISE,
+    isFinalSection ? 8 : MAX_PEAK_RISE,
+    bottom - 1,
+  );
+  const peakRise = random.integer(HIGH_CLIMB_TILES, peakCap);
+  const ascent = buildSegmentChain(random, 0, peakRise, "up");
+  const useStairDescent = isFinalSection ? false : random.next() >= 0.35;
+  const plan = trimHighSectionPlan({
+    peakRise,
+    ascent,
+    peak: { width: random.integer(4, 6) },
+    descent: useStairDescent
+      ? {
+          kind: "stairs",
+          segments: buildSegmentChain(random, peakRise, 0, "down"),
+          tailGround: random.integer(2, 4),
+        }
+      : {
+          kind: "walkOff",
+          segments: [],
+          tailGround: random.integer(isFinalSection ? 3 : 4, isFinalSection ? 5 : 6),
+        },
+  }, MAX_SECTION_WIDTH[length]);
+  return plan;
+}
+
+function slotBounds(
+  width: number,
+  length: PlatformerMapLength,
+  index: number,
+  count: number,
+) {
   const arenaStart = width - PLATFORMER_FINAL_ARENA_COLUMNS;
   const playable = arenaStart - PLATFORMER_FLAT_START_COLUMNS;
-  const count = HIGH_SECTION_COUNTS[length];
+  const slotStart = PLATFORMER_FLAT_START_COLUMNS + Math.floor(index * playable / count);
+  const slotEnd = PLATFORMER_FLAT_START_COLUMNS + Math.floor((index + 1) * playable / count);
+  const reserveAfter = index < count - 1
+    ? MIN_HAZARD_RANGE_COLUMNS
+    : MIN_ARENA_CONNECTOR_COLUMNS;
+  return {
+    slotStart,
+    slotEnd,
+    maxSectionWidth: Math.min(
+      MAX_SECTION_WIDTH[length],
+      Math.max(APPROACH_COLUMNS + 6, slotEnd - slotStart - reserveAfter),
+    ),
+  };
+}
+
+function sectionEndLimit(
+  width: number,
+  length: PlatformerMapLength,
+  index: number,
+  count: number,
+) {
+  const arenaStart = width - PLATFORMER_FINAL_ARENA_COLUMNS;
+  const { slotEnd } = slotBounds(width, length, index, count);
+  return index < count - 1
+    ? slotEnd
+    : arenaStart - MIN_ARENA_CONNECTOR_COLUMNS;
+}
+
+function highSectionLayout(
+  width: number,
+  length: PlatformerMapLength,
+  plans: HighSectionPlan[],
+) {
+  const count = plans.length;
   const starts: number[] = [];
   for (let index = 0; index < count; index += 1) {
-    const slotStart = PLATFORMER_FLAT_START_COLUMNS + Math.floor(index * playable / count);
-    const slotEnd = PLATFORMER_FLAT_START_COLUMNS + Math.floor((index + 1) * playable / count);
-    const leftover = slotEnd - slotStart - HIGH_SECTION_WIDTH;
-    const pitPad = leftover >= 4 ? Math.min(4, leftover) : 0;
-    const start = slotStart + pitPad;
-    if (start + HIGH_SECTION_WIDTH <= Math.min(arenaStart, slotEnd)) {
+    const { slotStart, slotEnd, maxSectionWidth } = slotBounds(width, length, index, count);
+    const sectionWidth = Math.min(highSectionPlanWidth(plans[index]), maxSectionWidth);
+    const sectionLimit = sectionEndLimit(width, length, index, count);
+    const minimumStart = slotStart + (index === 0 ? MIN_HAZARD_RANGE_COLUMNS : 0);
+    let pitPad = slotEnd - slotStart - sectionWidth >= MIN_HAZARD_RANGE_COLUMNS
+      ? Math.min(MIN_HAZARD_RANGE_COLUMNS, slotEnd - slotStart - sectionWidth)
+      : 0;
+    let start = Math.max(slotStart + pitPad, minimumStart);
+    while (start + sectionWidth > sectionLimit && start > minimumStart) {
+      start -= 1;
+    }
+    if (start + sectionWidth <= Math.min(sectionLimit, slotEnd)) {
       starts.push(start);
     }
   }
   return starts;
+}
+
+function climbRanges(
+  width: number,
+  starts: number[],
+  sectionWidths: number[],
+) {
+  const arenaStart = width - PLATFORMER_FINAL_ARENA_COLUMNS;
+  const ranges: Array<[number, number]> = [];
+  let cursor = PLATFORMER_FLAT_START_COLUMNS;
+  for (let index = 0; index < starts.length; index += 1) {
+    ranges.push([cursor, starts[index]]);
+    cursor = starts[index] + sectionWidths[index];
+  }
+  ranges.push([cursor, arenaStart]);
+  return ranges;
 }
 
 function paintGroundColumn(
@@ -186,25 +424,25 @@ function paintStairColumn(
   grid[top][column] = symbols.obstacle;
 }
 
-function paintPeakColumn(
+function paintPlatformColumn(
   grid: string[][],
   column: number,
+  top: number,
   bottom: number,
   symbols: ReturnType<typeof collisionSymbols>,
 ) {
-  const top = bottom - Math.ceil(HIGH_CLIMB_TILES / 2) * 2;
   clearColumn(grid, column, bottom, symbols.empty);
   grid[top][column] = symbols.platform;
 }
 
-function paintHighSection(
+function paintHighSectionPlan(
   grid: string[][],
   start: number,
   bottom: number,
   symbols: ReturnType<typeof collisionSymbols>,
+  plan: HighSectionPlan,
 ) {
   const width = grid[0]?.length ?? 0;
-  const peakRise = Math.ceil(HIGH_CLIMB_TILES / 2) * 2;
   let column = start;
   const paintGround = (count: number) => {
     for (let offset = 0; offset < count && column < width; offset += 1, column += 1) {
@@ -212,48 +450,308 @@ function paintHighSection(
       paintGroundColumn(grid, column, bottom, bottom, symbols);
     }
   };
+  const paintSegments = (segments: HighSectionSegment[]) => {
+    for (const segment of segments) {
+      if (segment.gapBefore && column < width) {
+        clearColumn(grid, column, bottom, symbols.empty);
+        column += 1;
+      }
+      const top = bottom - segment.height;
+      for (let offset = 0; offset < segment.run && column < width; offset += 1, column += 1) {
+        if (segment.kind === "stair") {
+          paintStairColumn(grid, column, top, bottom, symbols);
+        } else {
+          paintPlatformColumn(grid, column, top, bottom, symbols);
+        }
+      }
+    }
+  };
+
   paintGround(APPROACH_COLUMNS);
-  for (let rise = 2; rise < peakRise && column < width; rise += 2) {
-    for (let offset = 0; offset < STAIR_STEP_WIDTH && column < width; offset += 1, column += 1) {
-      paintStairColumn(grid, column, bottom - rise, bottom, symbols);
+  paintSegments(plan.ascent);
+  const peakTop = bottom - plan.peakRise;
+  for (let offset = 0; offset < plan.peak.width && column < width; offset += 1, column += 1) {
+    paintPlatformColumn(grid, column, peakTop, bottom, symbols);
+  }
+  if (plan.descent.kind === "stairs") {
+    paintSegments(plan.descent.segments);
+  }
+  paintGround(plan.descent.tailGround);
+}
+
+function ensureArenaConnector(
+  grid: string[][],
+  fromColumn: number,
+  arenaStart: number,
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+) {
+  for (let column = fromColumn; column < arenaStart; column += 1) {
+    clearColumn(grid, column, bottom, symbols.empty);
+    paintGroundColumn(grid, column, bottom, bottom, symbols);
+  }
+}
+
+function rangeUsableEnd(to: number, arenaStart: number) {
+  return Math.min(to, arenaStart - MIN_ARENA_CONNECTOR_COLUMNS);
+}
+
+function columnIsPlatformable(
+  grid: string[][],
+  column: number,
+  row: number,
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+) {
+  if (column < 0 || column >= grid[0].length || row < 0 || row > bottom) return false;
+  if (grid[bottom][column] === symbols.hazard) return false;
+  return grid[row][column] === symbols.empty;
+}
+
+function paintPlatformRun(
+  grid: string[][],
+  start: number,
+  end: number,
+  row: number,
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+) {
+  for (let column = start; column <= end; column += 1) {
+    if (!columnIsPlatformable(grid, column, row, bottom, symbols)) return false;
+  }
+  for (let column = start; column <= end; column += 1) {
+    paintPlatformColumn(grid, column, row, bottom, symbols);
+  }
+  return true;
+}
+
+function paintObstacleCell(
+  grid: string[][],
+  column: number,
+  row: number,
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+) {
+  if (!columnIsPlatformable(grid, column, row, bottom, symbols)) return false;
+  paintStairColumn(grid, column, row, bottom, symbols);
+  return true;
+}
+
+function paintLowExtraPlatforms(
+  grid: string[][],
+  ranges: Array<[number, number]>,
+  arenaStart: number,
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+  random: RandomSource,
+  lastClimbEnd: number | null,
+) {
+  const lowRow = bottom - 2;
+  const planned: Array<{ start: number; end: number }> = [];
+  for (const [from, to] of ranges) {
+    const usableTo = rangeUsableEnd(to, arenaStart);
+    if (usableTo - from < 8 || random.next() < 0.1) continue;
+    const widthTiles = random.integer(3, 5);
+    const start = Math.max(from + 1, usableTo - widthTiles - 2);
+    const end = start + widthTiles - 1;
+    if (end >= usableTo || end - start < 2) continue;
+    if (Array.from({ length: end - start + 3 }, (_, offset) => start - 1 + offset)
+      .some((column) => grid[bottom][column] === symbols.hazard)) {
+      continue;
+    }
+    planned.push({ start, end });
+  }
+  if (planned.length === 0) {
+    const fallback = ranges
+      .map(([from, to]) => ({ from, usableTo: rangeUsableEnd(to, arenaStart) }))
+      .filter(({ from, usableTo }) => usableTo - from >= 8)
+      .sort((left, right) => (right.usableTo - right.from) - (left.usableTo - left.from))[0];
+    if (fallback) {
+      const widthTiles = Math.min(5, fallback.usableTo - fallback.from - 3);
+      if (widthTiles >= 3) {
+        const end = fallback.usableTo - 2;
+        planned.push({ start: end - widthTiles + 1, end });
+      }
     }
   }
-  for (let offset = 0; offset < PEAK_PLATFORM_WIDTH && column < width; offset += 1, column += 1) {
-    paintPeakColumn(grid, column, bottom, symbols);
+  if (planned.length === 0 && lastClimbEnd !== null) {
+    const usableTo = arenaStart - MIN_ARENA_CONNECTOR_COLUMNS;
+    const start = lastClimbEnd + 1;
+    const widthTiles = Math.min(4, usableTo - start - 1);
+    if (widthTiles >= 3) {
+      planned.push({ start, end: start + widthTiles - 1 });
+    }
   }
-  paintGround(DESCENT_COLUMNS);
+  if (planned.length === 0 && ranges[0]) {
+    const [from, to] = ranges[0];
+    const usableTo = rangeUsableEnd(to, arenaStart);
+    if (usableTo - from >= 3) {
+      const start = from + 1;
+      planned.push({ start, end: Math.min(start + 2, usableTo - 1) });
+    }
+  }
+  if (planned.length === 0) {
+    for (const [from, to] of ranges) {
+      const usableTo = rangeUsableEnd(to, arenaStart);
+      if (usableTo - from < 3) continue;
+      const end = usableTo - 1;
+      planned.push({ start: Math.max(from + 1, end - 2), end });
+      break;
+    }
+  }
+  for (const platform of planned) {
+    const stepColumn = platform.start - 1;
+    paintObstacleCell(grid, stepColumn, lowRow, bottom, symbols);
+    paintPlatformRun(grid, platform.start, platform.end, lowRow, bottom, symbols);
+  }
+}
+
+function paintComplexPlatformCluster(
+  grid: string[][],
+  from: number,
+  usableTo: number,
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+  random: RandomSource,
+) {
+  const span = usableTo - from;
+  if (span < 12) return false;
+  const baseWidth = random.integer(3, 4);
+  const start = random.integer(from + 2, usableTo - baseWidth - 4);
+  const lowRow = bottom - 3;
+  const midRow = bottom - 4;
+  const highRow = bottom - 6;
+  const useHighTier = random.next() < 0.55;
+  const midStart = start + random.integer(0, 1);
+  const midWidth = Math.min(baseWidth, random.integer(2, 3));
+  const highWidth = random.integer(2, 3);
+  const highStart = midStart + random.integer(1, 2);
+
+  if (!paintObstacleCell(grid, start - 1, lowRow, bottom, symbols)) return false;
+  if (!paintPlatformRun(grid, start, start + baseWidth - 1, lowRow, bottom, symbols)) return false;
+  if (!paintObstacleCell(grid, midStart, midRow, bottom, symbols)) return false;
+  if (!paintPlatformRun(grid, midStart, midStart + midWidth - 1, midRow, bottom, symbols)) return false;
+  if (useHighTier) {
+    if (!paintObstacleCell(grid, highStart, highRow, bottom, symbols)) return false;
+    if (!paintPlatformRun(grid, highStart, highStart + highWidth - 1, highRow, bottom, symbols)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function pickComplexClusterRanges(
+  ranges: Array<[number, number]>,
+  length: PlatformerMapLength,
+  arenaStart: number,
+) {
+  const eligible = ranges
+    .slice(1)
+    .map(([from, to], index) => ({
+      from,
+      usableTo: rangeUsableEnd(to, arenaStart),
+      index: index + 1,
+    }))
+    .filter(({ from, usableTo }) => usableTo - from >= 14);
+  if (eligible.length === 0) return [];
+  const chosen: typeof eligible = [];
+  const sorted = [...eligible].sort(
+    (left, right) => (right.usableTo - right.from) - (left.usableTo - left.from),
+  );
+  chosen.push(sorted[0]);
+  if (length !== "short" && sorted[1]) chosen.push(sorted[1]);
+  if (length === "long" && sorted[2] && sorted[2].index !== sorted[0].index) {
+    chosen.push(sorted[2]);
+  }
+  return chosen.slice(0, COMPLEX_CLUSTER_COUNTS[length]);
+}
+
+function paintComplexPlatformClusters(
+  grid: string[][],
+  ranges: Array<[number, number]>,
+  length: PlatformerMapLength,
+  arenaStart: number,
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+  random: RandomSource,
+) {
+  for (const { from, usableTo } of pickComplexClusterRanges(ranges, length, arenaStart)) {
+    paintComplexPlatformCluster(grid, from, usableTo, bottom, symbols, random);
+  }
+}
+
+function wideHazardRunCount(
+  grid: string[][],
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+) {
+  const runs: number[] = [];
+  let run = 0;
+  for (let column = 0; column < grid[0].length; column += 1) {
+    if (grid[bottom][column] === symbols.hazard) run += 1;
+    else {
+      if (run > 0) runs.push(run);
+      run = 0;
+    }
+  }
+  if (run > 0) runs.push(run);
+  return runs.filter((width) => width >= 2 && width <= 3).length;
+}
+
+function ensureMinimumHazardPits(
+  grid: string[][],
+  bottom: number,
+  symbols: ReturnType<typeof collisionSymbols>,
+  length: PlatformerMapLength,
+  ranges: Array<[number, number]>,
+  arenaStart: number,
+) {
+  const minimum = length === "long" ? 4 : length === "medium" ? 3 : 1;
+  const pitRanges: Array<[number, number]> = ranges.slice(0, -1);
+  if (ranges.length > 0) {
+    const [from, to] = ranges[ranges.length - 1];
+    pitRanges.push([from, rangeUsableEnd(to, arenaStart)]);
+  }
+  for (const [from, to] of pitRanges) {
+    if (wideHazardRunCount(grid, bottom, symbols) >= minimum) return;
+    const span = to - from;
+    if (span < 4) continue;
+    for (let column = from + 1; column + 1 < to - 1; column += 4) {
+      if (wideHazardRunCount(grid, bottom, symbols) >= minimum) return;
+      if (grid[bottom][column] === symbols.hazard) continue;
+      for (let offset = 0; offset < 2; offset += 1) {
+        clearColumn(grid, column + offset, bottom, symbols.empty);
+        grid[bottom][column + offset] = symbols.hazard;
+      }
+    }
+  }
 }
 
 function ensureHazardPits(
   grid: string[][],
   width: number,
-  length: PlatformerMapLength,
   bottom: number,
   symbols: ReturnType<typeof collisionSymbols>,
   random: RandomSource,
+  ranges: Array<[number, number]>,
 ) {
-  const climbs = highSectionStarts(width, length);
-  const arenaStart = width - PLATFORMER_FINAL_ARENA_COLUMNS;
-  const ranges: Array<[number, number]> = [];
-  let cursor = PLATFORMER_FLAT_START_COLUMNS;
-  for (const start of climbs) {
-    ranges.push([cursor, start]);
-    cursor = start + HIGH_SECTION_WIDTH;
-  }
-  ranges.push([cursor, arenaStart]);
-
-  for (const [from, to] of ranges) {
-    const span = to - from;
+  for (let rangeIndex = 0; rangeIndex < ranges.length; rangeIndex += 1) {
+    if (rangeIndex === ranges.length - 1) continue;
+    const [from, to] = ranges[rangeIndex];
+    const afterClimb = from > PLATFORMER_FLAT_START_COLUMNS;
+    const bridgeColumns = afterClimb ? 4 : 0;
+    const usableFrom = from + bridgeColumns;
+    const usableTo = to - 2;
+    const span = usableTo - usableFrom;
     if (span < 4) continue;
-    const pitCount = span >= 14 ? 2 : 1;
+    const pitCount = span >= 12 ? 2 : 1;
     for (let index = 0; index < pitCount; index += 1) {
       const pitWidth = span <= 5 ? 2 : random.integer(2, 3);
       const slot = span / pitCount;
-      const slotFrom = from + Math.floor(index * slot);
-      const slotTo = from + Math.floor((index + 1) * slot);
-      const afterClimb = from > PLATFORMER_FLAT_START_COLUMNS;
-      const minStart = slotFrom + (afterClimb && index === 0 ? 4 : 0);
-      const maxStart = slotTo - pitWidth - 2;
+      const slotFrom = usableFrom + Math.floor(index * slot);
+      const slotTo = usableFrom + Math.floor((index + 1) * slot);
+      const minStart = slotFrom;
+      const maxStart = slotTo - pitWidth;
       const pitStart = maxStart < minStart
         ? slotFrom
         : random.integer(minStart, maxStart);
@@ -270,6 +768,7 @@ function makeTerrain(
   width: number,
   length: PlatformerMapLength,
   random: RandomSource,
+  forceFallbackClimbs = false,
 ) {
   const rows = donor.size.rows;
   if (rows < 5) {
@@ -288,49 +787,117 @@ function makeTerrain(
   const surface = Array<number | null>(width).fill(bottom);
   for (let x = 0; x < width; x += 1) surface[x] = bottom;
 
+  const sectionCount = HIGH_SECTION_COUNTS[length];
+  const maxPeakRise = sectionCount >= 3 ? 8 : MAX_PEAK_RISE;
+  const climbPlans = Array.from({ length: sectionCount }, (_, index) => {
+    const { slotStart, maxSectionWidth } = slotBounds(width, length, index, sectionCount);
+    const minimumStart = slotStart + (index === 0 ? MIN_HAZARD_RANGE_COLUMNS : 0);
+    const fitWidth = sectionEndLimit(width, length, index, sectionCount) - minimumStart;
+    const plan = forceFallbackClimbs || random.next() < 0.1
+      ? buildFallbackHighSectionPlan(bottom, index === sectionCount - 1)
+      : buildHighSectionPlan(random, bottom, length, {
+          isFinalSection: index === sectionCount - 1,
+          maxPeakRise,
+        });
+    return trimHighSectionPlan(plan, Math.min(maxSectionWidth, fitWidth));
+  });
+  const climbStarts = highSectionLayout(width, length, climbPlans);
+  const paintedPlans = climbStarts.map((start, index) => trimHighSectionPlan(
+    climbPlans[index],
+    sectionEndLimit(width, length, index, sectionCount) - start,
+  ));
+  const paintedWidths = paintedPlans.map((plan) => highSectionPlanWidth(plan));
+  const ranges = climbRanges(width, climbStarts, paintedWidths);
+
   const grid = Array.from({ length: rows }, () => Array(width).fill(symbols.empty));
   for (let x = 0; x < width; x += 1) {
     paintGroundColumn(grid, x, surface[x], bottom, symbols);
   }
-  ensureHazardPits(grid, width, length, bottom, symbols, random);
-  for (const start of highSectionStarts(width, length)) {
-    paintHighSection(grid, start, bottom, symbols);
+  ensureHazardPits(grid, width, bottom, symbols, random, ranges);
+  ensureMinimumHazardPits(grid, bottom, symbols, length, ranges, arenaStart);
+  climbStarts.forEach((start, index) => {
+    paintHighSectionPlan(grid, start, bottom, symbols, paintedPlans[index]);
+  });
+  const lastClimbEnd = climbStarts.length > 0
+    ? climbStarts[climbStarts.length - 1] + paintedWidths[climbStarts.length - 1]
+    : null;
+  if (lastClimbEnd !== null) {
+    ensureArenaConnector(grid, lastClimbEnd, arenaStart, bottom, symbols);
   }
-  const extraPlatforms: Array<{ start: number; end: number; row: number }> = [];
-  const climbs = highSectionStarts(width, length);
-  const ranges: Array<[number, number]> = [];
-  let cursor = PLATFORMER_FLAT_START_COLUMNS;
-  for (const start of climbs) {
-    ranges.push([cursor, start]);
-    cursor = start + HIGH_SECTION_WIDTH;
-  }
-  ranges.push([cursor, arenaStart]);
-  for (const [from, to] of ranges) {
-    if (to - from < 10 || random.next() < 0.25) continue;
-    const widthTiles = random.integer(3, 5);
-    const start = to - widthTiles - 2;
-    const end = start + widthTiles - 1;
-    if (end - start < 2) continue;
-    if (Array.from({ length: end - start + 3 }, (_, offset) => start - 1 + offset)
-      .some((column) => grid[bottom][column] === symbols.hazard)) {
-      continue;
-    }
-    extraPlatforms.push({ start, end, row: bottom - 2 });
-  }
-  for (const platform of extraPlatforms) {
-    const stepColumn = platform.start - 1;
-    if (stepColumn >= 0 && grid[platform.row][stepColumn] === symbols.empty) {
-      grid[platform.row][stepColumn] = symbols.obstacle;
-    }
-    for (let x = platform.start; x <= platform.end; x += 1) {
-      if (grid[platform.row][x] === symbols.empty) grid[platform.row][x] = symbols.platform;
-    }
-  }
+  paintLowExtraPlatforms(
+    grid,
+    ranges,
+    arenaStart,
+    bottom,
+    symbols,
+    random,
+    lastClimbEnd,
+  );
+  paintComplexPlatformClusters(grid, ranges, length, arenaStart, bottom, symbols, random);
   return grid.map((row) => row.join(""));
 }
 
 function terrainRows(map: PlatformerMapSpec) {
   return map.layers.find((layer) => layer.id === "terrain")?.rows ?? [];
+}
+
+function terrainSymbolCount(
+  map: PlatformerMapSpec,
+  visualSlot: "platform" | "obstacle",
+  collision?: "solid" | "one_way",
+) {
+  const symbol = Object.entries(map.legend).find(([, value]) => (
+    value.visualSlot === visualSlot
+    && (collision === undefined || value.collision === collision)
+  ))?.[0];
+  if (!symbol) return 0;
+  const floor = map.size.rows - 1;
+  let count = 0;
+  for (let row = 0; row < floor; row += 1) {
+    for (const cell of terrainRows(map)[row] ?? "") {
+      if (cell === symbol) count += 1;
+    }
+  }
+  return count;
+}
+
+function highClimbRegionCount(map: PlatformerMapSpec) {
+  const bottom = map.size.rows - 1;
+  const threshold = bottom - HIGH_CLIMB_TILES;
+  const arenaStart = map.size.columns - PLATFORMER_FINAL_ARENA_COLUMNS;
+  const high: boolean[] = [];
+  for (let column = PLATFORMER_FLAT_START_COLUMNS; column < arenaStart; column += 1) {
+    let top: number | null = null;
+    for (let row = 0; row < map.size.rows; row += 1) {
+      const collision = collisionAt(map, column, row);
+      if (collision === "solid" || collision === "one_way") {
+        top = row;
+        break;
+      }
+    }
+    high.push(top !== null && top <= threshold);
+  }
+  let count = 0;
+  for (let index = 0; index < high.length; index += 1) {
+    if (high[index] && (index === 0 || !high[index - 1])) count += 1;
+  }
+  return count;
+}
+
+function validateTerrainFeatures(map: PlatformerMapSpec, length: PlatformerMapLength) {
+  const platformCount = terrainSymbolCount(map, "platform");
+  if (platformCount < MIN_PLATFORM_TILES_ABOVE_FLOOR) {
+    return `expected at least ${MIN_PLATFORM_TILES_ABOVE_FLOOR} platform tiles, received ${platformCount}`;
+  }
+  const obstacleCount = terrainSymbolCount(map, "obstacle", "solid");
+  if (obstacleCount < MIN_OBSTACLE_TILES_ABOVE_FLOOR) {
+    return `expected at least ${MIN_OBSTACLE_TILES_ABOVE_FLOOR} obstacle tiles, received ${obstacleCount}`;
+  }
+  const climbs = highClimbRegionCount(map);
+  if (climbs < HIGH_SECTION_COUNTS[length]) {
+    return `expected ${HIGH_SECTION_COUNTS[length]} high climbs, received ${climbs}`;
+  }
+  return null;
 }
 
 function collisionAt(map: PlatformerMapSpec, column: number, row: number) {
@@ -918,7 +1485,8 @@ function buildCandidate(
 ) {
   const random = randomSource(`${String(options.seed)}:${attempt}`);
   const donor = options.donor;
-  const rows = makeTerrain(donor, width, options.length, random);
+  const forceFallbackClimbs = attempt >= Math.floor(MAX_GENERATION_ATTEMPTS / 2);
+  const rows = makeTerrain(donor, width, options.length, random, forceFallbackClimbs);
   const map: PlatformerMapSpec = {
     schemaVersion: donor.schemaVersion,
     id: options.id ?? `generated-${donor.id}-${options.length}-${seedNumber(options.seed).toString(16)}`,
@@ -940,6 +1508,16 @@ function buildCandidate(
   return map;
 }
 
+/** @internal Test and debug helper for inspecting failed generation attempts. */
+export function buildPlatformerMapCandidate(
+  options: GeneratePlatformerMapOptions,
+  attempt: number,
+) {
+  const width = PLATFORMER_GENERATED_WIDTHS[options.length];
+  if (!width) throw new PlatformerGenerationError(`Unsupported platformer length: ${options.length}.`);
+  return buildCandidate(options, width, attempt);
+}
+
 export function generatePlatformerMap(
   options: GeneratePlatformerMapOptions,
 ): GeneratedPlatformerMap {
@@ -953,6 +1531,11 @@ export function generatePlatformerMap(
     try {
       const map = buildCandidate(options, width, attempt);
       validateObjectSupports(map);
+      const terrainIssue = validateTerrainFeatures(map, options.length);
+      if (terrainIssue) {
+        lastReason = terrainIssue;
+        continue;
+      }
       if (!oneWayPlatformsAreJumpable(map)) {
         lastReason = "one-way platforms exceed the jump envelope";
         continue;

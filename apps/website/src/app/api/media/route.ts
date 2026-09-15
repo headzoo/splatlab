@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
-import { hasBlobStore } from "@/lib/blob-store";
+import { hasBlobStore, isBlobStorageConfigError } from "@/lib/blob-store";
 import { listMedia, saveScreenshotUpload } from "@/lib/media";
 
 export const runtime = "nodejs";
@@ -106,6 +106,12 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Failed to save screenshot", error);
+    if (isBlobStorageConfigError(error)) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: 503 },
+      );
+    }
     return NextResponse.json(
       { message: "We couldn't save that screenshot." },
       { status: 500 },

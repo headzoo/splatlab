@@ -15,9 +15,11 @@ import {
 import { generatedPlatformerMapSchema } from "@/lib/generated-map-contract";
 
 import {
+  buildHighSectionPlan,
   generatePlatformerMap,
   HIGH_CLIMB_TILES,
   HIGH_SECTION_COUNTS,
+  highSectionPlanWidth,
   oneWayPlatformsAreJumpable,
   PLATFORMER_FINAL_ARENA_COLUMNS,
   PLATFORMER_FLAT_START_COLUMNS,
@@ -284,6 +286,138 @@ test("effective flight physics is validated without exceeding the protected rout
     validatePlatformerReachability(generated, CATALOG_PLATFORMER_GAME_PHYSICS).reachable,
     true,
   );
+});
+
+test("high section plans vary peak height, width, and descent mode", () => {
+  const bottom = 11;
+  const peaks = new Set<number>();
+  const widths = new Set<number>();
+  let stairDescents = 0;
+  for (let seed = 0; seed < 24; seed += 1) {
+    const plan = buildHighSectionPlan(
+      {
+        next: () => ((seed * 997 + 13) % 1000) / 1000,
+        integer: (minimum, maximum) => (
+          minimum + Math.floor((((seed * 997 + 13) % 1000) / 1000) * (maximum - minimum + 1))
+        ),
+        pick: (values) => values[seed % values.length],
+      },
+      bottom,
+      "medium",
+    );
+    assert.ok(plan.peakRise >= HIGH_CLIMB_TILES);
+    assert.ok(plan.peak.width >= 4 && plan.peak.width <= 6);
+    assert.ok(highSectionPlanWidth(plan) <= 22);
+    peaks.add(plan.peakRise);
+    widths.add(highSectionPlanWidth(plan));
+    if (plan.descent.kind === "stairs") stairDescents += 1;
+  }
+  assert.ok(peaks.size >= 2, `expected varied peak heights, received ${[...peaks].join(",")}`);
+  assert.ok(widths.size >= 3, `expected varied section widths, received ${widths.size}`);
+  assert.ok(stairDescents >= 8, `expected frequent stair descents, received ${stairDescents}`);
+});
+
+function climbSignature(map: PlatformerMapSpec) {
+  const bottom = map.size.rows - 1;
+  const platform = symbolFor(map, "platform");
+  const obstacle = symbolFor(map, "obstacle", "solid");
+  const rows = map.layers[0]?.rows ?? [];
+  let peakRow = bottom;
+  let ascentSteps = 0;
+  let descentSteps = 0;
+  let sawPeak = false;
+  for (let column = PLATFORMER_FLAT_START_COLUMNS; column < map.size.columns; column += 1) {
+    let peakColumn = false;
+    for (let row = 0; row < bottom; row += 1) {
+      const symbol = rows[row]?.[column];
+      if (symbol === platform) {
+        peakRow = Math.min(peakRow, row);
+        peakColumn = true;
+      }
+    }
+    if (peakColumn) sawPeak = true;
+    else if (sawPeak) {
+      for (let row = 0; row < bottom; row += 1) {
+        if (rows[row]?.[column] === obstacle) descentSteps += 1;
+      }
+    } else {
+      for (let row = 0; row < bottom; row += 1) {
+        if (rows[row]?.[column] === obstacle) ascentSteps += 1;
+      }
+    }
+  }
+  return `${peakRow}:${ascentSteps}:${descentSteps}`;
+}
+
+function hasDescentStairs(map: PlatformerMapSpec) {
+  const bottom = map.size.rows - 1;
+  const platform = symbolFor(map, "platform");
+  const obstacle = symbolFor(map, "obstacle", "solid");
+  const rows = map.layers[0]?.rows ?? [];
+  let peakRow = bottom;
+  for (let column = PLATFORMER_FLAT_START_COLUMNS; column < map.size.columns; column += 1) {
+    for (let row = 0; row < bottom; row += 1) {
+      if (rows[row]?.[column] === platform) peakRow = Math.min(peakRow, row);
+    }
+  }
+  if (peakRow >= bottom) return false;
+  let peakEnd = -1;
+  for (let column = PLATFORMER_FLAT_START_COLUMNS; column < map.size.columns; column += 1) {
+    if (rows[peakRow]?.[column] === platform) peakEnd = column;
+  }
+  if (peakEnd < 0) return false;
+  for (let column = peakEnd + 1; column < map.size.columns; column += 1) {
+    for (let row = 0; row < bottom; row += 1) {
+      if (rows[row]?.[column] === obstacle) return true;
+    }
+  }
+  return false;
+}
+
+function peakRows(map: PlatformerMapSpec) {
+  const bottom = map.size.rows - 1;
+  const threshold = bottom - HIGH_CLIMB_TILES;
+  const platform = symbolFor(map, "platform");
+  const rows = map.layers[0]?.rows ?? [];
+  const peaks = new Set<number>();
+  for (let column = PLATFORMER_FLAT_START_COLUMNS; column < map.size.columns; column += 1) {
+    for (let row = 0; row <= threshold; row += 1) {
+      if (rows[row]?.[column] === platform) peaks.add(row);
+    }
+  }
+  return peaks;
+}
+
+test("generated climbs vary layout signatures across seeds", () => {
+  const donor = donors[0];
+  const signatures = new Set(
+    Array.from({ length: 24 }, (_, seed) => (
+      climbSignature(generatePlatformerMap({ donor, length: "medium", seed }))
+    )),
+  );
+  assert.ok(signatures.size >= 3, `expected diverse climb signatures, received ${signatures.size}`);
+});
+
+test("some generated maps descend from the peak with stair blocks", () => {
+  const donor = donors[0];
+  const maps = Array.from({ length: 24 }, (_, seed) => (
+    generatePlatformerMap({ donor, length: "medium", seed })
+  ));
+  assert.ok(
+    maps.some((map) => hasDescentStairs(map)),
+    "expected at least one map with descent stairs above the floor",
+  );
+});
+
+test("generated maps vary peak platform height", () => {
+  const donor = donors[0];
+  const peaks = new Set<number>();
+  for (let seed = 0; seed < 24; seed += 1) {
+    for (const row of peakRows(generatePlatformerMap({ donor, length: "medium", seed }))) {
+      peaks.add(row);
+    }
+  }
+  assert.ok(peaks.size >= 2, `expected varied peak rows, received ${[...peaks].join(",")}`);
 });
 
 test("generation fails closed when its bounded attempt budget is exhausted", () => {

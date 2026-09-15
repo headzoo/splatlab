@@ -6,7 +6,7 @@ import {
   THUMBNAIL_MAX_BYTES,
   thumbnailBlobPathname,
 } from "@/lib/blob-path";
-import { hasBlobStore, putOwnedBlob } from "@/lib/blob-store";
+import { hasBlobStore, isBlobStorageConfigError, putOwnedBlob } from "@/lib/blob-store";
 import { getGame } from "@/lib/games";
 
 export const runtime = "nodejs";
@@ -21,16 +21,13 @@ function formString(form: FormData, name: string) {
 }
 
 function uploadErrorResponse(error: unknown) {
-  const configuredMessage =
-    error instanceof Error && error.message.startsWith("Image storage isn't")
-      ? error.message
-      : null;
-  if (!configuredMessage) {
-    console.error("Failed to upload blob", error);
+  if (isBlobStorageConfigError(error)) {
+    return NextResponse.json({ message: error.message }, { status: 503 });
   }
+  console.error("Failed to upload blob", error);
   return NextResponse.json(
-    { message: configuredMessage ?? "We couldn't save that image." },
-    { status: configuredMessage ? 503 : 400 },
+    { message: "We couldn't save that image." },
+    { status: 400 },
   );
 }
 
