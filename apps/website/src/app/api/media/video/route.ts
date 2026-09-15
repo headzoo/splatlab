@@ -24,8 +24,8 @@ const metadataSchema = z.object({
   height: integerField.min(2).max(1_920),
 });
 const transcoder = new VideoTranscoder();
-const uploadService = createVideoUploadService((source, dimensions, signal) =>
-  transcoder.transcode(source, dimensions, signal),
+const uploadService = createVideoUploadService((source, dimensions, signal, sourceMeta) =>
+  transcoder.transcode(source, dimensions, signal, sourceMeta),
 );
 
 function formString(form: FormData, name: string) {

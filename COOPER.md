@@ -763,3 +763,55 @@ When creating Splat Lab! UI or marketing assets:
 # One-Sentence Character Summary
 
 **Cooper is Splat Lab!'s cheerful, battle-tested chicken lab assistant—recognizable by his oversized goggles, crossed beak bandages, and two cheek scratches—who helps kids build games and somehow ends up personally testing every ridiculous idea they invent.**
+
+
+# Other Characters
+## Rupert
+
+If something on the hill is broken, dark, sparking, or making a noise it definitely shouldn't be making, somebody has probably already called him.
+
+He brings tools, spare cables, bad jokes, and usually the fix.
+
+“I’ll be there in ten.”
+
+## Jamie
+
+Builder by day. Trader by night.
+
+He measures twice, checks the chart three times, and somehow already knows how this is going to play out.
+
+While the rest of the crew improvises, Jamie has a plan.
+
+“Frames houses by day. Frames trades by night.”
+
+## Vix
+
+You didn't see her come in.
+
+You probably won't see her leave.
+
+She likes shortcuts, locked doors, bad ideas, and knowing where the exit is before anyone else realizes they need one.
+
+Trouble with a plan.
+
+“Wasn’t here.”
+
+## Lango
+
+No fancy rig. No degree. No excuses.
+
+Give him a beat-up laptop, an idea, and a problem everyone else called impossible, and he'll disappear for the night.
+
+By morning, something works that didn't before.
+
+Build. Break. Fix. Repeat. Full send.
+
+## Leenie
+
+She likes cute outfits, perfect hair, being noticed, and pretending she doesn't care what anyone thinks.
+
+She can be a little dramatic. Maybe a little snobby.
+
+But when somebody really needs her, the attitude disappears.
+
+Pretty on the outside. Big heart underneath.

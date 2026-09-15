@@ -115,9 +115,7 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (mode !== "sign-out") {
-        prefetchLabWorkspace();
-      }
+      prefetchLabWorkspace();
 
       router.push(mode === "sign-in" ? "/lab#lab-key-login" : "/lab");
     },

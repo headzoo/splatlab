@@ -44,6 +44,7 @@ type VideoUploadDependencies = {
     source: Blob,
     dimensions: { width: number; height: number },
     signal?: AbortSignal,
+    sourceMeta?: { contentType?: string; filename?: string },
   ) => Promise<VideoTranscodeResult>;
 };
 
