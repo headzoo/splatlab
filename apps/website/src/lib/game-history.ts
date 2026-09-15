@@ -1,8 +1,10 @@
 import type { BuilderChatTurn, GameDocument } from "./game-contract";
 import {
   applyCooperSpecChange,
+  applyMapRollChange,
   specChangeIsNoop,
   type CooperSpecChange,
+  type MapRollChange,
 } from "./cooper-spec-change";
 import type { GamePhysicsDocument } from "./game-physics";
 
@@ -14,11 +16,15 @@ export type GameHistory = {
 
 export type GameHistoryAction =
   | { type: "edit"; spec: GameDocument }
+  /** Setup state paired with a server map roll is not independently undoable. */
+  | { type: "setup"; spec: GameDocument }
   | { type: "chat"; turns: BuilderChatTurn[] }
   /** Server-owned: Cooper's physics fork is not an undoable local edit. */
   | { type: "physics"; document: GamePhysicsDocument | undefined }
   /** Cooper's object add/remove, merged in rather than replacing local edits. */
   | { type: "specChange"; change: CooperSpecChange }
+  /** A materialized map roll invalidates all local undo snapshots. */
+  | { type: "mapRoll"; change: MapRollChange }
   | { type: "undo" }
   | { type: "redo" };
 
@@ -36,6 +42,13 @@ function withPhysics(spec: GameDocument, document: GamePhysicsDocument | undefin
   return next;
 }
 
+function withGeneratedMaps(spec: GameDocument, stored: GameDocument): GameDocument {
+  return {
+    ...spec,
+    generatedPlatformerMaps: stored.generatedPlatformerMaps,
+    generatedMazeMaps: stored.generatedMazeMaps,
+  };
+}
 
 function sameChatHistory(left: BuilderChatTurn[], right: BuilderChatTurn[]) {
   return (
@@ -122,6 +135,10 @@ export function sameGameDocument(left: GameDocument, right: GameDocument) {
     left.platformerMapSource === right.platformerMapSource &&
     left.mazeMapSource === right.mazeMapSource &&
     sameLevels(left, right) &&
+    JSON.stringify(left.generatedPlatformerMaps) === JSON.stringify(right.generatedPlatformerMaps) &&
+    JSON.stringify(left.generatedMazeMaps) === JSON.stringify(right.generatedMazeMaps) &&
+    left.mapStyle === right.mapStyle &&
+    left.mapLength === right.mapLength &&
     left.playerCharacter === right.playerCharacter &&
     left.humanGender === right.humanGender &&
     left.skinTone === right.skinTone &&
@@ -151,6 +168,11 @@ export function gameHistoryReducer(
     };
   }
 
+  if (action.type === "setup") {
+    if (sameGameDocument(history.present, action.spec)) return history;
+    return { ...history, present: action.spec };
+  }
+
   if (action.type === "chat") {
     if (sameChatHistory(history.present.builderChatHistory, action.turns)) {
       return history;
@@ -176,6 +198,9 @@ export function gameHistoryReducer(
 
     return { ...history, present: applyCooperSpecChange(history.present, action.change) };
   }
+  if (action.type === "mapRoll") {
+    return { past: [], future: [], present: applyMapRollChange(history.present, action.change) };
+  }
 
   if (action.type === "undo") {
     const previous = history.past.at(-1);
@@ -184,7 +209,7 @@ export function gameHistoryReducer(
     return {
       past: history.past.slice(0, -1),
       present: {
-        ...withPhysics(previous, history.present.physicsDocument),
+        ...withGeneratedMaps(withPhysics(previous, history.present.physicsDocument), history.present),
         builderChatHistory: history.present.builderChatHistory,
       },
       future: [history.present, ...history.future],
@@ -197,7 +222,7 @@ export function gameHistoryReducer(
   return {
     past: [...history.past, history.present].slice(-MAX_HISTORY_LENGTH),
     present: {
-      ...withPhysics(next, history.present.physicsDocument),
+      ...withGeneratedMaps(withPhysics(next, history.present.physicsDocument), history.present),
       builderChatHistory: history.present.builderChatHistory,
     },
     future: history.future.slice(1),

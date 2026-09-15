@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { generatedMazeMapSchema } from "./generated-map-contract";
 import {
   activeGameTheme,
   activeMapSource,
@@ -12,7 +13,48 @@ import {
   playerAssetIdFor,
   PLATFORMER_MAP_SOURCES,
   THEME_MAP_SOURCES,
+  toPublicGameDocument,
 } from "./game-contract";
+
+function generatedPlatformerDocument() {
+  const source = "custom-platformer-gen-contract-test";
+  return {
+    ...DEFAULT_GAME_DOCUMENT,
+    mapStyle: "generated" as const,
+    platformerMapSource: source,
+    generatedPlatformerMaps: [{
+      source,
+      templateSource: "level-1.json" as const,
+      length: "short" as const,
+      generatorVersion: "test-v1",
+      map: {
+        schemaVersion: 1,
+        id: source,
+        revision: 1,
+        runtime: "platformer_v1" as const,
+        tileSize: 64 as const,
+        size: { columns: 2, rows: 2 },
+        camera: { columns: 2, rows: 2 },
+        physics: { gravityScale: 1 },
+        rules: { respawnDelaySeconds: 1 },
+        presentation: { backgroundId: "neutral_green_hills_01" },
+        legend: { ".": { visualSlot: "empty" as const, collision: "none" as const } },
+        layers: [{ id: "terrain", rows: ["..", ".."] }],
+        objects: [
+          {
+            id: "spawn",
+            type: "player_spawn" as const,
+            x: 0,
+            y: 0,
+            speedPxPerSecond: 320,
+            motion: { version: 1 as const, travel: { type: "controlled" as const }, visual: { type: "none" as const } },
+          },
+          { id: "goal", type: "goal" as const, x: 1, y: 1 },
+        ],
+      },
+    }],
+  };
+}
 
 test("platformer maps use the campaign order", () => {
   assert.deepEqual(PLATFORMER_MAP_SOURCES, [
@@ -39,6 +81,27 @@ test("game documents accept the checked-in player state", () => {
     }),
     "maze_space_01.json",
   );
+});
+
+test("generated style may persist only while setup awaits its map length", () => {
+  for (const previewKind of ["platformer", "maze"] as const) {
+    const transitional = {
+      ...DEFAULT_GAME_DOCUMENT,
+      previewKind,
+      mapStyle: "generated" as const,
+      setupStep: "mapLength" as const,
+      builderSetupHistory: ["gameType", "theme", "mapStyle", "mapLength"] as const,
+    };
+    assert.doesNotThrow(() => gameDocumentSchema.parse(transitional));
+
+    for (const setupStep of ["character", "complete"] as const) {
+      assert.equal(
+        gameDocumentSchema.safeParse({ ...transitional, setupStep }).success,
+        false,
+        `${previewKind} generated style without a materialized map must fail at ${setupStep}`,
+      );
+    }
+  }
 });
 
 test("older saved game documents default new setup fields safely", () => {
@@ -216,6 +279,110 @@ test("game documents reject unknown maps and extra executable-looking data", () 
     }).success,
     false,
   );
+});
+
+test("generated maps reject unbounded or invalid runtime data at document and public boundaries", () => {
+  const valid = generatedPlatformerDocument();
+  assert.equal(gameDocumentSchema.safeParse(valid).success, true);
+  assert.doesNotThrow(() => toPublicGameDocument(valid));
+
+  const cases = [
+    {
+      ...valid,
+      generatedPlatformerMaps: [{ ...valid.generatedPlatformerMaps[0], map: {
+        ...valid.generatedPlatformerMaps[0]!.map,
+        camera: { columns: 3, rows: 2 },
+      } }],
+    },
+    {
+      ...valid,
+      generatedPlatformerMaps: [{ ...valid.generatedPlatformerMaps[0], map: {
+        ...valid.generatedPlatformerMaps[0]!.map,
+        layers: [{ id: "terrain", rows: [".?", ".."] }],
+      } }],
+    },
+    {
+      ...valid,
+      generatedPlatformerMaps: [{ ...valid.generatedPlatformerMaps[0], map: {
+        ...valid.generatedPlatformerMaps[0]!.map,
+        presentation: {
+          backgroundId: "neutral_green_hills_01",
+          hud: [{ id: "lives", type: "lives", column: 2, row: 0 }],
+        },
+      } }],
+    },
+    {
+      ...valid,
+      generatedPlatformerMaps: [{ ...valid.generatedPlatformerMaps[0], map: {
+        ...valid.generatedPlatformerMaps[0]!.map,
+        presentation: {
+          backgroundId: "neutral_green_hills_01",
+          artBorrows: Object.fromEntries(Array.from({ length: 17 }, (_, index) => [`slot-${index}`, "neutral_green_hills_01"])),
+        },
+      } }],
+    },
+    {
+      ...valid,
+      generatedPlatformerMaps: [{ ...valid.generatedPlatformerMaps[0], map: {
+        ...valid.generatedPlatformerMaps[0]!.map,
+        objects: [valid.generatedPlatformerMaps[0]!.map.objects[0]],
+      } }],
+    },
+    {
+      ...valid,
+      generatedPlatformerMaps: [{ ...valid.generatedPlatformerMaps[0], map: {
+        ...valid.generatedPlatformerMaps[0]!.map,
+        id: "custom-platformer-gen-wrong-id",
+      } }],
+    },
+  ];
+
+  for (const invalid of cases) {
+    assert.equal(gameDocumentSchema.safeParse(invalid).success, false);
+    assert.throws(() => toPublicGameDocument(invalid as never));
+  }
+});
+
+test("generated mazes require bounded camera, floor objects, and a key-linked exit", () => {
+  const maze = {
+    schemaVersion: 1,
+    id: "custom-maze-gen-contract-test",
+    revision: 1,
+    runtime: "top_down_v1" as const,
+    tileSize: 64 as const,
+    width: 3,
+    height: 3,
+    camera: { columns: 3, rows: 3 },
+    legend: { "#": "solid_wall" as const, ".": "floor" as const },
+    presentation: { mazeThemeId: "neutral_green_hills_maze_01" },
+    tiles: ["###", "#.#", "###"],
+    objects: [
+      { id: "spawn", type: "player_spawn" as const, x: 1, y: 1, slot: 1, speed: 224 },
+      { id: "key", type: "key" as const, x: 1, y: 1 },
+      { id: "exit", type: "exit" as const, x: 1, y: 1, requires: "key" },
+    ],
+  };
+  // The base map deliberately demonstrates the no-overlap invariant.
+  assert.equal(generatedMazeMapSchema.safeParse(maze).success, false);
+  const valid = {
+    ...maze,
+    width: 5,
+    tiles: ["#####", "#...#", "#####"],
+    objects: [
+      { id: "spawn", type: "player_spawn" as const, x: 1, y: 1, slot: 1, speed: 224 },
+      { id: "key", type: "key" as const, x: 2, y: 1 },
+      { id: "exit", type: "exit" as const, x: 3, y: 1, requires: "key" },
+    ],
+  };
+  assert.equal(generatedMazeMapSchema.safeParse(valid).success, true);
+  assert.equal(generatedMazeMapSchema.safeParse({
+    ...valid,
+    camera: { columns: 6, rows: 3 },
+  }).success, false);
+  assert.equal(generatedMazeMapSchema.safeParse({
+    ...valid,
+    objects: [...valid.objects.slice(0, 2), { ...valid.objects[2], requires: "other-key" }],
+  }).success, false);
 });
 
 test("game thumbnails only accept blob confirm payloads", () => {

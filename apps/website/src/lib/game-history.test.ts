@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { DEFAULT_GAME_DOCUMENT } from "./game-contract";
+import { mapRollChangeSchema } from "./cooper-spec-change";
 import { createGameHistory, gameHistoryReducer, sameGameDocument } from "./game-history";
 import { applyCooperPhysicsPatch, CATALOG_PLATFORMER_GAME_PHYSICS } from "./game-physics";
 
@@ -251,4 +252,74 @@ test("documents that differ only by physics are not treated as equal", () => {
 
   assert.equal(sameGameDocument(DEFAULT_GAME_DOCUMENT, forked), false);
   assert.equal(sameGameDocument(forked, { ...forked }), true);
+});
+
+test("a map roll clears history while preserving its materialized state", () => {
+  const source = "custom-platformer-gen-history";
+  const changed = gameHistoryReducer(
+    gameHistoryReducer(createGameHistory(DEFAULT_GAME_DOCUMENT), {
+      type: "edit",
+      spec: { ...DEFAULT_GAME_DOCUMENT, previewKind: "maze" },
+    }),
+    {
+      type: "mapRoll",
+      change: mapRollChangeSchema.parse({
+        previewKind: "platformer",
+        platformerMapSource: source,
+        generatedPlatformerMaps: [{
+          source,
+          templateSource: "level-1.json",
+          length: "medium",
+          generatorVersion: "test-v1",
+          map: {
+            schemaVersion: 1, id: source, revision: 1, runtime: "platformer_v1", tileSize: 64,
+            size: { columns: 2, rows: 2 }, camera: { columns: 2, rows: 2 },
+            physics: { gravityScale: 1 }, rules: { respawnDelaySeconds: 1 },
+            presentation: { backgroundId: "neutral_green_hills_01" },
+            legend: { ".": { visualSlot: "empty", collision: "none" } },
+            layers: [{ id: "terrain", rows: ["..", ".."] }],
+            objects: [
+              {
+                id: "spawn",
+                type: "player_spawn",
+                x: 0,
+                y: 0,
+                speedPxPerSecond: 320,
+                motion: { version: 1, travel: { type: "controlled" }, visual: { type: "none" } },
+              },
+              { id: "goal", type: "goal", x: 1, y: 0 },
+            ],
+          },
+        }],
+      }),
+    },
+  );
+  assert.equal(changed.past.length, 0);
+  assert.equal(changed.future.length, 0);
+  assert.equal(changed.present.generatedPlatformerMaps[0]?.source, source);
+
+  const progressed = gameHistoryReducer(changed, {
+    type: "setup",
+    spec: {
+      ...changed.present,
+      mapLength: "long",
+      setupStep: "character",
+      builderSetupHistory: ["gameType", "theme", "mapStyle", "mapLength", "character"],
+    },
+  });
+  assert.equal(progressed.past.length, 0);
+  assert.equal(progressed.future.length, 0);
+  assert.equal(progressed.present.setupStep, "character");
+  assert.equal(progressed.present.generatedPlatformerMaps[0]?.source, source);
+
+  const followUp = gameHistoryReducer(changed, {
+    type: "edit",
+    spec: {
+      ...changed.present,
+      setupStep: "character",
+      playerCharacter: "chicken",
+    },
+  });
+  assert.equal(followUp.present.generatedPlatformerMaps[0]?.source, source);
+  assert.equal(followUp.present.platformerMapSource, source);
 });

@@ -11,7 +11,12 @@ import {
   type SavedGameDto,
   type SavedGameSummaryDto,
 } from "./game-contract";
-import { mergeObjectArrays } from "./cooper-spec-change";
+import {
+  mergeObjectArrays,
+  pruneOrphanedMapSourceEdits,
+  pruneRemovedMapSources,
+  preserveRolledCampaign,
+} from "./cooper-spec-change";
 import { deleteOwnedBlob } from "./blob-store";
 import { displayNameAvatarSrc, UNSET_DISPLAY_NAME } from "./display-name";
 import { getPrisma, hasDatabase } from "./prisma";
@@ -116,7 +121,7 @@ export async function listGames(ownerId: string): Promise<SavedGameSummaryDto[]>
     return memoryGames()
       .filter((game) => game.ownerId === ownerId)
       .sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())
-      .map(toSummary);
+      .map((game) => toSummary(parseStoredGame(game)));
   }
 
   const records = await getPrisma().game.findMany({
@@ -133,7 +138,7 @@ export async function listPublicGames(): Promise<PublicGameSummaryDto[]> {
     return memoryGames()
       .filter((game) => game.isPublic)
       .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
-      .map((game) => toPublicSummary(game));
+      .map((game) => toPublicSummary(parseStoredGame(game)));
   }
 
   const records = await getPrisma().game.findMany({
@@ -156,7 +161,7 @@ export async function getGame(ownerId: string, id: string): Promise<SavedGameDto
     const game = memoryGames().find(
       (candidate) => candidate.id === id && candidate.ownerId === ownerId,
     );
-    return game ? toDto(game) : null;
+    return game ? toDto(parseStoredGame(game)) : null;
   }
 
   const record = await getPrisma().game.findFirst({ where: { id, ownerId } });
@@ -168,7 +173,7 @@ export async function getPublicGame(id: string): Promise<PublicGameDto | null> {
     const game = memoryGames().find(
       (candidate) => candidate.id === id && candidate.isPublic,
     );
-    return game ? toPublicDto(game) : null;
+    return game ? toPublicDto(parseStoredGame(game)) : null;
   }
 
   const record = await getPrisma().game.findFirst({
@@ -177,13 +182,32 @@ export async function getPublicGame(id: string): Promise<PublicGameDto | null> {
   return record ? toPublicDto(parseStoredGame(record)) : null;
 }
 
+export async function getPlayableGame(
+  id: string,
+  viewerId?: string | null,
+): Promise<PublicGameDto | null> {
+  const publicGame = await getPublicGame(id);
+  if (publicGame) return publicGame;
+  if (!viewerId) return null;
+
+  const ownedGame = await getGame(viewerId, id);
+  if (!ownedGame) return null;
+
+  return {
+    id: ownedGame.id,
+    title: ownedGame.title,
+    spec: toPublicGameDocument(ownedGame.spec),
+  };
+}
+
 export async function createGame(
   ownerId: string,
   input: { title: string; isPublic?: boolean; spec: GameDocument },
 ): Promise<SavedGameDto> {
+  const spec = gameDocumentSchema.parse(input.spec);
   const now = new Date();
-  const gameType = input.spec.previewKind;
-  const mapSource = activeMapSource(input.spec);
+  const gameType = spec.previewKind;
+  const mapSource = activeMapSource(spec);
 
   if (!hasDatabase()) {
     const game: StoredGame = {
@@ -193,7 +217,7 @@ export async function createGame(
       isPublic: input.isPublic ?? false,
       gameType,
       mapSource,
-      spec: input.spec,
+      spec,
       thumbnailDataUrl: null,
       revision: 1,
       createdAt: now,
@@ -210,7 +234,7 @@ export async function createGame(
       isPublic: input.isPublic ?? false,
       gameType,
       mapSource,
-      spec: input.spec,
+      spec,
     },
   });
 
@@ -255,8 +279,57 @@ function withStoredStartingLives(spec: GameDocument, stored: GameDocument): Game
   return next;
 }
 
+/** Materialized maps are written only by the map-roll server transition. */
+function withStoredGeneratedMaps(spec: GameDocument, stored: GameDocument): GameDocument {
+  return {
+    ...spec,
+    generatedPlatformerMaps: stored.generatedPlatformerMaps,
+    generatedMazeMaps: stored.generatedMazeMaps,
+  };
+}
+
 function withServerOwnedFields(spec: GameDocument, stored: GameDocument): GameDocument {
-  return withStoredStartingLives(withStoredObjects(withStoredPhysics(spec, stored), stored), stored);
+  const reconciled = preserveRolledCampaign(spec, stored);
+  return pruneOrphanedMapSourceEdits(withStoredGeneratedMaps(
+    withStoredStartingLives(withStoredObjects(withStoredPhysics(reconciled, stored), stored), stored),
+    stored,
+  ));
+}
+
+/**
+ * The map-style picker is allowed to leave generated mode, but materialized
+ * maps themselves are otherwise server-owned. Treat that one transition as a
+ * revision-checked cleanup so stale autosaves cannot strand records or their
+ * source-keyed edits.
+ */
+function withReadyMadeGeneratedMapsRemoved(
+  spec: GameDocument,
+  stored: GameDocument,
+): GameDocument {
+  if (
+    spec.mapStyle !== "ready_made" ||
+    (
+      stored.generatedPlatformerMaps.length === 0
+      && stored.generatedMazeMaps.length === 0
+    )
+  ) return withServerOwnedFields(spec, stored);
+
+  const removedMapSources = [
+    ...stored.generatedPlatformerMaps.map((record) => record.source),
+    ...stored.generatedMazeMaps.map((record) => record.source),
+  ];
+  const next = {
+    ...spec,
+    platformerLevels: spec.platformerLevels.filter(
+      (level) => !removedMapSources.includes(level.id),
+    ),
+    mazeLevels: spec.mazeLevels.filter(
+      (level) => !removedMapSources.includes(level.id),
+    ),
+    generatedPlatformerMaps: [],
+    generatedMazeMaps: [],
+  };
+  return { ...next, ...pruneRemovedMapSources(next, removedMapSources) };
 }
 
 export async function updateGame(
@@ -269,6 +342,7 @@ export async function updateGame(
     expectedRevision: number;
   },
 ): Promise<UpdateGameResult> {
+  const spec = gameDocumentSchema.parse(input.spec);
   if (!hasDatabase()) {
     const game = memoryGames().find(
       (candidate) => candidate.id === id && candidate.ownerId === ownerId,
@@ -279,11 +353,12 @@ export async function updateGame(
       return { status: "conflict", game: toDto(game) };
     }
 
+    const nextSpec = withReadyMadeGeneratedMapsRemoved(spec, game.spec);
     game.title = input.title;
     if (input.isPublic !== undefined) game.isPublic = input.isPublic;
-    game.gameType = input.spec.previewKind;
-    game.mapSource = activeMapSource(input.spec);
-    game.spec = withServerOwnedFields(input.spec, game.spec);
+    game.gameType = nextSpec.previewKind;
+    game.mapSource = activeMapSource(nextSpec);
+    game.spec = nextSpec;
     game.revision += 1;
     game.updatedAt = new Date();
     return { status: "updated", game: toDto(game) };
@@ -292,15 +367,19 @@ export async function updateGame(
   const prisma = getPrisma();
   const existing = await prisma.game.findFirst({ where: { id, ownerId } });
   if (!existing) return { status: "not_found" };
+  const nextSpec = withReadyMadeGeneratedMapsRemoved(
+    spec,
+    parseStoredGame(existing).spec,
+  );
 
   const result = await prisma.game.updateMany({
     where: { id, ownerId, revision: input.expectedRevision },
     data: {
       title: input.title,
       ...(input.isPublic !== undefined ? { isPublic: input.isPublic } : {}),
-      gameType: input.spec.previewKind,
-      mapSource: activeMapSource(input.spec),
-      spec: withServerOwnedFields(input.spec, parseStoredGame(existing).spec),
+      gameType: nextSpec.previewKind,
+      mapSource: activeMapSource(nextSpec),
+      spec: nextSpec,
       revision: { increment: 1 },
     },
   });

@@ -8,6 +8,7 @@ import { getAgentTool, type ToolExecutionContext } from "./tools/registry";
 import type { BuilderChatTurn } from "../game-contract";
 import type { CooperSpecChange } from "../game-objects";
 import type { GamePhysicsDocument } from "../game-physics";
+import type { MapRollSuccess } from "../cooper-spec-change";
 
 const VISIBLE_MESSAGE_LIMIT = 500;
 /**
@@ -37,7 +38,7 @@ type Budget = { text: number; conditionAgent: number };
 
 export type ExecuteBuildMessageInput = Readonly<{ ownerId: string; gameId: string; message: string; signal?: AbortSignal }>;
 export type ResumeBuildTurnInput = Readonly<{ ownerId: string; gameId: string; action: Action; feedback?: string; signal?: AbortSignal }>;
-export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number; physicsDocument?: GamePhysicsDocument; specChange?: CooperSpecChange; gameTitle?: string }>;
+export type BuildMessageResult = Readonly<{ status: "replied" | "paused"; cooperMessage: string; runId: string; gameRevision: number; physicsDocument?: GamePhysicsDocument; specChange?: CooperSpecChange; gameTitle?: string; mapRoll?: MapRollSuccess }>;
 
 export class BuildExecutionError extends Error {
   constructor(message: string, readonly code: string) {
@@ -129,6 +130,7 @@ async function walk(flow: CompiledFlow, node: CompiledNode, run: AgentFlowRun, r
   let physicsDocument: GamePhysicsDocument | undefined;
   let specChange: CooperSpecChange | undefined;
   let gameTitle: string | undefined;
+  let mapRoll: MapRollSuccess | undefined;
   let appliedWrite = false;
   const toolContext: ToolExecutionContext = { ownerId, gameId, prompt: run.question, store, moderator, signal };
   while (current) {
@@ -140,6 +142,7 @@ async function walk(flow: CompiledFlow, node: CompiledNode, run: AgentFlowRun, r
       physicsDocument = text.physicsDocument ?? physicsDocument;
       specChange = text.specChange ?? specChange;
       gameTitle = text.gameTitle ?? gameTitle;
+      mapRoll = text.mapRoll ?? mapRoll;
       appliedWrite = appliedWrite || text.appliedWrite;
       current = nextRequired(flow, current);
     } else if (current.kind === "conditionAgentAgentflow") {
@@ -169,7 +172,7 @@ async function walk(flow: CompiledFlow, node: CompiledNode, run: AgentFlowRun, r
       const cooperMessage = await screenTerminalMessage(template, interpolate(template, context(run.question, flowOutput, flowState)), "Direct Reply", moderator, signal);
       const complete = await store.completeDirectReply({ ownerId, gameId, runId: run.id, expectedRevision: revision, currentNodeId: current.id, flowState, flowOutput, loopCounts, cooperMessage });
       if (complete.status !== "updated" || complete.gameRevision === undefined) throw transitionError(complete.status);
-      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision, physicsDocument, specChange, gameTitle };
+      return { status: "replied", cooperMessage, runId: complete.run.id, gameRevision: complete.gameRevision, physicsDocument, specChange, gameTitle, mapRoll };
     } else if (current.kind === "humanInputAgentflow") {
       const template = requiredInput(current, "humanInputDescription");
       const cooperMessage = await screenTerminalMessage(template, interpolate(template, context(run.question, flowOutput, flowState)), "Human Input", moderator, signal);
@@ -178,7 +181,7 @@ async function walk(flow: CompiledFlow, node: CompiledNode, run: AgentFlowRun, r
         pendingHumanInput: { nodeId: current.id, branches: current.branches, enableFeedback: current.inputs.humanInputEnableFeedback === true },
       });
       if (checkpoint.status !== "updated" || checkpoint.gameRevision === undefined) throw transitionError(checkpoint.status);
-      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision, physicsDocument, specChange, gameTitle };
+      return { status: "paused", cooperMessage, runId: checkpoint.run.id, gameRevision: checkpoint.gameRevision, physicsDocument, specChange, gameTitle, mapRoll };
     } else {
       throw new FlowContractError(`Unsupported executable node "${current.kind}"`);
     }
@@ -195,6 +198,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
   let physicsDocument: GamePhysicsDocument | undefined;
   let specChange: CooperSpecChange | undefined;
   let gameTitle: string | undefined;
+  let mapRoll: MapRollSuccess | undefined;
   let appliedWrite = false;
 
   for (let round = 0; ; round += 1) {
@@ -214,6 +218,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
         physicsDocument,
         specChange,
         gameTitle,
+        mapRoll,
         appliedWrite,
       };
     }
@@ -240,6 +245,7 @@ async function executeText(node: CompiledNode, question: string, state: Record<s
       physicsDocument = result.physicsDocument ?? physicsDocument;
       specChange = result.specChange ?? specChange;
       gameTitle = result.gameTitle ?? gameTitle;
+      mapRoll = result.mapRoll ?? mapRoll;
       const output = JSON.stringify(result.output);
       // A refused tool call is not an error: the model is told why and is
       // expected to recover. It still needs to be visible when a turn goes

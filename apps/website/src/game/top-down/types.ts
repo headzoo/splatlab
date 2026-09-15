@@ -17,6 +17,10 @@ export type MazeMapObject = {
   wanderRadiusTiles?: number;
   contactDamage?: number;
   target?: "nearest_player";
+  effect?: "damage";
+  damage?: number;
+  animationStartFrame?: number;
+  collision?: "solid";
   motion?: MotionSpec;
 };
 

@@ -49,13 +49,13 @@ import {
   activePlayerAssetId,
   defaultGameTitle,
   DEFAULT_GAME_DOCUMENT,
+  gameDocumentSchema,
   type ArtWorldId,
   type GameDocument,
   type SavedGameDto,
 } from "@/lib/game-contract";
 import {
   applyCooperSpecChange,
-  specChangeFrom,
   type CooperSpecChange,
 } from "@/lib/cooper-spec-change";
 import { GameObjectEditError } from "@/lib/game-objects";
@@ -74,8 +74,22 @@ import {
   gameHistoryReducer,
   sameGameDocument,
 } from "@/lib/game-history";
+import type { MapLength } from "@/lib/game-contract";
 
-import { reconcilePersistedGame, useBuildSetup } from "./build-setup";
+import {
+  activeMapRollLength,
+  interpretMapRollResponse,
+  mergeBuilderSetupChange,
+  needsMapRollDiscardConfirmation,
+  rolledSpecFromOutcome,
+  serializeMapRollStart,
+} from "./build-map-roll";
+import {
+  reconcilePersistedGame,
+  type MapRollAttempt,
+  type MapRollSetupCompletion,
+  useBuildSetup,
+} from "./build-setup";
 import { BuildObjectToolbox } from "./build-object-toolbox";
 import { BuildTools } from "./build-tools";
 import styles from "./build.module.css";
@@ -228,6 +242,7 @@ export function BuildGamePreview({
     persistedBuildTurn,
     publishGameIdentity,
     publishDisplayedGame,
+    registerMapRollHandler,
     openLevelPicker,
     closeLevelPicker,
   } = useBuildSetup();
@@ -275,8 +290,14 @@ export function BuildGamePreview({
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [sharePlayUrl, setSharePlayUrl] = useState("");
   const [shareUrlCopied, setShareUrlCopied] = useState(false);
+  const [mapRollInProgress, setMapRollInProgress] = useState(false);
+  const [mapRollConfirmOpen, setMapRollConfirmOpen] = useState(false);
+  const [mapRollError, setMapRollError] = useState("");
+  const [previewEpoch, setPreviewEpoch] = useState(0);
   const levelDialogRef = useRef<HTMLDialogElement>(null);
   const shareDialogRef = useRef<HTMLDialogElement>(null);
+  const mapRollConfirmDialogRef = useRef<HTMLDialogElement>(null);
+  const mapRollInProgressRef = useRef(false);
   const levelNameDialogRef = useRef<HTMLDialogElement>(null);
   const levelNameInputRef = useRef<HTMLInputElement>(null);
   const levelSettingsDialogRef = useRef<HTMLDialogElement>(null);
@@ -320,7 +341,7 @@ export function BuildGamePreview({
     publicRef.current = isPublic;
     setGameSettingsPublic(isPublic);
   }, []);
-  const savePromiseRef = useRef<Promise<void> | null>(null);
+  const savePromiseRef = useRef<Promise<boolean> | null>(null);
   const thumbnailSavePromiseRef = useRef<Promise<void> | null>(null);
   const savedThumbnailGameIdsRef = useRef(new Set(
     initialGame?.thumbnailDataUrl ? [initialGame.id] : [],
@@ -334,14 +355,33 @@ export function BuildGamePreview({
     },
     [],
   );
+  const adoptAuthoritativeSpec = useCallback((spec: GameDocument) => {
+    const previous = latestSpecRef.current;
+    latestSpecRef.current = spec;
+    dispatch({ type: "setup", spec });
+    if (
+      previous.platformerMapSource !== spec.platformerMapSource
+      || previous.mazeMapSource !== spec.mazeMapSource
+      || JSON.stringify(previous.generatedPlatformerMaps)
+        !== JSON.stringify(spec.generatedPlatformerMaps)
+      || JSON.stringify(previous.generatedMazeMaps) !== JSON.stringify(spec.generatedMazeMaps)
+    ) {
+      setPreviewEpoch((value) => value + 1);
+    }
+  }, []);
+
   const commit = useCallback(
     (
       change: Partial<
         Pick<
           GameDocument,
           | "previewKind"
+          | "mapStyle"
+          | "mapLength"
           | "platformerMapSource"
           | "mazeMapSource"
+          | "generatedPlatformerMaps"
+          | "generatedMazeMaps"
           | "platformerLevels"
           | "mazeLevels"
           | "playerCharacter"
@@ -358,9 +398,11 @@ export function BuildGamePreview({
         >
       >,
     ) => {
-      dispatch({ type: "edit", spec: { ...history.present, ...change } });
+      const spec = mergeBuilderSetupChange(latestSpecRef.current, change);
+      latestSpecRef.current = spec;
+      dispatch({ type: "edit", spec });
     },
-    [history.present],
+    [],
   );
 
   useEffect(() => {
@@ -401,16 +443,19 @@ export function BuildGamePreview({
 
     const identity = identityRef.current;
     const savedSpec = savedSpecRef.current ?? latestSpecRef.current;
-    const fallbackServerSpec = {
+    let fallbackServerSpec: GameDocument = {
       ...savedSpec,
       builderChatHistory: persistedBuildTurn.chatHistory,
       ...(persistedBuildTurn.physicsDocument
         ? { physicsDocument: persistedBuildTurn.physicsDocument }
         : {}),
-      ...(persistedBuildTurn.specChange
-        ? applyCooperSpecChange(savedSpec, persistedBuildTurn.specChange)
-        : {}),
     };
+    if (persistedBuildTurn.mapRoll) {
+      fallbackServerSpec = rolledSpecFromOutcome(fallbackServerSpec, persistedBuildTurn.mapRoll);
+    }
+    if (persistedBuildTurn.specChange) {
+      fallbackServerSpec = applyCooperSpecChange(fallbackServerSpec, persistedBuildTurn.specChange);
+    }
 
     identityRef.current = { ...identity, revision: persistedBuildTurn.revision };
     savedSpecRef.current = fallbackServerSpec;
@@ -421,6 +466,10 @@ export function BuildGamePreview({
       latestSpecRef.current,
     );
     dispatch({ type: "chat", turns: fallbackServerSpec.builderChatHistory });
+    if (persistedBuildTurn.mapRoll) {
+      dispatch({ type: "mapRoll", change: persistedBuildTurn.mapRoll.change });
+      adoptAuthoritativeSpec(fallbackServerSpec);
+    }
     if (persistedBuildTurn.physicsDocument) {
       dispatch({ type: "physics", document: persistedBuildTurn.physicsDocument });
     }
@@ -447,14 +496,40 @@ export function BuildGamePreview({
       latestSpecRef.current = reconciled;
       dispatch({ type: "chat", turns: game.spec.builderChatHistory });
       dispatch({ type: "physics", document: game.spec.physicsDocument });
-      // The reconciled document, not the raw server one: Cooper and the level
-      // editor both own these fields now, so a level the kid added while the
-      // turn was in flight must not be thrown away by the confirming fetch.
-      dispatch({ type: "specChange", change: specChangeFrom(reconciled) });
+      // The reconciled document, not Cooper's field subset: generated maps are
+      // server-owned and specChangeFrom would leave the preview on the donor.
+      adoptAuthoritativeSpec(reconciled);
     })();
-  }, [adoptServerTitle, adoptServerVisibility, persistedBuildTurn]);
+  }, [adoptAuthoritativeSpec, adoptServerTitle, adoptServerVisibility, persistedBuildTurn]);
 
-  const persistLatest = useCallback(() => {
+  const reloadGameFromServer = useCallback(async () => {
+    const identity = identityRef.current;
+    if (!identity) return;
+
+    const response = await fetch(`/api/games/${encodeURIComponent(identity.id)}`, {
+      cache: "no-store",
+    });
+    const payload: unknown = await response.json().catch(() => null);
+    if (!response.ok || !payload || typeof payload !== "object" || !("game" in payload)) return;
+
+    const game = (payload as { game: SavedGameDto }).game;
+    if (game.id !== identity.id) return;
+
+    const latest = latestSpecRef.current;
+    const persisted = savedSpecRef.current ?? latest;
+    const reconciled = reconcilePersistedGame(game.spec, persisted, latest);
+    identityRef.current = { id: game.id, revision: game.revision };
+    savedSpecRef.current = game.spec;
+    adoptServerTitle(game.title);
+    adoptServerVisibility(game.isPublic);
+    latestSpecRef.current = reconciled;
+    dispatch({ type: "chat", turns: game.spec.builderChatHistory });
+    dispatch({ type: "physics", document: game.spec.physicsDocument });
+    adoptAuthoritativeSpec(reconciled);
+  }, [adoptAuthoritativeSpec, adoptServerTitle, adoptServerVisibility]);
+
+  const persistLatest = useCallback((): Promise<boolean> => {
+    if (mapRollInProgressRef.current) return Promise.resolve(false);
     if (savePromiseRef.current) return savePromiseRef.current;
 
     const savePromise = (async () => {
@@ -472,7 +547,7 @@ export function BuildGamePreview({
           sameGameDocument(savedSpecRef.current, spec)
         ) {
           setSaveStatus("saved");
-          return;
+          return true;
         }
 
         setSaveStatus("saving");
@@ -522,13 +597,13 @@ export function BuildGamePreview({
           }
           setSaveStatus("error");
           setSaveError(errorMessage(payload, "We couldn't save your game."));
-          return;
+          return false;
         }
 
         const savedGame = (payload as { game: SavedGameDto }).game;
         const nextIdentity = { id: savedGame.id, revision: savedGame.revision };
         identityRef.current = nextIdentity;
-        savedSpecRef.current = spec;
+        savedSpecRef.current = savedGame.spec;
         savedTitleRef.current = savedGame.title;
         savedPublicRef.current = savedGame.isPublic;
         setSavedGamePublic(savedGame.isPublic);
@@ -539,6 +614,11 @@ export function BuildGamePreview({
           showTitle(savedGame.title);
         }
         publishGameIdentity(nextIdentity);
+        // A ready-made transition removes server-owned generated records. Use
+        // the committed document so no local campaign level outlives its map.
+        if (!sameGameDocument(savedGame.spec, spec)) {
+          adoptAuthoritativeSpec(savedGame.spec);
+        }
 
         if (!identity && window.location.pathname === "/build") {
           window.history.replaceState(
@@ -555,7 +635,7 @@ export function BuildGamePreview({
           publicRef.current === savedGame.isPublic
         ) {
           setSaveStatus("saved");
-          return;
+          return true;
         }
       }
     })()
@@ -564,6 +644,7 @@ export function BuildGamePreview({
         setSaveError(
           error instanceof Error ? error.message : "We couldn't save your game.",
         );
+        return false;
       })
       .finally(() => {
         savePromiseRef.current = null;
@@ -571,7 +652,151 @@ export function BuildGamePreview({
 
     savePromiseRef.current = savePromise;
     return savePromise;
-  }, [adoptServerTitle, adoptServerVisibility, publishGameIdentity]);
+  }, [adoptAuthoritativeSpec, adoptServerTitle, adoptServerVisibility, publishGameIdentity]);
+
+  const executeMapRoll = useCallback(async (
+    length: MapLength,
+    options: {
+      reason: "setup" | "reroll";
+      confirmDiscardEdits: boolean;
+      completion?: MapRollSetupCompletion;
+    },
+  ): Promise<MapRollAttempt> => {
+    const start = await serializeMapRollStart(
+      persistLatest,
+      mapRollInProgressRef,
+    );
+    if (start === "already_in_progress") {
+      return { success: false, message: "A map roll is already in progress." };
+    }
+    if (start === "persistence_failed") {
+      const message = "We couldn't save your game. Please try again.";
+      setMapRollError(message);
+      return { success: false, message };
+    }
+
+    setMapRollInProgress(true);
+    setMapRollError("");
+    try {
+      const identity = identityRef.current;
+      if (!identity) {
+        return { success: false, message: "Your game is still saving. Please try again." };
+      }
+
+      const response = await fetch(
+        `/api/games/${encodeURIComponent(identity.id)}/map-roll`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            length,
+            reason: options.reason,
+            confirmDiscardEdits: options.confirmDiscardEdits,
+            expectedRevision: identity.revision,
+          }),
+        },
+      );
+      const payload: unknown = await response.json().catch(() => null);
+      const outcome = interpretMapRollResponse(response.status, payload);
+
+      if (outcome.status === "confirmation_required") {
+        setMapRollConfirmOpen(true);
+        return { success: false, message: outcome.message };
+      }
+      if (outcome.status === "conflict") {
+        await reloadGameFromServer();
+        setMapRollError(outcome.message);
+        return { success: false, message: outcome.message };
+      }
+      if (outcome.status === "error") {
+        if (response.ok) {
+          await reloadGameFromServer();
+          if (options.completion) {
+            const recovered = gameDocumentSchema.parse({
+              ...latestSpecRef.current,
+              ...options.completion,
+              mapLength: length,
+            });
+            adoptAuthoritativeSpec(recovered);
+          }
+          setEditorSelection(EMPTY_PLATFORMER_EDITOR_SELECTION);
+          setPlatformerPlaying(false);
+          return { success: true };
+        }
+        setMapRollError(outcome.message);
+        return { success: false, message: outcome.message };
+      }
+
+      try {
+        const beforeRoll = latestSpecRef.current;
+        const rolledSpec = rolledSpecFromOutcome(
+          beforeRoll,
+          outcome.result,
+          options.completion
+            ? { ...options.completion, mapLength: length }
+            : { mapLength: length },
+        );
+        const savedBeforeRoll = savedSpecRef.current ?? beforeRoll;
+        savedSpecRef.current = rolledSpecFromOutcome(savedBeforeRoll, outcome.result, {
+          mapLength: length,
+        });
+        identityRef.current = { id: identity.id, revision: outcome.result.revision };
+        publishGameIdentity(identityRef.current);
+        dispatch({ type: "mapRoll", change: outcome.result.change });
+        adoptAuthoritativeSpec(rolledSpec);
+        setEditorSelection(EMPTY_PLATFORMER_EDITOR_SELECTION);
+        setPlatformerPlaying(false);
+        return { success: true };
+      } catch {
+        await reloadGameFromServer();
+        if (options.completion) {
+          const recovered = gameDocumentSchema.parse({
+            ...latestSpecRef.current,
+            ...options.completion,
+            mapLength: length,
+          });
+          adoptAuthoritativeSpec(recovered);
+        }
+        setEditorSelection(EMPTY_PLATFORMER_EDITOR_SELECTION);
+        setPlatformerPlaying(false);
+        return { success: true };
+      }
+    } catch {
+      const message = "We couldn't make that map. Please try again.";
+      setMapRollError(message);
+      return { success: false, message };
+    } finally {
+      mapRollInProgressRef.current = false;
+      setMapRollInProgress(false);
+    }
+  }, [adoptAuthoritativeSpec, persistLatest, publishGameIdentity, reloadGameFromServer]);
+
+  useEffect(() => {
+    registerMapRollHandler(async (length, completion) => executeMapRoll(length, {
+      reason: "setup",
+      confirmDiscardEdits: false,
+      completion,
+    }));
+    return () => registerMapRollHandler(null);
+  }, [executeMapRoll, registerMapRollHandler]);
+
+  const beginMapReroll = useCallback(() => {
+    if (!gameIdentity || mapRollInProgress) return;
+
+    const length = activeMapRollLength(history.present);
+    if (needsMapRollDiscardConfirmation(history.present)) {
+      setMapRollConfirmOpen(true);
+      return;
+    }
+
+    void executeMapRoll(length, { reason: "reroll", confirmDiscardEdits: false });
+  }, [executeMapRoll, gameIdentity, history.present, mapRollInProgress]);
+
+  const confirmMapReroll = useCallback(() => {
+    setMapRollConfirmOpen(false);
+    const length = activeMapRollLength(latestSpecRef.current);
+    void executeMapRoll(length, { reason: "reroll", confirmDiscardEdits: true });
+  }, [executeMapRoll]);
 
   useEffect(() => {
     if (
@@ -588,7 +813,7 @@ export function BuildGamePreview({
 
     const saveThumbnail = async () => {
       latestSpecRef.current = history.present;
-      await persistLatest();
+      if (!await persistLatest()) return;
       const identity = identityRef.current;
       if (!identity || savedThumbnailGameIdsRef.current.has(identity.id)) return;
 
@@ -731,6 +956,13 @@ export function BuildGamePreview({
     if (!shareDialogOpen && dialog.open) dialog.close();
   }, [shareDialogOpen]);
 
+  useEffect(() => {
+    const dialog = mapRollConfirmDialogRef.current;
+    if (!dialog) return;
+    if (mapRollConfirmOpen && !dialog.open) dialog.showModal();
+    if (!mapRollConfirmOpen && dialog.open) dialog.close();
+  }, [mapRollConfirmOpen]);
+
   const playHref = gameIdentity && savedGamePublic
     ? playGamePath(gameIdentity.id)
     : null;
@@ -766,6 +998,25 @@ export function BuildGamePreview({
   }, [sharePlayUrl]);
 
   const { previewKind } = history.present;
+
+  useEffect(() => {
+    if (previewKind !== "platformer" || platformerPlaying) return;
+
+    const deactivatePaletteTool = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (mapAreaRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest(`.${styles.mapTool}`)) return;
+
+      setActiveTool((tool) => (
+        isPlatformerPalettePaintTool(tool) ? "select" : tool
+      ));
+    };
+
+    document.addEventListener("click", deactivatePaletteTool);
+    return () => document.removeEventListener("click", deactivatePaletteTool);
+  }, [previewKind, platformerPlaying]);
+
   const campaignMaps = useMemo(
     () => gameCampaignMaps(history.present, maps),
     [history.present, maps],
@@ -1002,24 +1253,6 @@ export function BuildGamePreview({
   const canZoomIn = zoomEnabled && canStepEditorZoom(current.map, clampedEditorZoom, "in");
   const canResetZoom = zoomEnabled && clampedEditorZoom < 1;
 
-  useEffect(() => {
-    if (previewKind !== "platformer" || platformerPlaying) return;
-
-    const deactivatePaletteTool = (event: MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (mapAreaRef.current?.contains(target)) return;
-      if (target instanceof Element && target.closest(`.${styles.mapTool}`)) return;
-
-      setActiveTool((tool) => (
-        isPlatformerPalettePaintTool(tool) ? "select" : tool
-      ));
-    };
-
-    document.addEventListener("click", deactivatePaletteTool);
-    return () => document.removeEventListener("click", deactivatePaletteTool);
-  }, [previewKind, platformerPlaying]);
-
   return (
     <>
       <header className={styles.previewHeading}>
@@ -1074,19 +1307,35 @@ export function BuildGamePreview({
           <div className={styles.historyControls} aria-label="Edit history">
             <button
               type="button"
-              disabled={history.past.length === 0}
+              disabled={history.past.length === 0 || mapRollInProgress}
               onClick={() => dispatch({ type: "undo" })}
             >
               ↶ Undo
             </button>
             <button
               type="button"
-              disabled={history.future.length === 0}
+              disabled={history.future.length === 0 || mapRollInProgress}
               onClick={() => dispatch({ type: "redo" })}
             >
               Redo ↷
             </button>
           </div>
+          <button
+            className={styles.mapRollButton}
+            type="button"
+            disabled={!gameIdentity || mapRollInProgress || platformerPlaying}
+            aria-busy={mapRollInProgress}
+            title={
+              !gameIdentity
+                ? "Re-roll will be available after this game saves"
+                : platformerPlaying
+                  ? "Pause the game to re-roll the map"
+                  : "Generate a different random map for this level"
+            }
+            onClick={beginMapReroll}
+          >
+            {mapRollInProgress ? "Re-rolling…" : "Re-roll map"}
+          </button>
           <div className={styles.zoomControls} aria-label="Map zoom">
             <button
               type="button"
@@ -1124,6 +1373,7 @@ export function BuildGamePreview({
       </header>
 
       <GamePlayer
+        key={`${history.present.platformerMapSource}:${history.present.mazeMapSource}:${previewEpoch}`}
         spec={history.present}
         maps={maps}
         mazes={mazes}
@@ -1163,7 +1413,7 @@ export function BuildGamePreview({
       <BuildTools
         activeTool={activeTool}
         presentation={editableObjectMap.presentation}
-        disabled={previewKind !== "platformer" || platformerPlaying}
+        disabled={previewKind !== "platformer" || platformerPlaying || mapRollInProgress}
         disabledMessage={
           platformerPlaying
             ? "Pause the game to add blocks and objects."
@@ -1289,6 +1539,45 @@ export function BuildGamePreview({
           >
             {shareUrlCopied ? "Copied!" : "Copy link"}
           </button>
+        </div>
+      </dialog>
+
+      <dialog
+        className={styles.levelDialog}
+        ref={mapRollConfirmDialogRef}
+        aria-labelledby="map-roll-confirm-title"
+        onClose={() => setMapRollConfirmOpen(false)}
+        onCancel={() => setMapRollConfirmOpen(false)}
+      >
+        <header>
+          <div>
+            <span>Map</span>
+            <h2 id="map-roll-confirm-title">Re-roll this map?</h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Close re-roll confirmation"
+            onClick={() => setMapRollConfirmOpen(false)}
+          >
+            ×
+          </button>
+        </header>
+        <div className={styles.mapRollConfirmBody}>
+          <p>
+            Re-rolling replaces this level&apos;s terrain and object edits with a
+            new random map. Your other levels stay the same.
+          </p>
+          {mapRollError ? (
+            <p className={styles.mapRollConfirmError}>{mapRollError}</p>
+          ) : null}
+          <div className={styles.mapRollConfirmActions}>
+            <button type="button" onClick={() => setMapRollConfirmOpen(false)}>
+              Keep my edits
+            </button>
+            <button type="button" onClick={confirmMapReroll}>
+              Discard edits and re-roll
+            </button>
+          </div>
         </div>
       </dialog>
 

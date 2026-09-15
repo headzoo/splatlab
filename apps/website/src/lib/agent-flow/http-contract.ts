@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type { CooperSpecChange } from "../game-objects";
 import type { GamePhysicsDocument } from "../game-physics";
+import type { MapRollSuccess } from "../cooper-spec-change";
 
 const visibleText = z.string().trim().min(1).max(500);
 
@@ -41,4 +42,6 @@ export type BuildTurnResponseBody = Readonly<{
    * write the old name back.
    */
   title?: string;
+  /** Present only when this turn rolled the active map. */
+  mapRoll?: MapRollSuccess;
 }>;

@@ -683,6 +683,75 @@
   gap: 7px;
 }
 
+.mapRollButton {
+  min-height: 27px;
+  padding: 0 10px;
+  color: #7a3f00;
+  background: #fff4df;
+  border: 1px solid #e8c27a;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
+  font: 800 9px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.mapRollButton:hover:not(:disabled) {
+  background: #ffeccb;
+}
+
+.mapRollButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.mapRollButton:focus-visible {
+  outline: 4px solid #ffd52e;
+  outline-offset: 2px;
+}
+
+.mapRollConfirmBody {
+  display: grid;
+  gap: 14px;
+  padding: 0 18px 18px;
+}
+
+.mapRollConfirmBody p {
+  margin: 0;
+  color: #3155a3;
+  font: 700 13px/1.45 "Nunito", sans-serif;
+}
+
+.mapRollConfirmError {
+  color: #b52d22;
+}
+
+.mapRollConfirmActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mapRollConfirmActions button {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font: 800 12px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.mapRollConfirmActions button:first-child {
+  color: #3155a3;
+  background: #edf4fb;
+  border: 1px solid #b6c9df;
+}
+
+.mapRollConfirmActions button:last-child {
+  color: #fff;
+  background: #c96a12;
+  border: 1px solid #a65308;
+}
+
 .previewMapControls {
   display: flex;
   align-items: center;

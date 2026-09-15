@@ -6,6 +6,7 @@ import {
   createGame,
   deleteGame,
   getGame,
+  getPlayableGame,
   getPublicGame,
   listGames,
   listPublicGames,
@@ -31,6 +32,9 @@ test("game CRUD is owner-scoped and revision guarded", async () => {
     assert.equal((await listGames("owner-a")).length, 1);
     assert.equal(await getGame("owner-b", created.id), null);
     assert.equal(await getPublicGame(created.id), null);
+    assert.equal(await getPlayableGame(created.id), null);
+    assert.equal((await getPlayableGame(created.id, "owner-a"))?.id, created.id);
+    assert.equal(await getPlayableGame(created.id, "owner-b"), null);
     assert.equal(created.isPublic, false);
     assert.equal(created.thumbnailDataUrl, null);
 

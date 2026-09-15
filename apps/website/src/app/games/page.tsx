@@ -22,7 +22,7 @@ export default async function GamesPage() {
     <main className={styles.page} id="main-content">
       <Image
         className={styles.pageBackground}
-        src="/brand/homepage/hero-background.png"
+        src="/brand/homepage/hero-background-clean.png"
         alt=""
         fill
         priority

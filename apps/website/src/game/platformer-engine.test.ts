@@ -8,6 +8,7 @@ import levelFour from "../../../game/maps/level-4.json";
 import levelFive from "../../../game/maps/level-5.json";
 import physics from "../../../game/game-physics/platformer_small_01.json";
 import shortSword from "../../../game/weapon-specs/short_sword_v1.json";
+import { generatePlatformerMap } from "../lib/random-map/platformer-generator";
 import {
   MAP_COMPLETION_DELAY_SECONDS,
   nextCampaignMapIndex,
@@ -80,6 +81,35 @@ const idleInput = {
   jumpHeld: false,
   weaponPressed: false,
 };
+
+test("the real engine initializes and steps a generated platformer map", () => {
+  const generated = generatePlatformerMap({
+    donor: map,
+    length: "short",
+    seed: "engine-integration",
+  });
+  let state = createInitialState(generated);
+  let jumped = false;
+  let landed = false;
+  const initialX = state.x;
+
+  for (let tick = 0; tick < 50; tick += 1) {
+    const result = stepPlatformer(generated, spec, state, {
+      ...idleInput,
+      moveX: 1,
+      jumpPressed: tick === 0,
+      jumpHeld: tick < 24,
+    }, weapon);
+    state = result.state;
+    jumped ||= result.events.some((event) => event.type === "jump");
+    landed ||= result.events.some((event) => event.type === "land");
+  }
+
+  assert.equal(jumped, true);
+  assert.equal(landed, true);
+  assert.equal(state.status, "playing");
+  assert.ok(state.x > initialX);
+});
 
 test("campaign maps advance after the three-second completion window", () => {
   assert.equal(MAP_COMPLETION_DELAY_SECONDS, 3);

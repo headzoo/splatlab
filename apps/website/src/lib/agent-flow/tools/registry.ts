@@ -25,6 +25,7 @@ import {
   renameLevelTool,
   setActiveLevelTool,
 } from "./game-level-tools";
+import { rerollMapTool } from "./map-roll-tool";
 import type { AgentTool } from "./types";
 
 const TOOLS: ReadonlyMap<AgentToolId, AgentTool> = new Map([
@@ -46,6 +47,7 @@ const TOOLS: ReadonlyMap<AgentToolId, AgentTool> = new Map([
   [removeLevelTool.id as AgentToolId, removeLevelTool],
   [moveLevelTool.id as AgentToolId, moveLevelTool],
   [setActiveLevelTool.id as AgentToolId, setActiveLevelTool],
+  [rerollMapTool.id as AgentToolId, rerollMapTool],
 ]);
 
 export function getAgentTool(id: string): AgentTool {

@@ -450,17 +450,14 @@ export function WorkspaceClient() {
             ) : (
               <div className={styles.gameGrid}>
                 {games.map((game) => {
-                  const previewHref = game.isPublic
-                    ? playGamePath(game.id)
-                    : buildGamePath(game.id);
-                  const previewLabel = game.isPublic ? "Play" : "Preview";
+                  const playHref = playGamePath(game.id);
 
                   return (
                     <article className={styles.gameCard} key={game.id}>
                       <Link
                         className={styles.gameCardTopper}
-                        href={previewHref}
-                        aria-label={`${previewLabel} ${game.title}`}
+                        href={playHref}
+                        aria-label={`Play ${game.title}`}
                       >
                         {game.thumbnailDataUrl ? (
                           <Image
@@ -491,9 +488,9 @@ export function WorkspaceClient() {
                       <div className={styles.gameCardActions}>
                         <Link
                           className={`${styles.gameCardButton} ${styles.gameCardPlay}`}
-                          href={previewHref}
+                          href={playHref}
                         >
-                          {previewLabel}
+                          Play
                         </Link>
                         <Link
                           className={`${styles.gameCardButton} ${styles.gameCardEdit}`}

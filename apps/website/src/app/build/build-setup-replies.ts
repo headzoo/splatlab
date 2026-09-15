@@ -1,4 +1,9 @@
-import type { GamePreviewKind, GameTheme } from "@/lib/game-contract";
+import type {
+  GamePreviewKind,
+  GameTheme,
+  MapLength,
+  MapStyle,
+} from "@/lib/game-contract";
 
 import setupChoiceReplies from "./cooper-setup-choice-replies.json";
 
@@ -10,6 +15,8 @@ export type SetupChoiceReplyValue<Q extends SetupChoiceReplyQuestion> =
 export const cooperSetupChoiceReplies = setupChoiceReplies satisfies {
   gameType: Record<GamePreviewKind, string>;
   theme: Record<GameTheme, string>;
+  mapStyle: Record<MapStyle, string>;
+  mapLength: Record<MapLength, string>;
 };
 
 export function setupChoiceReplyFor(
@@ -19,6 +26,14 @@ export function setupChoiceReplyFor(
 export function setupChoiceReplyFor(
   question: "theme",
   value: GameTheme | null,
+): string | null;
+export function setupChoiceReplyFor(
+  question: "mapStyle",
+  value: MapStyle | null,
+): string | null;
+export function setupChoiceReplyFor(
+  question: "mapLength",
+  value: MapLength | null,
 ): string | null;
 export function setupChoiceReplyFor(
   question: SetupChoiceReplyQuestion,

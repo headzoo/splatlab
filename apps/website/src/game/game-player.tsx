@@ -189,7 +189,7 @@ export function GamePlayer({
 
   return isMaze ? (
     <MazeGame
-      key={`${currentMaze.map.id}:${currentMaze.map.revision}:${playerAssetId}:${spec.skinTone}:${spec.hairColor}`}
+      key={`${currentMaze.source}:${currentMaze.map.id}:${currentMaze.map.revision}:${playerAssetId}:${spec.skinTone}:${spec.hairColor}`}
       map={currentMaze.map}
       playerAssetId={playerAssetId}
       skinTone={spec.skinTone}
@@ -206,7 +206,7 @@ export function GamePlayer({
     />
   ) : (
     <PlatformerGame
-      key={`${current.map.id}:${current.map.revision}:${playerAssetId}:${spec.skinTone}:${spec.hairColor}:${activePhysics.id}@${activePhysics.revision}`}
+      key={`${current.source}:${current.map.id}:${current.map.revision}:${playerAssetId}:${spec.skinTone}:${spec.hairColor}:${activePhysics.id}@${activePhysics.revision}`}
       map={platformerMap}
       physics={activePhysics}
       weapon={weapon}

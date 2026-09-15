@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { DEFAULT_GAME_DOCUMENT } from "@/lib/game-contract";
+import { DEFAULT_GAME_DOCUMENT, gameDocumentSchema } from "@/lib/game-contract";
 
 import { GAME_PLAYER_CONTENT } from "./game-player-content";
 import { gameCampaignMaps } from "./game-levels";
@@ -72,6 +72,37 @@ test("a game-created level clones its approved theme as an independent map", () 
     platformerTerrainKindAt(edited, 1, 1),
     platformerTerrainKindAt(template.map, 1, 1),
   );
+});
+
+test("a materialized generated map takes precedence over its catalog donor", () => {
+  const source = "custom-platformer-gen-test-roll";
+  const spec = gameDocumentSchema.parse({
+    ...DEFAULT_GAME_DOCUMENT,
+    mapStyle: "generated",
+    platformerMapSource: source,
+    generatedPlatformerMaps: [{
+      source,
+      templateSource: "level-1.json",
+      length: "medium",
+      generatorVersion: "test-v1",
+      map: {
+        schemaVersion: 1, id: source, revision: 1, runtime: "platformer_v1", tileSize: 64,
+        size: { columns: 2, rows: 2 }, camera: { columns: 2, rows: 2 },
+        physics: { gravityScale: 1 }, rules: { respawnDelaySeconds: 1 },
+        presentation: { backgroundId: "neutral_green_hills_01" },
+        legend: { ".": { visualSlot: "empty", collision: "none" } },
+        layers: [{ id: "terrain", rows: ["..", ".."] }],
+        objects: [
+          { id: "spawn", type: "player_spawn", x: 0, y: 0, speedPxPerSecond: 320, motion: { version: 1, travel: { type: "controlled" }, visual: { type: "none" } } },
+          { id: "goal", type: "goal", x: 1, y: 1 },
+        ],
+      },
+    }],
+  });
+  const resolved = gameCampaignMaps(spec, GAME_PLAYER_CONTENT.maps);
+
+  assert.deepEqual(resolved.map((level) => level.source), [source]);
+  assert.equal(resolved[0]?.map.id, source);
 });
 
 test("a game exposes only its active starting level and added levels", () => {

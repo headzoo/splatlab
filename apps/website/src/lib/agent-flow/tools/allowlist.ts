@@ -18,6 +18,7 @@ export const AGENT_TOOL_IDS = [
   "remove_level",
   "move_level",
   "set_active_level",
+  "reroll_map",
 ] as const;
 
 export type AgentToolId = (typeof AGENT_TOOL_IDS)[number];

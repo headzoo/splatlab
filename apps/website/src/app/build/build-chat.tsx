@@ -7,6 +7,8 @@ import type { CSSProperties, FormEvent } from "react";
 import {
   playerAssetIdFor,
   type GamePreviewKind,
+  type MapLength,
+  type MapStyle,
   type GameSetupQuestion,
   type GameSetupStep,
   type GameTheme,
@@ -46,6 +48,27 @@ const themes = [
   { value: "dragon_world", label: "Dragon World", icon: "🐉", tone: "yellow" },
 ] as const satisfies ReadonlyArray<{
   value: GameTheme;
+  label: string;
+  icon: string;
+  tone: string;
+}>;
+
+const mapStyles = [
+  { value: "ready_made", label: "Ready-made map", icon: "🗺️", tone: "blue" },
+  { value: "generated", label: "Random map", icon: "🎲", tone: "purple" },
+] as const satisfies ReadonlyArray<{
+  value: MapStyle;
+  label: string;
+  icon: string;
+  tone: string;
+}>;
+
+const mapLengths = [
+  { value: "short", label: "Short map", icon: "🐣", tone: "yellow" },
+  { value: "medium", label: "Medium map", icon: "🐔", tone: "coral" },
+  { value: "long", label: "Long map", icon: "🏃", tone: "navy" },
+] as const satisfies ReadonlyArray<{
+  value: MapLength;
   label: string;
   icon: string;
   tone: string;
@@ -153,6 +176,8 @@ export function BuildChat() {
     setupQuestionHistory,
     selectGameType,
     selectTheme,
+    selectMapStyle,
+    rollGeneratedMap,
     selectCharacter,
     selectHumanGender,
     selectSkinTone,
@@ -191,6 +216,8 @@ export function BuildChat() {
   const gameNameOptions = buildGameNameOptions(selections);
   const gameTypeReply = setupChoiceReplyFor("gameType", selections.gameType);
   const themeReply = setupChoiceReplyFor("theme", selections.theme);
+  const mapStyleReply = setupChoiceReplyFor("mapStyle", selections.mapStyle);
+  const mapLengthReply = setupChoiceReplyFor("mapLength", selections.mapLength);
   const completionTurnCount = chatReady ? 1 : 0;
   const overflowTurns = Math.max(
     0,
@@ -283,6 +310,56 @@ export function BuildChat() {
     }
 
     selectCharacter(character);
+  }
+
+  async function chooseMapLength(mapLength: MapLength) {
+    if (
+      currentQuestion !== "mapLength" ||
+      setupComplete ||
+      thinking ||
+      isTransitioningRef.current
+    ) return;
+
+    isTransitioningRef.current = true;
+    setThinking(true);
+    setTurnError("");
+    const outcome = await rollGeneratedMap(mapLength);
+    if (outcome.success) {
+      setCurrentQuestion("character");
+      setAskedQuestions((current) =>
+        current.includes("character") ? current : [...current, "character"],
+      );
+    } else {
+      setTurnError(outcome.message ?? "We couldn't make that map. Please try again.");
+    }
+    setThinking(false);
+    isTransitioningRef.current = false;
+  }
+
+  function chooseMapStyle(mapStyle: MapStyle) {
+    const next = mapStyle === "generated" ? "mapLength" : "character";
+    if (currentQuestion === "mapStyle") {
+      answerCurrentQuestion(
+        () => selectMapStyle(mapStyle, next),
+        next,
+      );
+      return;
+    }
+    if (mapStyle === "generated" && currentQuestion !== "mapLength") {
+      answerCurrentQuestion(
+        () => selectMapStyle(mapStyle, "mapLength"),
+        "mapLength",
+      );
+      return;
+    }
+    if (currentQuestion === "mapLength" && mapStyle === "ready_made") {
+      answerCurrentQuestion(
+        () => selectMapStyle(mapStyle, "character"),
+        "character",
+      );
+      return;
+    }
+    selectMapStyle(mapStyle);
   }
 
   async function postBuildTurn(
@@ -430,7 +507,7 @@ export function BuildChat() {
                     chooseSetupOption(
                       "theme",
                       (nextStep) => selectTheme(theme.value, nextStep),
-                      "character",
+                      "mapStyle",
                     )
                   }
                 >
@@ -446,6 +523,60 @@ export function BuildChat() {
 
         {visibleQuestionSet.has("theme") && themeReply ? (
           <CooperQuestion>{themeReply}</CooperQuestion>
+        ) : null}
+
+        {visibleQuestionSet.has("mapStyle") ? (
+          <>
+            <CooperQuestion>Would you like a ready-made map or a random map?</CooperQuestion>
+            <div className={styles.choiceGrid} aria-label="Choose a map style">
+              {mapStyles.map((mapStyle) => (
+                <button
+                  type="button"
+                  className={`${styles.choiceCard} ${styles[mapStyle.tone]} ${selections.mapStyle === mapStyle.value ? styles.selected : ""}`}
+                  key={mapStyle.value}
+                  aria-pressed={selections.mapStyle === mapStyle.value}
+                  disabled={setupComplete || thinking}
+                  onClick={() => chooseMapStyle(mapStyle.value)}
+                >
+                  <span className={styles.choiceIcon} aria-hidden="true">
+                    {mapStyle.icon}
+                  </span>
+                  <strong>{mapStyle.label}</strong>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {visibleQuestionSet.has("mapStyle") && mapStyleReply ? (
+          <CooperQuestion>{mapStyleReply}</CooperQuestion>
+        ) : null}
+
+        {visibleQuestionSet.has("mapLength") ? (
+          <>
+            <CooperQuestion>How long should your random map be?</CooperQuestion>
+            <div className={styles.choiceGrid} aria-label="Choose a map length">
+              {mapLengths.map((mapLength) => (
+                <button
+                  type="button"
+                  className={`${styles.choiceCard} ${styles[mapLength.tone]} ${selections.mapLength === mapLength.value ? styles.selected : ""}`}
+                  key={mapLength.value}
+                  aria-pressed={selections.mapLength === mapLength.value}
+                  disabled={setupComplete || thinking}
+                  onClick={() => void chooseMapLength(mapLength.value)}
+                >
+                  <span className={styles.choiceIcon} aria-hidden="true">
+                    {mapLength.icon}
+                  </span>
+                  <strong>{mapLength.label}</strong>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {visibleQuestionSet.has("mapLength") && mapLengthReply ? (
+          <CooperQuestion>{mapLengthReply}</CooperQuestion>
         ) : null}
 
         {visibleQuestionSet.has("character") ? (

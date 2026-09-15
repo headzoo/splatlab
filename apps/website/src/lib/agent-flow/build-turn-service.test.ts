@@ -300,6 +300,51 @@ test("mapBuildTurnFailure maps service errors to stable HTTP statuses", () => {
   });
 });
 
+class RerollModelClient implements ModelClient {
+  private calls = 0;
+
+  async completeTurn() {
+    this.calls += 1;
+    return this.calls === 1
+      ? {
+          text: "",
+          toolCalls: [{
+            callId: "call-reroll",
+            name: "reroll_map",
+            argumentsJson: JSON.stringify({ confirmDiscardEdits: false }),
+          }],
+          items: [],
+        }
+      : { text: "Here is a different map.", toolCalls: [], items: [] };
+  }
+
+  async selectScenario() {
+    return "Ready";
+  }
+}
+
+test("processBuildTurn puts a map roll on the wire for the builder", async () => {
+  resetMemory();
+  const game = await createGame("owner-a", { title: "Test game", spec: DEFAULT_GAME_DOCUMENT });
+
+  const result = await processBuildTurn(
+    { ownerId: "owner-a", gameId: game.id, input: { message: "Give me a different map" } },
+    {
+      modelClient: new RerollModelClient(),
+      moderator: ALLOW_ALL_MODERATOR,
+      runStore: new AgentFlowRunStore({ forceMemory: true }),
+      rateLimiter: new AgentflowRateLimiter({ forceMemory: true }),
+    },
+  );
+
+  assert.equal(result.kind, "success");
+  if (result.kind !== "success") return;
+
+  assert.ok(result.body.mapRoll);
+  assert.match(result.body.mapRoll.change.platformerMapSource ?? "", /^custom-platformer-gen-/);
+  assert.equal(globalThis.splatLabGamesMemory?.[0]?.spec.mapStyle, "generated");
+});
+
 test("processBuildTurn returns 404 for another owner's game", async () => {
   resetMemory();
   const game = await createGame("owner-a", { title: "Test game", spec: DEFAULT_GAME_DOCUMENT });

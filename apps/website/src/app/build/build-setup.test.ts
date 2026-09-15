@@ -2,11 +2,26 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { GAME_PLAYER_CONTENT } from "@/game/game-player-content";
+import { gameCampaignMaps } from "@/game/game-levels";
 import { applyPlatformerObjectEdits } from "@/game/platformer/map-editing";
-import { DEFAULT_GAME_DOCUMENT } from "@/lib/game-contract";
+import { DEFAULT_GAME_DOCUMENT, type GameDocument } from "@/lib/game-contract";
 import { COOPER_OBJECT_KINDS } from "@/lib/game-objects";
 import { PLATFORMER_EDITABLE_PATHS } from "@/lib/game-physics";
 
+import { applyCooperSpecChange, mapRollChangeSchema, specChangeFrom } from "@/lib/cooper-spec-change";
+import { activeMapSource } from "@/lib/game-contract";
+import { createGame, getGame, updateGame } from "@/lib/games";
+import { createGameHistory, gameHistoryReducer } from "@/lib/game-history";
+import { rollGameMap } from "@/lib/random-map/map-roll";
+
+import {
+  activeMapRollLength,
+  interpretMapRollResponse,
+  mergeBuilderSetupChange,
+  needsMapRollDiscardConfirmation,
+  rolledSpecFromOutcome,
+  serializeMapRollStart,
+} from "./build-map-roll";
 import {
   buildGameNameOptions,
   parseBuildTurnResult,
@@ -93,6 +108,8 @@ test("a new unsaved game has no locked setup answers", () => {
   assert.deepEqual(setupSelectionsFromSpec(null), {
     gameType: null,
     theme: null,
+      mapStyle: null,
+      mapLength: null,
     character: null,
     humanGender: null,
     skinTone: null,
@@ -120,6 +137,8 @@ test("a partially completed game restores only its locked answers", () => {
     {
       gameType: "maze",
       theme: "space",
+      mapStyle: "ready_made",
+      mapLength: null,
       character: null,
       humanGender: null,
       skinTone: null,
@@ -146,6 +165,8 @@ test("a completed human setup restores gender and appearance answers", () => {
     {
       gameType: "platformer",
       theme: "graveyard",
+      mapStyle: "ready_made",
+      mapLength: null,
       character: "human",
       humanGender: "girl",
       skinTone: "skin_01",
@@ -165,6 +186,8 @@ test("a completed nonhuman setup does not expose unused human answers", () => {
     {
       gameType: "platformer",
       theme: "green_hills",
+      mapStyle: "ready_made",
+      mapLength: null,
       character: "robot",
       humanGender: null,
       skinTone: null,
@@ -174,7 +197,32 @@ test("a completed nonhuman setup does not expose unused human answers", () => {
   );
 });
 
-test("legacy games reconstruct their setup transcript from the saved step", () => {
+test("a generated setup awaiting length restores the map-length question", () => {
+  const spec: GameDocument = {
+    ...DEFAULT_GAME_DOCUMENT,
+    mapStyle: "generated" as const,
+    mapLength: "long" as const,
+    setupStep: "mapLength" as const,
+    builderSetupHistory: ["gameType", "theme", "mapStyle", "mapLength"],
+  };
+  assert.deepEqual(setupSelectionsFromSpec(spec), {
+    gameType: "platformer",
+    theme: "green_hills",
+    mapStyle: "generated",
+    mapLength: null,
+    character: null,
+    humanGender: null,
+    skinTone: null,
+    hairColor: null,
+    gameName: null,
+  });
+  assert.deepEqual(
+    setupQuestionHistoryFromSpec({ ...spec, builderSetupHistory: [] }),
+    ["gameType", "theme", "mapStyle", "mapLength"],
+  );
+});
+
+test("ready-made setups skip the map length question", () => {
   assert.deepEqual(
     setupQuestionHistoryFromSpec({
       ...DEFAULT_GAME_DOCUMENT,
@@ -182,7 +230,7 @@ test("legacy games reconstruct their setup transcript from the saved step", () =
       playerCharacter: "human",
       setupStep: "hairColor",
     }),
-    ["gameType", "theme", "character", "humanGender", "skinTone", "hairColor"],
+    ["gameType", "theme", "mapStyle", "character", "humanGender", "skinTone", "hairColor"],
   );
 });
 
@@ -193,7 +241,7 @@ test("a completed legacy setup transcript includes the name question", () => {
       builderSetupHistory: [],
       setupStep: "complete",
     }),
-    ["gameType", "theme", "character", "gameName"],
+    ["gameType", "theme", "mapStyle", "character", "gameName"],
   );
 });
 
@@ -214,9 +262,11 @@ test("game name choices are generated from the setup selections", () => {
   );
 });
 
-test("setup choice replies are mapped for game type and theme choices only", () => {
+test("setup choice replies cover game type, theme, style, and length", () => {
   assert.deepEqual(Object.keys(cooperSetupChoiceReplies).sort(), [
     "gameType",
+    "mapLength",
+    "mapStyle",
     "theme",
   ]);
   assert.deepEqual(Object.keys(cooperSetupChoiceReplies.gameType).sort(), [
@@ -232,6 +282,10 @@ test("setup choice replies are mapped for game type and theme choices only", () 
   assert.equal(
     setupChoiceReplyFor("theme", "space"),
     "Be careful, there's less gravity in space.",
+  );
+  assert.equal(
+    setupChoiceReplyFor("mapLength", "short"),
+    "Your short map is ready for a quick adventure.",
   );
 });
 
@@ -369,6 +423,430 @@ test("an object the kid erased is not resurrected by the server's copy", () => {
       reconciled.platformerObjectRemovals,
     ).objects.filter((object) => object.id === "cooper-coin-1"),
     [],
+  );
+});
+
+test("re-roll length comes from the active generated record or stored default", () => {
+  const generatedSource = "custom-platformer-gen-test-length";
+  const spec = {
+    ...DEFAULT_GAME_DOCUMENT,
+    mapLength: "medium" as const,
+    platformerMapSource: generatedSource,
+    generatedPlatformerMaps: [{
+      source: generatedSource,
+      templateSource: "level-1.json" as const,
+      length: "long" as const,
+      generatorVersion: "test-v1",
+      map: GAME_PLAYER_CONTENT.maps[0].map,
+    }],
+  };
+  assert.equal(activeMapRollLength(spec), "long");
+
+  const readyMade = {
+    ...DEFAULT_GAME_DOCUMENT,
+    mapLength: "short" as const,
+    platformerMapSource: "level-1.json" as const,
+  };
+  assert.equal(activeMapRollLength(readyMade), "short");
+});
+
+test("re-roll confirmation is required only when the active source has edits", () => {
+  const clean = DEFAULT_GAME_DOCUMENT;
+  const edited = {
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerTerrainEdits: [{
+      mapSource: "level-1.json" as const,
+      x: 1,
+      y: 1,
+      kind: "ground" as const,
+    }],
+  };
+  assert.equal(needsMapRollDiscardConfirmation(clean), false);
+  assert.equal(needsMapRollDiscardConfirmation(edited), true);
+});
+
+const TEST_ROLLED_PLATFORMER_MAP = {
+  schemaVersion: 1,
+  id: "rolled",
+  revision: 1,
+  runtime: "platformer_v1",
+  tileSize: 64,
+  size: { columns: 2, rows: 2 },
+  camera: { columns: 2, rows: 2 },
+  physics: { gravityScale: 1 },
+  rules: { respawnDelaySeconds: 1 },
+  presentation: { backgroundId: "neutral_green_hills_01" },
+  legend: { ".": { visualSlot: "empty", collision: "none" } },
+  layers: [{ id: "terrain", rows: ["..", ".."] }],
+  objects: [
+    {
+      id: "spawn",
+      type: "player_spawn",
+      x: 0,
+      y: 0,
+      speedPxPerSecond: 320,
+      motion: { version: 1, travel: { type: "controlled" }, visual: { type: "none" } },
+    },
+    { id: "goal", type: "goal", x: 1, y: 0 },
+  ],
+};
+
+test("specChangeFrom is not a preview adopt because it drops generated maps", () => {
+  const source = "custom-platformer-gen-preview-trap";
+  const rolledMap = {
+    ...TEST_ROLLED_PLATFORMER_MAP,
+    id: source,
+    layers: [{ id: "terrain", rows: ["^^", "##"] }],
+  };
+  const rolled: GameDocument = {
+    ...DEFAULT_GAME_DOCUMENT,
+    mapStyle: "generated",
+    platformerMapSource: source,
+    platformerLevels: [{ id: source, templateSource: "level-1.json", label: "Random map" }],
+    generatedPlatformerMaps: [{
+      source,
+      templateSource: "level-1.json",
+      length: "medium",
+      generatorVersion: "test-v1",
+      map: rolledMap,
+    }],
+  };
+
+  const trapped = applyCooperSpecChange(DEFAULT_GAME_DOCUMENT, specChangeFrom(rolled));
+  assert.equal(trapped.platformerMapSource, source);
+  assert.equal(trapped.generatedPlatformerMaps.length, 0);
+  const fallback = gameCampaignMaps(trapped, GAME_PLAYER_CONTENT.maps);
+  assert.equal(fallback[0]?.source, source);
+  assert.notEqual(fallback[0]?.map.layers[0]?.rows.join(""), "^^##");
+});
+
+test("adopting a roll via setup keeps the generated map body without a refetch", () => {
+  const source = "custom-platformer-gen-preview-adopt";
+  const rolledMap = {
+    ...TEST_ROLLED_PLATFORMER_MAP,
+    id: source,
+    layers: [{ id: "terrain", rows: ["^^", "##"] }],
+  };
+  const rolled: GameDocument = {
+    ...DEFAULT_GAME_DOCUMENT,
+    mapStyle: "generated",
+    platformerMapSource: source,
+    platformerLevels: [{ id: source, templateSource: "level-1.json", label: "Random map" }],
+    generatedPlatformerMaps: [{
+      source,
+      templateSource: "level-1.json",
+      length: "medium",
+      generatorVersion: "test-v1",
+      map: rolledMap,
+    }],
+  };
+
+  const adopted = gameHistoryReducer(createGameHistory(DEFAULT_GAME_DOCUMENT), {
+    type: "setup",
+    spec: rolled,
+  });
+  const campaign = gameCampaignMaps(adopted.present, GAME_PLAYER_CONTENT.maps);
+  assert.equal(campaign[0]?.source, source);
+  assert.equal(campaign[0]?.map.layers[0]?.rows.join(""), "^^##");
+});
+
+test("a follow-up setup edit after a roll cannot drop generated maps", () => {
+  const source = "custom-platformer-gen-preview-keep";
+  const rolled: GameDocument = {
+    ...DEFAULT_GAME_DOCUMENT,
+    mapStyle: "generated",
+    platformerMapSource: source,
+    platformerLevels: [{ id: source, templateSource: "level-1.json", label: "Random map" }],
+    generatedPlatformerMaps: [{
+      source,
+      templateSource: "level-1.json",
+      length: "medium",
+      generatorVersion: "test-v1",
+      map: { ...TEST_ROLLED_PLATFORMER_MAP, id: source },
+    }],
+  };
+
+  const kept = mergeBuilderSetupChange(rolled, {
+    playerCharacter: "chicken",
+    setupStep: "character",
+    platformerMapSource: "level-1.json",
+    generatedPlatformerMaps: [],
+  });
+  assert.equal(kept.platformerMapSource, source);
+  assert.equal(kept.generatedPlatformerMaps[0]?.source, source);
+  assert.equal(kept.playerCharacter, "chicken");
+
+  const reset = mergeBuilderSetupChange(rolled, {
+    mapStyle: "ready_made",
+    platformerMapSource: "level-1.json",
+    generatedPlatformerMaps: [],
+  });
+  assert.equal(reset.mapStyle, "ready_made");
+  assert.equal(reset.platformerMapSource, "level-1.json");
+  assert.equal(reset.generatedPlatformerMaps.length, 0);
+});
+
+test("map-roll HTTP responses distinguish success, confirmation, conflict, and errors", () => {
+  const change = mapRollChangeSchema.parse({
+    previewKind: "platformer",
+    platformerMapSource: "custom-platformer-gen-http",
+    generatedPlatformerMaps: [{
+      source: "custom-platformer-gen-http",
+      templateSource: "level-1.json",
+      length: "medium",
+      generatorVersion: "test-v1",
+      map: { ...TEST_ROLLED_PLATFORMER_MAP, id: "custom-platformer-gen-http" },
+    }],
+  });
+  assert.deepEqual(
+    interpretMapRollResponse(200, { revision: 4, change }),
+    { status: "success", result: { revision: 4, change } },
+  );
+  assert.deepEqual(
+    interpretMapRollResponse(409, { message: "This will replace your map edits. Please confirm first." }),
+    {
+      status: "confirmation_required",
+      message: "This will replace your map edits. Please confirm first.",
+    },
+  );
+  assert.deepEqual(
+    interpretMapRollResponse(409, {
+      message: "This game changed in another tab. Refresh before making a new map.",
+      revision: 9,
+    }),
+    {
+      status: "conflict",
+      message: "This game changed in another tab. Refresh before making a new map.",
+      revision: 9,
+    },
+  );
+  assert.deepEqual(
+    interpretMapRollResponse(500, { message: "Server blew up." }),
+    { status: "error", message: "Server blew up." },
+  );
+});
+
+test("an unsaved setup creates its game identity before claiming a map roll", async () => {
+  const inProgress = { current: false };
+  let identity: { id: string; revision: number } | null = null;
+
+  const start = await serializeMapRollStart(async () => {
+    identity = { id: "new-game", revision: 1 };
+    return true;
+  }, inProgress);
+
+  assert.equal(start, "ready");
+  assert.deepEqual(identity, { id: "new-game", revision: 1 });
+  assert.equal(inProgress.current, true);
+});
+
+test("a pending theme save completes before a map roll is claimed", async () => {
+  const inProgress = { current: false };
+  let persistedTheme: string | null = null;
+
+  const start = await serializeMapRollStart(async () => {
+    persistedTheme = "space";
+    return true;
+  }, inProgress);
+
+  assert.equal(start, "ready");
+  assert.equal(persistedTheme, "space");
+});
+
+test("an in-flight autosave hands its resulting revision to one map roll", async () => {
+  const inProgress = { current: false };
+  let resolveAutosave: ((saved: boolean) => void) | undefined;
+  let revision = 3;
+  const autosave = new Promise<boolean>((resolve) => {
+    resolveAutosave = (saved) => {
+      revision = 4;
+      resolve(saved);
+    };
+  });
+  const persistLatest = async () => autosave;
+  let postedRevision: number | null = null;
+
+  const first = (async () => {
+    const start = await serializeMapRollStart(persistLatest, inProgress);
+    if (start === "ready") postedRevision = revision;
+    return start;
+  })();
+  const duplicate = serializeMapRollStart(persistLatest, inProgress);
+  assert.equal(inProgress.current, false);
+
+  resolveAutosave?.(true);
+  assert.equal(await first, "ready");
+  assert.equal(revision, 4);
+  assert.equal(postedRevision, 4);
+  assert.equal(await duplicate, "already_in_progress");
+});
+
+test("stale reconciliation drops every rolled-away source entry but keeps retained levels", () => {
+  const retired = "custom-platformer-gen-retired";
+  const replacement = "custom-platformer-gen-replacement";
+  const retained = "custom-platformer-retained";
+  const saved = {
+    ...DEFAULT_GAME_DOCUMENT,
+    mapStyle: "generated" as const,
+    platformerMapSource: retired,
+    platformerLevels: [
+      { id: retired, templateSource: "level-1.json" as const, label: "Retired" },
+      { id: retained, templateSource: "level-2.json" as const, label: "Keep me" },
+    ],
+  };
+  const server = rolledSpecFromOutcome(saved, {
+    revision: 2,
+    change: mapRollChangeSchema.parse({
+      previewKind: "platformer",
+      platformerMapSource: replacement,
+      platformerLevels: [
+        { id: replacement, templateSource: "level-1.json", label: "Replacement" },
+        { id: retained, templateSource: "level-2.json", label: "Keep me" },
+      ],
+      generatedPlatformerMaps: [{
+        source: replacement,
+        templateSource: "level-1.json",
+        length: "medium",
+        generatorVersion: "test-v1",
+        map: { ...TEST_ROLLED_PLATFORMER_MAP, id: replacement },
+      }],
+      removedMapSources: [retired],
+    }),
+  });
+  const local = {
+    ...saved,
+    platformerTerrainEdits: [
+      { mapSource: retired, x: 1, y: 1, kind: "ground" as const },
+      { mapSource: retained, x: 2, y: 2, kind: "ground" as const },
+    ],
+    platformerObjectEdits: [
+      { id: "old-coin", mapSource: retired, x: 1, y: 1, kind: "coin" as const },
+      { id: "kept-coin", mapSource: retained, x: 2, y: 2, kind: "coin" as const },
+    ],
+    platformerObjectRemovals: [
+      { mapSource: retired, objectId: "old-object" },
+      { mapSource: retained, objectId: "kept-object" },
+    ],
+    platformerObjectSettings: [
+      { mapSource: retired, objectId: "old-coin", assetId: "neutral_ghost_01", behavior: "patroller" as const, direction: "left" as const },
+      { mapSource: retained, objectId: "kept-coin", assetId: "neutral_ghost_01", behavior: "patroller" as const, direction: "left" as const },
+    ],
+    platformerLevelArt: [
+      { mapSource: retired, slot: "platform" as const, world: "space_orbital_outpost_01" as const },
+      { mapSource: retained, slot: "platform" as const, world: "space_orbital_outpost_01" as const },
+    ],
+  };
+
+  const reconciled = reconcilePersistedGame(server, saved, local);
+  assert.equal(reconciled.platformerMapSource, replacement);
+  assert.deepEqual(reconciled.platformerLevels, server.platformerLevels);
+  for (const entries of [
+    reconciled.platformerTerrainEdits,
+    reconciled.platformerObjectEdits,
+    reconciled.platformerObjectRemovals,
+    reconciled.platformerObjectSettings,
+    reconciled.platformerLevelArt,
+  ]) {
+    assert.deepEqual(entries.map((entry) => entry.mapSource), [retained]);
+  }
+});
+
+async function withMemory(testBody: () => Promise<void>) {
+  const databaseUrl = process.env.DATABASE_URL;
+  const previousGames = globalThis.splatLabGamesMemory;
+  delete process.env.DATABASE_URL;
+  globalThis.splatLabGamesMemory = [];
+  try {
+    await testBody();
+  } finally {
+    globalThis.splatLabGamesMemory = previousGames;
+    if (databaseUrl === undefined) delete process.env.DATABASE_URL;
+    else process.env.DATABASE_URL = databaseUrl;
+  }
+}
+
+test("confirmed server re-roll mints a fresh source and prunes old edits", async () => {
+  await withMemory(async () => {
+    const game = await createGame("owner-a", { title: "Re-roll UI", spec: DEFAULT_GAME_DOCUMENT });
+    const first = await rollGameMap("owner-a", game.id, { length: "medium", reason: "setup" });
+    assert.equal(first.status, "rolled");
+    if (first.status !== "rolled") return;
+    const source = first.result.change.platformerMapSource!;
+    const current = await getGame("owner-a", game.id);
+    assert.ok(current);
+    const edited = await updateGame("owner-a", game.id, {
+      title: current.title,
+      spec: {
+        ...current.spec,
+        platformerTerrainEdits: [{ mapSource: source, x: 2, y: 2, kind: "ground" }],
+      },
+      expectedRevision: current.revision,
+    });
+    assert.equal(edited.status, "updated");
+    if (edited.status !== "updated") return;
+
+    const refused = await rollGameMap("owner-a", game.id, {
+      length: "medium",
+      reason: "reroll",
+      expectedRevision: edited.game.revision,
+    });
+    assert.equal(refused.status, "confirmation_required");
+    assert.equal((await getGame("owner-a", game.id))?.spec.platformerTerrainEdits.length, 1);
+
+    const rerolled = await rollGameMap("owner-a", game.id, {
+      length: "medium",
+      reason: "reroll",
+      confirmDiscardEdits: true,
+      expectedRevision: edited.game.revision,
+    });
+    assert.equal(rerolled.status, "rolled");
+    if (rerolled.status !== "rolled") return;
+
+    const applied = rolledSpecFromOutcome(edited.game.spec, rerolled.result, { mapLength: "medium" });
+    assert.notEqual(activeMapSource(applied), source);
+    assert.equal(applied.platformerTerrainEdits.length, 0);
+  });
+});
+
+test("maze re-roll length falls back to stored map length for ready-made levels", () => {
+  const spec = {
+    ...DEFAULT_GAME_DOCUMENT,
+    previewKind: "maze" as const,
+    mazeMapSource: "maze_space_01.json" as const,
+    mapLength: "long" as const,
+  };
+  assert.equal(activeMapRollLength(spec), "long");
+});
+
+test("build-turn response parses an optional map roll payload", () => {
+  const change = mapRollChangeSchema.parse({
+    previewKind: "platformer",
+    platformerMapSource: "custom-platformer-gen-parse",
+    generatedPlatformerMaps: [{
+      source: "custom-platformer-gen-parse",
+      templateSource: "level-1.json",
+      length: "short",
+      generatorVersion: "test-v1",
+      map: { ...TEST_ROLLED_PLATFORMER_MAP, id: "custom-platformer-gen-parse" },
+    }],
+  });
+  assert.deepEqual(
+    parseBuildTurnResult(
+      {
+        status: "replied",
+        cooperMessage: "Different map!",
+        runId: "run-1",
+        mapRoll: { revision: 7, change },
+      },
+      "7",
+    ),
+    {
+      status: "replied",
+      cooperMessage: "Different map!",
+      runId: "run-1",
+      revision: 7,
+      mapRoll: { revision: 7, change },
+    },
   );
 });
 

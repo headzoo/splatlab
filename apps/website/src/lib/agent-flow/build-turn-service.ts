@@ -127,6 +127,7 @@ function responseBody(result: BuildMessageResult): BuildTurnResponseBody {
     ...(result.physicsDocument ? { physicsDocument: result.physicsDocument } : {}),
     ...(result.specChange ? { specChange: result.specChange } : {}),
     ...(result.gameTitle ? { title: result.gameTitle } : {}),
+    ...(result.mapRoll ? { mapRoll: result.mapRoll } : {}),
   };
 }
 

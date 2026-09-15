@@ -8,5 +8,14 @@
     "graveyard": "A graveyard game needs spooky surprises. Watch out for ghosts and gloomy corners.",
     "space": "Be careful, there's less gravity in space.",
     "dragon_world": "Dragon World runs hot. Expect fire, castles, and big trouble."
+  },
+  "mapStyle": {
+    "ready_made": "Great choice. I’ll use a map that is ready to play.",
+    "generated": "Fun! Pick a size and I’ll make a brand-new map for you."
+  },
+  "mapLength": {
+    "short": "Your short map is ready for a quick adventure.",
+    "medium": "Your medium map is ready to explore.",
+    "long": "Your long map is ready for a big adventure."
   }
 }

@@ -1500,7 +1500,10 @@ export function PlatformerGame({
     // Painting must not yank the panned hero back to spawn. A new spawn
     // still takes the hero, because that tool is how builders move the start.
     const keptHero = previousMap.id === map.id && samePlayerSpawn(previousMap, map);
-    if (!keptHero) sessionSpawnRef.current = null;
+    if (!keptHero) {
+      sessionSpawnRef.current = null;
+      editorCameraRef.current = null;
+    }
     const sessionSpawn = sessionSpawnRef.current;
     const renderedState = keptHero
       ? sessionSpawn

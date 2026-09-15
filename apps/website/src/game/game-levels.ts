@@ -25,22 +25,36 @@ export function gameCampaignMaps(
   spec: GameDocument,
   templates: CampaignMap[],
 ): CampaignMap[] {
-  const activeTemplate = templates.find(
-    (template) => template.source === spec.platformerMapSource,
+  const resolve = (source: string, templateSource: string, label: string) => {
+    const generated = spec.generatedPlatformerMaps.find(
+      (record) => record.source === source,
+    );
+    if (generated) return { source, label, map: generated.map };
+    const template = templates.find((candidate) => candidate.source === templateSource);
+    return template
+      ? { source, label, map: { ...template.map, id: `${template.map.id}:${source}` } }
+      : null;
+  };
+  const activeIsListed = spec.platformerLevels.some(
+    (level) => level.id === spec.platformerMapSource,
   );
+  const active = activeIsListed
+    ? null
+    : (() => {
+        const generated = spec.generatedPlatformerMaps.find(
+          (record) => record.source === spec.platformerMapSource,
+        );
+        if (generated) {
+          return { source: generated.source, label: generated.map.id, map: generated.map };
+        }
+        return templates.find((template) => template.source === spec.platformerMapSource) ?? null;
+      })();
+
   return [
-    ...(activeTemplate ? [activeTemplate] : []),
+    ...(active ? [active] : []),
     ...spec.platformerLevels.flatMap((level) => {
-      const template = templates.find(
-        (candidate) => candidate.source === level.templateSource,
-      );
-      return template
-        ? [{
-            source: level.id,
-            label: level.label,
-            map: { ...template.map, id: `${template.map.id}:${level.id}` },
-          }]
-        : [];
+      const resolved = resolve(level.id, level.templateSource, level.label);
+      return resolved ? [resolved] : [];
     }),
   ];
 }
@@ -63,22 +77,36 @@ export function gameMazeMaps(
   spec: GameDocument,
   templates: MazeMap[],
 ): MazeMap[] {
-  const activeTemplate = templates.find(
-    (template) => template.source === spec.mazeMapSource,
+  const resolve = (source: string, templateSource: string, label: string) => {
+    const generated = spec.generatedMazeMaps.find(
+      (record) => record.source === source,
+    );
+    if (generated) return { source, label, map: generated.map };
+    const template = templates.find((candidate) => candidate.source === templateSource);
+    return template
+      ? { source, label, map: { ...template.map, id: `${template.map.id}:${source}` } }
+      : null;
+  };
+  const activeIsListed = spec.mazeLevels.some(
+    (level) => level.id === spec.mazeMapSource,
   );
+  const active = activeIsListed
+    ? null
+    : (() => {
+        const generated = spec.generatedMazeMaps.find(
+          (record) => record.source === spec.mazeMapSource,
+        );
+        if (generated) {
+          return { source: generated.source, label: generated.map.id, map: generated.map };
+        }
+        return templates.find((template) => template.source === spec.mazeMapSource) ?? null;
+      })();
+
   return [
-    ...(activeTemplate ? [activeTemplate] : []),
+    ...(active ? [active] : []),
     ...spec.mazeLevels.flatMap((level) => {
-      const template = templates.find(
-        (candidate) => candidate.source === level.templateSource,
-      );
-      return template
-        ? [{
-            source: level.id,
-            label: level.label,
-            map: { ...template.map, id: `${template.map.id}:${level.id}` },
-          }]
-        : [];
+      const resolved = resolve(level.id, level.templateSource, level.label);
+      return resolved ? [resolved] : [];
     }),
   ];
 }

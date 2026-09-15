@@ -17,6 +17,8 @@ import {
   GAME_SETUP_STEPS,
   THEME_MAP_SOURCES,
   type GameDocument,
+  type MapLength,
+  type MapStyle,
   type GamePreviewKind,
   type GameSetupStep,
   type GameSetupQuestion,
@@ -29,17 +31,22 @@ import {
 } from "@/lib/game-contract";
 import {
   cooperSpecChangeSchema,
+  mapRollSuccessSchema,
   mergeObjectArrays,
+  pruneOrphanedMapSourceEdits,
+  preserveRolledCampaign,
   type CooperSpecChange,
+  type MapRollSuccess,
 } from "@/lib/cooper-spec-change";
 import {
   gamePhysicsDocumentSchema,
   type GamePhysicsDocument,
 } from "@/lib/game-physics";
-
 export type SetupSelections = {
   gameType: GamePreviewKind | null;
   theme: GameTheme | null;
+  mapStyle: MapStyle | null;
+  mapLength: MapLength | null;
   character: PlayerCharacter | null;
   humanGender: HumanGender | null;
   skinTone: SkinTone | null;
@@ -51,8 +58,12 @@ type GameSetupSpecChange = Partial<
   Pick<
     GameDocument,
     | "previewKind"
+    | "mapStyle"
+    | "mapLength"
     | "platformerMapSource"
     | "mazeMapSource"
+    | "generatedPlatformerMaps"
+    | "generatedMazeMaps"
     | "playerCharacter"
     | "humanGender"
     | "skinTone"
@@ -78,6 +89,20 @@ export type DisplayedGame = {
   gameType: GamePreviewKind;
   theme: GameTheme;
 };
+
+export type MapRollAttempt = {
+  success: boolean;
+  message?: string;
+};
+
+export type MapRollSetupCompletion = Required<
+  Pick<GameSetupSpecChange, "mapLength" | "setupStep" | "builderSetupHistory">
+>;
+
+type MapRollHandler = (
+  length: MapLength,
+  completion: MapRollSetupCompletion,
+) => Promise<MapRollAttempt>;
 
 const TITLE_THEMES = {
   green_hills: {
@@ -176,6 +201,8 @@ export type BuildTurnResult = {
   specChange?: CooperSpecChange;
   /** Present only when Cooper renamed the game on this turn. */
   title?: string;
+  /** Present only when Cooper rolled the active map on this turn. */
+  mapRoll?: MapRollSuccess;
 };
 
 export type PersistedBuildTurn = BuildTurnResult & {
@@ -186,6 +213,8 @@ export type PersistedBuildTurn = BuildTurnResult & {
 const MAX_CHAT_TURNS = 50;
 const NON_CHAT_GAME_FIELDS = [
   "previewKind",
+  "mapStyle",
+  "mapLength",
   "platformerMapSource",
   "mazeMapSource",
   "platformerLevels",
@@ -210,12 +239,16 @@ export function reconcilePersistedGame(
   saved: GameDocument,
   local: GameDocument,
 ): GameDocument {
+  const reconciledLocal = preserveRolledCampaign(local, server);
   const reconciled = NON_CHAT_GAME_FIELDS.reduce<GameDocument>((carried, field) => (
-    JSON.stringify(local[field]) !== JSON.stringify(saved[field])
-      ? { ...carried, [field]: local[field] }
+    JSON.stringify(reconciledLocal[field]) !== JSON.stringify(saved[field])
+      ? { ...carried, [field]: reconciledLocal[field] }
       : carried
   ), { ...server });
-  return { ...reconciled, ...mergeObjectArrays(server, local) };
+  return pruneOrphanedMapSourceEdits({
+    ...reconciled,
+    ...mergeObjectArrays(server, reconciledLocal),
+  });
 }
 
 export function parseBuildTurnResult(
@@ -258,6 +291,11 @@ export function parseBuildTurnResult(
     : undefined;
   if (title && !title.success) return null;
 
+  const rolled = "mapRoll" in body
+    ? mapRollSuccessSchema.safeParse(body.mapRoll)
+    : undefined;
+  if (rolled && !rolled.success) return null;
+
   return {
     status: body.status as BuildTurnResult["status"],
     cooperMessage: body.cooperMessage.trim(),
@@ -266,6 +304,7 @@ export function parseBuildTurnResult(
     ...(physics ? { physicsDocument: physics.data } : {}),
     ...(objects ? { specChange: objects.data } : {}),
     ...(title ? { title: title.data } : {}),
+    ...(rolled ? { mapRoll: rolled.data } : {}),
   };
 }
 
@@ -309,6 +348,9 @@ type BuildSetupContextValue = {
   setupQuestionHistory: GameSetupQuestion[];
   selectGameType: (gameType: GamePreviewKind, nextStep?: GameSetupStep) => void;
   selectTheme: (theme: GameTheme, nextStep?: GameSetupStep) => void;
+  selectMapStyle: (mapStyle: MapStyle, nextStep?: GameSetupStep) => void;
+  rollGeneratedMap: (mapLength: MapLength) => Promise<MapRollAttempt>;
+  registerMapRollHandler: (handler: MapRollHandler | null) => void;
   selectCharacter: (character: PlayerCharacter, nextStep?: GameSetupStep) => void;
   selectHumanGender: (humanGender: HumanGender, nextStep?: GameSetupStep) => void;
   selectSkinTone: (skinTone: SkinTone, nextStep?: GameSetupStep) => void;
@@ -328,6 +370,8 @@ const BuildSetupContext = createContext<BuildSetupContextValue | null>(null);
 const EMPTY_SELECTIONS: SetupSelections = {
   gameType: null,
   theme: null,
+  mapStyle: null,
+  mapLength: null,
   character: null,
   humanGender: null,
   skinTone: null,
@@ -358,6 +402,13 @@ export function setupSelectionsFromSpec(
       : null,
     theme: hasAnsweredStep(initialSpec.setupStep, "theme")
       ? activeGameTheme(initialSpec)
+      : null,
+    mapStyle: hasAnsweredStep(initialSpec.setupStep, "mapStyle")
+      ? initialSpec.mapStyle
+      : null,
+    mapLength: initialSpec.mapStyle === "generated"
+      && hasAnsweredStep(initialSpec.setupStep, "mapLength")
+      ? initialSpec.mapLength
       : null,
     character: hasCharacter ? initialSpec.playerCharacter : null,
     humanGender:
@@ -392,6 +443,11 @@ export function setupQuestionHistoryFromSpec(
   const questions: GameSetupQuestion[] = ["gameType"];
 
   if (reached("theme")) questions.push("theme");
+  if (reached("mapStyle")) questions.push("mapStyle");
+  if (
+    initialSpec.mapStyle === "generated" &&
+    reached("mapLength")
+  ) questions.push("mapLength");
   if (reached("character")) questions.push("character");
   if (initialSpec.playerCharacter === "human") {
     if (reached("humanGender")) questions.push("humanGender");
@@ -447,6 +503,7 @@ export function BuildSetupProvider({
   const [latestPersistedBuildTurn, setLatestPersistedBuildTurn] =
     useState<PersistedBuildTurn | null>(null);
   const nextRevision = useRef(1);
+  const mapRollHandlerRef = useRef<MapRollHandler | null>(null);
 
   const requestChange = useCallback((
     change: SetupChange["change"],
@@ -492,18 +549,76 @@ export function BuildSetupProvider({
   const selectGameType = useCallback(
     (gameType: GamePreviewKind, nextStep?: GameSetupStep) => {
       setSelections((current) => ({ ...current, gameType }));
-      applySelectionChange({ previewKind: gameType }, nextStep);
+      applySelectionChange({
+        previewKind: gameType,
+        generatedPlatformerMaps: [],
+        generatedMazeMaps: [],
+      }, nextStep);
     },
     [applySelectionChange],
   );
 
   const selectTheme = useCallback(
     (theme: GameTheme, nextStep?: GameSetupStep) => {
-      setSelections((current) => ({ ...current, theme }));
-      applySelectionChange(THEME_MAP_SOURCES[theme], nextStep);
+      const resetGeneratedMap = selections.mapStyle === "generated";
+      setSelections((current) => ({
+        ...current,
+        theme,
+        ...(resetGeneratedMap ? { mapStyle: "ready_made", mapLength: null } : {}),
+      }));
+      applySelectionChange({
+        ...THEME_MAP_SOURCES[theme],
+        generatedPlatformerMaps: [],
+        generatedMazeMaps: [],
+        ...(resetGeneratedMap ? { mapStyle: "ready_made" as const } : {}),
+      }, nextStep);
     },
-    [applySelectionChange],
+    [applySelectionChange, selections.mapStyle],
   );
+
+  const selectMapStyle = useCallback(
+    (mapStyle: MapStyle, nextStep?: GameSetupStep) => {
+      setSelections((current) => ({ ...current, mapStyle }));
+      if (mapStyle === "ready_made") {
+        const theme = selections.theme ?? "green_hills";
+        applySelectionChange({
+          mapStyle,
+          ...THEME_MAP_SOURCES[theme],
+          generatedPlatformerMaps: [],
+          generatedMazeMaps: [],
+        }, nextStep);
+        return;
+      }
+      applySelectionChange({ mapStyle }, nextStep);
+    },
+    [applySelectionChange, selections.theme],
+  );
+
+  const registerMapRollHandler = useCallback((handler: MapRollHandler | null) => {
+    mapRollHandlerRef.current = handler;
+  }, []);
+
+  const rollGeneratedMap = useCallback(async (mapLength: MapLength) => {
+    const handler = mapRollHandlerRef.current;
+    if (!handler) {
+      return { success: false, message: "Your game is still saving. Please try again." };
+    }
+    const nextStep = "character" as const;
+    const nextHistory = setupQuestionHistory.includes(nextStep)
+      ? setupQuestionHistory
+      : [...setupQuestionHistory, nextStep];
+    const outcome = await handler(mapLength, {
+      mapLength,
+      setupStep: nextStep,
+      builderSetupHistory: nextHistory,
+    });
+    if (outcome.success) {
+      setSelections((current) => ({ ...current, mapLength, mapStyle: "generated" }));
+      setSetupStep(nextStep);
+      setSetupQuestionHistory(nextHistory);
+    }
+    return outcome;
+  }, [setupQuestionHistory]);
 
   const selectCharacter = useCallback(
     (character: PlayerCharacter, nextStep?: GameSetupStep) => {
@@ -610,6 +725,9 @@ export function BuildSetupProvider({
       setupQuestionHistory,
       selectGameType,
       selectTheme,
+      selectMapStyle,
+      rollGeneratedMap,
+      registerMapRollHandler,
       selectCharacter,
       selectHumanGender,
       selectSkinTone,
@@ -642,6 +760,9 @@ export function BuildSetupProvider({
       selections,
       selectSkinTone,
       selectTheme,
+      selectMapStyle,
+      rollGeneratedMap,
+      registerMapRollHandler,
       appendLocalUserMessage,
       saveChatHistory,
       publishGameIdentity,

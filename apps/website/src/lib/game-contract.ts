@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 import { gamePhysicsDocumentSchema } from "./game-physics";
+import {
+  generatedMazeMapSchema,
+  generatedPlatformerMapSchema,
+  MAP_LENGTHS,
+  MAP_STYLES,
+} from "./generated-map-contract";
 
 export const PLATFORMER_MAP_SOURCES = [
   "level-1.json",
@@ -29,6 +35,8 @@ export const HUMAN_GENDERS = ["boy", "girl"] as const;
 export const GAME_SETUP_QUESTIONS = [
   "gameType",
   "theme",
+  "mapStyle",
+  "mapLength",
   "character",
   "humanGender",
   "skinTone",
@@ -104,6 +112,8 @@ export const ART_WORLD_IDS = [
 ] as const;
 
 export type GameTheme = (typeof GAME_THEMES)[number];
+export type MapStyle = (typeof MAP_STYLES)[number];
+export type MapLength = (typeof MAP_LENGTHS)[number];
 export type PlatformerArtSlot = (typeof PLATFORMER_ART_SLOTS)[number];
 export type ArtWorldId = (typeof ART_WORLD_IDS)[number];
 export type PlayerCharacter = (typeof PLAYER_CHARACTERS)[number];
@@ -121,6 +131,10 @@ const customPlatformerLevelIdSchema = z
 const customMazeLevelIdSchema = z
   .string()
   .regex(/^custom-maze-[a-z0-9-]{1,80}$/);
+const generatedPlatformerSourceSchema = z.string()
+  .regex(/^custom-platformer-gen-[a-z0-9-]{1,80}$/);
+const generatedMazeSourceSchema = z.string()
+  .regex(/^custom-maze-gen-[a-z0-9-]{1,80}$/);
 export const platformerMapSourceSchema = z.union([
   z.enum(PLATFORMER_MAP_SOURCES),
   customPlatformerLevelIdSchema,
@@ -146,6 +160,39 @@ export const mazeLevelSchema = z.object({
 
 export type PlatformerLevel = z.infer<typeof platformerLevelSchema>;
 export type MazeLevel = z.infer<typeof mazeLevelSchema>;
+
+export const generatedPlatformerMapRecordSchema = z.object({
+  source: generatedPlatformerSourceSchema,
+  templateSource: z.enum(PLATFORMER_MAP_SOURCES),
+  length: z.enum(MAP_LENGTHS),
+  generatorVersion: z.string().trim().min(1).max(40),
+  map: generatedPlatformerMapSchema,
+}).strict().superRefine((record, context) => {
+  if (record.map.id !== record.source) {
+    context.addIssue({
+      code: "custom",
+      path: ["map", "id"],
+      message: "A materialized platformer map ID must match its generated source.",
+    });
+  }
+});
+export const generatedMazeMapRecordSchema = z.object({
+  source: generatedMazeSourceSchema,
+  templateSource: z.enum(MAZE_MAP_SOURCES),
+  length: z.enum(MAP_LENGTHS),
+  generatorVersion: z.string().trim().min(1).max(40),
+  map: generatedMazeMapSchema,
+}).strict().superRefine((record, context) => {
+  if (record.map.id !== record.source) {
+    context.addIssue({
+      code: "custom",
+      path: ["map", "id"],
+      message: "A materialized maze map ID must match its generated source.",
+    });
+  }
+});
+export type GeneratedPlatformerMapRecord = z.infer<typeof generatedPlatformerMapRecordSchema>;
+export type GeneratedMazeMapRecord = z.infer<typeof generatedMazeMapRecordSchema>;
 
 /**
  * `world` names the world this tile was painted from, letting one level mix art
@@ -299,10 +346,14 @@ export const gameDocumentSchema = z
   .object({
     schemaVersion: z.literal(1),
     previewKind: z.enum(["platformer", "maze"]),
+    mapStyle: z.enum(MAP_STYLES).default("ready_made"),
+    mapLength: z.enum(MAP_LENGTHS).default("medium"),
     platformerMapSource: platformerMapSourceSchema,
     mazeMapSource: mazeMapSourceSchema.default(MAZE_MAP_SOURCES[0]),
     platformerLevels: z.array(platformerLevelSchema).max(20).default([]),
     mazeLevels: z.array(mazeLevelSchema).max(20).default([]),
+    generatedPlatformerMaps: z.array(generatedPlatformerMapRecordSchema).max(20).default([]),
+    generatedMazeMaps: z.array(generatedMazeMapRecordSchema).max(20).default([]),
     playerCharacter: z.enum(PLAYER_CHARACTERS).default("cooper"),
     humanGender: z.enum(HUMAN_GENDERS).default("boy"),
     skinTone: z.enum(SKIN_TONES).default("skin_04"),
@@ -359,9 +410,45 @@ export const gameDocumentSchema = z
         message: "Maze level IDs must be unique.",
       });
     }
+    const generatedPlatformerSources = document.generatedPlatformerMaps.map((record) => record.source);
+    const generatedMazeSources = document.generatedMazeMaps.map((record) => record.source);
+    if (new Set(generatedPlatformerSources).size !== generatedPlatformerSources.length) context.addIssue({ code: "custom", path: ["generatedPlatformerMaps"], message: "Generated platformer sources must be unique." });
+    if (new Set(generatedMazeSources).size !== generatedMazeSources.length) context.addIssue({ code: "custom", path: ["generatedMazeMaps"], message: "Generated maze sources must be unique." });
+    const activeGeneratedSources = document.previewKind === "platformer"
+      ? generatedPlatformerSources
+      : generatedMazeSources;
+    const activeSource = document.previewKind === "platformer"
+      ? document.platformerMapSource
+      : document.mazeMapSource;
+    // Choosing Random is durably saved before asking its length so a refresh
+    // cannot lose the choice. At that exact setup checkpoint the selected
+    // ready-made/custom level remains the donor; only the roll may replace it
+    // with a server-materialized generated map.
+    const awaitingGeneratedMapLength = document.mapStyle === "generated"
+      && document.setupStep === "mapLength"
+      && !activeGeneratedSources.includes(activeSource as never);
+    if (
+      document.mapStyle === "generated"
+      && !awaitingGeneratedMapLength
+      && !activeGeneratedSources.includes(activeSource as never)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: [document.previewKind === "platformer" ? "platformerMapSource" : "mazeMapSource"],
+        message: "A generated game must select one of its materialized generated maps.",
+      });
+    }
+    if (document.mapStyle === "ready_made" && activeGeneratedSources.includes(activeSource as never)) {
+      context.addIssue({
+        code: "custom",
+        path: ["mapStyle"],
+        message: "A selected generated map requires generated map style.",
+      });
+    }
     if (
       document.platformerMapSource.startsWith("custom-platformer-") &&
       !platformerIds.includes(document.platformerMapSource)
+      && !generatedPlatformerSources.includes(document.platformerMapSource)
     ) {
       context.addIssue({
         code: "custom",
@@ -372,6 +459,7 @@ export const gameDocumentSchema = z
     if (
       document.mazeMapSource.startsWith("custom-maze-") &&
       !mazeIds.includes(document.mazeMapSource)
+      && !generatedMazeSources.includes(document.mazeMapSource)
     ) {
       context.addIssue({
         code: "custom",
@@ -393,10 +481,14 @@ export type PublicGameDocument = Pick<
   GameDocument,
   | "schemaVersion"
   | "previewKind"
+  | "mapStyle"
+  | "mapLength"
   | "platformerMapSource"
   | "mazeMapSource"
   | "platformerLevels"
   | "mazeLevels"
+  | "generatedPlatformerMaps"
+  | "generatedMazeMaps"
   | "playerCharacter"
   | "humanGender"
   | "skinTone"
@@ -413,34 +505,43 @@ export type PublicGameDocument = Pick<
 export function toPublicGameDocument(
   spec: GameDocument,
 ): PublicGameDocument {
+  const parsed = gameDocumentSchema.parse(spec);
   return {
-    schemaVersion: spec.schemaVersion,
-    previewKind: spec.previewKind,
-    platformerMapSource: spec.platformerMapSource,
-    mazeMapSource: spec.mazeMapSource,
-    platformerLevels: spec.platformerLevels,
-    mazeLevels: spec.mazeLevels,
-    playerCharacter: spec.playerCharacter,
-    humanGender: spec.humanGender,
-    skinTone: spec.skinTone,
-    hairColor: spec.hairColor,
-    platformerTerrainEdits: spec.platformerTerrainEdits,
-    platformerObjectEdits: spec.platformerObjectEdits,
-    platformerObjectRemovals: spec.platformerObjectRemovals,
-    platformerObjectSettings: spec.platformerObjectSettings,
-    platformerLevelArt: spec.platformerLevelArt,
-    physicsDocument: spec.physicsDocument,
-    startingLives: spec.startingLives,
+    schemaVersion: parsed.schemaVersion,
+    previewKind: parsed.previewKind,
+    mapStyle: parsed.mapStyle,
+    mapLength: parsed.mapLength,
+    platformerMapSource: parsed.platformerMapSource,
+    mazeMapSource: parsed.mazeMapSource,
+    platformerLevels: parsed.platformerLevels,
+    mazeLevels: parsed.mazeLevels,
+    generatedPlatformerMaps: parsed.generatedPlatformerMaps,
+    generatedMazeMaps: parsed.generatedMazeMaps,
+    playerCharacter: parsed.playerCharacter,
+    humanGender: parsed.humanGender,
+    skinTone: parsed.skinTone,
+    hairColor: parsed.hairColor,
+    platformerTerrainEdits: parsed.platformerTerrainEdits,
+    platformerObjectEdits: parsed.platformerObjectEdits,
+    platformerObjectRemovals: parsed.platformerObjectRemovals,
+    platformerObjectSettings: parsed.platformerObjectSettings,
+    platformerLevelArt: parsed.platformerLevelArt,
+    physicsDocument: parsed.physicsDocument,
+    startingLives: parsed.startingLives,
   };
 }
 
 export const DEFAULT_GAME_DOCUMENT: GameDocument = {
   schemaVersion: 1,
   previewKind: "platformer",
+  mapStyle: "ready_made",
+  mapLength: "medium",
   platformerMapSource: PLATFORMER_MAP_SOURCES[0],
   mazeMapSource: MAZE_MAP_SOURCES[0],
   platformerLevels: [],
   mazeLevels: [],
+  generatedPlatformerMaps: [],
+  generatedMazeMaps: [],
   playerCharacter: "cooper",
   humanGender: "boy",
   skinTone: "skin_04",
@@ -501,9 +602,11 @@ export function activeMapSource(spec: GameDocument) {
 export function activeGameTheme(spec: GameDocument): GameTheme {
   const activeSource = activeMapSource(spec);
   const source = spec.previewKind === "maze"
-    ? spec.mazeLevels.find((level) => level.id === activeSource)?.templateSource
+    ? spec.generatedMazeMaps.find((record) => record.source === activeSource)?.templateSource
+      ?? spec.mazeLevels.find((level) => level.id === activeSource)?.templateSource
       ?? activeSource
-    : spec.platformerLevels.find((level) => level.id === activeSource)?.templateSource
+    : spec.generatedPlatformerMaps.find((record) => record.source === activeSource)?.templateSource
+      ?? spec.platformerLevels.find((level) => level.id === activeSource)?.templateSource
       ?? activeSource;
   const match = GAME_THEMES.find((theme) => {
     const themeSources = THEME_MAP_SOURCES[theme];
@@ -525,7 +628,9 @@ export function playerAssetIdFor(
 
 export function activePlayerAssetId(spec: GameDocument): PlayerAssetId {
   if (spec.previewKind === "platformer") {
-    const source = spec.platformerLevels.find(
+    const source = spec.generatedPlatformerMaps.find(
+      (record) => record.source === spec.platformerMapSource,
+    )?.templateSource ?? spec.platformerLevels.find(
       (level) => level.id === spec.platformerMapSource,
     )?.templateSource ?? spec.platformerMapSource;
     if (source === "level-5.json") {
@@ -543,10 +648,14 @@ export function activePlayerAssetId(spec: GameDocument): PlayerAssetId {
 }
 
 export function defaultGameTitle(spec: GameDocument) {
-  const platformerSource = spec.platformerLevels.find(
+  const platformerSource = spec.generatedPlatformerMaps.find(
+    (record) => record.source === spec.platformerMapSource,
+  )?.templateSource ?? spec.platformerLevels.find(
     (level) => level.id === spec.platformerMapSource,
   )?.templateSource ?? spec.platformerMapSource;
-  const mazeSource = spec.mazeLevels.find(
+  const mazeSource = spec.generatedMazeMaps.find(
+    (record) => record.source === spec.mazeMapSource,
+  )?.templateSource ?? spec.mazeLevels.find(
     (level) => level.id === spec.mazeMapSource,
   )?.templateSource ?? spec.mazeMapSource;
   return spec.previewKind === "maze"

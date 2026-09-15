@@ -4,9 +4,14 @@ import test from "node:test";
 import starterFlow from "../../../../game/agent-flows/build_agentflow_v1.json";
 
 import { createInitialState } from "../../game/platformer/engine";
-import { activePlayerAssetId, DEFAULT_GAME_DOCUMENT, type BuilderChatTurn } from "../game-contract";
+import { activeMapSource, activePlayerAssetId, DEFAULT_GAME_DOCUMENT, type BuilderChatTurn } from "../game-contract";
 import { parseBuildTurnResult } from "../../app/build/build-setup";
+import { GAME_PLAYER_CONTENT } from "../../game/game-player-content";
+import { gameMazeMaps } from "../../game/game-levels";
 import { resolveActivePlatformerLevel } from "../game-objects";
+import { rollGameMap } from "../random-map/map-roll";
+import { getAgentTool } from "./tools/registry";
+import { getGame, updateGame } from "../games";
 import { CATALOG_PLATFORMER_GAME_PHYSICS } from "../game-physics";
 import { createGame } from "../games";
 import gateFlow from "./review-gate-flow.fixture.json";
@@ -235,6 +240,7 @@ test("Ready completes with preserved coordinator output and one call per model n
     physicsDocument: undefined,
     specChange: undefined,
     gameTitle: undefined,
+    mapRoll: undefined,
   });
   assert.equal(model.textCalls, 1);
   assert.equal(model.scenarioCalls, 1);
@@ -444,6 +450,7 @@ test("the coordinator Agent node offers exactly the allowlisted tools", async ()
     "remove_level",
     "move_level",
     "set_active_level",
+    "reroll_map",
   ]);
 });
 
@@ -997,4 +1004,162 @@ test("an Agent node that keeps calling tools is closed with a text-only reply", 
     model.requests[6]?.messages.at(-1)?.content,
     "Reply to the kid now in two or three short sentences. You cannot use tools on this turn.",
   );
+});
+
+test("reroll_map is registered with a strict schema and compact tool output", () => {
+  const tool = getAgentTool("reroll_map");
+  assert.equal(tool.id, "reroll_map");
+  assert.deepEqual(tool.definition.parameters.required, ["confirmDiscardEdits"]);
+});
+
+test("reroll_map mints a fresh generated map and rides back out-of-band", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("reroll_map", { confirmDiscardEdits: false })], items: [] },
+    { text: "Here is a different map.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.status, "replied");
+  assert.ok(result.mapRoll);
+  assert.match(result.mapRoll.change.platformerMapSource ?? "", /^custom-platformer-gen-/);
+  assert.equal(storedSpec()?.mapStyle, "generated");
+  assert.equal(storedSpec()?.generatedPlatformerMaps.length, 1);
+  assert.doesNotMatch(String(model.requests[1]?.toolOutputs?.[0]?.output), /"layers"/);
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"ok":true/);
+  assert.deepEqual(
+    parseBuildTurnResult(
+      {
+        status: result.status,
+        cooperMessage: result.cooperMessage,
+        runId: result.runId,
+        mapRoll: JSON.parse(JSON.stringify(result.mapRoll)),
+      },
+      String(result.gameRevision),
+    )?.mapRoll,
+    result.mapRoll,
+  );
+});
+
+test("reroll_map refuses without confirmation when edits exist", async () => {
+  resetMemory();
+  const game = await createGame("owner-a", { title: "Test game", spec: DEFAULT_GAME_DOCUMENT });
+  const rolled = await rollGameMap("owner-a", game.id, { length: "short", reason: "setup" });
+  assert.equal(rolled.status, "rolled");
+  if (rolled.status !== "rolled") return;
+  const source = rolled.result.change.platformerMapSource!;
+  const current = await getGame("owner-a", game.id);
+  assert.ok(current);
+  await updateGame("owner-a", game.id, {
+    title: current.title,
+    spec: {
+      ...current.spec,
+      platformerTerrainEdits: [{ mapSource: source, x: 1, y: 1, kind: "ground" }],
+    },
+    expectedRevision: current.revision,
+  });
+
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("reroll_map", { confirmDiscardEdits: false })], items: [] },
+    { text: "Your map edits would be lost. Is it okay to replace the map anyway?", toolCalls: [], items: [] },
+  ]);
+  const store = new AgentFlowRunStore({ forceMemory: true });
+  const result = await executeBuildMessage(
+    { ownerId: "owner-a", gameId: game.id, message: "Give me a different map" },
+    { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store },
+  );
+
+  assert.equal(result.mapRoll, undefined);
+  assert.equal((await getGame("owner-a", game.id))?.spec.platformerTerrainEdits.length, 1);
+  assert.match(
+    String(model.requests[1]?.toolOutputs?.[0]?.output),
+    /"needsConfirmation":true/,
+  );
+});
+
+test("reroll_map writes after explicit confirmation and prunes old edits", async () => {
+  resetMemory();
+  const game = await createGame("owner-a", { title: "Test game", spec: DEFAULT_GAME_DOCUMENT });
+  const rolled = await rollGameMap("owner-a", game.id, { length: "short", reason: "setup" });
+  assert.equal(rolled.status, "rolled");
+  if (rolled.status !== "rolled") return;
+  const source = rolled.result.change.platformerMapSource!;
+  const current = await getGame("owner-a", game.id);
+  assert.ok(current);
+  await updateGame("owner-a", game.id, {
+    title: current.title,
+    spec: {
+      ...current.spec,
+      platformerTerrainEdits: [{ mapSource: source, x: 1, y: 1, kind: "ground" }],
+    },
+    expectedRevision: current.revision,
+  });
+
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("reroll_map", { confirmDiscardEdits: true, length: "long" })], items: [] },
+    { text: "Okay, here is a longer different map.", toolCalls: [], items: [] },
+  ]);
+  const store = new AgentFlowRunStore({ forceMemory: true });
+  const result = await executeBuildMessage(
+    { ownerId: "owner-a", gameId: game.id, message: "Yes, replace it" },
+    { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store },
+  );
+
+  assert.ok(result.mapRoll);
+  assert.notEqual(result.mapRoll.change.platformerMapSource, source);
+  assert.equal(result.mapRoll.change.generatedPlatformerMaps?.[0]?.length, "long");
+  const stored = await getGame("owner-a", game.id);
+  assert.deepEqual(stored?.spec.platformerTerrainEdits, []);
+  assert.equal(stored?.spec.generatedPlatformerMaps.some((record) => record.source === source), false);
+});
+
+test("reroll_map works for mazes and keeps generated maps playable publicly", async () => {
+  resetMemory();
+  const game = await createGame("owner-a", {
+    title: "Maze reroll",
+    spec: { ...DEFAULT_GAME_DOCUMENT, previewKind: "maze", mazeMapSource: "maze_green_hills_01.json" },
+  });
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("reroll_map", { confirmDiscardEdits: false })], items: [] },
+    { text: "Here is a different maze.", toolCalls: [], items: [] },
+  ]);
+  const store = new AgentFlowRunStore({ forceMemory: true });
+  const result = await executeBuildMessage(
+    { ownerId: "owner-a", gameId: game.id, message: "Give me a different maze" },
+    { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store },
+  );
+
+  assert.ok(result.mapRoll);
+  assert.match(result.mapRoll.change.mazeMapSource ?? "", /^custom-maze-gen-/);
+  const stored = await getGame("owner-a", game.id);
+  assert.ok(stored);
+  const maps = gameMazeMaps(stored.spec, GAME_PLAYER_CONTENT.mazes);
+  assert.equal(maps.length, 1);
+  assert.match(maps[0]?.source ?? "", /^custom-maze-gen-/);
+});
+
+test("a map roll and an object write in one turn keep the new source", async () => {
+  resetMemory();
+  const game = await createGame("owner-a", { title: "Test game", spec: DEFAULT_GAME_DOCUMENT });
+  const rolled = await rollGameMap("owner-a", game.id, { length: "short", reason: "setup" });
+  assert.equal(rolled.status, "rolled");
+  if (rolled.status !== "rolled") return;
+  const oldSource = rolled.result.change.platformerMapSource!;
+
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("reroll_map", { confirmDiscardEdits: false })], items: [] },
+    { text: "", toolCalls: [toolCall("add_game_objects", { placements: [{ kind: "coin", x: 0, y: 0 }] })], items: [] },
+    { text: "Different map, plus a coin.", toolCalls: [], items: [] },
+  ]);
+  const store = new AgentFlowRunStore({ forceMemory: true });
+  const result = await executeBuildMessage(
+    { ownerId: "owner-a", gameId: game.id, message: "Different map and add a coin" },
+    { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store },
+  );
+
+  assert.ok(result.mapRoll);
+  const newSource = result.mapRoll.change.platformerMapSource!;
+  assert.notEqual(newSource, oldSource);
+  assert.equal(result.specChange?.platformerObjectEdits?.[0]?.mapSource, newSource);
+  assert.equal(storedSpec()?.generatedPlatformerMaps.some((record) => record.source === oldSource), false);
+  assert.equal(activeMapSource(storedSpec()!), newSource);
 });

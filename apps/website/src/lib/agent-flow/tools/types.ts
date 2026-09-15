@@ -1,5 +1,6 @@
 import type { CooperSpecChange } from "../../game-objects";
 import type { GamePhysicsDocument } from "../../game-physics";
+import type { MapRollSuccess } from "../../cooper-spec-change";
 import type { ContentModerator } from "../moderation";
 import type { ModelToolDefinition } from "../model-client";
 import type { AgentFlowRunStore } from "../run-store";
@@ -24,6 +25,8 @@ export type ToolExecutionResult = Readonly<{
   specChange?: CooperSpecChange;
   /** Set only when the call renamed the game. */
   gameTitle?: string;
+  /** Set only when the call rolled the active map. */
+  mapRoll?: MapRollSuccess;
 }>;
 
 export type AgentTool = Readonly<{

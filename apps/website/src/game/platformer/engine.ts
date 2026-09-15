@@ -32,8 +32,10 @@ export const MAXIMUM_GROUND_TRACTION_SCALE = 2;
 export const RAMMING_SPEED_TILES_PER_SECOND = 8;
 export const ENEMY_PROJECTILE_SPEED_TILES_PER_SECOND = 4;
 
-const PLAYER_HALF_WIDTH = 16;
-const PLAYER_HEIGHT = 48;
+export const PLATFORMER_PLAYER_HALF_WIDTH_PX = 16;
+export const PLATFORMER_PLAYER_HEIGHT_PX = 48;
+const PLAYER_HALF_WIDTH = PLATFORMER_PLAYER_HALF_WIDTH_PX;
+const PLAYER_HEIGHT = PLATFORMER_PLAYER_HEIGHT_PX;
 const ENEMY_HALF_WIDTH = 16;
 const ENEMY_HEIGHT = 48;
 const BOSS_HALF_WIDTH = 48;
@@ -48,7 +50,8 @@ const BOSS_THROW_FORWARD_OFFSET = 38;
 const BOSS_THROW_UP_OFFSET = 78;
 const ORBITAL_SENTINEL_CHEST_UP_OFFSET = 55;
 const LASER_BEAM_HALF_HEIGHT = 16;
-const COLLISION_SKIN = 0.001;
+export const PLATFORMER_COLLISION_SKIN_PX = 0.001;
+const COLLISION_SKIN = PLATFORMER_COLLISION_SKIN_PX;
 const CAMERA_HORIZONTAL_ANCHOR = 0.38;
 export const DEATH_ANIMATION_TICKS = 24;
 export const EXTRA_LIFE_FADE_TICKS = Math.round(FIXED_TICK_RATE * 0.4);
@@ -62,7 +65,7 @@ export const MAXIMUM_PLATFORM_SPRING_LAUNCH_SPEED = 1600;
 export const PLATFORM_SPRING_COMPRESSION_FRAME_COUNT = 4;
 export const PLATFORM_SPRING_COMPRESSION_FPS = 12;
 
-type ResolvedPhysics = {
+export type ResolvedPlatformerPhysics = {
   maximumRunSpeed: number;
   groundAcceleration: number;
   groundDeceleration: number;
@@ -628,7 +631,7 @@ export function resolvePhysics(
   gravityScale = 1,
   groundTractionScale = DEFAULT_GROUND_TRACTION_SCALE,
   maximumRunSpeedPxPerSecond = physics.movement.maximumRunSpeedTilesPerSecond * tileSize,
-): ResolvedPhysics {
+): ResolvedPlatformerPhysics {
   const jump = physics.verticalMovement.groundedJump;
   const baseGravity = (2 * jump.jumpHeightTiles * tileSize) / jump.timeToApexSeconds ** 2;
   const traction = Number.isFinite(groundTractionScale)

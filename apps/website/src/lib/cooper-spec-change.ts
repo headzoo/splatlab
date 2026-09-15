@@ -7,6 +7,8 @@ import {
   SKIN_TONES,
   mazeLevelSchema,
   mazeMapSourceSchema,
+  generatedMazeMapRecordSchema,
+  generatedPlatformerMapRecordSchema,
   platformerLevelArtSchema,
   platformerLevelSchema,
   platformerMapSourceSchema,
@@ -153,7 +155,7 @@ export function mergeObjectArrays(
  * clears every array at once and keeps the document under its length caps
  * across repeated add-and-delete cycles.
  */
-function pruneRemovedMapSources(
+export function pruneRemovedMapSources(
   fields: MapSourceKeyedFields,
   removed: readonly string[] | undefined,
 ): MapSourceKeyedFields {
@@ -167,6 +169,132 @@ function pruneRemovedMapSources(
     platformerObjectRemovals: kept(fields.platformerObjectRemovals),
     platformerObjectSettings: kept(fields.platformerObjectSettings),
     platformerLevelArt: kept(fields.platformerLevelArt),
+  };
+}
+
+/**
+ * Source-keyed platformer edits are valid only for a level still in this
+ * game's campaign (including the legacy active level when no campaign exists).
+ * This is deliberately applied after union merges: a stale autosave cannot
+ * re-add edits that a map roll or level deletion removed.
+ */
+export function pruneOrphanedMapSourceEdits(
+  spec: GameDocument,
+): GameDocument {
+  const validSources = new Set([
+    spec.platformerMapSource,
+    ...spec.platformerLevels.map((level) => level.id),
+  ]);
+  const removed = [
+    ...spec.platformerTerrainEdits,
+    ...spec.platformerObjectEdits,
+    ...spec.platformerObjectRemovals,
+    ...spec.platformerObjectSettings,
+    ...spec.platformerLevelArt,
+  ]
+    .map((entry) => entry.mapSource)
+    .filter((source) => !validSources.has(source));
+
+  return removed.length
+    ? { ...spec, ...pruneRemovedMapSources(spec, removed) }
+    : spec;
+}
+
+/**
+ * A map roll replaces its active campaign source. If an autosave predates that
+ * transition, it cannot name the new generated source at all, so accepting
+ * its level list would restore the retired source and make its old edits look
+ * valid again. Keep the authoritative campaign in that case.
+ */
+export function preserveRolledCampaign(
+  incoming: GameDocument,
+  authoritative: GameDocument,
+): GameDocument {
+  const platformerRolled = authoritative.generatedPlatformerMaps.some(
+    (record) => record.source === authoritative.platformerMapSource,
+  );
+  const mazeRolled = authoritative.generatedMazeMaps.some(
+    (record) => record.source === authoritative.mazeMapSource,
+  );
+  const incomingPlatformerSources = new Set([
+    incoming.platformerMapSource,
+    ...incoming.platformerLevels.map((level) => level.id),
+  ]);
+  const incomingMazeSources = new Set([
+    incoming.mazeMapSource,
+    ...incoming.mazeLevels.map((level) => level.id),
+  ]);
+
+  if (
+    !platformerRolled
+    || incomingPlatformerSources.has(authoritative.platformerMapSource)
+  ) {
+    if (!mazeRolled || incomingMazeSources.has(authoritative.mazeMapSource)) {
+      return incoming;
+    }
+    return {
+      ...incoming,
+      mapStyle: authoritative.mapStyle,
+      mapLength: authoritative.mapLength,
+      mazeMapSource: authoritative.mazeMapSource,
+      mazeLevels: authoritative.mazeLevels,
+    };
+  }
+
+  return {
+    ...incoming,
+    mapStyle: authoritative.mapStyle,
+    mapLength: authoritative.mapLength,
+    platformerMapSource: authoritative.platformerMapSource,
+    platformerLevels: authoritative.platformerLevels,
+    ...(mazeRolled && !incomingMazeSources.has(authoritative.mazeMapSource)
+      ? {
+          mazeMapSource: authoritative.mazeMapSource,
+          mazeLevels: authoritative.mazeLevels,
+        }
+      : {}),
+  };
+}
+
+/** A completed generator roll is a server-only, non-undoable map transition. */
+export const mapRollChangeSchema = z.object({
+  previewKind: z.enum(["platformer", "maze"]),
+  platformerMapSource: platformerMapSourceSchema.optional(),
+  mazeMapSource: mazeMapSourceSchema.optional(),
+  platformerLevels: z.array(platformerLevelSchema).max(20).optional(),
+  mazeLevels: z.array(mazeLevelSchema).max(20).optional(),
+  generatedPlatformerMaps: z.array(generatedPlatformerMapRecordSchema).max(20).optional(),
+  generatedMazeMaps: z.array(generatedMazeMapRecordSchema).max(20).optional(),
+  removedMapSources: z.array(z.string().trim().min(1).max(100)).max(20).default([]),
+}).strict().superRefine((change, context) => {
+  if (change.previewKind === "platformer" && (!change.platformerMapSource || !change.generatedPlatformerMaps)) {
+    context.addIssue({ code: "custom", path: ["platformerMapSource"], message: "A platformer roll needs its source and materialized map." });
+  }
+  if (change.previewKind === "maze" && (!change.mazeMapSource || !change.generatedMazeMaps)) {
+    context.addIssue({ code: "custom", path: ["mazeMapSource"], message: "A maze roll needs its source and materialized map." });
+  }
+});
+export type MapRollChange = z.infer<typeof mapRollChangeSchema>;
+
+export const mapRollSuccessSchema = z.object({
+  revision: z.number().int().positive(),
+  change: mapRollChangeSchema,
+}).strict();
+export type MapRollSuccess = z.infer<typeof mapRollSuccessSchema>;
+
+export function applyMapRollChange(spec: GameDocument, change: MapRollChange): GameDocument {
+  const pruned = pruneRemovedMapSources(spec, change.removedMapSources);
+  return {
+    ...spec,
+    ...pruned,
+    previewKind: change.previewKind,
+    ...(change.platformerMapSource ? { platformerMapSource: change.platformerMapSource } : {}),
+    ...(change.mazeMapSource ? { mazeMapSource: change.mazeMapSource } : {}),
+    ...(change.platformerLevels ? { platformerLevels: change.platformerLevels } : {}),
+    ...(change.mazeLevels ? { mazeLevels: change.mazeLevels } : {}),
+    ...(change.generatedPlatformerMaps ? { generatedPlatformerMaps: change.generatedPlatformerMaps } : {}),
+    ...(change.generatedMazeMaps ? { generatedMazeMaps: change.generatedMazeMaps } : {}),
+    mapStyle: "generated",
   };
 }
 
@@ -199,12 +327,12 @@ export function applyCooperSpecChange(
   );
   // The pruned arrays land last, so deleting a level in the same turn that
   // borrowed art for it still drops the borrow.
-  return {
+  return pruneOrphanedMapSourceEdits({
     ...spec,
     ...present(change, REPLACED_ARRAY_FIELDS),
     ...present(change, SCALAR_FIELDS),
     ...edits,
-  };
+  });
 }
 
 /** True when the change would leave the document exactly as it is. */
