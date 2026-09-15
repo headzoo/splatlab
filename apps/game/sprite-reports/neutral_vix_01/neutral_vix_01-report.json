@@ -1,0 +1,899 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_vix_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_vix_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        8347,
+        8202,
+        8187,
+        8161,
+        8160,
+        8091,
+        8025,
+        8011,
+        8009,
+        7939,
+        7911,
+        7848,
+        7822,
+        7804,
+        7777,
+        7751,
+        7681,
+        7675,
+        7643,
+        7399
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        141.53,
+        419.72,
+        703.66,
+        992.59,
+        1277.28
+      ],
+      "yCenters": [
+        144.18,
+        433.7,
+        703.03,
+        962.16
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          281,
+          289
+        ],
+        [
+          281,
+          0,
+          562,
+          289
+        ],
+        [
+          562,
+          0,
+          848,
+          289
+        ],
+        [
+          848,
+          0,
+          1135,
+          289
+        ],
+        [
+          1135,
+          0,
+          1402,
+          289
+        ],
+        [
+          0,
+          289,
+          281,
+          568
+        ],
+        [
+          281,
+          289,
+          562,
+          568
+        ],
+        [
+          562,
+          289,
+          848,
+          568
+        ],
+        [
+          848,
+          289,
+          1135,
+          568
+        ],
+        [
+          1135,
+          289,
+          1402,
+          568
+        ],
+        [
+          0,
+          568,
+          281,
+          833
+        ],
+        [
+          281,
+          568,
+          562,
+          833
+        ],
+        [
+          562,
+          568,
+          848,
+          833
+        ],
+        [
+          848,
+          568,
+          1135,
+          833
+        ],
+        [
+          1135,
+          568,
+          1402,
+          833
+        ],
+        [
+          0,
+          833,
+          281,
+          1122
+        ],
+        [
+          281,
+          833,
+          562,
+          1122
+        ],
+        [
+          562,
+          833,
+          848,
+          1122
+        ],
+        [
+          848,
+          833,
+          1135,
+          1122
+        ],
+        [
+          1135,
+          833,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          34,
+          53
+        ],
+        "paste": [
+          15,
+          3
+        ],
+        "localLandmark": [
+          17.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          17.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          17.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          36,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          18.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          54
+        ],
+        "paste": [
+          14,
+          2
+        ],
+        "localLandmark": [
+          17.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          41,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          22.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          22.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          41,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          41,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          51
+        ],
+        "paste": [
+          13,
+          5
+        ],
+        "localLandmark": [
+          19.0,
+          51
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          51
+        ],
+        "paste": [
+          12,
+          5
+        ],
+        "localLandmark": [
+          19.5,
+          51
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          51
+        ],
+        "paste": [
+          11,
+          5
+        ],
+        "localLandmark": [
+          21.0,
+          51
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          51
+        ],
+        "paste": [
+          12,
+          5
+        ],
+        "localLandmark": [
+          20.0,
+          51
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          51
+        ],
+        "paste": [
+          12,
+          5
+        ],
+        "localLandmark": [
+          20.0,
+          51
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          51
+        ],
+        "paste": [
+          14,
+          5
+        ],
+        "localLandmark": [
+          17.5,
+          51
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          52
+        ],
+        "paste": [
+          15,
+          4
+        ],
+        "localLandmark": [
+          17.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          52
+        ],
+        "paste": [
+          15,
+          4
+        ],
+        "localLandmark": [
+          17.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          35,
+          52
+        ],
+        "paste": [
+          14,
+          4
+        ],
+        "localLandmark": [
+          17.5,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          34,
+          52
+        ],
+        "paste": [
+          15,
+          4
+        ],
+        "localLandmark": [
+          17.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_vix_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_vix_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          15,
+          3,
+          49,
+          56
+        ],
+        [
+          14,
+          2,
+          49,
+          56
+        ],
+        [
+          14,
+          2,
+          49,
+          56
+        ],
+        [
+          14,
+          2,
+          50,
+          56
+        ],
+        [
+          14,
+          2,
+          49,
+          56
+        ],
+        [
+          12,
+          0,
+          53,
+          56
+        ],
+        [
+          10,
+          0,
+          55,
+          56
+        ],
+        [
+          10,
+          0,
+          55,
+          56
+        ],
+        [
+          12,
+          0,
+          53,
+          56
+        ],
+        [
+          12,
+          0,
+          53,
+          56
+        ],
+        [
+          13,
+          5,
+          51,
+          56
+        ],
+        [
+          12,
+          5,
+          51,
+          56
+        ],
+        [
+          11,
+          5,
+          53,
+          56
+        ],
+        [
+          12,
+          5,
+          52,
+          56
+        ],
+        [
+          12,
+          5,
+          52,
+          56
+        ],
+        [
+          14,
+          5,
+          49,
+          56
+        ],
+        [
+          15,
+          4,
+          49,
+          56
+        ],
+        [
+          15,
+          4,
+          49,
+          56
+        ],
+        [
+          14,
+          4,
+          49,
+          56
+        ],
+        [
+          15,
+          4,
+          49,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        34,
+        45
+      ],
+      "bboxHeightRange": [
+        51,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        30.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_vix_01/neutral_vix_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_vix_01/neutral_vix_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

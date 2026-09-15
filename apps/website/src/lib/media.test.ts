@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { MAX_SCREENSHOTS_PER_USER, SCREENSHOT_MAX_BYTES } from "./blob-path";
+import {
+  MAX_SCREENSHOTS_PER_USER,
+  SCREENSHOT_MAX_BYTES,
+  VIDEO_MAX_PER_USER,
+} from "./blob-path";
 import { DEFAULT_GAME_DOCUMENT } from "./game-contract";
 import { createGame, memoryGames } from "./games";
 import {
@@ -10,6 +14,9 @@ import {
   getPublicMedia,
   listMedia,
   memoryMedia,
+  finalizeVideoUpload,
+  releaseVideoUpload,
+  reserveVideoUpload,
   saveScreenshotUpload,
   type ScreenshotStorage,
 } from "./media";
@@ -92,9 +99,13 @@ test("the server-owned screenshot workflow stores owner-scoped media", () =>
     assert.deepEqual(await getPublicMedia(created.media.id), {
       id: created.media.id,
       url: created.media.url,
+      pathname: created.media.pathname,
+      contentType: "image/png",
+      byteSize: created.media.byteSize,
       createdAt: created.media.createdAt,
       gameId: null,
       gameTitle: null,
+      kind: "screenshot",
     });
     assert.equal(await deleteMedia("media-owner-b", created.media.id), false);
     assert.equal(await deleteMedia("media-owner-a", created.media.id), true);
@@ -305,4 +316,76 @@ test("pending reservations consume quota and remain invisible until finalized", 
       (await listMedia("media-owner-a")).length,
       MAX_SCREENSHOTS_PER_USER,
     );
+  }));
+
+test("video reservations use independent slots and expose complete video DTOs", () =>
+  withoutDatabase(async () => {
+    const fake = recordingStorage();
+    const reservations = await Promise.all(
+      Array.from({ length: VIDEO_MAX_PER_USER + 1 }, () =>
+        reserveVideoUpload("media-owner-a"),
+      ),
+    );
+    const reserved = reservations.filter(
+      (result): result is Extract<typeof result, { status: "reserved" }> =>
+        result.status === "reserved",
+    );
+    assert.equal(reserved.length, VIDEO_MAX_PER_USER);
+    assert.equal(
+      reservations.filter((result) => result.status === "limit").length,
+      1,
+    );
+    assert.equal((await listMedia("media-owner-a")).length, 0);
+
+    const reservation = reserved[0]?.reservation;
+    assert.ok(reservation);
+    const video = await finalizeVideoUpload(reservation, {
+      video: {
+        url: `https://abc.public.blob.vercel-storage.com/${reservation.pathname}`,
+        pathname: reservation.pathname,
+        contentType: "video/mp4",
+        byteSize: 100,
+      },
+      poster: {
+        url: `https://abc.public.blob.vercel-storage.com/${reservation.posterPathname}`,
+        pathname: reservation.posterPathname,
+        contentType: "image/png",
+      },
+      durationMs: 1_000,
+      width: 640,
+      height: 360,
+    });
+    assert.equal(video?.kind, "video");
+    assert.equal(video?.posterPathname, reservation.posterPathname);
+    assert.equal((await getPublicMedia(video?.id ?? ""))?.kind, "video");
+
+    const pending = reserved[1]?.reservation;
+    assert.ok(pending);
+    await releaseVideoUpload(pending, fake.storage);
+    assert.deepEqual(fake.deletions, [pending.pathname, pending.posterPathname]);
+  }));
+
+test("video finalization rejects incomplete metadata without revealing media", () =>
+  withoutDatabase(async () => {
+    const result = await reserveVideoUpload("media-owner-a");
+    assert.equal(result.status, "reserved");
+    if (result.status !== "reserved") return;
+    const video = await finalizeVideoUpload(result.reservation, {
+      video: {
+        url: `https://abc.public.blob.vercel-storage.com/${result.reservation.pathname}`,
+        pathname: result.reservation.pathname,
+        contentType: "video/mp4",
+        byteSize: 100,
+      },
+      poster: {
+        url: `https://abc.public.blob.vercel-storage.com/${result.reservation.posterPathname}`,
+        pathname: result.reservation.posterPathname,
+        contentType: "image/png",
+      },
+      durationMs: 0,
+      width: 640,
+      height: 360,
+    });
+    assert.equal(video, null);
+    assert.equal((await listMedia("media-owner-a")).length, 0);
   }));

@@ -14,6 +14,7 @@ import { authClient } from "@/lib/auth-client";
 import { hasChosenDisplayName } from "@/lib/display-name";
 
 import { DisplayNamePicker } from "./display-name-picker";
+import { prefetchLabWorkspace, resetLabWorkspaceStore } from "./lab/lab-workspace";
 
 type AuthMode = "start" | "sign-in" | "sign-out";
 
@@ -96,6 +97,7 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
         throw new Error(result.error.message);
       }
 
+      resetLabWorkspaceStore();
       applyProfile(null);
       router.push("/");
       router.refresh();
@@ -111,6 +113,10 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
       if (mode === "sign-out") {
         void signOut();
         return;
+      }
+
+      if (mode !== "sign-out") {
+        prefetchLabWorkspace();
       }
 
       router.push(mode === "sign-in" ? "/lab#lab-key-login" : "/lab");

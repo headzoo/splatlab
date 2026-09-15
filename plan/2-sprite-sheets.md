@@ -72,6 +72,88 @@ for the requested zombie world; Cooper remains living and recognizable rather
 than becoming a generic zombie. Cooper does not use human skin-tone or
 hair-color masks.
 
+### Jamie mascot set
+
+Jamie is one neutral, reusable chicken identity rather than a themed matrix:
+
+1. `neutral_jamie_01.png` — Jamie the Framer Chicken in worn workwear, with a
+   calm squint, crooked cap, close-held framing tools, chart-lit vest phone,
+   tucked laptop, and canonical 20-frame gait
+
+Jamie uses `body: chicken` and no human appearance masks. His name, framing-wall
+detail, stock chart, and tagline remain presentation metadata/UI rather than
+baked sprite labels or scenery. The same approved neutral sheet is valid in
+every theme and both supported runtimes.
+
+### Rupert mascot set
+
+Rupert is one neutral, reusable chicken identity rather than a themed matrix:
+
+1. `neutral_rupert_01.png` — Rupert the Coop Keeper with rusty-orange neck
+   feathers, an unkempt crest, rolled teal sleeves, loose work-boot laces, a
+   battered shoulder tool bag, clipped green-LED lamp, cable and fuse details,
+   belt keys, a taped wing feather, curled blank name badge, and the canonical
+   20-frame gait
+
+Rupert uses `body: chicken` and no human appearance masks. His name, exact
+tagline, shared flask, chalk marks, and the 2 a.m. Green Hills repair scene
+remain presentation metadata and map-authored world details rather than baked
+sprite labels or scenery. The same approved neutral sheet is valid in every
+theme and both supported runtimes. Rupert's unkillable hero trait is explicit
+gameplay data; his authored `defeated` sheet remains available for role-neutral
+enemy or NPC use and catalog review without making hero art control mechanics.
+
+### Vix character set
+
+Vix is one neutral, reusable fox identity that can be assigned as either a
+player hero or an enemy in every map theme:
+
+1. `neutral_vix_01.png` — lean orange-russet fox in scuffed black streetwear,
+   combat boots, a chain-and-lockpick belt, nicked hoop-pierced ear, cracked
+   cyan-lit phone, crooked blank badge, low curling tail, and canonical
+   20-frame gait
+
+Vix uses `body: fox` and no human appearance masks. Her name, readable phone
+message, fire escape, neon brick, stock-chart graffiti, sign, and tagline remain
+presentation metadata/UI rather than baked sprite labels or scenery. The same
+approved neutral sheet is valid as a player or enemy in every theme and both
+supported runtimes.
+
+### Leenie character set
+
+Leenie is one neutral, reusable chicken hero identity rather than a themed
+matrix:
+
+1. `neutral_leenie_01.png` — Leenie, a poised cream-white hen with a groomed
+   feather tuft, subtle raised brow, blush cardigan, crisp white collar,
+   navy-and-pink plaid skirt, cream knee socks, polished oxblood loafers,
+   close-held pastel purse, heart locket, and canonical 20-frame gait
+
+Leenie uses `body: chicken` and no human appearance masks. Her presentation
+balances a fashion-conscious, slightly snobby first impression with kind eyes
+and a warm smile. Keep her name and any future tagline in UI copy rather than
+baked sprite text. The same approved neutral sheet is valid in every theme and
+both supported runtimes.
+
+### Lango character set
+
+Lango is one neutral, reusable chicken hero identity rather than a themed
+matrix:
+
+1. `neutral_lango_01.png` — Lango, a young cream-and-charcoal rooster with a
+   long deep-indigo crest swept over one eye, compact sleeveless hoodie, dark
+   utility belt, scuffed foot wraps, old smartphone, battered cross-body laptop
+   bag, short charging-cable loop, improvised patches, and canonical 20-frame
+   gait
+
+Lango uses `body: chicken` and no human appearance masks. His name is the
+kid-friendly homage to “slanguage”; the Citrus Heights builder biography and
+tagline remain UI copy rather than baked sprite text or scenery. The same
+neutral sheet is valid in every theme and both supported runtimes. Until
+compatible attack art is authored, attacks use the safe no-animation fallback.
+Lango owns a four-frame left and four-frame right `defeated` event sheet with a
+harmless stumble, buckle, controlled low fall, and resting dazed pose.
+
 ### Girl character set
 
 The reusable girl character keeps one identity and locomotion cycle across the
@@ -571,10 +653,18 @@ the sword from bounded per-frame attachment data.
 `space_cooper_01`, `space_human_01`, `space_ghost_01`, and `space_robot_01`
 each declare a four-frame left and right `defeated` event sheet. These sheets are
 role-neutral: an enemy plays the same character artwork before removal that a
-player plays before checkpoint respawn. Other characters retain the same combat
-mechanics but use a no-animation fallback until compatible event sheets exist.
+player plays before checkpoint respawn. `neutral_jamie_01` and
+`neutral_vix_01` also own four-frame left and right `defeated` sheets.
+`neutral_leenie_01` owns the same four-frame left and right `defeated` sheet so
+her complete hero package includes its harmless fall-and-daze sequence from the
+start.
+`neutral_rupert_01` owns the same event-sheet contract for role-neutral catalog
+completeness, while the player-hero trait keeps Rupert out of normal defeat
+state. `neutral_lango_01` owns the same contract for his harmless stumble and
+daze sequence. Other characters retain the same combat mechanics but use a
+no-animation fallback until compatible event sheets exist.
 
-All seven new sheets and the sword sprite are recipe-backed staged candidates.
+All nine new sheets and the sword sprite are recipe-backed staged candidates.
 They must pass `tools/sprites.py process` and remain in `sprite-build/` until the
 user approves each complete parent package in the Sprite Viewer.
 

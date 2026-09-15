@@ -127,6 +127,11 @@ model MediaAsset {
   pathname    String    @unique
   contentType String    @map("content_type")
   byteSize    Int       @map("byte_size")
+  posterUrl      String?   @map("poster_url")
+  posterPathname String?   @unique @map("poster_pathname")
+  durationMs     Int?      @map("duration_ms")
+  width          Int?      @map("width")
+  height         Int?      @map("height")
   quotaSlot   Int?      @map("quota_slot")
   readyAt     DateTime? @default(now()) @map("ready_at") @db.Timestamp(6)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)

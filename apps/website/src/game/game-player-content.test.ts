@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { DEFAULT_GAME_DOCUMENT, gameDocumentSchema } from "@/lib/game-contract";
+import {
+  activePlayerAssetId,
+  DEFAULT_GAME_DOCUMENT,
+  gameDocumentSchema,
+} from "@/lib/game-contract";
+import { mergeBuilderSetupChange } from "@/app/build/build-map-roll";
 
 import { GAME_PLAYER_CONTENT } from "./game-player-content";
 import { gameCampaignMaps } from "./game-levels";
@@ -30,6 +36,39 @@ import {
 } from "./platformer/map-editing";
 import { defaultRammingTravel } from "./platformer/motion-defaults";
 import { createInitialState, snapPlatformerStateToGrid } from "./platformer/engine";
+
+test("both site runtimes share the video capture lifecycle without snapping Platformer", () => {
+  const platformer = readFileSync(new URL("./platformer/platformer-game.tsx", import.meta.url), "utf8");
+  const maze = readFileSync(new URL("./top-down/maze-game.tsx", import.meta.url), "utf8");
+
+  for (const source of [platformer, maze]) {
+    assert.match(source, /useCanvasVideoCapture/);
+    assert.match(source, /suspendForMenu/);
+    assert.match(source, /VideoCaptureOverlay/);
+    assert.match(source, /onVideoCapture=\{videoCapture\.begin\}/);
+    assert.match(source, /onCaptureStart: startAfterVideoCountdown/);
+    assert.match(source, /onCaptureFailure: resumeInterruptedMenu/);
+
+    const successfulHandoff = source.slice(
+      source.indexOf("const startAfterVideoCountdown"),
+      source.indexOf("const videoCapture"),
+    );
+    assert.match(successfulHandoff, /menuResumeTokenRef\.current\.consume\(\)/);
+    assert.match(successfulHandoff, /setPlaying\(true\)/);
+    assert.doesNotMatch(successfulHandoff, /if \(!menuResumeTokenRef\.current\.consume/);
+
+    const failedHandoff = source.slice(
+      source.indexOf("const resumeInterruptedMenu"),
+      source.indexOf("const startAfterVideoCountdown"),
+    );
+    assert.match(failedHandoff, /if \(!menuResumeTokenRef\.current\.consume\(\)/);
+  }
+  const transientSuspension = platformer.slice(
+    platformer.indexOf("const suspendForMenu"),
+    platformer.indexOf("const togglePlayback"),
+  );
+  assert.doesNotMatch(transientSuspension, /snapPlatformerStateToGrid/);
+});
 
 test("platformer content follows the displayed campaign order", () => {
   assert.deepEqual(
@@ -307,6 +346,27 @@ test("the builder eraser removes added and authored objects but preserves the re
     [{ x: authoredSpawn.x, y: authoredSpawn.y }],
   );
   assert.deepEqual(protectedSpawn, { edits: [], removals: [], settings: [] });
+});
+
+test("hero settings change the game document character and human appearance", () => {
+  const updated = mergeBuilderSetupChange(DEFAULT_GAME_DOCUMENT, {
+    playerCharacter: "jamie",
+  });
+  assert.equal(updated.playerCharacter, "jamie");
+  assert.equal(activePlayerAssetId(updated), "neutral_jamie_01");
+
+  const human = mergeBuilderSetupChange(updated, {
+    playerCharacter: "human",
+    humanGender: "girl",
+    skinTone: "skin_02",
+    hairColor: "hair_05",
+  });
+  assert.equal(human.playerCharacter, "human");
+  assert.equal(human.humanGender, "girl");
+  assert.equal(human.skinTone, "skin_02");
+  assert.equal(human.hairColor, "hair_05");
+  assert.equal(activePlayerAssetId(human), "neutral_girl_01");
+  assert.equal(gameDocumentSchema.safeParse(human).success, true);
 });
 
 test("enemy toolbox settings change character, behavior, and starting direction", () => {

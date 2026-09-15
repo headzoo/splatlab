@@ -5,7 +5,12 @@ import {
   put,
 } from "@vercel/blob";
 
-import { isOwnedScreenshotPathname, isVercelBlobUrl } from "./blob-path";
+import {
+  isOwnedScreenshotPathname,
+  isOwnedVideoPathname,
+  isOwnedVideoPosterPathname,
+  isVercelBlobUrl,
+} from "./blob-path";
 
 const PLACEHOLDER = /replace-with-your|your-blob-token|your-blob-store/i;
 const STORAGE_UNAVAILABLE =
@@ -192,5 +197,18 @@ export async function deleteOwnedScreenshotBlob(
   pathname: string,
 ) {
   if (!isOwnedScreenshotPathname(ownerId, pathname)) return false;
+  return deleteBlob(pathname);
+}
+
+export async function deleteOwnedVideoBlob(ownerId: string, pathname: string) {
+  if (!isOwnedVideoPathname(ownerId, pathname)) return false;
+  return deleteBlob(pathname);
+}
+
+export async function deleteOwnedVideoPosterBlob(
+  ownerId: string,
+  pathname: string,
+) {
+  if (!isOwnedVideoPosterPathname(ownerId, pathname)) return false;
   return deleteBlob(pathname);
 }

@@ -76,3 +76,44 @@ runtime does not write generated images to its local filesystem. Screenshot
 uploads reserve one of 48 owner-scoped database slots before writing the blob
 and become visible only after the media row is finalized. Keep the screenshot
 quota migration and application deployment together.
+
+Video media requires the same public Vercel Blob store and the media quota
+migration to be deployed before application traffic. Set `NEXT_PUBLIC_SITE_URL`
+to the stable HTTPS production domain (not a preview URL); shared-media pages
+and social metadata use this origin. Add preview URLs to
+`BETTER_AUTH_TRUSTED_ORIGINS` only when those environments need sign-in.
+
+The `/api/media/video` Node function includes the `ffmpeg-static` binary
+through Next output tracing. Browser captures are intentionally muted, limited
+to ten seconds, and accepted only as bounded MP4/WebM sources plus a PNG
+poster. The function transcodes them to H.264/yuv420p fast-start MP4, uploads
+only the final MP4 and poster to public Blob paths, and releases a pending
+reservation on failure. pnpm is configured to run `ffmpeg-static`'s install
+script; a clean install must leave its binary executable. Vercel Functions
+accept at most a 4.5 MB request body, so each capture is constrained to a
+3 MiB source plus a 512 KiB PNG poster, with multipart overhead reserved under
+a conservative 4 MiB aggregate ceiling. The client and server both enforce
+that aggregate limit before transcoding.
+
+Before deploying, run `pnpm --filter website db:migrate`, then
+`pnpm --filter website build`.
+
+After a production or preview deployment with a sample video, validate social
+metadata against the stable custom domain configured in
+`NEXT_PUBLIC_SITE_URL` (not a short-lived preview URL when sharing publicly):
+
+1. Open `/media/<id>` without cookies and confirm the HTML includes absolute
+   HTTPS `og:video`, `og:image`, `twitter:card=player`, `twitter:player`,
+   `twitter:player:stream`, and matching width/height tags.
+2. Open `/media/<id>/embed` directly and inside a test iframe. Confirm the MP4
+   plays with poster, controls, and the canonical back link to the share page.
+3. Run the same stable URL through available validators such as the
+   [X Card Validator](https://cards-dev.twitter.com/validator) and a general
+   Open Graph debugger (for example Meta Sharing Debugger or opengraph.xyz).
+   Keep the public MP4 and poster Blob URLs reachable over HTTPS with byte-range
+   support.
+
+X, Facebook, Slack, Discord, and other networks independently decide whether
+to render inline player cards and may require separate domain approval. The
+poster-backed public share page at `/media/<id>` is the required fallback when
+a network refuses iframe playback or has not approved the player domain.

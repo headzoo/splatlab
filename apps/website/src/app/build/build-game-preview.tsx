@@ -57,8 +57,12 @@ import {
   defaultGameTitle,
   DEFAULT_GAME_DOCUMENT,
   gameDocumentSchema,
+  platformerTemplateSource,
+  playerAssetIdForPlatformerLevel,
   type ArtWorldId,
   type GameDocument,
+  type HumanGender,
+  type PlayerCharacter,
   type SavedGameDto,
 } from "@/lib/game-contract";
 import {
@@ -97,7 +101,7 @@ import {
   type MapRollSetupCompletion,
   useBuildSetup,
 } from "./build-setup";
-import { BuildObjectToolbox } from "./build-object-toolbox";
+import { BuildObjectToolbox, type HeroSettingsChange } from "./build-object-toolbox";
 import { BuildTerrainToolbox } from "./build-terrain-toolbox";
 import { BuildTools } from "./build-tools";
 import styles from "./build.module.css";
@@ -1292,6 +1296,19 @@ export function BuildGamePreview({
       ),
     });
   };
+  const changeHeroSettings = (change: HeroSettingsChange) => {
+    commit(change);
+  };
+  const { playerCharacter, humanGender, skinTone, hairColor } = history.present;
+  const currentTemplateSource = platformerTemplateSource(history.present, current.source);
+  const currentBackgroundId = editableObjectMap.presentation.backgroundId as ArtWorldId;
+  const heroAssetIdFor = (character: PlayerCharacter, gender: HumanGender = humanGender) =>
+    playerAssetIdForPlatformerLevel(
+      currentTemplateSource,
+      currentBackgroundId,
+      character,
+      gender,
+    );
   const changeSelectedTerrainSettings = (change: PlatformerTerrainSettingsChange) => {
     if (!selectedTerrainCell) return;
     commit({
@@ -1813,12 +1830,18 @@ export function BuildGamePreview({
       {selectedObject ? (
         <BuildObjectToolbox
           backgroundId={current.map.presentation.backgroundId}
+          hairColor={hairColor}
+          heroAssetIdFor={heroAssetIdFor}
+          humanGender={humanGender}
           object={selectedObject}
           onChange={changeSelectedObjectSettings}
+          onHeroChange={changeHeroSettings}
           onClose={() => setEditorSelection({
             objectIds: [],
             terrainCells: editorSelection.terrainCells,
           })}
+          playerCharacter={playerCharacter}
+          skinTone={skinTone}
         />
       ) : null}
       {selectedTerrainCell && selectedTerrainIsHazard && editableTerrainMap ? (

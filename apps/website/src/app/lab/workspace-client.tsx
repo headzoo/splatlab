@@ -3,32 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
-import { authClient } from "@/lib/auth-client";
 import type { SavedGameSummaryDto } from "@/lib/game-contract";
 import { buildGamePath, playGamePath } from "@/lib/game-routes";
-import type { MediaAssetDto } from "@/lib/media";
+import type { MediaAssetDto } from "@/lib/media-types";
 
 import { useAuthFlow } from "../auth-flow";
 import { SiteHeader } from "../site-header";
+import { resetLabWorkspaceStore, useLabWorkspace } from "./lab-workspace";
 import { MediaLibrary } from "./media-library";
 
 import styles from "./workspace.module.css";
 
 const LAB_KEY_EXAMPLE = "482917-063541-829304-771625-038451";
-
-type Workspace = {
-  workspaceId: string;
-  hasLabKey: boolean;
-  keyVersion: number;
-};
 
 type IssuedKey = {
   labKey: string;
@@ -52,107 +40,47 @@ function getErrorMessage(payload: unknown, fallback: string) {
 export function WorkspaceClient() {
   const router = useRouter();
   const { markSignedIn } = useAuthFlow();
+  const {
+    workspace,
+    games,
+    media,
+    initializing,
+    refreshing,
+    error: workspaceError,
+    ensureReady,
+    refresh,
+    patchGames,
+    patchMedia,
+    patchWorkspace,
+    setError: setWorkspaceError,
+  } = useLabWorkspace();
   const replaceDialogRef = useRef<HTMLDialogElement>(null);
   const signOutDialogRef = useRef<HTMLDialogElement>(null);
   const keyDialogRef = useRef<HTMLDialogElement>(null);
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [issuedKey, setIssuedKey] = useState<IssuedKey | null>(null);
   const [busy, setBusy] = useState(false);
   const [signOutBusy, setSignOutBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
-  const [games, setGames] = useState<SavedGameSummaryDto[] | null>(null);
-  const [media, setMedia] = useState<MediaAssetDto[] | null>(null);
   const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
   const [deletingMediaId, setDeletingMediaId] = useState<string | null>(null);
   const [labKey, setLabKey] = useState("");
-  const [initializing, setInitializing] = useState(true);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
-
-  const loadWorkspaceData = useCallback(async () => {
-    const [workspaceResponse, gamesResponse, mediaResponse] = await Promise.all([
-      fetch("/api/auth/lab-workspace", { cache: "no-store" }),
-      fetch("/api/games", { cache: "no-store" }),
-      fetch("/api/media", { cache: "no-store" }),
-    ]);
-    const [workspacePayload, gamesPayload, mediaPayload]: [
-      unknown,
-      unknown,
-      unknown,
-    ] = await Promise.all([
-      workspaceResponse.json().catch(() => null),
-      gamesResponse.json().catch(() => null),
-      mediaResponse.json().catch(() => null),
-    ]);
-
-    if (!workspaceResponse.ok) {
-      throw new Error(
-        getErrorMessage(workspacePayload, "We couldn't load your Lab Workspace."),
-      );
-    }
-
-    if (!gamesResponse.ok) {
-      throw new Error(getErrorMessage(gamesPayload, "We couldn't load your games."));
-    }
-
-    const media = mediaResponse.ok
-      ? (mediaPayload as { media: MediaAssetDto[] }).media
-      : [];
-
-    return {
-      workspace: workspacePayload as Workspace,
-      games: (gamesPayload as { games: SavedGameSummaryDto[] }).games,
-      media,
-    };
-  }, []);
 
   useEffect(() => {
     let active = true;
 
-    async function initializeWorkspace() {
-      try {
-        const current = await authClient.getSession();
-
-        if (!current.data) {
-          const created = await authClient.signIn.anonymous();
-
-          if (created.error) {
-            throw new Error(created.error.message);
-          }
-        }
-
+    void ensureReady().then((ready) => {
+      if (active && ready) {
         markSignedIn();
-        const data = await loadWorkspaceData();
-
-        if (active) {
-          setWorkspace(data.workspace);
-          setGames(data.games);
-          setMedia(data.media);
-        }
-      } catch (caught) {
-        if (active) {
-          setGames([]);
-          setMedia([]);
-          setError(
-            caught instanceof Error
-              ? caught.message
-              : "We couldn't open your Lab Workspace.",
-          );
-        }
-      } finally {
-        if (active) {
-          setInitializing(false);
-        }
       }
-    }
-
-    void initializeWorkspace();
+    });
 
     return () => {
       active = false;
     };
-  }, [loadWorkspaceData, markSignedIn]);
+  }, [ensureReady, markSignedIn]);
 
   useEffect(() => {
     if (issuedKey) {
@@ -163,6 +91,7 @@ export function WorkspaceClient() {
   async function issueLabKey() {
     setBusy(true);
     setError("");
+    setWorkspaceError("");
     replaceDialogRef.current?.close();
 
     try {
@@ -180,7 +109,7 @@ export function WorkspaceClient() {
       }
 
       const nextKey = payload as IssuedKey;
-      setWorkspace((current) =>
+      patchWorkspace((current) =>
         current
           ? { ...current, hasLabKey: true, keyVersion: nextKey.keyVersion }
           : current,
@@ -229,6 +158,7 @@ export function WorkspaceClient() {
   async function signOutEverywhere() {
     setSignOutBusy(true);
     setError("");
+    setWorkspaceError("");
     signOutDialogRef.current?.close();
 
     try {
@@ -251,8 +181,8 @@ export function WorkspaceClient() {
         );
       }
 
+      resetLabWorkspaceStore();
       router.replace("/");
-      router.refresh();
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -286,15 +216,13 @@ export function WorkspaceClient() {
         return;
       }
 
-      const data = await loadWorkspaceData();
-      setWorkspace(data.workspace);
-      setGames(data.games);
-      setMedia(data.media);
+      resetLabWorkspaceStore();
+      await refresh();
       setLabKey("");
       setError("");
+      setWorkspaceError("");
       markSignedIn();
       router.replace("/lab");
-      router.refresh();
     } catch {
       setLoginError("We couldn't check that Lab Key. Please try again.");
     } finally {
@@ -307,6 +235,7 @@ export function WorkspaceClient() {
 
     setDeletingGameId(game.id);
     setError("");
+    setWorkspaceError("");
 
     try {
       const response = await fetch(`/api/games/${encodeURIComponent(game.id)}`, {
@@ -318,7 +247,7 @@ export function WorkspaceClient() {
         throw new Error(getErrorMessage(payload, "We couldn't delete that game."));
       }
 
-      setGames((current) => current?.filter((candidate) => candidate.id !== game.id) ?? []);
+      patchGames((current) => current?.filter((candidate) => candidate.id !== game.id) ?? []);
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "We couldn't delete that game.",
@@ -331,6 +260,7 @@ export function WorkspaceClient() {
   async function removeMedia(item: MediaAssetDto) {
     setDeletingMediaId(item.id);
     setError("");
+    setWorkspaceError("");
 
     try {
       const response = await fetch(
@@ -341,22 +271,24 @@ export function WorkspaceClient() {
       if (!response.ok) {
         const payload: unknown = await response.json().catch(() => null);
         throw new Error(
-          getErrorMessage(payload, "We couldn't delete that image."),
+          getErrorMessage(payload, "We couldn't delete that media."),
         );
       }
 
-      setMedia((current) =>
+      patchMedia((current) =>
         current?.filter((candidate) => candidate.id !== item.id) ?? [],
       );
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "We couldn't delete that image.",
+        caught instanceof Error ? caught.message : "We couldn't delete that media.",
       );
       throw caught;
     } finally {
       setDeletingMediaId(null);
     }
   }
+
+  const pageError = error || workspaceError;
 
   return (
     <div className={styles.page}>
@@ -402,16 +334,23 @@ export function WorkspaceClient() {
               <span>Projects</span>
               <h2 id="games-title">My Games</h2>
             </div>
-            <Link
-              className={styles.createButton}
-              href="/build"
-              aria-disabled={!workspace}
-              onClick={(event) => {
-                if (!workspace) event.preventDefault();
-              }}
-            >
-              <span aria-hidden="true">+</span> Create a Game
-            </Link>
+            <div className={styles.sectionHeadingActions}>
+              {refreshing ? (
+                <span className={styles.refreshStatus} role="status">
+                  Updating…
+                </span>
+              ) : null}
+              <Link
+                className={styles.createButton}
+                href="/build"
+                aria-disabled={!workspace}
+                onClick={(event) => {
+                  if (!workspace) event.preventDefault();
+                }}
+              >
+                <span aria-hidden="true">+</span> Create a Game
+              </Link>
+            </div>
           </div>
           <div
             className={`${styles.emptyState} ${games?.length ? styles.savedGamesState : ""}`}
@@ -460,13 +399,21 @@ export function WorkspaceClient() {
                         aria-label={`Play ${game.title}`}
                       >
                         {game.thumbnailDataUrl ? (
-                          <Image
-                            src={game.thumbnailDataUrl}
-                            alt={`Game preview for ${game.title}`}
-                            fill
-                            sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"
-                            unoptimized
-                          />
+                          game.thumbnailDataUrl.startsWith("data:") ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={game.thumbnailDataUrl}
+                              alt={`Game preview for ${game.title}`}
+                            />
+                          ) : (
+                            <Image
+                              src={game.thumbnailDataUrl}
+                              alt={`Game preview for ${game.title}`}
+                              fill
+                              sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"
+                              unoptimized
+                            />
+                          )
                         ) : (
                           <span className={styles.gameCardTopperFallback}>
                             <b aria-hidden="true">
@@ -522,6 +469,7 @@ export function WorkspaceClient() {
         <MediaLibrary
           items={media}
           deletingId={deletingMediaId}
+          refreshing={refreshing}
           onDelete={removeMedia}
         />
 
@@ -550,8 +498,10 @@ export function WorkspaceClient() {
                 </span>
                 {workspace.hasLabKey ? "Lab Key protected" : "No Lab Key yet"}
               </span>
-            ) : (
+            ) : initializing ? (
               <span className={styles.keyStatus}>Loading…</span>
+            ) : (
+              <span className={styles.keyStatus}>Unavailable</span>
             )}
             <button
               className={styles.keyButton}
@@ -617,9 +567,9 @@ export function WorkspaceClient() {
           </form>
         </section>
 
-        {error ? (
+        {pageError ? (
           <p className={styles.pageError} role="alert">
-            {error}
+            {pageError}
           </p>
         ) : null}
       </main>

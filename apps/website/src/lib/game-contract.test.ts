@@ -11,7 +11,10 @@ import {
   gameDocumentSchema,
   gameThumbnailInputSchema,
   playerAssetIdFor,
+  playerAssetIdForPlatformerLevel,
+  playerAssetIsInvulnerable,
   PLATFORMER_MAP_SOURCES,
+  PLAYER_CHARACTERS,
   THEME_MAP_SOURCES,
   toPublicGameDocument,
 } from "./game-contract";
@@ -156,6 +159,17 @@ test("game documents persist independent levels created from approved templates"
 });
 
 test("themes resolve to real maps and theme-specific player sprites", () => {
+  assert.deepEqual(PLAYER_CHARACTERS, [
+    "cooper",
+    "rupert",
+    "jamie",
+    "vix",
+    "leenie",
+    "lango",
+    "human",
+    "ghost",
+    "robot",
+  ]);
   assert.deepEqual(THEME_MAP_SOURCES.graveyard, {
     platformerMapSource: "level-3.json",
     mazeMapSource: "maze_graveyard_01.json",
@@ -169,6 +183,13 @@ test("themes resolve to real maps and theme-specific player sprites", () => {
     "space",
   );
   assert.equal(playerAssetIdFor("graveyard", "human"), "haunted_human_01");
+  for (const theme of ["green_hills", "graveyard", "space", "dragon_world"] as const) {
+    assert.equal(playerAssetIdFor(theme, "rupert"), "neutral_rupert_01");
+    assert.equal(playerAssetIdFor(theme, "jamie"), "neutral_jamie_01");
+    assert.equal(playerAssetIdFor(theme, "vix"), "neutral_vix_01");
+    assert.equal(playerAssetIdFor(theme, "leenie"), "neutral_leenie_01");
+    assert.equal(playerAssetIdFor(theme, "lango"), "neutral_lango_01");
+  }
   assert.equal(
     playerAssetIdFor("graveyard", "human", "girl"),
     "haunted_girl_01",
@@ -193,9 +214,85 @@ test("themes resolve to real maps and theme-specific player sprites", () => {
     activePlayerAssetId({
       ...DEFAULT_GAME_DOCUMENT,
       platformerMapSource: "level-5.json",
+      playerCharacter: "rupert",
+    }),
+    "neutral_rupert_01",
+  );
+  assert.equal(
+    activePlayerAssetId({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerMapSource: "level-5.json",
+      playerCharacter: "jamie",
+    }),
+    "neutral_jamie_01",
+  );
+  assert.equal(
+    activePlayerAssetId({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerMapSource: "level-5.json",
+      playerCharacter: "vix",
+    }),
+    "neutral_vix_01",
+  );
+  assert.equal(
+    activePlayerAssetId({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerMapSource: "level-5.json",
+      playerCharacter: "leenie",
+    }),
+    "neutral_leenie_01",
+  );
+  assert.equal(
+    activePlayerAssetId({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerMapSource: "level-5.json",
+      playerCharacter: "lango",
+    }),
+    "neutral_lango_01",
+  );
+  assert.equal(
+    activePlayerAssetId({
+      ...DEFAULT_GAME_DOCUMENT,
+      platformerMapSource: "level-5.json",
       playerCharacter: "human",
       humanGender: "girl",
     }),
+    "ice_world_girl_01",
+  );
+});
+
+test("Rupert is the only invulnerable hero", () => {
+  assert.equal(playerAssetIsInvulnerable("neutral_rupert_01"), true);
+  assert.equal(playerAssetIsInvulnerable("neutral_cooper_01"), false);
+  assert.equal(playerAssetIsInvulnerable("neutral_jamie_01"), false);
+  assert.equal(playerAssetIsInvulnerable("neutral_leenie_01"), false);
+  assert.equal(playerAssetIsInvulnerable("neutral_lango_01"), false);
+});
+
+test("playerAssetIdForPlatformerLevel resolves sprites from the level template and background", () => {
+  assert.equal(
+    playerAssetIdForPlatformerLevel(
+      "level-1.json",
+      "neutral_green_hills_01",
+      "jamie",
+    ),
+    "neutral_jamie_01",
+  );
+  assert.equal(
+    playerAssetIdForPlatformerLevel(
+      "level-5.json",
+      "ice_world_01",
+      "cooper",
+    ),
+    "ice_world_cooper_01",
+  );
+  assert.equal(
+    playerAssetIdForPlatformerLevel(
+      "level-5.json",
+      "ice_world_01",
+      "human",
+      "girl",
+    ),
     "ice_world_girl_01",
   );
 });

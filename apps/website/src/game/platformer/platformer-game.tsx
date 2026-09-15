@@ -84,12 +84,13 @@ import {
   createSpritePreloader,
   spritePreloadTotal,
 } from "@/game/sprite-preload";
-import type {
-  HairColor,
-  PlatformerObjectKind,
-  PlatformerTerrainKind,
-  PlayerAssetId,
-  SkinTone,
+import {
+  playerAssetIsInvulnerable,
+  type HairColor,
+  type PlatformerObjectKind,
+  type PlatformerTerrainKind,
+  type PlayerAssetId,
+  type SkinTone,
 } from "@/lib/game-contract";
 import {
   applyPlatformerEditorSelectionClick,
@@ -122,6 +123,9 @@ import {
   CanvasScreenshotMenu,
   type CanvasScreenshotMenuHandle,
 } from "../canvas-screenshot-menu";
+import { createMenuResumeToken } from "../menu-resume-token";
+import { useCanvasVideoCapture } from "../canvas-video-capture";
+import { VideoCaptureOverlay } from "../video-capture-overlay";
 import {
   createCanvasThumbnailBlob,
   type GameThumbnailCapture,
@@ -1224,6 +1228,7 @@ export function PlatformerGame({
   const editorMoveRef = useRef<EditorMoveStroke | null>(null);
   const sessionSpawnRef = useRef<{ x: number; y: number } | null>(null);
   const pausedFromPlayRef = useRef(false);
+  const menuResumeTokenRef = useRef(createMenuResumeToken());
   const renderedMapRef = useRef(map);
   const previousEditorToolRef = useRef(editorTool);
   const previousEditorZoomRef = useRef(editorZoomScale);
@@ -1235,6 +1240,35 @@ export function PlatformerGame({
   const playerImageRef = useRef<CanvasImageSource | null>(null);
   const audioRef = useRef<RuntimeAudio | null>(null);
   const fullscreen = useGameFullscreen(gameRef);
+
+  const resumeInterruptedMenu = useCallback(() => {
+    if (!menuResumeTokenRef.current.consume() || stateRef.current.status !== "playing") return;
+    previousStateRef.current = stateRef.current;
+    setPlaying(true);
+    const camera = resolvePlatformerCamera(map, stateRef.current);
+    audioRef.current?.startMusic(resolveRuntimeMusicCue(
+      resolveEnemyViewMusicCue(map, stateRef.current, camera),
+    ));
+  }, [map]);
+  const startAfterVideoCountdown = useCallback(() => {
+    menuResumeTokenRef.current.consume();
+    if (
+      stateRef.current.status === "won" ||
+      stateRef.current.status === "game_over"
+    ) return;
+    previousStateRef.current = stateRef.current;
+    setPlaying(true);
+    const camera = resolvePlatformerCamera(map, stateRef.current);
+    audioRef.current?.startMusic(resolveRuntimeMusicCue(
+      resolveEnemyViewMusicCue(map, stateRef.current, camera),
+    ));
+  }, [map]);
+  const videoCapture = useCanvasVideoCapture({
+    canvasRef,
+    savedGameId,
+    onCaptureStart: startAfterVideoCountdown,
+    onCaptureFailure: resumeInterruptedMenu,
+  });
 
   const backdrop = useMemo(
     () => loadingBackdrop(map.presentation),
@@ -1267,7 +1301,7 @@ export function PlatformerGame({
     }
 
     const announcement = state.status === "dying"
-      ? `Cooper was defeated. ${state.lives} lives remaining.`
+      ? `Your hero was defeated. ${state.lives} lives remaining.`
       : state.status === "playing"
         ? `${state.lives} lives and ${state.collectedIds.length} coins collected.`
         : state.status === "won"
@@ -1619,7 +1653,9 @@ export function PlatformerGame({
         inputRef.current.jumpPressed = false;
         inputRef.current.weaponPressed = false;
         previousStateRef.current = stateRef.current;
-        const result = stepPlatformer(map, physics, stateRef.current, input, weapon);
+        const result = stepPlatformer(map, physics, stateRef.current, input, weapon, {
+          playerInvulnerable: playerAssetIsInvulnerable(playerAssetId),
+        });
         stateRef.current = result.state;
         for (const event of result.events) audioRef.current?.play(event.type);
         accumulator -= FIXED_DELTA_SECONDS;
@@ -1684,7 +1720,7 @@ export function PlatformerGame({
     };
     animationFrame = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(animationFrame);
-  }, [map, onComplete, physics, playing, render, syncRuntimeDom, weapon]);
+  }, [map, onComplete, physics, playerAssetId, playing, render, syncRuntimeDom, weapon]);
 
   useEffect(() => {
     const gameHasFocus = () =>
@@ -2322,6 +2358,22 @@ export function PlatformerGame({
     render(performance.now() / 1000, snappedState);
   };
 
+  const suspendForMenu = useCallback(() => {
+    if (!menuResumeTokenRef.current.open(playing)) return;
+    inputRef.current = emptyInput();
+    previousStateRef.current = stateRef.current;
+    setPlaying(false);
+    audioRef.current?.pauseMusic();
+    render(performance.now() / 1000, stateRef.current);
+  }, [playing, render]);
+
+  const closeScreenshotMenu = useCallback((
+    reason: "dismiss" | "screenshot" | "thumbnail" | "video",
+  ) => {
+    if (reason === "video") return;
+    resumeInterruptedMenu();
+  }, [resumeInterruptedMenu]);
+
   const togglePlayback = () => {
     if (playing) {
       pause();
@@ -2536,6 +2588,7 @@ export function PlatformerGame({
           onClick={editorTool ? () => canvasRef.current?.focus() : startFromCanvas}
           onContextMenu={(event: ReactMouseEvent<HTMLCanvasElement>) => {
             event.preventDefault();
+            if (videoCapture.state.phase === "countdown") return;
             screenshotMenuRef.current?.open(event.clientX, event.clientY);
           }}
           onKeyDown={handleCanvasKeyDown}
@@ -2550,6 +2603,32 @@ export function PlatformerGame({
           canvasRef={canvasRef}
           savedGameId={savedGameId}
           onUpdateThumbnail={onUpdateThumbnail}
+          onOpen={suspendForMenu}
+          onClose={closeScreenshotMenu}
+          onVideoCapture={videoCapture.begin}
+          videoDisabled={
+            !assetsReady ||
+            terminalStatus !== "playing" ||
+            videoCapture.state.phase === "countdown" ||
+            videoCapture.state.phase === "recording" ||
+            videoCapture.state.phase === "saving"
+          }
+          videoDisabledMessage={
+            !assetsReady
+              ? "Wait for the game artwork to load."
+              : terminalStatus !== "playing"
+                ? "Start a new game before recording."
+                : !videoCapture.supported
+                  ? "Video capture is not supported by this browser."
+                  : videoCapture.state.phase !== "idle" && videoCapture.state.phase !== "success" && videoCapture.state.phase !== "error"
+                    ? "A video capture is already in progress."
+                    : undefined
+          }
+        />
+        <VideoCaptureOverlay
+          state={videoCapture.state}
+          onStop={videoCapture.stop}
+          onDismiss={videoCapture.dismiss}
         />
         {editing && !hideEditorLabels ? (
           <div className={styles.editorBadge} aria-hidden="true">

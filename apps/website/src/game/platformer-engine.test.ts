@@ -1040,6 +1040,49 @@ test("hazards play the death state before returning the player to the active spa
   assert.deepEqual(events, ["respawn"]);
 });
 
+test("an invulnerable Rupert ignores hazards and returns to his checkpoint after a fall", () => {
+  const initial = createInitialState(map);
+  const onHazard = {
+    ...initial,
+    x: (14 + 0.5) * map.tileSize,
+    y: 12 * map.tileSize,
+    grounded: false,
+  };
+  const hazard = stepPlatformer(
+    map,
+    spec,
+    onHazard,
+    idleInput,
+    weapon,
+    { playerInvulnerable: true },
+  );
+
+  assert.equal(hazard.state.status, "playing");
+  assert.equal(hazard.state.lives, initial.lives);
+  assert.deepEqual(hazard.events, []);
+
+  const belowMap = {
+    ...initial,
+    x: initial.checkpointX + map.tileSize,
+    y: (map.size.rows + 2) * map.tileSize,
+    grounded: false,
+  };
+  const recovered = stepPlatformer(
+    map,
+    spec,
+    belowMap,
+    idleInput,
+    weapon,
+    { playerInvulnerable: true },
+  );
+
+  assert.equal(recovered.state.status, "playing");
+  assert.equal(recovered.state.lives, initial.lives);
+  assert.equal(recovered.state.x, initial.checkpointX);
+  assert.equal(recovered.state.y, initial.checkpointY);
+  assert.deepEqual(recovered.events, []);
+});
+
 test("respawning puts every enemy back on the board at its starting position", () => {
   const initial = createInitialState(map);
   const enemy = initial.enemies.find((candidate) => candidate.id === "enemy_1");

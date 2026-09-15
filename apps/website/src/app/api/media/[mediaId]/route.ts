@@ -16,7 +16,7 @@ export async function GET(_request: Request, context: RouteContext) {
     const media = await getPublicMedia(mediaId);
 
     if (!media) {
-      return NextResponse.json({ message: "Image not found." }, { status: 404 });
+      return NextResponse.json({ message: "Media not found." }, { status: 404 });
     }
 
     return NextResponse.json(
@@ -26,7 +26,7 @@ export async function GET(_request: Request, context: RouteContext) {
   } catch (error) {
     console.error("Failed to load media", error);
     return NextResponse.json(
-      { message: "We couldn't open that image." },
+      { message: "We couldn't open that media." },
       { status: 500 },
     );
   }

@@ -6,6 +6,7 @@ import { resolveBodyMotionOffset } from "./motion";
 import {
   createInitialMazeState,
   MAZE_DEATH_DURATION_TICKS,
+  MAZE_FIXED_DELTA_SECONDS,
   MAZE_JUMP_DURATION_TICKS,
   resolveMazeCamera,
   stepMaze,
@@ -208,6 +209,24 @@ test("maze hazards defeat the hero when they are not jumping", () => {
 
   assert.equal(result.state.status, "dying");
   assert.deepEqual(result.events, [{ type: "player_death" }]);
+});
+
+test("an invulnerable Rupert ignores maze hazards", () => {
+  const hazardMap = openLaneMap([
+    { id: "spawn", type: "player_spawn", x: 1, y: 1, slot: 1, speed: 224 },
+    { id: "hazard", type: "hazard", x: 2, y: 1 },
+  ]);
+  const initial = { ...createInitialMazeState(hazardMap), x: 2.5, y: 1.875 };
+  const result = stepMazeWithEvents(
+    hazardMap,
+    initial,
+    idleInput,
+    MAZE_FIXED_DELTA_SECONDS,
+    { playerInvulnerable: true },
+  );
+
+  assert.equal(result.state.status, "playing");
+  assert.deepEqual(result.events, []);
 });
 
 test("maze jump crosses one hazard cell and lands on clear ground", () => {

@@ -103,3 +103,47 @@ export async function saveLabScreenshot(file: File, gameId?: string) {
 
   return payload.media;
 }
+
+export async function saveLabVideo(
+  video: File,
+  poster: File,
+  details: {
+    gameId?: string;
+    durationMs: number;
+    width: number;
+    height: number;
+  },
+) {
+  await ensureLabSessionUserId();
+
+  const form = new FormData();
+  form.set("video", video);
+  form.set("poster", poster);
+  form.set("durationMs", String(details.durationMs));
+  form.set("width", String(details.width));
+  form.set("height", String(details.height));
+  if (details.gameId) form.set("gameId", details.gameId);
+
+  const response = await fetch("/api/media/video", {
+    method: "POST",
+    body: form,
+  });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(errorMessage(payload, "We couldn't save that video."));
+  }
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("media" in payload) ||
+    !payload.media ||
+    typeof payload.media !== "object" ||
+    !("id" in payload.media) ||
+    typeof payload.media.id !== "string" ||
+    !("kind" in payload.media) ||
+    payload.media.kind !== "video"
+  ) {
+    throw new Error("We couldn't save that video.");
+  }
+  return payload.media;
+}

@@ -1,0 +1,15 @@
+{
+  "assetId": "neutral_leenie_01",
+  "approvedAt": "2026-09-15T20:12:41.629825+00:00",
+  "recipe": "sprite-specs/neutral_leenie_01.json",
+  "runtimeImage": "sprites/neutral_leenie_01.png",
+  "sha256": "b482122b73cd522069d907cd9f021f3c43cf89e47a5bee891a3cc8827dbae9d7",
+  "validationReport": "sprite-reports/neutral_leenie_01/neutral_leenie_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/neutral_leenie_01_defeated.png",
+      "sha256": "25802027605ff2c708b0c319b663cbad43acb1b2bd82ae4d6de6a87dafa5c380",
+      "validationReport": "sprite-reports/neutral_leenie_01_defeated/neutral_leenie_01_defeated-report.json"
+    }
+  }
+}

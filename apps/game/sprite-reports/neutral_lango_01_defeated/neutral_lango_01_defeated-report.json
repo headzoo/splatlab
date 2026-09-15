@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_lango_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_lango_01_defeated-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "analysisScale": 0.3945885005636979,
+      "selectedComponentAreas": [
+        13644,
+        12140,
+        11930,
+        10871,
+        10806,
+        10367,
+        8574,
+        8472
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        208.69,
+        629.47,
+        1069.21,
+        1550.85
+      ],
+      "yCenters": [
+        298.9,
+        700.72
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          419,
+          500
+        ],
+        [
+          419,
+          0,
+          849,
+          500
+        ],
+        [
+          849,
+          0,
+          1310,
+          500
+        ],
+        [
+          1310,
+          0,
+          1774,
+          500
+        ],
+        [
+          0,
+          500,
+          419,
+          887
+        ],
+        [
+          419,
+          500,
+          849,
+          887
+        ],
+        [
+          849,
+          500,
+          1310,
+          887
+        ],
+        [
+          1310,
+          500,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          40,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          41,
+          49
+        ],
+        "paste": [
+          12,
+          7
+        ],
+        "localLandmark": [
+          20.5,
+          49
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          31
+        ],
+        "paste": [
+          10,
+          25
+        ],
+        "localLandmark": [
+          21.5,
+          31
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          22
+        ],
+        "paste": [
+          10,
+          34
+        ],
+        "localLandmark": [
+          22.5,
+          22
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          40
+        ],
+        "paste": [
+          13,
+          16
+        ],
+        "localLandmark": [
+          19.0,
+          40
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          40,
+          40
+        ],
+        "paste": [
+          12,
+          16
+        ],
+        "localLandmark": [
+          20.0,
+          40
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          30
+        ],
+        "paste": [
+          11,
+          26
+        ],
+        "localLandmark": [
+          21.0,
+          30
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          22
+        ],
+        "paste": [
+          9,
+          34
+        ],
+        "localLandmark": [
+          23.0,
+          22
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_lango_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_lango_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          12,
+          0,
+          52,
+          56
+        ],
+        [
+          12,
+          7,
+          53,
+          56
+        ],
+        [
+          10,
+          25,
+          53,
+          56
+        ],
+        [
+          10,
+          34,
+          55,
+          56
+        ],
+        [
+          13,
+          16,
+          51,
+          56
+        ],
+        [
+          12,
+          16,
+          52,
+          56
+        ],
+        [
+          11,
+          26,
+          53,
+          56
+        ],
+        [
+          9,
+          34,
+          55,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        38,
+        46
+      ],
+      "bboxHeightRange": [
+        22,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        45.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_lango_01_defeated/neutral_lango_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/neutral_lango_01_defeated/neutral_lango_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

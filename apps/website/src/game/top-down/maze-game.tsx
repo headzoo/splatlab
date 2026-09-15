@@ -52,14 +52,18 @@ import {
   CanvasScreenshotMenu,
   type CanvasScreenshotMenuHandle,
 } from "../canvas-screenshot-menu";
+import { createMenuResumeToken } from "../menu-resume-token";
+import { useCanvasVideoCapture } from "../canvas-video-capture";
+import { VideoCaptureOverlay } from "../video-capture-overlay";
 import {
   createCanvasThumbnailBlob,
   type GameThumbnailCapture,
 } from "../canvas-screenshot";
-import type {
-  HairColor,
-  PlayerAssetId,
-  SkinTone,
+import {
+  playerAssetIsInvulnerable,
+  type HairColor,
+  type PlayerAssetId,
+  type SkinTone,
 } from "@/lib/game-contract";
 import type {
   MazeCamera,
@@ -413,8 +417,27 @@ export function MazeGame({
   const playerDefeatedImageRef = useRef<CanvasImageSource | null>(null);
   const audioRef = useRef<MazeRuntimeAudio | null>(null);
   const completionNotifiedRef = useRef(false);
+  const menuResumeTokenRef = useRef(createMenuResumeToken());
   const fullscreen = useGameFullscreen(gameRef);
   const soundPackId = resolveSoundPackId(map.presentation?.mazeThemeId);
+
+  const resumeInterruptedMenu = useCallback(() => {
+    if (!menuResumeTokenRef.current.consume() || stateRef.current.status !== "playing") return;
+    setPlaying(true);
+    audioRef.current?.startMusic();
+  }, []);
+  const startAfterVideoCountdown = useCallback(() => {
+    menuResumeTokenRef.current.consume();
+    if (stateRef.current.status === "won") return;
+    setPlaying(true);
+    audioRef.current?.startMusic();
+  }, []);
+  const videoCapture = useCanvasVideoCapture({
+    canvasRef,
+    savedGameId,
+    onCaptureStart: startAfterVideoCountdown,
+    onCaptureFailure: resumeInterruptedMenu,
+  });
 
   const syncRuntimeDom = useCallback((state: MazeState, camera: MazeCamera) => {
     if (!gameRef.current) return;
@@ -576,6 +599,8 @@ export function MazeGame({
           map,
           stateRef.current,
           normalizedInput(inputRef.current),
+          MAZE_FIXED_DELTA_SECONDS,
+          { playerInvulnerable: playerAssetIsInvulnerable(playerAssetId) },
         );
         inputRef.current.jumpPressed = false;
         stateRef.current = result.state;
@@ -602,7 +627,7 @@ export function MazeGame({
     };
     animationFrame = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(animationFrame);
-  }, [map, onComplete, playing, render]);
+  }, [map, onComplete, playerAssetId, playing, render]);
 
   useEffect(() => {
     const gameHasFocus = () => gameRef.current?.contains(document.activeElement) === true;
@@ -667,6 +692,20 @@ export function MazeGame({
     audioRef.current?.pauseMusic();
     render(performance.now() / 1000);
   };
+
+  const suspendForMenu = useCallback(() => {
+    if (!menuResumeTokenRef.current.open(playing)) return;
+    inputRef.current = emptyInput();
+    setPlaying(false);
+    audioRef.current?.pauseMusic();
+    render(performance.now() / 1000);
+  }, [playing, render]);
+
+  const closeScreenshotMenu = useCallback((
+    reason: "dismiss" | "screenshot" | "thumbnail" | "video",
+  ) => {
+    if (reason !== "video") resumeInterruptedMenu();
+  }, [resumeInterruptedMenu]);
 
   const reset = () => {
     inputRef.current = emptyInput();
@@ -771,6 +810,7 @@ export function MazeGame({
           onClick={() => { if (!playing && assetsReady) start(); }}
           onContextMenu={(event: ReactMouseEvent<HTMLCanvasElement>) => {
             event.preventDefault();
+            if (videoCapture.state.phase === "countdown") return;
             screenshotMenuRef.current?.open(event.clientX, event.clientY);
           }}
         />
@@ -779,6 +819,32 @@ export function MazeGame({
           canvasRef={canvasRef}
           savedGameId={savedGameId}
           onUpdateThumbnail={onUpdateThumbnail}
+          onOpen={suspendForMenu}
+          onClose={closeScreenshotMenu}
+          onVideoCapture={videoCapture.begin}
+          videoDisabled={
+            !assetsReady ||
+            runtimeStatus !== "playing" ||
+            videoCapture.state.phase === "countdown" ||
+            videoCapture.state.phase === "recording" ||
+            videoCapture.state.phase === "saving"
+          }
+          videoDisabledMessage={
+            !assetsReady
+              ? "Wait for the game artwork to load."
+              : runtimeStatus !== "playing"
+                ? "Start a new game before recording."
+                : !videoCapture.supported
+                  ? "Video capture is not supported by this browser."
+                  : videoCapture.state.phase !== "idle" && videoCapture.state.phase !== "success" && videoCapture.state.phase !== "error"
+                    ? "A video capture is already in progress."
+                    : undefined
+          }
+        />
+        <VideoCaptureOverlay
+          state={videoCapture.state}
+          onStop={videoCapture.stop}
+          onDismiss={videoCapture.dismiss}
         />
         {statusMessage ? <div className={styles.stageMessage} aria-hidden="true"><strong>{statusMessage}</strong></div> : null}
         {!assetsReady || showStartOverlay ? (

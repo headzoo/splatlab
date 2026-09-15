@@ -9,3 +9,7 @@ export function playGamePath(gameId: string) {
 export function mediaSharePath(mediaId: string) {
   return `/media/${encodeURIComponent(mediaId)}`;
 }
+
+export function mediaEmbedPath(mediaId: string) {
+  return `/media/${encodeURIComponent(mediaId)}/embed`;
+}

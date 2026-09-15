@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "id": "neutral_jamie_01",
+  "name": "Jamie",
+  "kind": "character",
+  "body": "chicken",
+  "themeTags": [
+    "neutral"
+  ],
+  "source": "sprites/neutral_jamie_01-source.png",
+  "output": "sprites/neutral_jamie_01.png",
+  "sourceLayout": { "columns": 5, "rows": 4 },
+  "sheet": { "columns": 5, "rows": 4, "frameWidth": 64, "frameHeight": 64 },
+  "frameLabels": [
+    "idle_down", "walk_down_1", "walk_down_2", "walk_down_3", "walk_down_4",
+    "idle_left", "walk_left_1", "walk_left_2", "walk_left_3", "walk_left_4",
+    "idle_right", "walk_right_1", "walk_right_2", "walk_right_3", "walk_right_4",
+    "idle_up", "walk_up_1", "walk_up_2", "walk_up_3", "walk_up_4"
+  ],
+  "detection": {
+    "alphaThreshold": 48,
+    "analysisMaxDimension": 700,
+    "minPrimaryAreaRatio": 0.0015,
+    "ambiguityRatio": 0.45
+  },
+  "alignment": {
+    "mode": "bottom_center",
+    "anchor": { "x": 32, "y": 56 },
+    "contentBox": { "width": 56, "height": 56 },
+    "resizeMode": "contain_shared"
+  },
+  "animation": { "fps": 8, "loop": true },
+  "validation": { "requiredPadding": 0, "pivotTolerance": 1, "centerDriftWarning": 8 },
+  "preview": { "scale": 4 },
+  "eventSheets": {
+    "defeated": {
+      "source": "sprites/neutral_jamie_01_defeated-source.png",
+      "output": "sprites/neutral_jamie_01_defeated.png",
+      "sourceLayout": {
+        "columns": 4,
+        "rows": 2,
+        "regions": [
+          [0, 0, 411, 450],
+          [411, 0, 848, 450],
+          [848, 0, 1309, 450],
+          [1309, 0, 1774, 450],
+          [0, 450, 411, 887],
+          [411, 450, 848, 887],
+          [848, 450, 1309, 887],
+          [1309, 450, 1774, 887]
+        ]
+      },
+      "sheet": { "columns": 4, "rows": 2, "frameWidth": 64, "frameHeight": 64 },
+      "frameLabels": [
+        "defeated_left_1", "defeated_left_2", "defeated_left_3", "defeated_left_4",
+        "defeated_right_1", "defeated_right_2", "defeated_right_3", "defeated_right_4"
+      ],
+      "detection": {
+        "alphaThreshold": 48,
+        "analysisMaxDimension": 700,
+        "minPrimaryAreaRatio": 0.004,
+        "ambiguityRatio": 0.45
+      },
+      "alignment": {
+        "mode": "bottom_center",
+        "anchor": { "x": 32, "y": 56 },
+        "contentBox": { "width": 60, "height": 56 },
+        "resizeMode": "contain_shared"
+      },
+      "animation": { "fps": 10, "loop": false },
+      "validation": { "requiredPadding": 0, "pivotTolerance": 2, "centerDriftWarning": 10 },
+      "preview": { "scale": 4 }
+    }
+  }
+}

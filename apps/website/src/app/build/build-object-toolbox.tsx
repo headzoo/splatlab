@@ -20,6 +20,18 @@ import {
   type PlatformerObjectSettingsChange,
 } from "@/game/platformer/map-editing";
 import type { PlatformerMapObject } from "@/game/platformer/types";
+import {
+  HAIR_COLOR_CHOICES,
+  HERO_CHOICES,
+  HUMAN_GENDER_CHOICES,
+  SKIN_TONE_CHOICES,
+} from "@/game/hero-catalog";
+import type {
+  HairColor,
+  HumanGender,
+  PlayerCharacter,
+  SkinTone,
+} from "@/lib/game-contract";
 
 import { BuildMotionSettings } from "./build-motion-settings";
 import styles from "./build.module.css";
@@ -46,22 +58,42 @@ const DEFEAT_MODE_OPTIONS = [
   { value: "both", label: ENEMY_DEFEAT_MODE_LABELS.both },
 ] as const;
 
+export type HeroSettingsChange = Partial<{
+  playerCharacter: PlayerCharacter;
+  humanGender: HumanGender;
+  skinTone: SkinTone;
+  hairColor: HairColor;
+}>;
+
 type BuildObjectToolboxProps = {
   backgroundId: string;
   object: PlatformerMapObject;
+  playerCharacter: PlayerCharacter;
+  humanGender: HumanGender;
+  skinTone: SkinTone;
+  hairColor: HairColor;
+  heroAssetIdFor: (character: PlayerCharacter, gender?: HumanGender) => string;
   onChange: (change: PlatformerObjectSettingsChange) => void;
+  onHeroChange: (change: HeroSettingsChange) => void;
   onClose: () => void;
 };
 
 export function BuildObjectToolbox({
   backgroundId,
   object,
+  playerCharacter,
+  humanGender,
+  skinTone,
+  hairColor,
+  heroAssetIdFor,
   onChange,
+  onHeroChange,
   onClose,
 }: BuildObjectToolboxProps) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
   const isEnemy = object.type === "enemy_spawn";
+  const isHero = object.type === "player_spawn";
   const isBoss = object.role === "boss";
   const kind = platformerObjectKind(object);
   const title = kind.split("_").map(
@@ -308,6 +340,104 @@ export function BuildObjectToolbox({
               motion={motion}
               onChange={(nextMotion) => emitChange({ motion: nextMotion })}
             />
+          </div>
+        ) : isHero ? (
+          <div className={styles.objectSettingsFields}>
+            <fieldset className={styles.objectControlGroup}>
+              <legend>Character</legend>
+              <div className={styles.characterChoiceGrid}>
+                {HERO_CHOICES.map((option) => {
+                  const selected = option.value === playerCharacter;
+                  const previewGender = option.value === "human" ? humanGender : "boy";
+                  return (
+                    <label
+                      className={styles.characterChoice}
+                      key={option.value}
+                    >
+                      <input
+                        checked={selected}
+                        className={styles.objectOptionInput}
+                        name={`${object.id}-hero-character`}
+                        onChange={() => onHeroChange({ playerCharacter: option.value })}
+                        type="radio"
+                        value={option.value}
+                      />
+                      <span className={styles.characterChoiceContent}>
+                        <span
+                          aria-hidden="true"
+                          className={styles.characterChoicePreview}
+                          style={
+                            {
+                              "--character-sprite": `url("/game-assets/sprites/${heroAssetIdFor(option.value, previewGender)}.png")`,
+                            } as CSSProperties
+                          }
+                        />
+                        <span>{option.label}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+            {playerCharacter === "human" ? (
+              <>
+                <fieldset className={styles.objectControlGroup}>
+                  <legend>Gender</legend>
+                  <div className={styles.objectSegmentedGrid}>
+                    {HUMAN_GENDER_CHOICES.map((option) => {
+                      const selected = option.value === humanGender;
+                      return (
+                        <button
+                          aria-pressed={selected}
+                          className={styles.objectOptionButton}
+                          key={option.value}
+                          onClick={() => onHeroChange({ humanGender: option.value })}
+                          type="button"
+                        >
+                          <span>{option.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+                <div className={`${styles.appearancePickers} ${styles.singleAppearancePicker}`}>
+                  <fieldset>
+                    <legend>Skin color</legend>
+                    <div className={styles.swatchGrid}>
+                      {SKIN_TONE_CHOICES.map((tone) => (
+                        <button
+                          type="button"
+                          key={tone.value}
+                          className={skinTone === tone.value ? styles.selectedSwatch : ""}
+                          style={{ "--swatch-color": tone.color } as CSSProperties}
+                          aria-label={tone.label}
+                          aria-pressed={skinTone === tone.value}
+                          onClick={() => onHeroChange({ skinTone: tone.value })}
+                        />
+                      ))}
+                    </div>
+                  </fieldset>
+                </div>
+                <div className={`${styles.appearancePickers} ${styles.singleAppearancePicker}`}>
+                  <fieldset>
+                    <legend>Hair color</legend>
+                    <div className={styles.swatchGrid}>
+                      {HAIR_COLOR_CHOICES.map((color) => (
+                        <button
+                          type="button"
+                          key={color.value}
+                          className={hairColor === color.value ? styles.selectedSwatch : ""}
+                          style={{ "--swatch-color": color.color } as CSSProperties}
+                          aria-label={color.label}
+                          aria-pressed={hairColor === color.value}
+                          onClick={() => onHeroChange({ hairColor: color.value })}
+                        />
+                      ))}
+                    </div>
+                  </fieldset>
+                </div>
+              </>
+            ) : null}
           </div>
         ) : (
           <p className={styles.objectSettingsEmpty}>This object has no additional settings.</p>

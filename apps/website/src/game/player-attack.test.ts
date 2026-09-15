@@ -54,6 +54,11 @@ test("attack animation advances at the authored FPS and stays mechanically optio
   assert.equal(playerAttackEventVisual("space_human_01", "right", 10_000)?.frameIndex, 7);
   assert.equal(playerAttackEventVisual("space_ghost_01", "right", 0), null);
   assert.equal(playerAttackEventVisual("neutral_cooper_01", "right", 0), null);
+  assert.equal(playerAttackEventVisual("neutral_rupert_01", "right", 0), null);
+  assert.equal(playerAttackEventVisual("neutral_jamie_01", "right", 0), null);
+  assert.equal(playerAttackEventVisual("neutral_vix_01", "right", 0), null);
+  assert.equal(playerAttackEventVisual("neutral_leenie_01", "right", 0), null);
+  assert.equal(playerAttackEventVisual("neutral_lango_01", "right", 0), null);
 });
 
 test("every /build hero gets a visible sword swing without fabricating character art", () => {

@@ -1,0 +1,15 @@
+{
+  "assetId": "neutral_vix_01",
+  "approvedAt": "2026-09-15T19:51:05.671160+00:00",
+  "recipe": "sprite-specs/neutral_vix_01.json",
+  "runtimeImage": "sprites/neutral_vix_01.png",
+  "sha256": "1fcfcc5e629a1efb66231021220160f759f7d2bcd4a8b5e416200d2e1c8d1bc6",
+  "validationReport": "sprite-reports/neutral_vix_01/neutral_vix_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/neutral_vix_01_defeated.png",
+      "sha256": "3c21acc8f28c13fb2730e2a41533a5d816e026c7e586535cb998abbf16c36951",
+      "validationReport": "sprite-reports/neutral_vix_01_defeated/neutral_vix_01_defeated-report.json"
+    }
+  }
+}

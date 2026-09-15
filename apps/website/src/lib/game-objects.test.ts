@@ -13,6 +13,7 @@ import { applyCooperSpecChange } from "./cooper-spec-change";
 import {
   COOPER_OBJECT_KINDS,
   describeLevel,
+  describePlayer,
   GameObjectEditError,
   MAX_PLACEMENTS_PER_CALL,
   planAppearanceChange,
@@ -292,6 +293,40 @@ test("an unknown starting-lives value on a map falls back rather than breaking p
   assert.equal(createInitialState(broken).lives, DEFAULT_STARTING_LIVES);
 });
 
+test("read_game_objects lists the hero and every hero option for the active level", () => {
+  const spec = { ...DEFAULT_GAME_DOCUMENT, playerCharacter: "jamie" as const };
+  const described = describeLevel(level(spec), spec);
+
+  assert.equal(described.player?.character, "jamie");
+  assert.equal(described.player?.look, "neutral_jamie_01");
+  assert.equal(described.player?.label, "Jamie");
+  assert.ok(
+    described.player?.options.some(
+      (option) => option.character === "ghost" && option.look === "neutral_ghost_01",
+    ),
+  );
+});
+
+test("describePlayer resolves ice world hero sprites for that level", () => {
+  const iceWorld = GAME_PLAYER_CONTENT.maps.at(-1);
+  assert.ok(iceWorld);
+  const spec = {
+    ...DEFAULT_GAME_DOCUMENT,
+    platformerMapSource: iceWorld.source,
+    playerCharacter: "human" as const,
+    humanGender: "girl" as const,
+  };
+  const active = resolveActivePlatformerLevel(spec);
+  assert.ok(active);
+  const player = describePlayer(spec, active);
+
+  assert.equal(player.look, "ice_world_girl_01");
+  assert.equal(
+    player.options.find((option) => option.character === "cooper")?.look,
+    "ice_world_cooper_01",
+  );
+});
+
 test("read_game_objects lists each enemy with its look and every world's options", () => {
   const { characters } = describeLevel(level());
 
@@ -306,6 +341,8 @@ test("read_game_objects lists each enemy with its look and every world's options
     greenHills?.looks.map((option) => option.value),
     [
       "neutral_cooper_01",
+      "neutral_jamie_01",
+      "neutral_vix_01",
       "neutral_human_01",
       "neutral_ghost_01",
       "neutral_robot_01",

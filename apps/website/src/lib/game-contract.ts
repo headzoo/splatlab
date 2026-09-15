@@ -31,7 +31,17 @@ export const GAME_THEMES = [
   "dragon_world",
 ] as const;
 
-export const PLAYER_CHARACTERS = ["cooper", "human", "ghost", "robot"] as const;
+export const PLAYER_CHARACTERS = [
+  "cooper",
+  "rupert",
+  "jamie",
+  "vix",
+  "leenie",
+  "lango",
+  "human",
+  "ghost",
+  "robot",
+] as const;
 export const HUMAN_GENDERS = ["boy", "girl"] as const;
 export const GAME_SETUP_QUESTIONS = [
   "gameType",
@@ -312,24 +322,44 @@ export const THEME_MAP_SOURCES: Record<
 const PLAYER_ASSET_IDS = {
   green_hills: {
     cooper: "neutral_cooper_01",
+    rupert: "neutral_rupert_01",
+    jamie: "neutral_jamie_01",
+    vix: "neutral_vix_01",
+    leenie: "neutral_leenie_01",
+    lango: "neutral_lango_01",
     human: "neutral_human_01",
     ghost: "neutral_ghost_01",
     robot: "neutral_robot_01",
   },
   graveyard: {
     cooper: "haunted_cooper_01",
+    rupert: "neutral_rupert_01",
+    jamie: "neutral_jamie_01",
+    vix: "neutral_vix_01",
+    leenie: "neutral_leenie_01",
+    lango: "neutral_lango_01",
     human: "haunted_human_01",
     ghost: "haunted_ghost_01",
     robot: "haunted_robot_01",
   },
   space: {
     cooper: "space_cooper_01",
+    rupert: "neutral_rupert_01",
+    jamie: "neutral_jamie_01",
+    vix: "neutral_vix_01",
+    leenie: "neutral_leenie_01",
+    lango: "neutral_lango_01",
     human: "space_human_01",
     ghost: "space_ghost_01",
     robot: "space_robot_01",
   },
   dragon_world: {
     cooper: "dragon_cooper_01",
+    rupert: "neutral_rupert_01",
+    jamie: "neutral_jamie_01",
+    vix: "neutral_vix_01",
+    leenie: "neutral_leenie_01",
+    lango: "neutral_lango_01",
     human: "dragon_human_01",
     ghost: "dragon_ghost_01",
     robot: "neutral_robot_01",
@@ -345,6 +375,11 @@ const GIRL_ASSET_IDS = {
 
 const ICE_WORLD_PLAYER_ASSET_IDS = {
   cooper: "ice_world_cooper_01",
+  rupert: "neutral_rupert_01",
+  jamie: "neutral_jamie_01",
+  vix: "neutral_vix_01",
+  leenie: "neutral_leenie_01",
+  lango: "neutral_lango_01",
   human: "ice_world_human_01",
   ghost: "ice_world_ghost_01",
   robot: "ice_world_robot_01",
@@ -357,6 +392,10 @@ export type PlayerAssetId =
   | (typeof GIRL_ASSET_IDS)[GameTheme]
   | (typeof ICE_WORLD_PLAYER_ASSET_IDS)[PlayerCharacter]
   | typeof ICE_WORLD_GIRL_ASSET_ID;
+
+export function playerAssetIsInvulnerable(playerAssetId: PlayerAssetId) {
+  return playerAssetId === "neutral_rupert_01";
+}
 
 export const gameDocumentSchema = z
   .object({
@@ -622,6 +661,18 @@ export function activeMapSource(spec: GameDocument) {
   return spec.previewKind === "maze" ? spec.mazeMapSource : spec.platformerMapSource;
 }
 
+/** The checked-in or generated template a platformer level was built from. */
+export function platformerTemplateSource(
+  spec: GameDocument,
+  mapSource: string,
+): string {
+  return spec.generatedPlatformerMaps.find(
+    (record) => record.source === mapSource,
+  )?.templateSource ?? spec.platformerLevels.find(
+    (level) => level.id === mapSource,
+  )?.templateSource ?? mapSource;
+}
+
 export function activeGameTheme(spec: GameDocument): GameTheme {
   const activeSource = activeMapSource(spec);
   const source = spec.previewKind === "maze"
@@ -649,6 +700,45 @@ export function playerAssetIdFor(
   return PLAYER_ASSET_IDS[theme][character];
 }
 
+function isIceWorldPlatformerSource(templateSource: string): boolean {
+  return templateSource === "level-5.json";
+}
+
+function playerAssetIdForIceWorld(
+  character: PlayerCharacter,
+  humanGender: HumanGender,
+): PlayerAssetId {
+  if (character === "human" && humanGender === "girl") {
+    return ICE_WORLD_GIRL_ASSET_ID;
+  }
+  return ICE_WORLD_PLAYER_ASSET_IDS[character];
+}
+
+const BACKGROUND_THEMES: Partial<Record<ArtWorldId, GameTheme>> = {
+  neutral_green_hills_01: "green_hills",
+  haunted_graveyard_01: "graveyard",
+  space_orbital_outpost_01: "space",
+  dragons_emberkeep_01: "dragon_world",
+};
+
+/**
+ * Resolves the hero sprite a platformer level will draw, using that level's
+ * template and presentation rather than whichever level happens to be active
+ * on the game document.
+ */
+export function playerAssetIdForPlatformerLevel(
+  templateSource: string,
+  backgroundId: ArtWorldId,
+  character: PlayerCharacter,
+  humanGender: HumanGender = "boy",
+): PlayerAssetId {
+  if (isIceWorldPlatformerSource(templateSource) || backgroundId === "ice_world_01") {
+    return playerAssetIdForIceWorld(character, humanGender);
+  }
+  const theme = BACKGROUND_THEMES[backgroundId] ?? "green_hills";
+  return playerAssetIdFor(theme, character, humanGender);
+}
+
 export function activePlayerAssetId(spec: GameDocument): PlayerAssetId {
   if (spec.previewKind === "platformer") {
     const source = spec.generatedPlatformerMaps.find(
@@ -656,11 +746,8 @@ export function activePlayerAssetId(spec: GameDocument): PlayerAssetId {
     )?.templateSource ?? spec.platformerLevels.find(
       (level) => level.id === spec.platformerMapSource,
     )?.templateSource ?? spec.platformerMapSource;
-    if (source === "level-5.json") {
-      if (spec.playerCharacter === "human" && spec.humanGender === "girl") {
-        return ICE_WORLD_GIRL_ASSET_ID;
-      }
-      return ICE_WORLD_PLAYER_ASSET_IDS[spec.playerCharacter];
+    if (isIceWorldPlatformerSource(source)) {
+      return playerAssetIdForIceWorld(spec.playerCharacter, spec.humanGender);
     }
   }
   return playerAssetIdFor(

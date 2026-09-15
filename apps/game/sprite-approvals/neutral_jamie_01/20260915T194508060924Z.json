@@ -1,0 +1,15 @@
+{
+  "assetId": "neutral_jamie_01",
+  "approvedAt": "2026-09-15T19:45:08.060924+00:00",
+  "recipe": "sprite-specs/neutral_jamie_01.json",
+  "runtimeImage": "sprites/neutral_jamie_01.png",
+  "sha256": "0c61ce64ae9feb8928d4901fb9d92ddf0767649a466e327ecd17bfb19cd0e352",
+  "validationReport": "sprite-reports/neutral_jamie_01/neutral_jamie_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/neutral_jamie_01_defeated.png",
+      "sha256": "6a7a91eb16098c9d424d8de0ef4a58cbeed3ea832b1b2cf22b13754a0b11b47c",
+      "validationReport": "sprite-reports/neutral_jamie_01_defeated/neutral_jamie_01_defeated-report.json"
+    }
+  }
+}

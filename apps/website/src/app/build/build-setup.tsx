@@ -164,6 +164,11 @@ function titleHero(
   humanGender: HumanGender | null,
 ) {
   if (character === "cooper" || character === null) return "Cooper";
+  if (character === "rupert") return "Rupert";
+  if (character === "jamie") return "Jamie";
+  if (character === "vix") return "Vix";
+  if (character === "leenie") return "Leenie";
+  if (character === "lango") return "Lango";
   if (character === "human") return humanGender === "girl" ? "Girl Hero" : "Hero";
   return character === "ghost" ? "Ghost" : "Robot";
 }

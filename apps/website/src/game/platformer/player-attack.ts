@@ -44,6 +44,11 @@ function attackEventSheet(
 
 const PLAYER_ATTACK_ASSET_IDS = {
   neutral_cooper_01: null,
+  neutral_rupert_01: null,
+  neutral_jamie_01: null,
+  neutral_vix_01: null,
+  neutral_leenie_01: null,
+  neutral_lango_01: null,
   haunted_cooper_01: null,
   space_cooper_01: "space_cooper_01_attack",
   dragon_cooper_01: null,

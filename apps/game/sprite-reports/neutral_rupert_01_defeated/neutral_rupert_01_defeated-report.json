@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_rupert_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": null,
+  "validation": {
+    "assetId": "neutral_rupert_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprites/neutral_rupert_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          8,
+          0,
+          55,
+          56
+        ],
+        [
+          9,
+          8,
+          55,
+          56
+        ],
+        [
+          4,
+          22,
+          59,
+          56
+        ],
+        [
+          5,
+          29,
+          59,
+          56
+        ],
+        [
+          8,
+          2,
+          56,
+          56
+        ],
+        [
+          10,
+          9,
+          53,
+          56
+        ],
+        [
+          5,
+          20,
+          59,
+          56
+        ],
+        [
+          4,
+          29,
+          59,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        43,
+        55
+      ],
+      "bboxHeightRange": [
+        27,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.0
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        42.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_rupert_01_defeated/neutral_rupert_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/neutral_rupert_01_defeated/neutral_rupert_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

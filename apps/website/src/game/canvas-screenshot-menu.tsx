@@ -18,6 +18,11 @@ type CanvasScreenshotMenuProps = {
   canvasRef: RefObject<HTMLCanvasElement | null>;
   savedGameId?: string;
   onUpdateThumbnail?: () => Promise<void>;
+  onOpen?: () => void;
+  onClose?: (reason: "dismiss" | "screenshot" | "thumbnail" | "video") => void;
+  onVideoCapture?: () => void;
+  videoDisabled?: boolean;
+  videoDisabledMessage?: string;
 };
 
 export type CanvasScreenshotMenuHandle = {
@@ -30,7 +35,7 @@ type MenuPosition = {
 };
 
 const MENU_WIDTH = 184;
-const MENU_HEIGHT = 116;
+const MENU_HEIGHT = 150;
 const MENU_MARGIN = 8;
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -41,7 +46,16 @@ export const CanvasScreenshotMenu = forwardRef<
   CanvasScreenshotMenuHandle,
   CanvasScreenshotMenuProps
 >(function CanvasScreenshotMenu(
-  { canvasRef, savedGameId, onUpdateThumbnail },
+  {
+    canvasRef,
+    savedGameId,
+    onUpdateThumbnail,
+    onOpen,
+    onClose,
+    onVideoCapture,
+    videoDisabled = false,
+    videoDisabledMessage,
+  },
   ref,
 ) {
   const [position, setPosition] = useState<MenuPosition | null>(null);
@@ -52,15 +66,19 @@ export const CanvasScreenshotMenu = forwardRef<
   const menuRef = useRef<HTMLDivElement>(null);
   const screenshotButtonRef = useRef<HTMLButtonElement>(null);
 
-  const closeMenu = useCallback(() => {
+  const closeMenu = useCallback((reason: "dismiss" | "screenshot" | "thumbnail" | "video" = "dismiss") => {
+    if (!position) return;
     setPosition(null);
     setPendingAction(null);
     setError("");
-  }, []);
+    onClose?.(reason);
+  }, [onClose, position]);
 
   const openMenu = useCallback((clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    // The current opening owns its runtime resume token. A duplicate context
+    // event must not create a second opening or change that ownership.
+    if (!canvas || position) return;
 
     const bounds = canvas.getBoundingClientRect();
     const openedFromKeyboard = clientX === 0 && clientY === 0;
@@ -72,6 +90,7 @@ export const CanvasScreenshotMenu = forwardRef<
       : clientY - bounds.top;
 
     setError("");
+    onOpen?.();
     setPosition({
       left: clamp(
         desiredLeft,
@@ -84,7 +103,7 @@ export const CanvasScreenshotMenu = forwardRef<
         bounds.height - MENU_HEIGHT - MENU_MARGIN,
       ),
     });
-  }, [canvasRef]);
+  }, [canvasRef, onOpen, position]);
 
   useImperativeHandle(ref, () => ({ open: openMenu }), [openMenu]);
 
@@ -98,7 +117,7 @@ export const CanvasScreenshotMenu = forwardRef<
     const dismissFromKeyboard = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       event.preventDefault();
-      closeMenu();
+      closeMenu("screenshot");
       canvasRef.current?.focus({ preventScroll: true });
     };
     const dismiss = () => closeMenu();
@@ -128,7 +147,7 @@ export const CanvasScreenshotMenu = forwardRef<
       const file = new File([blob], "screenshot.png", { type: "image/png" });
       await saveLabScreenshot(file, savedGameId);
 
-      closeMenu();
+      closeMenu("thumbnail");
       canvas.focus({ preventScroll: true });
     } catch (caught) {
       setPendingAction(null);
@@ -136,6 +155,12 @@ export const CanvasScreenshotMenu = forwardRef<
         caught instanceof Error ? caught.message : "Could not save this image.",
       );
     }
+  };
+
+  const beginVideoCapture = () => {
+    if (pendingAction || videoDisabled || !onVideoCapture) return;
+    closeMenu("video");
+    onVideoCapture();
   };
 
   const updateThumbnail = async () => {
@@ -184,6 +209,21 @@ export const CanvasScreenshotMenu = forwardRef<
             ? "Updating thumbnail..."
             : "Update thumbnail"}
         </button>
+      ) : null}
+      <button
+        type="button"
+        role="menuitem"
+        disabled={pendingAction !== null || videoDisabled || !onVideoCapture}
+        title={videoDisabled ? videoDisabledMessage : undefined}
+        aria-describedby={videoDisabledMessage ? "video-capture-unavailable" : undefined}
+        onClick={beginVideoCapture}
+      >
+        Video capture
+      </button>
+      {videoDisabledMessage ? (
+        <p className={styles.disabledMessage} id="video-capture-unavailable">
+          {videoDisabledMessage}
+        </p>
       ) : null}
       {error ? (
         <p className={styles.error} role="alert">

@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_leenie_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_leenie_01_defeated-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          400,
+          452
+        ],
+        [
+          400,
+          0,
+          830,
+          452
+        ],
+        [
+          830,
+          0,
+          1296,
+          452
+        ],
+        [
+          1296,
+          0,
+          1774,
+          452
+        ],
+        [
+          0,
+          452,
+          400,
+          887
+        ],
+        [
+          400,
+          452,
+          830,
+          887
+        ],
+        [
+          830,
+          452,
+          1296,
+          887
+        ],
+        [
+          1296,
+          452,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          40,
+          56
+        ],
+        "paste": [
+          12,
+          0
+        ],
+        "localLandmark": [
+          20.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          37,
+          48
+        ],
+        "paste": [
+          14,
+          8
+        ],
+        "localLandmark": [
+          18.5,
+          48
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          52,
+          38
+        ],
+        "paste": [
+          6,
+          18
+        ],
+        "localLandmark": [
+          26.0,
+          38
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          53,
+          32
+        ],
+        "paste": [
+          6,
+          24
+        ],
+        "localLandmark": [
+          26.5,
+          32
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          39,
+          53
+        ],
+        "paste": [
+          12,
+          3
+        ],
+        "localLandmark": [
+          19.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          38,
+          46
+        ],
+        "paste": [
+          13,
+          10
+        ],
+        "localLandmark": [
+          19.0,
+          46
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          51,
+          39
+        ],
+        "paste": [
+          6,
+          17
+        ],
+        "localLandmark": [
+          25.5,
+          39
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          52,
+          31
+        ],
+        "paste": [
+          6,
+          25
+        ],
+        "localLandmark": [
+          26.0,
+          31
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_leenie_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_leenie_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          12,
+          0,
+          52,
+          56
+        ],
+        [
+          14,
+          8,
+          51,
+          56
+        ],
+        [
+          6,
+          18,
+          58,
+          56
+        ],
+        [
+          6,
+          24,
+          59,
+          56
+        ],
+        [
+          12,
+          3,
+          51,
+          56
+        ],
+        [
+          13,
+          10,
+          51,
+          56
+        ],
+        [
+          6,
+          17,
+          57,
+          56
+        ],
+        [
+          6,
+          25,
+          58,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        37,
+        53
+      ],
+      "bboxHeightRange": [
+        31,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        40.5
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_leenie_01_defeated/neutral_leenie_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/neutral_leenie_01_defeated/neutral_leenie_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

@@ -14,6 +14,10 @@ const DEFEATED_FRAME_LABELS = [
 export type PlayerDefeatedEventSheet = {
   event: "defeated";
   imageAssetId:
+    | "neutral_jamie_01_defeated"
+    | "neutral_vix_01_defeated"
+    | "neutral_leenie_01_defeated"
+    | "neutral_lango_01_defeated"
     | "space_cooper_01_defeated"
     | "space_human_01_defeated"
     | "space_ghost_01_defeated"
@@ -47,6 +51,11 @@ function defeatedEventSheet(
 
 const PLAYER_DEFEATED_ASSET_IDS = {
   neutral_cooper_01: "space_cooper_01_defeated",
+  neutral_rupert_01: null,
+  neutral_jamie_01: "neutral_jamie_01_defeated",
+  neutral_vix_01: "neutral_vix_01_defeated",
+  neutral_leenie_01: "neutral_leenie_01_defeated",
+  neutral_lango_01: "neutral_lango_01_defeated",
   haunted_cooper_01: "space_cooper_01_defeated",
   space_cooper_01: "space_cooper_01_defeated",
   dragon_cooper_01: "space_cooper_01_defeated",

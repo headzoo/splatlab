@@ -1,0 +1,899 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_jamie_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_jamie_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        8689,
+        8556,
+        8447,
+        8371,
+        8344,
+        8336,
+        8329,
+        8294,
+        8238,
+        8210,
+        8207,
+        8189,
+        8038,
+        8015,
+        7986,
+        7983,
+        7969,
+        7950,
+        7884,
+        7829
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        142.81,
+        416.37,
+        692.82,
+        977.11,
+        1257.93
+      ],
+      "yCenters": [
+        146.86,
+        410.41,
+        682.53,
+        951.32
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          280,
+          279
+        ],
+        [
+          280,
+          0,
+          555,
+          279
+        ],
+        [
+          555,
+          0,
+          835,
+          279
+        ],
+        [
+          835,
+          0,
+          1118,
+          279
+        ],
+        [
+          1118,
+          0,
+          1402,
+          279
+        ],
+        [
+          0,
+          279,
+          280,
+          546
+        ],
+        [
+          280,
+          279,
+          555,
+          546
+        ],
+        [
+          555,
+          279,
+          835,
+          546
+        ],
+        [
+          835,
+          279,
+          1118,
+          546
+        ],
+        [
+          1118,
+          279,
+          1402,
+          546
+        ],
+        [
+          0,
+          546,
+          280,
+          817
+        ],
+        [
+          280,
+          546,
+          555,
+          817
+        ],
+        [
+          555,
+          546,
+          835,
+          817
+        ],
+        [
+          835,
+          546,
+          1118,
+          817
+        ],
+        [
+          1118,
+          546,
+          1402,
+          817
+        ],
+        [
+          0,
+          817,
+          280,
+          1122
+        ],
+        [
+          280,
+          817,
+          555,
+          1122
+        ],
+        [
+          555,
+          817,
+          835,
+          1122
+        ],
+        [
+          835,
+          817,
+          1118,
+          1122
+        ],
+        [
+          1118,
+          817,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          45,
+          52
+        ],
+        "paste": [
+          10,
+          4
+        ],
+        "localLandmark": [
+          22.5,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          53
+        ],
+        "paste": [
+          10,
+          3
+        ],
+        "localLandmark": [
+          22.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          53
+        ],
+        "paste": [
+          10,
+          3
+        ],
+        "localLandmark": [
+          22.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          52
+        ],
+        "paste": [
+          9,
+          4
+        ],
+        "localLandmark": [
+          23.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          47,
+          53
+        ],
+        "paste": [
+          8,
+          3
+        ],
+        "localLandmark": [
+          23.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          21.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          53
+        ],
+        "paste": [
+          10,
+          3
+        ],
+        "localLandmark": [
+          22.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          54
+        ],
+        "paste": [
+          11,
+          2
+        ],
+        "localLandmark": [
+          21.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          21.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          54
+        ],
+        "paste": [
+          10,
+          2
+        ],
+        "localLandmark": [
+          21.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          21.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          21.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          21.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          21.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          22.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          52
+        ],
+        "paste": [
+          10,
+          4
+        ],
+        "localLandmark": [
+          22.5,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          53
+        ],
+        "paste": [
+          10,
+          3
+        ],
+        "localLandmark": [
+          22.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          53
+        ],
+        "paste": [
+          9,
+          3
+        ],
+        "localLandmark": [
+          23.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          52
+        ],
+        "paste": [
+          9,
+          4
+        ],
+        "localLandmark": [
+          23.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          53
+        ],
+        "paste": [
+          9,
+          3
+        ],
+        "localLandmark": [
+          23.0,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_jamie_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_jamie_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          4,
+          55,
+          56
+        ],
+        [
+          10,
+          3,
+          54,
+          56
+        ],
+        [
+          10,
+          3,
+          55,
+          56
+        ],
+        [
+          9,
+          4,
+          55,
+          56
+        ],
+        [
+          8,
+          3,
+          55,
+          56
+        ],
+        [
+          10,
+          0,
+          53,
+          56
+        ],
+        [
+          10,
+          3,
+          54,
+          56
+        ],
+        [
+          11,
+          2,
+          53,
+          56
+        ],
+        [
+          10,
+          0,
+          53,
+          56
+        ],
+        [
+          10,
+          2,
+          53,
+          56
+        ],
+        [
+          10,
+          0,
+          53,
+          56
+        ],
+        [
+          10,
+          1,
+          53,
+          56
+        ],
+        [
+          10,
+          1,
+          53,
+          56
+        ],
+        [
+          10,
+          0,
+          53,
+          56
+        ],
+        [
+          10,
+          0,
+          54,
+          56
+        ],
+        [
+          10,
+          4,
+          55,
+          56
+        ],
+        [
+          10,
+          3,
+          55,
+          56
+        ],
+        [
+          9,
+          3,
+          55,
+          56
+        ],
+        [
+          9,
+          4,
+          55,
+          56
+        ],
+        [
+          9,
+          3,
+          55,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        42,
+        47
+      ],
+      "bboxHeightRange": [
+        52,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        30.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_jamie_01/neutral_jamie_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_jamie_01/neutral_jamie_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

@@ -7,8 +7,9 @@ type ScreenshotCanvas = Pick<HTMLCanvasElement, "toBlob">;
 
 export type GameThumbnailCapture = () => Promise<Blob>;
 
-export function buildScreenshotFilename(
+function buildMediaFilename(
   gameId: string,
+  extension: "png" | "mp4",
   capturedAt = new Date(),
 ) {
   const safeGameId = gameId
@@ -21,7 +22,18 @@ export function buildScreenshotFilename(
     .replace(/\.\d{3}Z$/, "Z")
     .replaceAll(":", "-");
 
-  return `splat-lab-${safeGameId}-${timestamp}.png`;
+  return `splat-lab-${safeGameId}-${timestamp}.${extension}`;
+}
+
+export function buildScreenshotFilename(
+  gameId: string,
+  capturedAt = new Date(),
+) {
+  return buildMediaFilename(gameId, "png", capturedAt);
+}
+
+export function buildVideoFilename(gameId: string, capturedAt = new Date()) {
+  return buildMediaFilename(gameId, "mp4", capturedAt);
 }
 
 export function createCanvasScreenshotBlob(canvas: ScreenshotCanvas) {
@@ -86,6 +98,24 @@ export async function createCanvasThumbnailBlob(
   return encodeCanvasThumbnailBlob(thumbnail);
 }
 
+export async function createVideoCapturePosterBlob(
+  source: HTMLCanvasElement,
+) {
+  const dimensions = gameThumbnailDimensions(source.width, source.height);
+  const poster = document.createElement("canvas");
+  poster.width = dimensions.width;
+  poster.height = dimensions.height;
+  const context = poster.getContext("2d");
+
+  if (!context) {
+    throw new Error("The video poster canvas is unavailable.");
+  }
+
+  context.imageSmoothingEnabled = false;
+  context.drawImage(source, 0, 0, dimensions.width, dimensions.height);
+  return createCanvasScreenshotBlob(poster);
+}
+
 export function triggerBrowserDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -102,7 +132,7 @@ export function triggerBrowserDownload(blob: Blob, filename: string) {
 export async function downloadBlobFromUrl(url: string, filename: string) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error("The image could not be downloaded.");
+    throw new Error("The file could not be downloaded.");
   }
   triggerBrowserDownload(await response.blob(), filename);
 }

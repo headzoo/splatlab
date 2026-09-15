@@ -23,7 +23,15 @@ import {
 } from "../game/platformer/engine";
 import type { PlatformerMapSpec } from "../game/platformer/types";
 import {
+  HERO_CHOICES,
+  HERO_OPTION_ENUMS,
+  heroLabel,
+} from "../game/hero-catalog";
+import {
   PLATFORMER_OBJECT_KINDS,
+  platformerTemplateSource,
+  playerAssetIdForPlatformerLevel,
+  type ArtWorldId,
   type GameDocument,
   type PlatformerMapSource,
   type PlatformerObjectEdit,
@@ -170,11 +178,37 @@ function terrainRows(map: PlatformerMapSpec): string[] {
 }
 
 /**
+ * Who the kid plays as on this level, with the sprite this level's art will
+ * draw and every hero option Cooper may switch to.
+ */
+export function describePlayer(spec: GameDocument, level: ActivePlatformerLevel) {
+  const templateSource = platformerTemplateSource(spec, level.mapSource);
+  const backgroundId = level.map.presentation.backgroundId as ArtWorldId;
+  const lookFor = (character: typeof spec.playerCharacter, gender = spec.humanGender) =>
+    playerAssetIdForPlatformerLevel(templateSource, backgroundId, character, gender);
+
+  return {
+    character: spec.playerCharacter,
+    gender: spec.humanGender,
+    skinTone: spec.skinTone,
+    hairColor: spec.hairColor,
+    look: lookFor(spec.playerCharacter),
+    label: heroLabel(spec.playerCharacter),
+    options: HERO_CHOICES.map((choice) => ({
+      character: choice.value,
+      label: choice.label,
+      look: lookFor(choice.value, choice.value === "human" ? spec.humanGender : "boy"),
+    })),
+    ...HERO_OPTION_ENUMS,
+  };
+}
+
+/**
  * The grids Cooper reads before choosing cells: the authored terrain rows, and
  * a parallel grid of one symbol per object. Object ids are deliberately not
  * listed -- a level carries around a hundred of them, nearly all coins.
  */
-export function describeLevel(level: ActivePlatformerLevel) {
+export function describeLevel(level: ActivePlatformerLevel, spec?: GameDocument) {
   const { map } = level;
   const { columns, rows } = map.size;
   const grid = Array.from({ length: rows }, () => new Array<string>(columns).fill(EMPTY_OBJECT_CELL));
@@ -192,6 +226,7 @@ export function describeLevel(level: ActivePlatformerLevel) {
   return {
     level: { mapSource: level.mapSource, label: level.label, columns, rows },
     startingLives: resolveStartingLives(map),
+    ...(spec ? { player: describePlayer(spec, level) } : {}),
     characters: describeCharacters(level),
     openCells: openCells(level, grid),
     terrainLegend: Object.fromEntries(

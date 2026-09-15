@@ -46,7 +46,28 @@ const gameRuntimeFiles = [
   "../game/sprites/space_platformer_hud_lives_01.png",
 ];
 
+export const videoRouteTracingFiles = ["./node_modules/ffmpeg-static/**"];
+
+export const mediaEmbedContentSecurityPolicy =
+  "default-src 'none'; base-uri 'none'; form-action 'none'; img-src https: data:; media-src https: blob:; style-src 'unsafe-inline'; frame-ancestors *";
+
+export const mediaEmbedRouteHeaders: Array<{
+  source: string;
+  headers: Array<{ key: string; value: string }>;
+}> = [
+  {
+    source: "/media/:mediaId/embed",
+    headers: [
+      {
+        key: "Content-Security-Policy",
+        value: mediaEmbedContentSecurityPolicy,
+      },
+    ],
+  },
+];
+
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["ffmpeg-static"],
   experimental: {
     useTypeScriptCli: false,
   },
@@ -64,7 +85,9 @@ const nextConfig: NextConfig = {
   },
   outputFileTracingIncludes: {
     "/game-assets/*": gameRuntimeFiles,
+    "/api/media/video": videoRouteTracingFiles,
   },
+  headers: async () => [...mediaEmbedRouteHeaders],
 };
 
 export default nextConfig;

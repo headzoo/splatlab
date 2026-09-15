@@ -89,7 +89,7 @@ export const readGameObjectsTool: AgentTool = Object.freeze({
   definition: {
     name: "read_game_objects",
     description:
-      "Read the level the kid is looking at: its size, the terrain grid, a matching grid of what is already placed in every cell, the kinds you may add or remove, the art each part is wearing, and every look an enemy or boss can be given. Call this before add_game_objects, remove_game_objects, set_enemy_appearance or set_level_art.",
+      "Read the level the kid is looking at: its size, the terrain grid, a matching grid of what is already placed in every cell, the kinds you may add or remove, who the kid plays as under player, the art each part is wearing, and every look an enemy or boss can be given. Call this before add_game_objects, remove_game_objects, set_enemy_appearance, set_player_character, set_player_appearance, or set_level_art.",
     parameters: NO_PARAMETERS,
   },
   async execute(_args: unknown, context: ToolExecutionContext): Promise<ToolExecutionResult> {
@@ -98,7 +98,7 @@ export const readGameObjectsTool: AgentTool = Object.freeze({
     return {
       output: {
         ok: true,
-        ...describeLevel(loaded.level),
+        ...describeLevel(loaded.level, loaded.spec),
         art: describeLevelArt(loaded.level),
       },
     };

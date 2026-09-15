@@ -1,0 +1,8 @@
+{
+  "assetId": "neutral_vix_01",
+  "approvedAt": "2026-09-15T19:31:27.075101+00:00",
+  "recipe": "sprite-specs/neutral_vix_01.json",
+  "runtimeImage": "sprites/neutral_vix_01.png",
+  "sha256": "1fcfcc5e629a1efb66231021220160f759f7d2bcd4a8b5e416200d2e1c8d1bc6",
+  "validationReport": "sprite-reports/neutral_vix_01/neutral_vix_01-report.json"
+}

@@ -1,0 +1,15 @@
+{
+  "assetId": "neutral_rupert_01",
+  "approvedAt": "2026-09-15T20:00:52.677040+00:00",
+  "recipe": "sprite-specs/neutral_rupert_01.json",
+  "runtimeImage": "sprites/neutral_rupert_01.png",
+  "sha256": "704e52fe79233859f742569174538af7a1e60f9b50a62d2fdc61093a642ddd84",
+  "validationReport": "sprite-reports/neutral_rupert_01/neutral_rupert_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/neutral_rupert_01_defeated.png",
+      "sha256": "926f878fd6ad789e6f1cbe7944955570ad60e0433acbfc449dfc1777f761a949",
+      "validationReport": "sprite-reports/neutral_rupert_01_defeated/neutral_rupert_01_defeated-report.json"
+    }
+  }
+}

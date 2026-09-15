@@ -260,6 +260,51 @@ test("game name choices are generated from the setup selections", () => {
       "Moon Key Quest",
     ],
   );
+  assert.equal(
+    buildGameNameOptions({
+      gameType: "platformer",
+      theme: "green_hills",
+      character: "rupert",
+      humanGender: null,
+    })[0],
+    "Rupert's Hill Hop",
+  );
+  assert.equal(
+    buildGameNameOptions({
+      gameType: "platformer",
+      theme: "green_hills",
+      character: "jamie",
+      humanGender: null,
+    })[0],
+    "Jamie's Hill Hop",
+  );
+  assert.equal(
+    buildGameNameOptions({
+      gameType: "maze",
+      theme: "graveyard",
+      character: "vix",
+      humanGender: null,
+    })[0],
+    "Vix's Ghost Quest",
+  );
+  assert.equal(
+    buildGameNameOptions({
+      gameType: "platformer",
+      theme: "green_hills",
+      character: "leenie",
+      humanGender: null,
+    })[0],
+    "Leenie's Hill Hop",
+  );
+  assert.equal(
+    buildGameNameOptions({
+      gameType: "platformer",
+      theme: "green_hills",
+      character: "lango",
+      humanGender: null,
+    })[0],
+    "Lango's Hill Hop",
+  );
 });
 
 test("setup choice replies cover game type, theme, style, and length", () => {

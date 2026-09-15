@@ -20,8 +20,13 @@ test("the website serves approved coin collection sheets", async () => {
   }
 });
 
-test("the website serves every approved Space character defeated event sheet", async () => {
+test("the website serves every approved authored character defeated event sheet", async () => {
   for (const filename of [
+    "neutral_rupert_01_defeated.png",
+    "neutral_jamie_01_defeated.png",
+    "neutral_vix_01_defeated.png",
+    "neutral_leenie_01_defeated.png",
+    "neutral_lango_01_defeated.png",
     "space_cooper_01_defeated.png",
     "space_human_01_defeated.png",
     "space_ghost_01_defeated.png",
@@ -57,6 +62,11 @@ test("the website serves the approved sword and attack sheets used by /build", a
 
 test("the website serves setup character, mask, and maze theme assets", async () => {
   for (const asset of [
+    ["sprites", "neutral_rupert_01.png"],
+    ["sprites", "neutral_jamie_01.png"],
+    ["sprites", "neutral_vix_01.png"],
+    ["sprites", "neutral_leenie_01.png"],
+    ["sprites", "neutral_lango_01.png"],
     ["sprites", "neutral_human_01.png"],
     ["sprites", "haunted_robot_01.png"],
     ["sprites", "space_human_01.png"],

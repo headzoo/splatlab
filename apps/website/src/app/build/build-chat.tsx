@@ -12,11 +12,14 @@ import {
   type GameSetupQuestion,
   type GameSetupStep,
   type GameTheme,
-  type HairColor,
-  type HumanGender,
   type PlayerCharacter,
-  type SkinTone,
 } from "@/lib/game-contract";
+import {
+  HAIR_COLOR_CHOICES,
+  HERO_CHOICES,
+  HUMAN_GENDER_CHOICES,
+  SKIN_TONE_CHOICES,
+} from "@/game/hero-catalog";
 
 import {
   buildGameNameOptions,
@@ -74,53 +77,11 @@ const mapLengths = [
   tone: string;
 }>;
 
-const heroes = [
-  { value: "cooper", label: "Cooper", tone: "yellow" },
-  { value: "human", label: "Human", tone: "blue" },
-  { value: "ghost", label: "Ghost", tone: "purple" },
-  { value: "robot", label: "Robot", tone: "slate" },
-] as const satisfies ReadonlyArray<{
-  value: PlayerCharacter;
-  label: string;
-  tone: string;
-}>;
+const heroes = HERO_CHOICES;
+const humanGenders = HUMAN_GENDER_CHOICES;
+const skinTones = SKIN_TONE_CHOICES;
+const hairColors = HAIR_COLOR_CHOICES;
 
-const humanGenders = [
-  { value: "boy", label: "Boy", tone: "blue" },
-  { value: "girl", label: "Girl", tone: "coral" },
-] as const satisfies ReadonlyArray<{
-  value: HumanGender;
-  label: string;
-  tone: string;
-}>;
-
-const skinTones = [
-  { value: "skin_01", label: "Skin tone 1", color: "#ffd0a4" },
-  { value: "skin_02", label: "Skin tone 2", color: "#f0b38a" },
-  { value: "skin_03", label: "Skin tone 3", color: "#dd9b73" },
-  { value: "skin_04", label: "Skin tone 4", color: "#c38464" },
-  { value: "skin_05", label: "Skin tone 5", color: "#aa7358" },
-  { value: "skin_06", label: "Skin tone 6", color: "#98705a" },
-] as const satisfies ReadonlyArray<{
-  value: SkinTone;
-  label: string;
-  color: string;
-}>;
-
-const hairColors = [
-  { value: "hair_01", label: "Black hair", color: "#252a35" },
-  { value: "hair_02", label: "Dark brown hair", color: "#452820" },
-  { value: "hair_03", label: "Brown hair", color: "#713927" },
-  { value: "hair_04", label: "Auburn hair", color: "#a33f2c" },
-  { value: "hair_05", label: "Red hair", color: "#cc552c" },
-  { value: "hair_06", label: "Blond hair", color: "#d3a64a" },
-  { value: "hair_07", label: "Platinum hair", color: "#c8c0bc" },
-  { value: "hair_08", label: "Gray hair", color: "#777e87" },
-] as const satisfies ReadonlyArray<{
-  value: HairColor;
-  label: string;
-  color: string;
-}>;
 
 const MAX_CHAT_TURNS = 50;
 const SETUP_INTRO =
@@ -599,6 +560,9 @@ export function BuildChat() {
                     )}
                   />
                   <strong>{hero.label}</strong>
+                  {hero.tagline ? (
+                    <small className={styles.heroTagline}>{hero.tagline}</small>
+                  ) : null}
                 </button>
               ))}
             </div>

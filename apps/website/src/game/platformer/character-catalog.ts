@@ -10,6 +10,8 @@ export type CharacterOption = { value: string; label: string };
 export const ENEMY_CHARACTERS: Record<string, readonly CharacterOption[]> = {
   neutral_green_hills_01: [
     { value: "neutral_cooper_01", label: "Cooper" },
+    { value: "neutral_jamie_01", label: "Jamie" },
+    { value: "neutral_vix_01", label: "Vix" },
     { value: "neutral_human_01", label: "Human" },
     { value: "neutral_ghost_01", label: "Ghost" },
     { value: "neutral_robot_01", label: "Robot" },
@@ -17,12 +19,14 @@ export const ENEMY_CHARACTERS: Record<string, readonly CharacterOption[]> = {
   ],
   space_orbital_outpost_01: [
     { value: "space_cooper_01", label: "Space Cooper" },
+    { value: "neutral_vix_01", label: "Vix" },
     { value: "space_human_01", label: "Astronaut" },
     { value: "space_ghost_01", label: "Space ghost" },
     { value: "space_robot_01", label: "Space robot" },
   ],
   haunted_graveyard_01: [
     { value: "haunted_cooper_01", label: "Haunted Cooper" },
+    { value: "neutral_vix_01", label: "Vix" },
     { value: "haunted_human_01", label: "Haunted human" },
     { value: "haunted_ghost_01", label: "Haunted ghost" },
     { value: "haunted_robot_01", label: "Haunted robot" },
@@ -30,12 +34,14 @@ export const ENEMY_CHARACTERS: Record<string, readonly CharacterOption[]> = {
   ],
   dragons_emberkeep_01: [
     { value: "dragon_cooper_01", label: "Dragon Cooper" },
+    { value: "neutral_vix_01", label: "Vix" },
     { value: "dragon_human_01", label: "Dragon rider" },
     { value: "dragon_ghost_01", label: "Dragon ghost" },
     { value: "dragon_dragon_01", label: "Dragon" },
   ],
   ice_world_01: [
     { value: "ice_world_cooper_01", label: "Ice Cooper" },
+    { value: "neutral_vix_01", label: "Vix" },
     { value: "ice_world_human_01", label: "Ice human" },
     { value: "ice_world_girl_01", label: "Ice girl" },
     { value: "ice_world_ghost_01", label: "Ice ghost" },

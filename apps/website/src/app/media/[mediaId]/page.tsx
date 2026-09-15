@@ -3,8 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getPublicMedia } from "@/lib/media";
 import { playGamePath } from "@/lib/game-routes";
+import { buildPublicMediaMetadata } from "@/lib/media-metadata";
+import { getPublicMedia, MEDIA_KIND_VIDEO } from "@/lib/media";
+import { resolveSiteOrigin } from "@/lib/site-url";
 
 import { SiteHeader } from "../../site-header";
 
@@ -22,16 +24,7 @@ export async function generateMetadata({
   const { mediaId } = await params;
   const media = await getPublicMedia(mediaId);
 
-  return {
-    title: media
-      ? `${media.gameTitle ?? "Screenshot"} | Splat Lab!`
-      : "Image not found | Splat Lab!",
-    description: media
-      ? media.gameTitle
-        ? `A screenshot from ${media.gameTitle}, made with Splat Lab!`
-        : "A screenshot saved in Splat Lab!"
-      : "This Splat Lab screenshot could not be found.",
-  };
+  return buildPublicMediaMetadata(media, resolveSiteOrigin());
 }
 
 export default async function MediaSharePage({ params }: MediaPageProps) {
@@ -40,7 +33,9 @@ export default async function MediaSharePage({ params }: MediaPageProps) {
 
   if (!media) notFound();
 
-  const title = media.gameTitle ?? "Splat Lab screenshot";
+  const isVideo = media.kind === MEDIA_KIND_VIDEO;
+  const title = media.gameTitle ?? (isVideo ? "Splat Lab video" : "Splat Lab screenshot");
+  const badge = isVideo ? "Shared video" : "Shared snapshot";
 
   return (
     <main className={styles.page} id="main-content">
@@ -58,16 +53,33 @@ export default async function MediaSharePage({ params }: MediaPageProps) {
 
       <section className={styles.shell} aria-label={title}>
         <div className={styles.panel}>
-          <span>Shared snapshot</span>
+          <span>{badge}</span>
           <h1>{title}</h1>
           <div className={styles.preview}>
-            <Image
-              src={media.url}
-              alt={title}
-              fill
-              sizes="(max-width: 900px) 100vw, 860px"
-              unoptimized
-            />
+            {isVideo ? (
+              <video
+                className={styles.videoPlayer}
+                controls
+                playsInline
+                preload="metadata"
+                poster={media.posterUrl}
+                aria-label={title}
+              >
+                <source src={media.url} type={media.contentType} />
+                <p>
+                  Your browser does not support video playback.{" "}
+                  <a href={media.url}>Download the MP4</a>.
+                </p>
+              </video>
+            ) : (
+              <Image
+                src={media.url}
+                alt={title}
+                fill
+                sizes="(max-width: 900px) 100vw, 860px"
+                unoptimized
+              />
+            )}
           </div>
           {media.gameId ? (
             <Link className={styles.playLink} href={playGamePath(media.gameId)}>

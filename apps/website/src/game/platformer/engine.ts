@@ -1112,7 +1112,24 @@ function beginDeath(
   map: PlatformerMapSpec,
   state: PlatformerState,
   events: RuntimeEvent[],
+  playerInvulnerable = false,
 ): PlatformerState {
+  if (playerInvulnerable) {
+    const fellBelowMap = state.y > map.size.rows * map.tileSize + map.tileSize;
+    return fellBelowMap
+      ? {
+          ...state,
+          x: state.checkpointX,
+          y: state.checkpointY,
+          previousY: state.checkpointY,
+          vx: 0,
+          vy: 0,
+          grounded: true,
+          projectiles: [],
+          laserBeams: [],
+        }
+      : state;
+  }
   const lives = state.lives - 1;
   const respawnDelayTicks = resolveDeathRespawnDelayTicks(map);
   events.push({ type: "player_damage" });
@@ -1592,6 +1609,7 @@ function updateEnemyProjectiles(
   map: PlatformerMapSpec,
   state: PlatformerState,
   events: RuntimeEvent[],
+  playerInvulnerable = false,
 ) {
   let enemies = state.enemies;
   const projectiles: EnemyProjectileState[] = [];
@@ -1617,7 +1635,12 @@ function updateEnemyProjectiles(
       )
     ) continue;
     if (projectileTouchesPlayer(projectile, state)) {
-      return beginDeath(map, { ...state, enemies, projectiles: [], laserBeams: [] }, events);
+      return beginDeath(
+        map,
+        { ...state, enemies, projectiles: [], laserBeams: [] },
+        events,
+        playerInvulnerable,
+      );
     }
     if (projectile.ageTicks >= projectile.durationTicks) continue;
     projectiles.push(projectile);
@@ -1649,7 +1672,12 @@ function updateEnemyProjectiles(
       events.push({ type: "fire", objectId: enemy.id });
     }
     if (firing && laserBeamTouchesPlayer(beam, state)) {
-      return beginDeath(map, { ...state, enemies, projectiles: [], laserBeams: [beam] }, events);
+      return beginDeath(
+        map,
+        { ...state, enemies, projectiles: [], laserBeams: [beam] },
+        events,
+        playerInvulnerable,
+      );
     }
     laserBeams.push(beam);
   }
@@ -1746,8 +1774,11 @@ function processTriggers(
   map: PlatformerMapSpec,
   state: PlatformerState,
   events: RuntimeEvent[],
+  playerInvulnerable = false,
 ) {
-  if (state.y > map.size.rows * map.tileSize + map.tileSize) return beginDeath(map, state, events);
+  if (state.y > map.size.rows * map.tileSize + map.tileSize) {
+    return beginDeath(map, state, events, playerInvulnerable);
+  }
   const bounds = playerBounds(state);
 
   for (let row = 0; row < map.size.rows; row += 1) {
@@ -1758,7 +1789,7 @@ function processTriggers(
         right: (column + 1) * map.tileSize,
         top: row * map.tileSize,
         bottom: (row + 1) * map.tileSize,
-      })) return beginDeath(map, state, events);
+      })) return beginDeath(map, state, events, playerInvulnerable);
     }
   }
 
@@ -1838,6 +1869,7 @@ function processEnemyContact(
   map: PlatformerMapSpec,
   state: PlatformerState,
   events: RuntimeEvent[],
+  playerInvulnerable = false,
 ) {
   const player = playerBounds(state);
   for (const enemy of state.enemies) {
@@ -1879,7 +1911,7 @@ function processEnemyContact(
       };
       return completeBossLevelIfCleared(next);
     }
-    return beginDeath(map, state, events);
+    return beginDeath(map, state, events, playerInvulnerable);
   }
   return state;
 }
@@ -1949,6 +1981,7 @@ export function stepPlatformer(
   current: PlatformerState,
   input: PlatformerInput,
   weapon?: WeaponSpec,
+  options: { playerInvulnerable?: boolean } = {},
 ): StepResult {
   if (current.status === "dying") return advanceDeath(map, current);
   if (current.status !== "playing") return { state: current, events: [] };
@@ -2087,9 +2120,13 @@ export function stepPlatformer(
 
   state.enemies = updateEnemies(map, state);
   state.flyingObjects = updateFlyingObjects(map, state);
-  state = processTriggers(map, state, events);
+  state = processTriggers(map, state, events, options.playerInvulnerable);
   if (state.status === "playing") state = processWeaponContact(map, weapon, state, events);
-  if (state.status === "playing") state = updateEnemyProjectiles(map, state, events);
-  if (state.status === "playing") state = processEnemyContact(map, state, events);
+  if (state.status === "playing") {
+    state = updateEnemyProjectiles(map, state, events, options.playerInvulnerable);
+  }
+  if (state.status === "playing") {
+    state = processEnemyContact(map, state, events, options.playerInvulnerable);
+  }
   return { state, events };
 }

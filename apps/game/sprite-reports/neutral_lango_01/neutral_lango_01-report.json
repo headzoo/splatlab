@@ -1,0 +1,899 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_lango_01",
+  "frameLabels": [
+    "idle_down",
+    "walk_down_1",
+    "walk_down_2",
+    "walk_down_3",
+    "walk_down_4",
+    "idle_left",
+    "walk_left_1",
+    "walk_left_2",
+    "walk_left_3",
+    "walk_left_4",
+    "idle_right",
+    "walk_right_1",
+    "walk_right_2",
+    "walk_right_3",
+    "walk_right_4",
+    "idle_up",
+    "walk_up_1",
+    "walk_up_2",
+    "walk_up_3",
+    "walk_up_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_lango_01-source.png",
+    "sourceSize": [
+      1402,
+      1122
+    ],
+    "detection": {
+      "analysisScale": 0.4992867332382311,
+      "selectedComponentAreas": [
+        8916,
+        8825,
+        8750,
+        8725,
+        8690,
+        8679,
+        8653,
+        8622,
+        8619,
+        8543,
+        8536,
+        8440,
+        8424,
+        8394,
+        8389,
+        8371,
+        8361,
+        8353,
+        8229,
+        8181
+      ],
+      "nextComponentRatio": 0.0,
+      "xCenters": [
+        146.18,
+        428.21,
+        706.88,
+        989.07,
+        1263.51
+      ],
+      "yCenters": [
+        143.73,
+        413.11,
+        687.99,
+        957.38
+      ],
+      "regions": [
+        [
+          0,
+          0,
+          287,
+          278
+        ],
+        [
+          287,
+          0,
+          568,
+          278
+        ],
+        [
+          568,
+          0,
+          848,
+          278
+        ],
+        [
+          848,
+          0,
+          1126,
+          278
+        ],
+        [
+          1126,
+          0,
+          1402,
+          278
+        ],
+        [
+          0,
+          278,
+          287,
+          551
+        ],
+        [
+          287,
+          278,
+          568,
+          551
+        ],
+        [
+          568,
+          278,
+          848,
+          551
+        ],
+        [
+          848,
+          278,
+          1126,
+          551
+        ],
+        [
+          1126,
+          278,
+          1402,
+          551
+        ],
+        [
+          0,
+          551,
+          287,
+          823
+        ],
+        [
+          287,
+          551,
+          568,
+          823
+        ],
+        [
+          568,
+          551,
+          848,
+          823
+        ],
+        [
+          848,
+          551,
+          1126,
+          823
+        ],
+        [
+          1126,
+          551,
+          1402,
+          823
+        ],
+        [
+          0,
+          823,
+          287,
+          1122
+        ],
+        [
+          287,
+          823,
+          568,
+          1122
+        ],
+        [
+          568,
+          823,
+          848,
+          1122
+        ],
+        [
+          848,
+          823,
+          1126,
+          1122
+        ],
+        [
+          1126,
+          823,
+          1402,
+          1122
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          41,
+          54
+        ],
+        "paste": [
+          12,
+          2
+        ],
+        "localLandmark": [
+          20.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          21.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          21.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          55
+        ],
+        "paste": [
+          11,
+          1
+        ],
+        "localLandmark": [
+          21.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          54
+        ],
+        "paste": [
+          10,
+          2
+        ],
+        "localLandmark": [
+          21.5,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          56
+        ],
+        "paste": [
+          9,
+          0
+        ],
+        "localLandmark": [
+          23.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          55
+        ],
+        "paste": [
+          9,
+          1
+        ],
+        "localLandmark": [
+          23.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          54
+        ],
+        "paste": [
+          9,
+          2
+        ],
+        "localLandmark": [
+          23.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          22.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          21.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          56
+        ],
+        "paste": [
+          9,
+          0
+        ],
+        "localLandmark": [
+          23.0,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          55
+        ],
+        "paste": [
+          9,
+          1
+        ],
+        "localLandmark": [
+          23.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          45,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          22.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          47,
+          55
+        ],
+        "paste": [
+          8,
+          1
+        ],
+        "localLandmark": [
+          23.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          46,
+          55
+        ],
+        "paste": [
+          9,
+          1
+        ],
+        "localLandmark": [
+          23.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          42,
+          54
+        ],
+        "paste": [
+          11,
+          2
+        ],
+        "localLandmark": [
+          21.0,
+          54
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          22.0,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          55
+        ],
+        "paste": [
+          10,
+          1
+        ],
+        "localLandmark": [
+          21.5,
+          55
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          21.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          21.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_lango_01",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_lango_01.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          12,
+          2,
+          53,
+          56
+        ],
+        [
+          10,
+          1,
+          53,
+          56
+        ],
+        [
+          10,
+          1,
+          53,
+          56
+        ],
+        [
+          11,
+          1,
+          53,
+          56
+        ],
+        [
+          10,
+          2,
+          53,
+          56
+        ],
+        [
+          9,
+          0,
+          55,
+          56
+        ],
+        [
+          9,
+          1,
+          55,
+          56
+        ],
+        [
+          9,
+          2,
+          55,
+          56
+        ],
+        [
+          10,
+          1,
+          54,
+          56
+        ],
+        [
+          10,
+          1,
+          53,
+          56
+        ],
+        [
+          9,
+          0,
+          55,
+          56
+        ],
+        [
+          9,
+          1,
+          55,
+          56
+        ],
+        [
+          10,
+          1,
+          55,
+          56
+        ],
+        [
+          8,
+          1,
+          55,
+          56
+        ],
+        [
+          9,
+          1,
+          55,
+          56
+        ],
+        [
+          11,
+          2,
+          53,
+          56
+        ],
+        [
+          10,
+          1,
+          54,
+          56
+        ],
+        [
+          10,
+          1,
+          53,
+          56
+        ],
+        [
+          10,
+          0,
+          53,
+          56
+        ],
+        [
+          10,
+          0,
+          53,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        41,
+        47
+      ],
+      "bboxHeightRange": [
+        54,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        29.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_lango_01/neutral_lango_01-contact.png",
+    "animationPreview": "sprite-reports/neutral_lango_01/neutral_lango_01-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

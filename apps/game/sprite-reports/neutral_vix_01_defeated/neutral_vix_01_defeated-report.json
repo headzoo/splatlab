@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_vix_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_vix_01_defeated-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          402,
+          444
+        ],
+        [
+          402,
+          0,
+          842,
+          444
+        ],
+        [
+          842,
+          0,
+          1309,
+          444
+        ],
+        [
+          1309,
+          0,
+          1774,
+          444
+        ],
+        [
+          0,
+          444,
+          402,
+          887
+        ],
+        [
+          402,
+          444,
+          842,
+          887
+        ],
+        [
+          842,
+          444,
+          1309,
+          887
+        ],
+        [
+          1309,
+          444,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          45,
+          56
+        ],
+        "paste": [
+          10,
+          0
+        ],
+        "localLandmark": [
+          22.5,
+          56
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          45
+        ],
+        "paste": [
+          10,
+          11
+        ],
+        "localLandmark": [
+          21.5,
+          45
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          51,
+          34
+        ],
+        "paste": [
+          6,
+          22
+        ],
+        "localLandmark": [
+          25.5,
+          34
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          52,
+          26
+        ],
+        "paste": [
+          6,
+          30
+        ],
+        "localLandmark": [
+          26.0,
+          26
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          53
+        ],
+        "paste": [
+          10,
+          3
+        ],
+        "localLandmark": [
+          21.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          43,
+          47
+        ],
+        "paste": [
+          10,
+          9
+        ],
+        "localLandmark": [
+          21.5,
+          47
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          51,
+          34
+        ],
+        "paste": [
+          6,
+          22
+        ],
+        "localLandmark": [
+          25.5,
+          34
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          54,
+          28
+        ],
+        "paste": [
+          5,
+          28
+        ],
+        "localLandmark": [
+          27.0,
+          28
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_vix_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_vix_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          0,
+          55,
+          56
+        ],
+        [
+          10,
+          11,
+          53,
+          56
+        ],
+        [
+          6,
+          22,
+          57,
+          56
+        ],
+        [
+          6,
+          30,
+          58,
+          56
+        ],
+        [
+          10,
+          3,
+          53,
+          56
+        ],
+        [
+          10,
+          9,
+          53,
+          56
+        ],
+        [
+          6,
+          22,
+          57,
+          56
+        ],
+        [
+          5,
+          28,
+          59,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        43,
+        54
+      ],
+      "bboxHeightRange": [
+        26,
+        56
+      ],
+      "bboxCenterXRange": [
+        31.5,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        28.0,
+        43.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_vix_01_defeated/neutral_vix_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/neutral_vix_01_defeated/neutral_vix_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

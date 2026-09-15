@@ -333,7 +333,12 @@ function stepJump(state: MazeState, events: MazeRuntimeEvent[]): MazeState {
   };
 }
 
-function startPlayerDeath(state: MazeState, events: MazeRuntimeEvent[]): MazeState {
+function startPlayerDeath(
+  state: MazeState,
+  events: MazeRuntimeEvent[],
+  playerInvulnerable = false,
+): MazeState {
+  if (playerInvulnerable) return state;
   if (state.respawnGraceTicksRemaining > 0 || state.status === "dying") return state;
   events.push({ type: "player_death" });
   return {
@@ -369,6 +374,7 @@ function stepTriggers(
   map: MazeMapSpec,
   state: MazeState,
   events: MazeRuntimeEvent[],
+  playerInvulnerable = false,
 ): MazeState {
   if (state.jump || state.status !== "playing") return state;
   const cellX = Math.floor(state.x);
@@ -383,7 +389,9 @@ function stepTriggers(
       events.push({ type: "collectible" });
     }
   }
-  if (hazardAt(map, cellX, cellY)) return startPlayerDeath(next, events);
+  if (hazardAt(map, cellX, cellY)) {
+    return startPlayerDeath(next, events, playerInvulnerable);
+  }
 
   for (const enemy of next.enemies) {
     if (enemy.defeated) continue;
@@ -392,7 +400,9 @@ function stepTriggers(
       next = defeatEnemiesNearPlayer(next, events);
       continue;
     }
-    if (distance < ENEMY_CONTACT_DISTANCE_TILES) return startPlayerDeath(next, events);
+    if (distance < ENEMY_CONTACT_DISTANCE_TILES) {
+      return startPlayerDeath(next, events, playerInvulnerable);
+    }
   }
 
   const exit = map.objects.find((object) => (
@@ -415,6 +425,7 @@ export function stepMazeWithEvents(
   state: MazeState,
   input: MazeInput,
   deltaSeconds = MAZE_FIXED_DELTA_SECONDS,
+  options: { playerInvulnerable?: boolean } = {},
 ): MazeStepResult {
   const events: MazeRuntimeEvent[] = [];
   if (state.status === "won") return { state, events };
@@ -455,7 +466,7 @@ export function stepMazeWithEvents(
     ...next,
     enemies: next.enemies.map((enemy) => stepEnemy(map, next, enemy, deltaSeconds)),
   };
-  next = stepTriggers(map, next, events);
+  next = stepTriggers(map, next, events, options.playerInvulnerable);
   return { state: next, events };
 }
 

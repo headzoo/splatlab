@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "assetId": "neutral_jamie_01_defeated",
+  "frameLabels": [
+    "defeated_left_1",
+    "defeated_left_2",
+    "defeated_left_3",
+    "defeated_left_4",
+    "defeated_right_1",
+    "defeated_right_2",
+    "defeated_right_3",
+    "defeated_right_4"
+  ],
+  "normalization": {
+    "source": "sprites/neutral_jamie_01_defeated-source.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "detection": {
+      "mode": "manual",
+      "regions": [
+        [
+          0,
+          0,
+          411,
+          450
+        ],
+        [
+          411,
+          0,
+          848,
+          450
+        ],
+        [
+          848,
+          0,
+          1309,
+          450
+        ],
+        [
+          1309,
+          0,
+          1774,
+          450
+        ],
+        [
+          0,
+          450,
+          411,
+          887
+        ],
+        [
+          411,
+          450,
+          848,
+          887
+        ],
+        [
+          848,
+          450,
+          1309,
+          887
+        ],
+        [
+          1309,
+          450,
+          1774,
+          887
+        ]
+      ]
+    },
+    "placements": [
+      {
+        "size": [
+          45,
+          53
+        ],
+        "paste": [
+          10,
+          3
+        ],
+        "localLandmark": [
+          22.5,
+          53
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          48,
+          43
+        ],
+        "paste": [
+          8,
+          13
+        ],
+        "localLandmark": [
+          24.0,
+          43
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          56,
+          28
+        ],
+        "paste": [
+          4,
+          28
+        ],
+        "localLandmark": [
+          28.0,
+          28
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          60,
+          24
+        ],
+        "paste": [
+          2,
+          32
+        ],
+        "localLandmark": [
+          30.0,
+          24
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          52
+        ],
+        "paste": [
+          10,
+          4
+        ],
+        "localLandmark": [
+          22.0,
+          52
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          44,
+          44
+        ],
+        "paste": [
+          10,
+          12
+        ],
+        "localLandmark": [
+          22.0,
+          44
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          54,
+          28
+        ],
+        "paste": [
+          5,
+          28
+        ],
+        "localLandmark": [
+          27.0,
+          28
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      },
+      {
+        "size": [
+          58,
+          24
+        ],
+        "paste": [
+          3,
+          32
+        ],
+        "localLandmark": [
+          29.0,
+          24
+        ],
+        "target": [
+          32.0,
+          56.0
+        ],
+        "frameOffset": [
+          0,
+          0
+        ],
+        "intentionallyClipped": false
+      }
+    ]
+  },
+  "validation": {
+    "assetId": "neutral_jamie_01_defeated",
+    "image": "/media/sean/work/www/chickensplat/apps/game/sprite-build/neutral_jamie_01_defeated.png",
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "measurements": {
+      "alphaRange": [
+        0,
+        255
+      ],
+      "frameBboxes": [
+        [
+          10,
+          3,
+          55,
+          56
+        ],
+        [
+          8,
+          13,
+          56,
+          56
+        ],
+        [
+          4,
+          28,
+          60,
+          56
+        ],
+        [
+          2,
+          32,
+          62,
+          56
+        ],
+        [
+          10,
+          4,
+          54,
+          56
+        ],
+        [
+          10,
+          12,
+          54,
+          56
+        ],
+        [
+          5,
+          28,
+          59,
+          56
+        ],
+        [
+          3,
+          32,
+          61,
+          56
+        ]
+      ],
+      "frameOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "intentionallyClippedFrames": [],
+      "bboxWidthRange": [
+        44,
+        60
+      ],
+      "bboxHeightRange": [
+        24,
+        53
+      ],
+      "bboxCenterXRange": [
+        32.0,
+        32.5
+      ],
+      "bboxCenterYRange": [
+        29.5,
+        44.0
+      ],
+      "bboxBottomRange": [
+        56,
+        56
+      ]
+    }
+  },
+  "previews": {
+    "contactSheet": "sprite-reports/neutral_jamie_01_defeated/neutral_jamie_01_defeated-contact.png",
+    "animationPreview": "sprite-reports/neutral_jamie_01_defeated/neutral_jamie_01_defeated-preview.gif"
+  },
+  "humanApprovalRequired": true
+}

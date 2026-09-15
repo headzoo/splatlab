@@ -510,6 +510,17 @@ test("turning the ghosts into robots repaints them through the whole flow", asyn
   assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"enemyLooksByWorld"/);
 });
 
+test("read_game_objects includes the hero player block", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("read_game_objects", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
+    { text: "Your hero is Cooper.", toolCalls: [], items: [] },
+  ]);
+  await execute(model);
+
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"player"/);
+  assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"character":"cooper"/);
+});
+
 test("changing the hero is saved and rides back to the client", async () => {
   const model = new ScriptedToolModel([
     { text: "", toolCalls: [toolCall("set_player_character", { character: "human", gender: "girl" })], items: [] },
