@@ -11,7 +11,9 @@ import { type ModelClient } from "./model-client";
 import {
   ALLOW_ALL_MODERATOR,
   COOPER_INBOUND_REDIRECT,
+  COOPER_MODERATION_UNAVAILABLE_REDIRECT,
   COOPER_OUTBOUND_REDIRECT,
+  deterministicScreen,
   safeScreen,
   type ContentModerator,
   type ModerationVerdict,
@@ -154,9 +156,35 @@ test("a flagged Cooper reply is swapped before it is persisted", async () => {
   assert.equal(history.at(-1)?.message, COOPER_OUTBOUND_REDIRECT);
 });
 
-test("screening failures fail open rather than breaking the turn", async () => {
+test("an unavailable outbound check replaces the draft before persistence", async () => {
   resetMemory();
   const game = await newGame();
+  let calls = 0;
+  const moderator: ContentModerator = {
+    async screen() {
+      calls += 1;
+      if (calls === 1) return { flagged: false, categories: [] };
+      throw new Error("moderation provider went down");
+    },
+  };
+
+  const result = await processBuildTurn(
+    { ownerId: "owner-a", gameId: game.id, input: { message: "make my chicken faster" } },
+    dependencies(new ScriptedModelClient(), moderator),
+  );
+
+  assert.equal(result.kind, "success");
+  if (result.kind !== "success") return;
+  assert.equal(result.body.cooperMessage, COOPER_MODERATION_UNAVAILABLE_REDIRECT);
+  const history = await chatHistory(game.id);
+  assert.equal(history.some((turn) => turn.message === COOPER_REPLY), false);
+  assert.equal(history.at(-1)?.message, COOPER_MODERATION_UNAVAILABLE_REDIRECT);
+});
+
+test("screening failures fail closed with a polite retry response", async () => {
+  resetMemory();
+  const game = await newGame();
+  const model = new ScriptedModelClient();
   const throwing: ContentModerator = {
     async screen() {
       throw new Error("moderation provider is down");
@@ -165,27 +193,92 @@ test("screening failures fail open rather than breaking the turn", async () => {
 
   const result = await processBuildTurn(
     { ownerId: "owner-a", gameId: game.id, input: { message: "make my chicken faster" } },
-    dependencies(new ScriptedModelClient(), throwing),
+    dependencies(model, throwing),
   );
 
   assert.equal(result.kind, "success");
   if (result.kind !== "success") return;
-  assert.equal(result.body.cooperMessage, COOPER_REPLY);
+  assert.equal(result.body.cooperMessage, COOPER_MODERATION_UNAVAILABLE_REDIRECT);
+  assert.equal(model.calls, 0, "unverified text must not reach the model");
+  assert.equal(result.gameRevision, game.revision, "an unavailable check must not change the game");
+  assert.deepEqual(await chatHistory(game.id), []);
 });
 
-test("safeScreen reports unflagged when a moderator throws", async () => {
+test("an omitted service moderator also fails closed", async () => {
+  resetMemory();
+  const game = await newGame();
+  const model = new ScriptedModelClient();
+
+  const result = await processBuildTurn(
+    { ownerId: "owner-a", gameId: game.id, input: { message: "make my chicken faster" } },
+    {
+      modelClient: model,
+      runStore: new AgentFlowRunStore({ forceMemory: true }),
+      rateLimiter: new AgentflowRateLimiter({ forceMemory: true }),
+    },
+  );
+
+  assert.equal(result.kind, "success");
+  if (result.kind !== "success") return;
+  assert.equal(result.body.cooperMessage, COOPER_MODERATION_UNAVAILABLE_REDIRECT);
+  assert.equal(model.calls, 0);
+});
+
+test("safeScreen reports unavailable when a moderator throws", async () => {
   const verdict = await safeScreen("anything", {
     async screen() {
       throw new Error("boom");
     },
   });
 
-  assert.deepEqual(verdict, { flagged: false, categories: [] });
+  assert.deepEqual(verdict, { flagged: true, categories: [], unavailable: true });
 });
 
-test("the default moderator allows everything, so screening is opt-in", async () => {
+test("the explicit test moderator allows clean text", async () => {
   const verdict = await ALLOW_ALL_MODERATOR.screen("anything at all");
   assert.equal(verdict.flagged, false);
+});
+
+test("the deterministic filter catches common obfuscations before the provider", async () => {
+  let providerCalls = 0;
+  const verdict = await safeScreen("f.u.c.k and sh1t", {
+    async screen() {
+      providerCalls += 1;
+      return { flagged: false, categories: [] };
+    },
+  });
+
+  assert.equal(verdict.flagged, true);
+  assert.deepEqual(verdict.categories, ["local/profanity"]);
+  assert.equal(providerCalls, 0, "known bad words should be rejected locally");
+});
+
+test("the deterministic filter catches spaced words and self-harm phrases", () => {
+  assert.equal(deterministicScreen("f u c k").flagged, true);
+  assert.equal(deterministicScreen("fuuuuck").flagged, true);
+  assert.equal(deterministicScreen("fúck").flagged, true);
+  assert.deepEqual(deterministicScreen("I want to hurt myself").categories, ["local/self-harm"]);
+});
+
+test("the deterministic filter matches whole normalized words", () => {
+  assert.deepEqual(deterministicScreen("Classic grass platforms"), {
+    flagged: false,
+    categories: [],
+  });
+});
+
+test("malformed moderator verdicts fail closed", async () => {
+  const malformed = {
+    async screen() {
+      return { flagged: false };
+    },
+  } as unknown as ContentModerator;
+
+  assert.deepEqual(await safeScreen("a clean message", malformed), {
+    flagged: true,
+    categories: [],
+    unavailable: true,
+  });
 });
 
 test("flagged feedback is redirected and leaves the paused run claimable", async () => {
@@ -217,4 +310,36 @@ test("flagged feedback is redirected and leaves the paused run claimable", async
     "paused",
     "the kid must be able to reword and act on the same paused run",
   );
+});
+
+test("unavailable feedback moderation is polite and leaves the paused run claimable", async () => {
+  resetMemory();
+  const game = await newGame();
+  const pausing = new class implements ModelClient {
+    async completeTurn() { return { text: "I need you to choose.", toolCalls: [], items: [] }; }
+    async selectScenario() { return "Needs work"; }
+  }();
+  const store = new AgentFlowRunStore({ forceMemory: true });
+  const rateLimiter = new AgentflowRateLimiter({ forceMemory: true });
+
+  await processBuildTurn(
+    { ownerId: "owner-a", gameId: game.id, input: { message: "make my chicken faster" } },
+    { modelClient: pausing, moderator: ALLOW_ALL_MODERATOR, runStore: store, rateLimiter, flow: GATE_FLOW },
+  );
+
+  const result = await processBuildTurn(
+    { ownerId: "owner-a", gameId: game.id, input: { action: "proceed", feedback: "add coins" } },
+    {
+      modelClient: pausing,
+      moderator: { async screen() { throw new Error("provider down"); } },
+      runStore: store,
+      rateLimiter,
+      flow: GATE_FLOW,
+    },
+  );
+
+  assert.equal(result.kind, "success");
+  if (result.kind !== "success") return;
+  assert.equal(result.body.cooperMessage, COOPER_MODERATION_UNAVAILABLE_REDIRECT);
+  assert.equal((await store.loadActive("owner-a", game.id))?.status, "paused");
 });

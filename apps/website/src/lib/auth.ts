@@ -28,7 +28,12 @@ const trustedOrigins = [
     .filter(Boolean) ?? []),
 ];
 
-function requiredSecret(name: "BETTER_AUTH_SECRET" | "LAB_KEY_PEPPER") {
+function requiredSecret(
+  name:
+    | "BETTER_AUTH_SECRET"
+    | "LAB_KEY_CHECKSUM_SECRET"
+    | "LAB_KEY_PEPPER",
+) {
   const value = process.env[name];
 
   if (value) {
@@ -84,6 +89,9 @@ export const auth = betterAuth({
     anonymous({
       generateName: () => UNSET_DISPLAY_NAME,
     }),
-    labKeyPlugin({ pepper: requiredSecret("LAB_KEY_PEPPER") }),
+    labKeyPlugin({
+      checksumSecret: requiredSecret("LAB_KEY_CHECKSUM_SECRET"),
+      pepper: requiredSecret("LAB_KEY_PEPPER"),
+    }),
   ],
 });

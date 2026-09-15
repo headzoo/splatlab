@@ -141,6 +141,10 @@ export const renameGameTool: AgentTool = Object.freeze({
     // The name is kept outside the chat and shown on the kid's game list, so it
     // is screened here rather than relying on the reply screening downstream.
     const verdict = await safeScreen(name, context.moderator, context.signal);
+    if (verdict.unavailable) {
+      console.warn("Game rename was withheld because moderation was unavailable");
+      return toolError("Cooper's safety checker is taking a quick break. Try that name again in a moment.");
+    }
     if (verdict.flagged) {
       console.warn("Game rename was declined by moderation", { categories: verdict.categories });
       return toolError("Cooper cannot call the game that. Try another name.");

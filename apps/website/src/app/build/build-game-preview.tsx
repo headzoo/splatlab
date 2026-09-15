@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import {
+  type DragEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 
 import {
   GamePlayer,
@@ -53,11 +61,12 @@ import {
 import { GameObjectEditError } from "@/lib/game-objects";
 import {
   planAddLevel,
-  planMoveLevel,
+  MAX_GAME_NAME_LENGTH,
+  planGameName,
+  planMoveLevelTo,
   planRemoveLevel,
   planRenameLevel,
   planSetActiveLevel,
-  type LevelMoveDirection,
 } from "@/lib/game-levels-editing";
 import { buildGamePath, playGamePath } from "@/lib/game-routes";
 import {
@@ -121,6 +130,20 @@ function ShareIcon() {
       focusable="false"
     >
       <path d="M12 10.5a2.2 2.2 0 0 0-1.3.4l-3.5-2a2.3 2.3 0 0 0 0-1.8l3.5-2a2.2 2.2 0 0 0 1.3.4 2.3 2.3 0 1 0-.7-1.7l-3.5 2a2.3 2.3 0 0 0-2.6 0l-3.5-2A2.3 2.3 0 1 0 2.3 6.5a2.2 2.2 0 0 0 1.3-.4l3.5 2a2.3 2.3 0 0 0 0 1.8l-3.5 2a2.2 2.2 0 0 0-1.3-.4A2.3 2.3 0 1 0 4 13.7a2.3 2.3 0 0 0 2.6 0l3.5-2a2.2 2.2 0 0 0 1.3.4 2.3 2.3 0 1 0 2.3-2.3Z" />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg
+      className={styles.settingsIcon}
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M8.8 2.4h2.4l.5 2a6 6 0 0 1 1.1.7l2-.6 1.2 2.1-1.5 1.4a6 6 0 0 1 0 1.4l1.5 1.4-1.2 2.1-2-.6a6 6 0 0 1-1.1.7l-.5 2H8.8l-.5-2a6 6 0 0 1-1.1-.7l-2 .6L4 10.8l1.5-1.4a6 6 0 0 1 0-1.4L4 6.6l1.2-2.1 2 .6a6 6 0 0 1 1.1-.7l.5-2Z" />
+      <circle cx="10" cy="8.7" r="2.1" />
     </svg>
   );
 }
@@ -240,6 +263,15 @@ export function BuildGamePreview({
   const [pendingLevel, setPendingLevel] = useState<PendingLevel | null>(null);
   const [levelName, setLevelName] = useState("");
   const [levelSettingsOpen, setLevelSettingsOpen] = useState(false);
+  const [gameSettingsName, setGameSettingsName] = useState(initialTitle);
+  const [gameSettingsPublic, setGameSettingsPublic] = useState(
+    initialGame?.isPublic ?? false,
+  );
+  const [savedGamePublic, setSavedGamePublic] = useState(
+    initialGame?.isPublic ?? false,
+  );
+  const [draggedLevelSource, setDraggedLevelSource] = useState<string | null>(null);
+  const [dragOverLevelSource, setDragOverLevelSource] = useState<string | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [sharePlayUrl, setSharePlayUrl] = useState("");
   const [shareUrlCopied, setShareUrlCopied] = useState(false);
@@ -248,11 +280,14 @@ export function BuildGamePreview({
   const levelNameDialogRef = useRef<HTMLDialogElement>(null);
   const levelNameInputRef = useRef<HTMLInputElement>(null);
   const levelSettingsDialogRef = useRef<HTMLDialogElement>(null);
+  const gameSettingsNameInputRef = useRef<HTMLInputElement>(null);
   const levelSettingsInputRef = useRef<HTMLInputElement>(null);
   const latestSpecRef = useRef(history.present);
   const savedSpecRef = useRef<GameDocument | null>(initialGame?.spec ?? null);
   const titleRef = useRef(initialTitle);
   const savedTitleRef = useRef<string | null>(initialGame?.title ?? null);
+  const publicRef = useRef(initialGame?.isPublic ?? false);
+  const savedPublicRef = useRef<boolean | null>(initialGame?.isPublic ?? null);
   /**
    * The name is stored beside the spec, so nothing the history reducer holds
    * carries it, and it arrives from three places outside React: the setup
@@ -275,6 +310,15 @@ export function BuildGamePreview({
     if (saved !== null && local !== saved) return;
     titleRef.current = title;
     showTitle(title);
+  }, []);
+  const adoptServerVisibility = useCallback((isPublic: boolean) => {
+    const local = publicRef.current;
+    const saved = savedPublicRef.current;
+    savedPublicRef.current = isPublic;
+    setSavedGamePublic(isPublic);
+    if (saved !== null && local !== saved) return;
+    publicRef.current = isPublic;
+    setGameSettingsPublic(isPublic);
   }, []);
   const savePromiseRef = useRef<Promise<void> | null>(null);
   const thumbnailSavePromiseRef = useRef<Promise<void> | null>(null);
@@ -399,6 +443,7 @@ export function BuildGamePreview({
       identityRef.current = { id: game.id, revision: game.revision };
       savedSpecRef.current = game.spec;
       adoptServerTitle(game.title);
+      adoptServerVisibility(game.isPublic);
       latestSpecRef.current = reconciled;
       dispatch({ type: "chat", turns: game.spec.builderChatHistory });
       dispatch({ type: "physics", document: game.spec.physicsDocument });
@@ -407,7 +452,7 @@ export function BuildGamePreview({
       // turn was in flight must not be thrown away by the confirming fetch.
       dispatch({ type: "specChange", change: specChangeFrom(reconciled) });
     })();
-  }, [adoptServerTitle, persistedBuildTurn]);
+  }, [adoptServerTitle, adoptServerVisibility, persistedBuildTurn]);
 
   const persistLatest = useCallback(() => {
     if (savePromiseRef.current) return savePromiseRef.current;
@@ -417,11 +462,13 @@ export function BuildGamePreview({
         const spec = latestSpecRef.current;
         const identity = identityRef.current;
         const title = titleRef.current.trim() || defaultGameTitle(spec);
+        const isPublic = publicRef.current;
 
         if (
           identity &&
           savedSpecRef.current &&
           savedTitleRef.current === title &&
+          savedPublicRef.current === isPublic &&
           sameGameDocument(savedSpecRef.current, spec)
         ) {
           setSaveStatus("saved");
@@ -441,10 +488,11 @@ export function BuildGamePreview({
               identity
                 ? {
                     title,
+                    isPublic,
                     spec,
                     expectedRevision: identity.revision,
                   }
-                : { title, spec },
+                : { title, isPublic, spec },
             ),
           },
         );
@@ -467,6 +515,7 @@ export function BuildGamePreview({
             identityRef.current = { id: game.id, revision: game.revision };
             savedSpecRef.current = game.spec;
             adoptServerTitle(game.title);
+            adoptServerVisibility(game.isPublic);
             latestSpecRef.current = reconciled;
             dispatch({ type: "chat", turns: game.spec.builderChatHistory });
             continue;
@@ -481,6 +530,8 @@ export function BuildGamePreview({
         identityRef.current = nextIdentity;
         savedSpecRef.current = spec;
         savedTitleRef.current = savedGame.title;
+        savedPublicRef.current = savedGame.isPublic;
+        setSavedGamePublic(savedGame.isPublic);
         const latestTitle =
           titleRef.current.trim() || defaultGameTitle(latestSpecRef.current);
         if (latestTitle === title) {
@@ -500,7 +551,8 @@ export function BuildGamePreview({
         if (
           sameGameDocument(latestSpecRef.current, spec) &&
           (titleRef.current.trim() || defaultGameTitle(latestSpecRef.current)) ===
-            savedGame.title
+            savedGame.title &&
+          publicRef.current === savedGame.isPublic
         ) {
           setSaveStatus("saved");
           return;
@@ -519,7 +571,7 @@ export function BuildGamePreview({
 
     savePromiseRef.current = savePromise;
     return savePromise;
-  }, [adoptServerTitle, publishGameIdentity]);
+  }, [adoptServerTitle, adoptServerVisibility, publishGameIdentity]);
 
   useEffect(() => {
     if (
@@ -593,6 +645,7 @@ export function BuildGamePreview({
       identityRef.current &&
       savedSpecRef.current &&
       savedTitleRef.current === title &&
+      savedPublicRef.current === publicRef.current &&
       sameGameDocument(savedSpecRef.current, history.present);
 
     if (alreadySaved) return;
@@ -612,6 +665,7 @@ export function BuildGamePreview({
         savedTitleRef.current !== (
           titleRef.current.trim() || defaultGameTitle(latestSpecRef.current)
         ) ||
+        savedPublicRef.current !== publicRef.current ||
         !sameGameDocument(savedSpecRef.current, latestSpecRef.current)
       ) {
         void persistLatest();
@@ -664,8 +718,8 @@ export function BuildGamePreview({
     if (!dialog) return;
     if (levelSettingsOpen && !dialog.open) {
       dialog.showModal();
-      levelSettingsInputRef.current?.focus();
-      levelSettingsInputRef.current?.select();
+      gameSettingsNameInputRef.current?.focus();
+      gameSettingsNameInputRef.current?.select();
     }
     if (!levelSettingsOpen && dialog.open) dialog.close();
   }, [levelSettingsOpen]);
@@ -677,7 +731,15 @@ export function BuildGamePreview({
     if (!shareDialogOpen && dialog.open) dialog.close();
   }, [shareDialogOpen]);
 
-  const playHref = gameIdentity ? playGamePath(gameIdentity.id) : null;
+  const playHref = gameIdentity && savedGamePublic
+    ? playGamePath(gameIdentity.id)
+    : null;
+
+  const openGameSettings = useCallback(() => {
+    setGameSettingsName(titleRef.current);
+    setGameSettingsPublic(publicRef.current);
+    setLevelSettingsOpen(true);
+  }, []);
 
   const openShareDialog = useCallback(() => {
     if (!playHref) return;
@@ -809,16 +871,37 @@ export function BuildGamePreview({
     const name = levelSettingsInputRef.current?.value.trim() ?? "";
     if (!name) return;
     commitLevelPlan((spec) => planRenameLevel(spec, selectedLevelNumber, name));
-    setLevelSettingsOpen(false);
   };
   const deleteSelectedLevel = () => {
     if (availableLevels.length <= 1) return;
     setEditorSelection(EMPTY_PLATFORMER_EDITOR_SELECTION);
     commitLevelPlan((spec) => planRemoveLevel(spec, selectedLevelNumber));
-    setLevelSettingsOpen(false);
   };
-  const moveSelectedLevel = (direction: LevelMoveDirection) => {
-    commitLevelPlan((spec) => planMoveLevel(spec, selectedLevelNumber, direction));
+  const saveGameSettings = () => {
+    try {
+      const title = planGameName(gameSettingsName);
+      titleRef.current = title;
+      publicRef.current = gameSettingsPublic;
+      setGameSettingsName(title);
+      showTitle(title);
+      void persistLatest();
+    } catch (error) {
+      if (error instanceof GameObjectEditError) return;
+      throw error;
+    }
+  };
+  const moveLevel = (fromSource: string, toSource: string) => {
+    const fromIndex = availableLevels.findIndex((level) => level.source === fromSource);
+    const toIndex = availableLevels.findIndex((level) => level.source === toSource);
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return;
+    commitLevelPlan((spec) => planMoveLevelTo(spec, fromIndex + 1, toIndex + 1));
+  };
+  const dropLevel = (event: DragEvent<HTMLButtonElement>, toSource: string) => {
+    event.preventDefault();
+    const fromSource = draggedLevelSource || event.dataTransfer.getData("text/plain");
+    if (fromSource) moveLevel(fromSource, toSource);
+    setDraggedLevelSource(null);
+    setDragOverLevelSource(null);
   };
   const applyTerrainStroke = (stroke: readonly PlatformerTerrainStrokeCell[]) => {
     const platformerTerrainEdits = mergePlatformerTerrainEdits(
@@ -957,7 +1040,11 @@ export function BuildGamePreview({
               className={styles.playGameButton}
               type="button"
               disabled
-              aria-label="Play will be available after this game saves"
+              aria-label={
+                gameIdentity
+                  ? "Make this game public to open its play page"
+                  : "Play will be available after this game saves"
+              }
             >
               <span>Play</span>
               <ExternalLinkIcon />
@@ -967,7 +1054,13 @@ export function BuildGamePreview({
             className={styles.shareGameButton}
             type="button"
             disabled={!playHref}
-            aria-label="Share play link"
+            aria-label={
+              playHref
+                ? "Share play link"
+                : gameIdentity
+                  ? "Make this game public to share it"
+                  : "Share will be available after this game saves"
+            }
             onClick={openShareDialog}
           >
             <span>Share</span>
@@ -1037,38 +1130,15 @@ export function BuildGamePreview({
         physics={physics}
         weapon={weapon}
         controlRowLeading={(
-          <div className={styles.levelPicker}>
-            <label className={styles.levelSelect}>
-              <span>Level</span>
-              <select
-                aria-label="Select level"
-                value={selectedLevel.source}
-                onChange={(event) => changeLevel(event.target.value)}
-              >
-                {availableLevels.map((level) => (
-                  <option key={level.source} value={level.source}>{level.label}</option>
-                ))}
-              </select>
-            </label>
-            <button
-              className={styles.addLevelButton}
-              type="button"
-              aria-label="Add a level"
-              title="Add a level"
-              onClick={openLevelPicker}
-            >
-              +
-            </button>
-            <button
-              className={styles.levelSettingsButton}
-              type="button"
-              aria-label="Level settings"
-              title="Level settings"
-              onClick={() => setLevelSettingsOpen(true)}
-            >
-              <span aria-hidden="true">⚙</span>
-            </button>
-          </div>
+          <button
+            className={styles.gameSettingsButton}
+            type="button"
+            aria-haspopup="dialog"
+            onClick={openGameSettings}
+          >
+            <SettingsIcon />
+            <span>Settings</span>
+          </button>
         )}
         hidePlatformerEditorLabels
         savedGameId={gameIdentity?.id}
@@ -1223,9 +1293,9 @@ export function BuildGamePreview({
       </dialog>
 
       <dialog
-        className={styles.levelDialog}
+        className={`${styles.levelDialog} ${styles.gameSettingsDialog}`}
         ref={levelSettingsDialogRef}
-        aria-labelledby="level-settings-title"
+        aria-labelledby="game-settings-title"
         onCancel={(event) => {
           event.preventDefault();
           setLevelSettingsOpen(false);
@@ -1233,62 +1303,165 @@ export function BuildGamePreview({
       >
         <header>
           <div>
-            <span>Selected level</span>
-            <h2 id="level-settings-title">Level settings</h2>
+            <span>Game</span>
+            <h2 id="game-settings-title">Settings</h2>
           </div>
           <button
             type="button"
-            aria-label="Close level settings"
+            aria-label="Close settings"
             onClick={() => setLevelSettingsOpen(false)}
           >
             ×
           </button>
         </header>
-        <form
-          className={styles.levelSettingsForm}
-          onSubmit={(event) => {
-            event.preventDefault();
-            renameSelectedLevel();
-          }}
-        >
-          <label className={styles.levelNameField}>
-            <span>Level name</span>
-            <input
-              key={selectedLevel.source}
-              ref={levelSettingsInputRef}
-              defaultValue={selectedLevel.label}
-              maxLength={40}
-              required
-            />
-          </label>
-          <button className={styles.renameLevelButton} type="submit">Save name</button>
-          <div className={styles.levelOrderActions} aria-label="Level order">
-            <button
-              type="button"
-              disabled={selectedLevelIndex <= 0}
-              onClick={() => moveSelectedLevel("earlier")}
-            >
-              ← Move backward
+        <div className={styles.gameSettingsBody}>
+          <form
+            className={styles.gameSettingsForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              saveGameSettings();
+            }}
+          >
+            <h3>Game settings</h3>
+            <label className={styles.levelNameField}>
+              <span>Game name</span>
+              <input
+                ref={gameSettingsNameInputRef}
+                value={gameSettingsName}
+                maxLength={MAX_GAME_NAME_LENGTH}
+                required
+                onChange={(event) => setGameSettingsName(event.target.value)}
+              />
+            </label>
+            <label className={styles.publicGameField}>
+              <input
+                type="checkbox"
+                checked={gameSettingsPublic}
+                onChange={(event) => setGameSettingsPublic(event.target.checked)}
+              />
+              <span>Make game public</span>
+            </label>
+            <button className={styles.saveGameSettingsButton} type="submit">
+              Save game settings
             </button>
-            <button
-              type="button"
-              disabled={selectedLevelIndex < 0 || selectedLevelIndex >= availableLevels.length - 1}
-              onClick={() => moveSelectedLevel("later")}
-            >
-              Move forward →
-            </button>
+          </form>
+
+          <div className={styles.levelSettingsGrid}>
+            <section className={styles.levelListColumn} aria-labelledby="levels-title">
+              <div className={styles.settingsSectionHeading}>
+                <div>
+                  <span>Game levels</span>
+                  <h3 id="levels-title">Levels</h3>
+                </div>
+                <span>{availableLevels.length}</span>
+              </div>
+              <p className={styles.levelSortHint}>Drag levels to change their order.</p>
+              <ol className={styles.levelList}>
+                {availableLevels.map((level, index) => {
+                  const selected = level.source === selectedLevel.source;
+                  const dragging = level.source === draggedLevelSource;
+                  const dragOver = level.source === dragOverLevelSource && !dragging;
+                  return (
+                    <li key={level.source}>
+                      <button
+                        className={`${styles.levelListItem} ${selected ? styles.levelListItemSelected : ""} ${dragging ? styles.levelListItemDragging : ""} ${dragOver ? styles.levelListItemDragOver : ""}`}
+                        type="button"
+                        draggable
+                        aria-current={selected ? "true" : undefined}
+                        aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                        onClick={() => changeLevel(level.source)}
+                        onDragStart={(event) => {
+                          event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData("text/plain", level.source);
+                          setDraggedLevelSource(level.source);
+                        }}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          event.dataTransfer.dropEffect = "move";
+                          setDragOverLevelSource(level.source);
+                        }}
+                        onDragLeave={() => {
+                          setDragOverLevelSource((source) => (
+                            source === level.source ? null : source
+                          ));
+                        }}
+                        onDrop={(event) => dropLevel(event, level.source)}
+                        onDragEnd={() => {
+                          setDraggedLevelSource(null);
+                          setDragOverLevelSource(null);
+                        }}
+                        onKeyDown={(event) => {
+                          if (!event.altKey) return;
+                          const targetIndex = event.key === "ArrowUp"
+                            ? index - 1
+                            : event.key === "ArrowDown"
+                              ? index + 1
+                              : index;
+                          const target = availableLevels[targetIndex];
+                          if (targetIndex === index || !target) return;
+                          event.preventDefault();
+                          moveLevel(level.source, target.source);
+                        }}
+                      >
+                        <span className={styles.levelDragHandle} aria-hidden="true">⠿</span>
+                        <span className={styles.levelNumber}>{index + 1}</span>
+                        <span className={styles.levelListLabel}>{level.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+              <button
+                className={styles.addLevelFromSettingsButton}
+                type="button"
+                onClick={openLevelPicker}
+              >
+                <span aria-hidden="true">+</span>
+                Add level
+              </button>
+            </section>
+
+            <section className={styles.selectedLevelColumn} aria-labelledby="selected-level-settings-title">
+              <div className={styles.settingsSectionHeading}>
+                <div>
+                  <span>Level {selectedLevelNumber}</span>
+                  <h3 id="selected-level-settings-title">Level settings</h3>
+                </div>
+              </div>
+              <form
+                className={styles.levelSettingsForm}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  renameSelectedLevel();
+                }}
+              >
+                <label className={styles.levelNameField}>
+                  <span>Level name</span>
+                  <input
+                    key={selectedLevel.source}
+                    ref={levelSettingsInputRef}
+                    defaultValue={selectedLevel.label}
+                    maxLength={40}
+                    required
+                  />
+                </label>
+                <button className={styles.renameLevelButton} type="submit">
+                  Save name
+                </button>
+                <div className={styles.levelDeleteRow}>
+                  <p>{availableLevels.length <= 1 ? "A game needs at least one level." : "Delete this level from the game."}</p>
+                  <button
+                    type="button"
+                    disabled={availableLevels.length <= 1}
+                    onClick={deleteSelectedLevel}
+                  >
+                    Delete level
+                  </button>
+                </div>
+              </form>
+            </section>
           </div>
-          <div className={styles.levelDeleteRow}>
-            <p>{availableLevels.length <= 1 ? "A game needs at least one level." : "Delete this level from the game."}</p>
-            <button
-              type="button"
-              disabled={availableLevels.length <= 1}
-              onClick={deleteSelectedLevel}
-            >
-              Delete level
-            </button>
-          </div>
-        </form>
+        </div>
       </dialog>
 
       {selectedObject ? (

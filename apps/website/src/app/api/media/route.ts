@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { auth } from "@/lib/auth";
-import {
-  createScreenshot,
-  listMedia,
-  mediaUploadInputSchema,
-} from "@/lib/media";
+import { hasBlobStore } from "@/lib/blob-store";
+import { listMedia, saveScreenshotUpload } from "@/lib/media";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const gameIdSchema = z.string().trim().min(1).max(80);
+
+function formString(form: FormData, name: string) {
+  const value = form.get(name);
+  return typeof value === "string" ? value : null;
+}
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: request.headers });
@@ -45,10 +50,26 @@ export async function POST(request: Request) {
     );
   }
 
-  const body: unknown = await request.json().catch(() => null);
-  const parsed = mediaUploadInputSchema.safeParse(body);
+  if (!hasBlobStore()) {
+    return NextResponse.json(
+      {
+        message:
+          "Image storage isn't configured on this server. Connect the Vercel Blob store to this project and redeploy.",
+      },
+      { status: 503 },
+    );
+  }
 
-  if (!parsed.success) {
+  const form = await request.formData().catch(() => null);
+  const file = form?.get("file");
+  const rawGameId = form ? formString(form, "gameId") : null;
+  const gameIdResult = rawGameId ? gameIdSchema.safeParse(rawGameId) : null;
+
+  if (
+    !form ||
+    !(file instanceof File) ||
+    (rawGameId && !gameIdResult?.success)
+  ) {
     return NextResponse.json(
       { message: "That screenshot was not valid." },
       { status: 400 },
@@ -56,7 +77,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await createScreenshot(session.user.id, parsed.data);
+    const result = await saveScreenshotUpload(
+      session.user.id,
+      file,
+      gameIdResult?.success ? gameIdResult.data : null,
+    );
 
     if (result.status === "limit") {
       return NextResponse.json(
@@ -75,7 +100,10 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ media: result.media }, { status: 201 });
+    return NextResponse.json(
+      { media: result.media },
+      { status: 201, headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     console.error("Failed to save screenshot", error);
     return NextResponse.json(

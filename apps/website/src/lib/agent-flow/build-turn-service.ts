@@ -4,7 +4,13 @@ import { getGame } from "../games";
 import { FlowContractError } from "./contract";
 import { BuildExecutionError, executeBuildMessage, resumeBuildTurn, type BuildMessageResult } from "./executor";
 import type { BuildTurnInput, BuildTurnResponseBody } from "./http-contract";
-import { ALLOW_ALL_MODERATOR, COOPER_INBOUND_REDIRECT, safeScreen, type ContentModerator } from "./moderation";
+import {
+  COOPER_INBOUND_REDIRECT,
+  COOPER_MODERATION_UNAVAILABLE_REDIRECT,
+  UNAVAILABLE_MODERATOR,
+  safeScreen,
+  type ContentModerator,
+} from "./moderation";
 import {
   ModelConfigurationError,
   type ModelScenarioRequest,
@@ -40,7 +46,7 @@ export async function processBuildTurn(
   input: ProcessBuildTurnInput,
   dependencies: BuildTurnServiceDependencies,
 ): Promise<BuildTurnServiceResult> {
-  const moderator = dependencies.moderator ?? ALLOW_ALL_MODERATOR;
+  const moderator = dependencies.moderator ?? UNAVAILABLE_MODERATOR;
 
   if ("action" in input.input) {
     if (input.input.action === "proceed") {
@@ -49,10 +55,13 @@ export async function processBuildTurn(
     }
 
     // Feedback is kid-authored and lands in the transcript, so it is screened
-    // on the same terms as a message. A flagged decline leaves the run paused
-    // so the kid can reword and try the same action again.
-    if (input.input.feedback && await isFlagged(input.input.feedback, moderator)) {
-      return declineFlaggedInput(input.ownerId, input.gameId);
+    // on the same terms as a message. A blocked decline leaves the run paused
+    // so the kid can reword or retry the same action.
+    const moderationReply = input.input.feedback
+      ? await blockedInputReply(input.input.feedback, moderator)
+      : null;
+    if (moderationReply) {
+      return declineInput(input.ownerId, input.gameId, moderationReply);
     }
 
     try {
@@ -78,10 +87,11 @@ export async function processBuildTurn(
   const limited = await consumeRateLimit(input.ownerId, dependencies.rateLimiter);
   if (limited) return limited;
 
-  // Screened before the run starts, so a flagged message never reaches the
+  // Screened before the run starts, so a blocked message never reaches the
   // model, never enters the transcript, and costs nothing beyond this check.
-  if (await isFlagged(input.input.message, moderator)) {
-    return declineFlaggedInput(input.ownerId, input.gameId);
+  const moderationReply = await blockedInputReply(input.input.message, moderator);
+  if (moderationReply) {
+    return declineInput(input.ownerId, input.gameId, moderationReply);
   }
 
   try {
@@ -120,24 +130,36 @@ function responseBody(result: BuildMessageResult): BuildTurnResponseBody {
   };
 }
 
-async function isFlagged(text: string, moderator: ContentModerator): Promise<boolean> {
+async function blockedInputReply(
+  text: string,
+  moderator: ContentModerator,
+): Promise<string | null> {
   const verdict = await safeScreen(text, moderator);
+  if (verdict.unavailable) {
+    console.warn("Build message was withheld because moderation was unavailable");
+    return COOPER_MODERATION_UNAVAILABLE_REDIRECT;
+  }
   if (verdict.flagged) {
     console.warn("Build message was declined by moderation", { categories: verdict.categories });
+    return COOPER_INBOUND_REDIRECT;
   }
-  return verdict.flagged;
+  return null;
 }
 
 /**
- * Answers a flagged message in Cooper's voice instead of as an error, and
- * leaves the game untouched, so the kid is redirected rather than blocked.
+ * Answers a blocked message in Cooper's voice instead of as an error and
+ * leaves the game untouched. Provider outages get a truthful retry response.
  */
-async function declineFlaggedInput(ownerId: string, gameId: string): Promise<BuildTurnServiceResult> {
+async function declineInput(
+  ownerId: string,
+  gameId: string,
+  cooperMessage: string,
+): Promise<BuildTurnServiceResult> {
   const game = await getGame(ownerId, gameId);
   if (!game) return serviceError(404, "Game not found.");
   return {
     kind: "success",
-    body: { status: "replied", cooperMessage: COOPER_INBOUND_REDIRECT, runId: randomUUID() },
+    body: { status: "replied", cooperMessage, runId: randomUUID() },
     gameRevision: game.revision,
   };
 }

@@ -10,7 +10,7 @@ import {
   type RefObject,
 } from "react";
 
-import { uploadLabImage } from "@/lib/blob-upload";
+import { saveLabScreenshot } from "@/lib/blob-upload";
 import { createCanvasScreenshotBlob } from "./canvas-screenshot";
 import styles from "./canvas-screenshot-menu.module.css";
 
@@ -35,19 +35,6 @@ const MENU_MARGIN = 8;
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
-}
-
-function errorMessage(payload: unknown, fallback: string) {
-  if (
-    payload &&
-    typeof payload === "object" &&
-    "message" in payload &&
-    typeof payload.message === "string"
-  ) {
-    return payload.message;
-  }
-
-  return fallback;
 }
 
 export const CanvasScreenshotMenu = forwardRef<
@@ -139,23 +126,7 @@ export const CanvasScreenshotMenu = forwardRef<
     try {
       const blob = await createCanvasScreenshotBlob(canvas);
       const file = new File([blob], "screenshot.png", { type: "image/png" });
-      const uploaded = await uploadLabImage(file, "screenshot", savedGameId);
-      const response = await fetch("/api/media", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url: uploaded.url,
-          pathname: uploaded.pathname,
-          contentType: "image/png",
-          byteSize: blob.size,
-          gameId: savedGameId ?? null,
-        }),
-      });
-
-      if (!response.ok) {
-        const payload: unknown = await response.json().catch(() => null);
-        throw new Error(errorMessage(payload, "Could not save this image."));
-      }
+      await saveLabScreenshot(file, savedGameId);
 
       closeMenu();
       canvas.focus({ preventScroll: true });

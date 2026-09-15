@@ -44,9 +44,16 @@ pnpm --filter website db:migrate
 Prisma is the runtime ORM for Better Auth and game CRUD. The earlier Drizzle
 schema and migration remain checked in as migration history only.
 
-Lab Keys use the memorable `TACO-MOON-FROG-82` format. The readable key is
-returned only when it is created. The database stores a peppered lookup digest
-and a slow password hash; replacing a key removes the old lookup immediately.
+New Lab Keys use four cryptographically random six-digit blocks followed by a
+six-digit private HMAC tag, for example
+`482917-063541-829304-771625-038451`. The readable key is returned only when it
+is created. The database stores a peppered lookup digest and a slow password
+hash; replacing a key removes the old lookup immediately. Existing word-based
+Lab Keys remain accepted so deployments can upgrade without locking out an
+existing workspace. Each Lab session is stamped with the workspace key version.
+Replacing a key revokes every prior session and gives only the rotating browser
+a replacement session. The Lab Workspace also offers **Sign Out Everywhere**,
+which invalidates all sessions without changing the recovery key.
 
 ## Vercel
 
@@ -55,10 +62,17 @@ The app uses pnpm and the generated Next.js defaults. Connecting the project to
 Neon through Vercel supplies `DATABASE_URL` and may also supply an unpooled
 connection variable that Prisma Migrate will prefer. Optionally add
 `DIRECT_URL` to select a separate direct endpoint explicitly. Configure
-`BETTER_AUTH_SECRET`, `LAB_KEY_PEPPER`, and `BETTER_AUTH_URL` before deploying.
+`BETTER_AUTH_SECRET`, `LAB_KEY_PEPPER`, `LAB_KEY_CHECKSUM_SECRET`, and
+`BETTER_AUTH_URL` before deploying. The checksum secret is server-only and
+should be a separate random value of at least 32 bytes. Keep it stable across
+deployments: changing it invalidates the private checksum on every numeric Lab
+Key, so rotation requires a controlled key-reissue or dual-secret migration.
 Add preview origins to
 `BETTER_AUTH_TRUSTED_ORIGINS` as a comma-separated list when previews need to
 exercise authentication. Apply database migrations separately before sending
 traffic to a deployment that uses the new schema. Saved-game thumbnails are
 downscaled in the browser and stored with the game row in Neon; the Vercel
-runtime does not write generated images to its local filesystem.
+runtime does not write generated images to its local filesystem. Screenshot
+uploads reserve one of 48 owner-scoped database slots before writing the blob
+and become visible only after the media row is finalized. Keep the screenshot
+quota migration and application deployment together.

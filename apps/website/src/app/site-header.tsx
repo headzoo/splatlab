@@ -9,10 +9,19 @@ import { AuthAction, useAuthFlow } from "./auth-flow";
 import styles from "./page.module.css";
 
 type SiteHeaderProps = {
-  currentPage?: "features" | "about" | "parents";
+  currentPage?: "games" | "features" | "about" | "parents";
 };
 
-function NavIcon({ name }: { name: "features" | "parents" | "about" }) {
+function NavIcon({ name }: { name: "games" | "features" | "parents" | "about" }) {
+  if (name === "games") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="16" rx="4" />
+        <path d="m10 9 5 3-5 3V9Z" />
+      </svg>
+    );
+  }
+
   if (name === "features") {
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -61,6 +70,12 @@ export function SiteHeader({ currentPage }: SiteHeaderProps) {
         </Link>
 
         <nav className={styles.nav} aria-label="Primary navigation">
+          <Link
+            href="/games"
+            aria-current={currentPage === "games" ? "page" : undefined}
+          >
+            <NavIcon name="games" />Games
+          </Link>
           <Link
             href="/features"
             aria-current={currentPage === "features" ? "page" : undefined}

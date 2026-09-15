@@ -13,7 +13,14 @@ import gateFlow from "./review-gate-flow.fixture.json";
 
 import { compileFlow, FLOW_ID } from "./contract";
 import { type ModelClient, ModelOutputError, type ModelToolCall, type ModelTurnRequest, type ModelTurnResult } from "./model-client";
-import { BuildExecutionError, executeBuildMessage, modelMessagesForTextNode, resumeBuildTurn } from "./executor";
+import { ALLOW_ALL_MODERATOR } from "./moderation";
+import {
+  BuildExecutionError,
+  executeBuildMessage,
+  modelMessagesForTextNode,
+  resumeBuildTurn,
+  type BuildExecutorDependencies,
+} from "./executor";
 import { flowHashFor, type RegisteredFlow } from "./registry";
 import { AgentFlowRunStore } from "./run-store";
 
@@ -117,7 +124,7 @@ async function execute(model: ModelClient, builderChatHistory: BuilderChatTurn[]
   const store = new AgentFlowRunStore({ forceMemory: true });
   const result = await executeBuildMessage(
     { ownerId: "owner-a", gameId: game.id, message: "Build a maze" },
-    { modelClient: model, runStore: store, flow },
+    { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store, flow },
   );
   return { game, store, result };
 }
@@ -153,7 +160,7 @@ test("enabled Agent memory sends prior bounded history in transcript order witho
 
 test("memory-disabled Agent nodes omit persisted history", () => {
   const flow = structuredClone(starterFlow);
-  flow.nodes.find((node: any) => node.id === "agentAgentflow_0")!.data.inputs.agentEnableMemory = false;
+  flow.nodes.find((node) => node.id === "agentAgentflow_0")!.data.inputs.agentEnableMemory = false;
   const agent = compileFlow(flow).nodesById.get("agentAgentflow_0")!;
   const messages = modelMessagesForTextNode(agent, "Build a maze", {}, "", [
     { role: "user", message: "Prior request" },
@@ -181,11 +188,39 @@ test("a cross-owner game cannot provide history to a build request", async () =>
   await assert.rejects(
     () => executeBuildMessage(
       { ownerId: "owner-a", gameId: foreignGame.id, message: "Build a maze" },
-      { modelClient: model, runStore: new AgentFlowRunStore({ forceMemory: true }) },
+      {
+        modelClient: model,
+        moderator: ALLOW_ALL_MODERATOR,
+        runStore: new AgentFlowRunStore({ forceMemory: true }),
+      },
     ),
     (error: unknown) => error instanceof BuildExecutionError && error.code === "game_not_found",
   );
   assert.equal(model.textCalls, 0);
+});
+
+test("the executor rejects an omitted moderator before starting a run", async () => {
+  resetMemory();
+  const game = await createGame("owner-a", {
+    title: "Test game",
+    spec: DEFAULT_GAME_DOCUMENT,
+  });
+  const model = new ScriptedModelClient("Done.", "Ready");
+  const dependencies = {
+    modelClient: model,
+    runStore: new AgentFlowRunStore({ forceMemory: true }),
+  } as unknown as BuildExecutorDependencies;
+
+  await assert.rejects(
+    () => executeBuildMessage(
+      { ownerId: "owner-a", gameId: game.id, message: "Build a maze" },
+      dependencies,
+    ),
+    (error: unknown) =>
+      error instanceof BuildExecutionError && error.code === "moderation_unavailable",
+  );
+  assert.equal(model.textCalls, 0);
+  assert.equal(globalThis.splatLabAgentFlowRunsMemory?.length, 0);
 });
 
 test("Ready completes with preserved coordinator output and one call per model node", async () => {
@@ -277,7 +312,7 @@ test("Reject completes a paused run from preserved output without a model call",
 
   const resumed = await resumeBuildTurn(
     { ownerId: "owner-a", gameId: game.id, action: "reject", feedback: "Keep it as-is" },
-    { modelClient: model, runStore: store, flow: GATE_FLOW },
+    { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store, flow: GATE_FLOW },
   );
 
   assert.equal(resumed.status, "replied");
@@ -305,7 +340,7 @@ test("Proceed consumes one persisted loop and pauses again", async () => {
   const { game, store, result } = await executeGated(model);
   const resumed = await resumeBuildTurn(
     { ownerId: "owner-a", gameId: game.id, action: "proceed", feedback: "Add coins" },
-    { modelClient: model, runStore: store, flow: GATE_FLOW },
+    { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store, flow: GATE_FLOW },
   );
   assert.equal(resumed.status, "paused");
   assert.equal(model.textCalls, 2);
@@ -330,14 +365,14 @@ test("loop exhaustion is enforced across paused resumes", async () => {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const resumed = await resumeBuildTurn(
       { ownerId: "owner-a", gameId: game.id, action: "proceed" },
-      { modelClient: model, runStore: store, flow: GATE_FLOW },
+      { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store, flow: GATE_FLOW },
     );
     assert.equal(resumed.status, "paused");
   }
   await assert.rejects(
     () => resumeBuildTurn(
       { ownerId: "owner-a", gameId: game.id, action: "proceed" },
-      { modelClient: model, runStore: store, flow: GATE_FLOW },
+      { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store, flow: GATE_FLOW },
     ),
     (error: unknown) => error instanceof BuildExecutionError && error.code === "loop_exhausted",
   );
@@ -354,7 +389,7 @@ test("a paused run with a stale flow hash fails before another model call", asyn
   await assert.rejects(
     () => resumeBuildTurn(
       { ownerId: "owner-a", gameId: game.id, action: "proceed" },
-      { modelClient: model, runStore: store, flow: GATE_FLOW },
+      { modelClient: model, moderator: ALLOW_ALL_MODERATOR, runStore: store, flow: GATE_FLOW },
     ),
     (error: unknown) => error instanceof BuildExecutionError && error.code === "flow_hash_mismatch",
   );
@@ -673,7 +708,11 @@ test("Cooper cannot touch objects in a maze game", async () => {
   });
   const result = await executeBuildMessage(
     { ownerId: "owner-a", gameId: game.id, message: "Add coins" },
-    { modelClient: model, runStore: new AgentFlowRunStore({ forceMemory: true }) },
+    {
+      modelClient: model,
+      moderator: ALLOW_ALL_MODERATOR,
+      runStore: new AgentFlowRunStore({ forceMemory: true }),
+    },
   );
 
   assert.equal(result.specChange, undefined);
@@ -708,7 +747,11 @@ test("read_game works on a maze game, which the level-object tools refuse", asyn
   });
   await executeBuildMessage(
     { ownerId: "owner-a", gameId: game.id, message: "What is this game?" },
-    { modelClient: model, runStore: new AgentFlowRunStore({ forceMemory: true }) },
+    {
+      modelClient: model,
+      moderator: ALLOW_ALL_MODERATOR,
+      runStore: new AgentFlowRunStore({ forceMemory: true }),
+    },
   );
 
   const read = String(model.requests[1]?.toolOutputs?.[0]?.output);
@@ -755,6 +798,21 @@ test("an empty name is refused and the game keeps the one it had", async () => {
   assert.match(String(model.requests[1]?.toolOutputs?.[0]?.output), /"ok":false.*needs a name/);
 });
 
+test("the deterministic filter refuses an obfuscated bad word in a game name", async () => {
+  const model = new ScriptedToolModel([
+    { text: "", toolCalls: [toolCall("rename_game", { name: "f.u.c.k" })], items: [] },
+    { text: "Let's choose a different name.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.gameTitle, undefined);
+  assert.equal(globalThis.splatLabGamesMemory?.[0]?.title, "Test game");
+  assert.match(
+    String(model.requests[1]?.toolOutputs?.[0]?.output),
+    /"ok":false.*cannot call the game/,
+  );
+});
+
 test("adding a level puts it last, starts showing it, and keeps the old one", async () => {
   const model = new ScriptedToolModel([
     { text: "", toolCalls: [toolCall("read_game", {}, "call-read")], items: [{ type: "function_call", call_id: "call-read" }] },
@@ -796,6 +854,25 @@ test("adding a level puts it last, starts showing it, and keeps the old one", as
     { x: started.x, y: started.y },
     { x: started.spawnX, y: started.spawnY },
     "the site player starts the level Cooper added on its spawn",
+  );
+});
+
+test("the deterministic filter refuses a bad word in a model-proposed level name", async () => {
+  const model = new ScriptedToolModel([
+    {
+      text: "",
+      toolCalls: [toolCall("add_level", { world: "Ice World", name: "sh1t" })],
+      items: [],
+    },
+    { text: "Let's choose a different level name.", toolCalls: [], items: [] },
+  ]);
+  const { result } = await execute(model);
+
+  assert.equal(result.specChange, undefined);
+  assert.equal(storedSpec()?.platformerLevels?.length, 0);
+  assert.match(
+    String(model.requests[1]?.toolOutputs?.[0]?.output),
+    /"ok":false.*cannot use that level name/,
   );
 });
 

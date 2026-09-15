@@ -1,6 +1,6 @@
 import { BlobStoreNotFoundError, del, put } from "@vercel/blob";
 
-import { isVercelBlobUrl } from "./blob-path";
+import { isOwnedScreenshotPathname, isVercelBlobUrl } from "./blob-path";
 
 const PLACEHOLDER = /replace-with-your|your-blob-token|your-blob-store/i;
 
@@ -10,6 +10,8 @@ export type PutOwnedBlobInput = {
   pathname: string;
   body: File | Blob;
   contentType: string;
+  addRandomSuffix?: boolean;
+  allowOverwrite?: boolean;
 };
 
 function envValue(name: string) {
@@ -72,6 +74,8 @@ export async function putOwnedBlob({
   pathname,
   body,
   contentType,
+  addRandomSuffix = true,
+  allowOverwrite = false,
 }: PutOwnedBlobInput) {
   const auth = blobCommandOptions();
   if (!auth) {
@@ -81,7 +85,8 @@ export async function putOwnedBlob({
   try {
     return await put(pathname, body, {
       access: "public",
-      addRandomSuffix: true,
+      addRandomSuffix,
+      allowOverwrite,
       contentType,
       ...auth,
     });
@@ -100,15 +105,30 @@ export async function putOwnedBlob({
   }
 }
 
-export async function deleteOwnedBlob(url: string | null | undefined) {
+async function deleteBlob(target: string) {
   const auth = blobCommandOptions();
-  if (!url || !isVercelBlobUrl(url) || !auth) return;
+  if (!auth) return false;
   try {
-    await del(url, auth);
+    await del(target, auth);
+    return true;
   } catch (error) {
     console.error("Failed to delete blob", {
       storeId: blobStoreIdForLogs(),
       error,
     });
+    return false;
   }
+}
+
+export async function deleteOwnedBlob(url: string | null | undefined) {
+  if (!url || !isVercelBlobUrl(url)) return false;
+  return deleteBlob(url);
+}
+
+export async function deleteOwnedScreenshotBlob(
+  ownerId: string,
+  pathname: string,
+) {
+  if (!isOwnedScreenshotPathname(ownerId, pathname)) return false;
+  return deleteBlob(pathname);
 }

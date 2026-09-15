@@ -27,15 +27,16 @@ model User {
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime @map("expires_at") @db.Timestamp(6)
-  token     String   @unique
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
-  ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id
+  expiresAt     DateTime @map("expires_at") @db.Timestamp(6)
+  token         String   @unique
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  userId        String   @map("user_id")
+  labKeyVersion Int      @default(0) @map("lab_key_version")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "session_userId_idx")
   @@map("session")
@@ -99,6 +100,7 @@ model Game {
   id               String   @id @default(cuid())
   ownerId          String   @map("owner_id")
   title            String
+  isPublic         Boolean  @default(false) @map("is_public")
   gameType         String   @map("game_type")
   mapSource        String   @map("map_source")
   spec             Json     @db.JsonB
@@ -110,23 +112,28 @@ model Game {
   agentFlowRuns AgentFlowRun[]
   mediaAssets      MediaAsset[]
 
+  @@unique([id, ownerId], map: "game_id_owner_id_key")
   @@index([ownerId, updatedAt(sort: Desc)], map: "game_owner_id_updated_at_idx")
   @@map("game")
 }
 
 model MediaAsset {
-  id          String   @id @default(cuid())
-  ownerId     String   @map("owner_id")
-  gameId      String?  @map("game_id")
+  id          String    @id @default(cuid())
+  ownerId     String    @map("owner_id")
+  gameId      String?   @map("game_id")
+  gameOwnerId String?   @map("game_owner_id")
   kind        String
   url         String
-  pathname    String   @unique
-  contentType String   @map("content_type")
-  byteSize    Int      @map("byte_size")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  game        Game?    @relation(fields: [gameId], references: [id], onDelete: SetNull)
+  pathname    String    @unique
+  contentType String    @map("content_type")
+  byteSize    Int       @map("byte_size")
+  quotaSlot   Int?      @map("quota_slot")
+  readyAt     DateTime? @default(now()) @map("ready_at") @db.Timestamp(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  game        Game?     @relation(fields: [gameId, gameOwnerId], references: [id, ownerId], onDelete: SetNull, map: "media_asset_game_owner_fkey")
 
+  @@unique([ownerId, kind, quotaSlot], map: "media_asset_owner_kind_quota_slot_key")
   @@index([ownerId, createdAt(sort: Desc)], map: "media_asset_owner_id_created_at_idx")
   @@map("media_asset")
 }

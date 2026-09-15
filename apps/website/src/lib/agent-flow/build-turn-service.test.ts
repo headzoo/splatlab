@@ -13,6 +13,7 @@ import gateFlow from "./review-gate-flow.fixture.json";
 
 import { compileFlow, FLOW_ID } from "./contract";
 import { type ModelClient, ModelProviderError } from "./model-client";
+import { ALLOW_ALL_MODERATOR } from "./moderation";
 import { AGENTFLOW_RATE_LIMIT_MAX, AgentflowRateLimiter } from "./rate-limit";
 import { executeBuildMessage } from "./executor";
 import { flowHashFor, type RegisteredFlow } from "./registry";
@@ -102,6 +103,7 @@ test("processBuildTurn maps a successful message to the HTTP body shape", async 
     { ownerId: "owner-a", gameId: game.id, input: { message: "Build a maze" } },
     {
       modelClient: new ScriptedModelClient(),
+      moderator: ALLOW_ALL_MODERATOR,
       runStore: store,
       rateLimiter,
     },
@@ -126,6 +128,7 @@ test("processBuildTurn puts a rename on the wire so the builder stops saving the
     { ownerId: "owner-a", gameId: game.id, input: { message: "Rename the game to Ice World" } },
     {
       modelClient: new RenamingModelClient(),
+      moderator: ALLOW_ALL_MODERATOR,
       runStore: new AgentFlowRunStore({ forceMemory: true }),
       rateLimiter: new AgentflowRateLimiter({ forceMemory: true }),
     },
@@ -147,6 +150,7 @@ test("processBuildTurn meters Proceed even when there is no paused run", async (
     { ownerId: "owner-a", gameId: game.id, input: { action: "proceed" } },
     {
       modelClient: new ScriptedModelClient(),
+      moderator: ALLOW_ALL_MODERATOR,
       runStore: new AgentFlowRunStore({ forceMemory: true }),
       rateLimiter,
     },
@@ -170,7 +174,12 @@ test("processBuildTurn does not meter Reject or initialize its model client", as
   }();
   await executeBuildMessage(
     { ownerId: "owner-a", gameId: game.id, message: "Build a maze" },
-    { modelClient: model, runStore: store, flow: GATE_FLOW },
+    {
+      modelClient: model,
+      moderator: ALLOW_ALL_MODERATOR,
+      runStore: store,
+      flow: GATE_FLOW,
+    },
   );
   const rateLimiter = new AgentflowRateLimiter({ forceMemory: true });
   let factoryCalls = 0;
@@ -182,6 +191,7 @@ test("processBuildTurn does not meter Reject or initialize its model client", as
         factoryCalls += 1;
         throw new Error("OPENAI_API_KEY is unavailable");
       },
+      moderator: ALLOW_ALL_MODERATOR,
       runStore: store,
       rateLimiter,
       flow: GATE_FLOW,
@@ -203,7 +213,12 @@ test("processBuildTurn limits Proceed before it claims a paused run", async () =
   }();
   await executeBuildMessage(
     { ownerId: "owner-a", gameId: game.id, message: "Build a maze" },
-    { modelClient: model, runStore: store, flow: GATE_FLOW },
+    {
+      modelClient: model,
+      moderator: ALLOW_ALL_MODERATOR,
+      runStore: store,
+      flow: GATE_FLOW,
+    },
   );
   const rateLimiter = new AgentflowRateLimiter({ forceMemory: true });
   for (let attempt = 0; attempt < AGENTFLOW_RATE_LIMIT_MAX; attempt += 1) {
@@ -218,6 +233,7 @@ test("processBuildTurn limits Proceed before it claims a paused run", async () =
         factoryCalls += 1;
         return model;
       },
+      moderator: ALLOW_ALL_MODERATOR,
       runStore: store,
       rateLimiter,
       flow: GATE_FLOW,
@@ -237,6 +253,7 @@ test("processBuildTurn returns 429 after the model-bearing limit is reached", as
   const rateLimiter = new AgentflowRateLimiter({ forceMemory: true });
   const deps = {
     modelClient: new ScriptedModelClient(),
+    moderator: ALLOW_ALL_MODERATOR,
     runStore: store,
     rateLimiter,
   };
@@ -291,6 +308,7 @@ test("processBuildTurn returns 404 for another owner's game", async () => {
     { ownerId: "owner-b", gameId: game.id, input: { message: "Build a maze" } },
     {
       modelClient: new ScriptedModelClient(),
+      moderator: ALLOW_ALL_MODERATOR,
       runStore: new AgentFlowRunStore({ forceMemory: true }),
       rateLimiter: new AgentflowRateLimiter({ forceMemory: true }),
     },

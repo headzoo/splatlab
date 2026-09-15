@@ -769,86 +769,43 @@
   stroke-width: 1.8;
 }
 
-.levelSelect {
-  display: flex;
+.gameSettingsButton {
+  display: inline-flex;
+  width: fit-content;
   min-height: 38px;
   align-items: center;
-  gap: 6px;
-  padding: 0 7px 0 10px;
-  color: #3155a3;
-  background: #edf4fb;
-  border: 1px solid #b6c9df;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
-  font: 900 9px/1 "Nunito", sans-serif;
-  text-transform: uppercase;
-}
-
-.levelSelect select {
-  width: 96px;
-  min-width: 0;
-  max-width: 96px;
-  height: 28px;
-  padding: 0 24px 0 8px;
+  justify-content: center;
+  justify-self: start;
+  gap: 7px;
+  padding: 0 12px;
   color: #12234e;
   background: #fff;
-  border: 1px solid #c5d5e7;
-  border-radius: 7px;
-  font: 800 10px/1 "Nunito", sans-serif;
-  cursor: pointer;
-}
-
-.levelPicker {
-  display: flex;
-  min-width: 0;
-  align-items: stretch;
-  gap: 5px;
-}
-
-.addLevelButton {
-  width: 34px;
-  min-width: 34px;
-  padding: 0;
-  color: #fff;
-  background: #2588f0;
-  border: 1px solid #1772ce;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
-  font: 1000 22px/1 "Nunito", sans-serif;
-  cursor: pointer;
-}
-
-.addLevelButton:hover {
-  background: #176fce;
-}
-
-.addLevelButton:focus-visible {
-  outline: 4px solid #ffd52e;
-  outline-offset: 2px;
-}
-
-.levelSettingsButton {
-  width: 34px;
-  min-width: 34px;
-  padding: 0;
-  color: #3155a3;
-  background: #edf4fb;
   border: 1px solid #b6c9df;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgb(30 65 111 / 11%);
-  font: 1000 19px/1 "Nunito", sans-serif;
+  font: 900 11px/1 "Nunito", sans-serif;
   cursor: pointer;
 }
 
-.levelSettingsButton:hover {
-  color: #173f8a;
-  background: #fff;
+.gameSettingsButton:hover {
+  background: #f3f9ff;
   border-color: #6698cc;
 }
 
-.levelSettingsButton:focus-visible {
+.gameSettingsButton:focus-visible {
   outline: 4px solid #ffd52e;
   outline-offset: 2px;
+}
+
+.settingsIcon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
 }
 
 .levelDialog,
@@ -861,6 +818,12 @@
   border: 4px solid #4bb9ed;
   border-radius: 22px;
   box-shadow: inset 0 0 0 3px #fff, 0 18px 40px rgb(7 20 63 / 32%);
+}
+
+.gameSettingsDialog {
+  width: min(calc(100% - 32px), 820px);
+  max-height: calc(100% - 32px);
+  overflow: hidden;
 }
 
 .levelDialog::backdrop,
@@ -1059,20 +1022,52 @@
   outline-offset: 2px;
 }
 
-.levelSettingsForm {
+.gameSettingsBody {
+  max-height: calc(100vh - 126px);
+  overflow-y: auto;
+}
+
+.gameSettingsForm {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px 10px;
-  padding: 22px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+  gap: 12px;
+  padding: 20px 22px;
+  background: #eef8ff;
 }
 
-.levelSettingsForm .levelNameField {
-  min-width: 0;
+.gameSettingsForm h3 {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #173f8a;
+  font: 400 20px/1 "Chewy", cursive;
 }
 
+.publicGameField {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  color: #3155a3;
+  background: #fff;
+  border: 2px solid #b6c9df;
+  border-radius: 11px;
+  font: 900 12px/1 "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.publicGameField input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #2588f0;
+}
+
+.saveGameSettingsButton,
 .renameLevelButton,
-.levelOrderActions button,
-.levelDeleteRow button {
+.levelDeleteRow button,
+.addLevelFromSettingsButton {
   min-height: 40px;
   padding: 0 15px;
   border-radius: 10px;
@@ -1080,24 +1075,181 @@
   cursor: pointer;
 }
 
-.renameLevelButton {
-  align-self: end;
+.saveGameSettingsButton {
+  min-height: 46px;
   color: #fff;
   background: #2588f0;
   border: 2px solid #1772ce;
 }
 
-.levelOrderActions {
+.levelSettingsGrid {
   display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: minmax(220px, 0.85fr) minmax(300px, 1.15fr);
+  border-top: 2px solid #d7e3ef;
 }
 
-.levelOrderActions button {
+.levelListColumn,
+.selectedLevelColumn {
+  min-width: 0;
+  padding: 20px 22px 22px;
+}
+
+.levelListColumn {
+  background: #f7fbff;
+  border-right: 2px solid #d7e3ef;
+}
+
+.selectedLevelColumn {
+  background: #fff;
+}
+
+.settingsSectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settingsSectionHeading div > span {
+  color: #607493;
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settingsSectionHeading h3 {
+  margin: 3px 0 0;
+  color: #173f8a;
+  font: 400 22px/1 "Chewy", cursive;
+}
+
+.settingsSectionHeading > span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #3155a3;
+  background: #e5f2ff;
+  border-radius: 50%;
+  font: 1000 11px/1 "Nunito", sans-serif;
+}
+
+.levelSortHint {
+  margin: 9px 0 12px;
+  color: #607493;
+  font: 700 11px/1.35 "Nunito", sans-serif;
+}
+
+.levelList {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.levelListItem {
+  display: grid;
+  width: 100%;
+  min-height: 46px;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
   color: #3155a3;
   background: #fff;
-  border: 2px solid #b6c9df;
+  border: 2px solid #c7d7e8;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgb(30 65 111 / 7%);
+  text-align: left;
+  cursor: grab;
+}
+
+.levelListItem:hover {
+  color: #173f8a;
+  border-color: #7fa8d1;
+}
+
+.levelListItemSelected {
+  color: #173f8a;
+  background: #fff7c6;
+  border-color: #efb900;
+  box-shadow: 0 0 0 2px rgb(239 185 0 / 15%);
+}
+
+.levelListItemDragging {
+  opacity: 0.46;
+  cursor: grabbing;
+}
+
+.levelListItemDragOver {
+  transform: translateY(2px);
+  border-color: #2588f0;
+  box-shadow: 0 -3px 0 #2588f0;
+}
+
+.levelDragHandle {
+  color: #91a7c2;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.levelNumber {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  color: #fff;
+  background: #6698cc;
+  border-radius: 7px;
+  font: 1000 10px/1 "Nunito", sans-serif;
+}
+
+.levelListItemSelected .levelNumber {
+  color: #6f3f00;
+  background: #ffda4e;
+}
+
+.levelListLabel {
+  overflow: hidden;
+  font: 900 12px/1.2 "Nunito", sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.addLevelFromSettingsButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 10px;
+  color: #fff;
+  background: #2588f0;
+  border: 2px solid #1772ce;
+}
+
+.addLevelFromSettingsButton span {
+  font-size: 19px;
+}
+
+.levelSettingsForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px 10px;
+  margin-top: 19px;
+}
+
+.levelSettingsForm .levelNameField {
+  min-width: 0;
+}
+
+.renameLevelButton {
+  align-self: end;
+  color: #fff;
+  background: #2588f0;
+  border: 2px solid #1772ce;
 }
 
 .levelDeleteRow {
@@ -1123,14 +1275,16 @@
   border: 2px solid #b92c2c;
 }
 
-.levelOrderActions button:disabled,
 .levelDeleteRow button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
+.saveGameSettingsButton:focus-visible,
+.publicGameField:has(input:focus-visible),
+.levelListItem:focus-visible,
+.addLevelFromSettingsButton:focus-visible,
 .renameLevelButton:focus-visible,
-.levelOrderActions button:focus-visible,
 .levelDeleteRow button:focus-visible {
   outline: 4px solid #ffd52e;
   outline-offset: 2px;
@@ -1188,8 +1342,7 @@
 .historyControls button:focus-visible,
 .zoomControls button:focus-visible,
 .playGameButton:focus-visible,
-.shareGameButton:focus-visible,
-.levelSelect select:focus-visible {
+.shareGameButton:focus-visible {
   outline: 4px solid #ffd52e;
   outline-offset: 2px;
 }
@@ -1931,22 +2084,27 @@
     font-size: 14px;
   }
 
-  .levelSelect {
-    flex: 1;
-  }
-
-  .levelPicker {
-    width: 100%;
-  }
-
-  .levelSelect select {
-    min-width: 0;
-    max-width: none;
-    flex: 1;
-  }
-
   .levelThemeGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gameSettingsForm,
+  .levelSettingsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .gameSettingsForm h3 {
+    grid-column: 1;
+  }
+
+  .levelListColumn {
+    border-right: 0;
+    border-bottom: 2px solid #d7e3ef;
+  }
+
+  .gameSettingsDialog {
+    width: min(calc(100% - 16px), 820px);
+    max-height: calc(100% - 16px);
   }
 
   .gameStage {

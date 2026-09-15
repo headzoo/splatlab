@@ -1,7 +1,6 @@
 "use client";
 
 import { authClient } from "@/lib/auth-client";
-import type { LabUploadKind } from "@/lib/blob-path";
 
 export async function ensureLabSessionUserId() {
   let current = await authClient.getSession();
@@ -36,7 +35,7 @@ function errorMessage(payload: unknown, fallback: string) {
 
 export async function uploadLabImage(
   file: File,
-  kind: LabUploadKind,
+  kind: "thumbnail",
   gameId?: string,
 ) {
   await ensureLabSessionUserId();
@@ -71,4 +70,36 @@ export async function uploadLabImage(
     url: payload.url,
     pathname: payload.pathname,
   };
+}
+
+export async function saveLabScreenshot(file: File, gameId?: string) {
+  await ensureLabSessionUserId();
+
+  const form = new FormData();
+  form.set("file", file);
+  if (gameId) form.set("gameId", gameId);
+
+  const response = await fetch("/api/media", {
+    method: "POST",
+    body: form,
+  });
+  const payload: unknown = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(errorMessage(payload, "Could not save this image."));
+  }
+
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("media" in payload) ||
+    !payload.media ||
+    typeof payload.media !== "object" ||
+    !("id" in payload.media) ||
+    typeof payload.media.id !== "string"
+  ) {
+    throw new Error("Could not save this image.");
+  }
+
+  return payload.media;
 }

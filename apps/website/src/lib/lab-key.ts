@@ -6,111 +6,14 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 
-const FOODS = [
-  "BAGEL",
-  "BEANS",
-  "BISCUIT",
-  "BROWNIE",
-  "BURRITO",
-  "CHEESE",
-  "CHERRY",
-  "COOKIE",
-  "CUPCAKE",
-  "DONUT",
-  "DUMPLING",
-  "FALAFEL",
-  "GRAPE",
-  "JELLY",
-  "KIWI",
-  "LEMON",
-  "MARSHMALLOW",
-  "MELON",
-  "MOCHI",
-  "MUFFIN",
-  "NACHO",
-  "NOODLE",
-  "PANCAKE",
-  "PEACH",
-  "PEANUT",
-  "PICKLE",
-  "PIZZA",
-  "POPCORN",
-  "PRETZEL",
-  "PUDDING",
-  "TACO",
-  "TOAST",
-  "WAFFLE",
-] as const;
-
-const WONDERS = [
-  "BUBBLE",
-  "CASTLE",
-  "COMET",
-  "DISCO",
-  "DRAGON",
-  "GALAXY",
-  "GLITTER",
-  "JETPACK",
-  "LASER",
-  "LIGHTNING",
-  "MAGIC",
-  "MOON",
-  "NEBULA",
-  "NINJA",
-  "ORBIT",
-  "PLANET",
-  "PORTAL",
-  "RAINBOW",
-  "ROBOT",
-  "ROCKET",
-  "SATURN",
-  "SPARKLE",
-  "STAR",
-  "SUNSHINE",
-  "THUNDER",
-  "TREASURE",
-  "VOLCANO",
-  "WIZARD",
-] as const;
-
-const CREATURES = [
-  "AXOLOTL",
-  "BADGER",
-  "BEAVER",
-  "BUNNY",
-  "CHICKEN",
-  "DOLPHIN",
-  "DUCK",
-  "FALCON",
-  "FERRET",
-  "FLAMINGO",
-  "FOX",
-  "FROG",
-  "GECKO",
-  "GOAT",
-  "HAMSTER",
-  "HEDGEHOG",
-  "HIPPO",
-  "IGUANA",
-  "KOALA",
-  "LEMUR",
-  "LLAMA",
-  "MOOSE",
-  "NARWHAL",
-  "OCTOPUS",
-  "OTTER",
-  "PANDA",
-  "PENGUIN",
-  "PONY",
-  "PUFFIN",
-  "RABBIT",
-  "SEAL",
-  "SLOTH",
-  "TURTLE",
-  "WALRUS",
-] as const;
-
-const LAB_KEY_PATTERN = /^[A-Z]+-[A-Z]+-[A-Z]+-\d{2}$/;
+const RANDOM_BLOCK_COUNT = 4;
+const DECIMAL_BLOCK_SIZE = 1_000_000;
+const DECIMAL_BLOCK_PATTERN = "\\d{6}";
+const CHECKSUM_DOMAIN = "splat-lab-key-checksum:v2:";
+const LAB_KEY_PATTERN = new RegExp(
+  `^(?:${DECIMAL_BLOCK_PATTERN}-){${RANDOM_BLOCK_COUNT}}${DECIMAL_BLOCK_PATTERN}$`,
+);
+const LEGACY_LAB_KEY_PATTERN = /^[A-Z]+-[A-Z]+-[A-Z]+-\d{2}$/;
 const SCRYPT_PREFIX = "scrypt-v1";
 const SCRYPT_COST = 16_384;
 const SCRYPT_BLOCK_SIZE = 8;
@@ -118,13 +21,50 @@ const SCRYPT_PARALLELIZATION = 1;
 const SCRYPT_KEY_LENGTH = 32;
 const SCRYPT_MAX_MEMORY = 64 * 1024 * 1024;
 
-function pick<T>(values: readonly T[]): T {
-  return values[randomInt(values.length)];
+function decimalBlock(value: number): string {
+  return value.toString().padStart(6, "0");
 }
 
-export function generateLabKey(): string {
-  const number = randomInt(100).toString().padStart(2, "0");
-  return `${pick(FOODS)}-${pick(WONDERS)}-${pick(CREATURES)}-${number}`;
+function checksumPayload(labKey: string): string | null {
+  if (!LAB_KEY_PATTERN.test(labKey)) return null;
+  return labKey.split("-").slice(0, RANDOM_BLOCK_COUNT).join("-");
+}
+
+export function createLabKeyChecksum(
+  payload: string,
+  checksumSecret: string,
+): string {
+  if (!checksumSecret) {
+    throw new Error("A Lab Key checksum secret is required.");
+  }
+
+  const digest = createHmac("sha256", checksumSecret)
+    .update(`${CHECKSUM_DOMAIN}${payload}`)
+    .digest();
+  return decimalBlock(digest.readUIntBE(0, 6) % DECIMAL_BLOCK_SIZE);
+}
+
+export function hasValidLabKeyChecksum(
+  labKey: string,
+  checksumSecret: string,
+): boolean {
+  const payload = checksumPayload(labKey);
+  if (!payload) return false;
+
+  const supplied = labKey.slice(-6);
+  const expected = createLabKeyChecksum(payload, checksumSecret);
+  return timingSafeEqual(Buffer.from(supplied), Buffer.from(expected));
+}
+
+export function isChecksummedLabKey(labKey: string): boolean {
+  return LAB_KEY_PATTERN.test(labKey);
+}
+
+export function generateLabKey(checksumSecret: string): string {
+  const payload = Array.from({ length: RANDOM_BLOCK_COUNT }, () =>
+    decimalBlock(randomInt(DECIMAL_BLOCK_SIZE)),
+  ).join("-");
+  return `${payload}-${createLabKeyChecksum(payload, checksumSecret)}`;
 }
 
 export function normalizeLabKey(input: string): string | null {
@@ -134,7 +74,9 @@ export function normalizeLabKey(input: string): string | null {
     .toUpperCase()
     .replace(/[\s_\u2010-\u2015\u2212]+/g, "-");
 
-  return LAB_KEY_PATTERN.test(normalized) ? normalized : null;
+  return LAB_KEY_PATTERN.test(normalized) || LEGACY_LAB_KEY_PATTERN.test(normalized)
+    ? normalized
+    : null;
 }
 
 export function createLabKeyLookup(labKey: string, pepper: string): string {
@@ -212,4 +154,4 @@ export async function verifyLabKey(
   }
 }
 
-export const LAB_KEY_EXAMPLE = "TACO-MOON-FROG-82";
+export const LAB_KEY_EXAMPLE = "482917-063541-829304-771625-038451";

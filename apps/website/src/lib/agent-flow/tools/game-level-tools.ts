@@ -13,6 +13,7 @@ import {
 } from "../../game-levels-editing";
 import { applyCooperSpecChange, type CooperSpecChange } from "../../cooper-spec-change";
 import type { GameDocument } from "../../game-contract";
+import { safeScreen } from "../moderation";
 import { loadGame, persist, readString, readValue, toolError } from "./game-tool-support";
 import type { AgentTool, ToolExecutionContext, ToolExecutionResult } from "./types";
 
@@ -81,9 +82,24 @@ function levelsAfter(spec: GameDocument, change: CooperSpecChange) {
 async function applyLevelChange(
   context: ToolExecutionContext,
   plan: (spec: GameDocument) => CooperSpecChange,
+  visibleName?: string,
 ): Promise<ToolExecutionResult> {
   const loaded = await loadGame(context);
   if (loaded.status !== "loaded") return toolError("This game could not be found.");
+
+  if (visibleName) {
+    const verdict = await safeScreen(visibleName, context.moderator, context.signal);
+    if (verdict.unavailable) {
+      console.warn("Level name was withheld because moderation was unavailable");
+      return toolError("Cooper's safety checker is taking a quick break. Try that name again in a moment.");
+    }
+    if (verdict.flagged) {
+      console.warn("Level name was declined by moderation", {
+        categories: verdict.categories,
+      });
+      return toolError("Cooper cannot use that level name. Try another name.");
+    }
+  }
 
   let change: CooperSpecChange;
   try {
@@ -107,8 +123,12 @@ export const addLevelTool: AgentTool = Object.freeze({
     parameters: ADD_PARAMETERS,
   },
   execute(args: unknown, context: ToolExecutionContext) {
-    return applyLevelChange(context, (spec) =>
-      planAddLevel(spec, readString(args, "world"), readString(args, "name")));
+    const name = readString(args, "name");
+    return applyLevelChange(
+      context,
+      (spec) => planAddLevel(spec, readString(args, "world"), name),
+      name,
+    );
   },
 });
 
@@ -121,8 +141,12 @@ export const renameLevelTool: AgentTool = Object.freeze({
     parameters: RENAME_PARAMETERS,
   },
   execute(args: unknown, context: ToolExecutionContext) {
-    return applyLevelChange(context, (spec) =>
-      planRenameLevel(spec, readValue(args, "level"), readString(args, "name")));
+    const name = readString(args, "name");
+    return applyLevelChange(
+      context,
+      (spec) => planRenameLevel(spec, readValue(args, "level"), name),
+      name,
+    );
   },
 });
 

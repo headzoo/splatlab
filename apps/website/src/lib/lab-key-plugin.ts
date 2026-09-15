@@ -2,10 +2,12 @@ import type { BetterAuthPlugin } from "better-auth";
 import {
   APIError,
   createAuthEndpoint,
+  createAuthMiddleware,
   formCsrfMiddleware,
+  sensitiveSessionMiddleware,
   sessionMiddleware,
 } from "better-auth/api";
-import { setSessionCookie } from "better-auth/cookies";
+import { deleteSessionCookie, setSessionCookie } from "better-auth/cookies";
 import { z } from "zod";
 
 import {
@@ -16,7 +18,9 @@ import {
 import {
   createLabKeyLookup,
   generateLabKey,
+  hasValidLabKeyChecksum,
   hashLabKey,
+  isChecksummedLabKey,
   normalizeLabKey,
   verifyLabKey,
 } from "./lab-key";
@@ -31,7 +35,14 @@ type LabWorkspaceRecord = {
   updatedAt: Date;
 };
 
+type LabSessionRecord = {
+  token: string;
+  userId: string;
+  labKeyVersion?: unknown;
+};
+
 type LabKeyPluginOptions = {
+  checksumSecret: string;
   pepper: string;
 };
 
@@ -99,8 +110,48 @@ async function ensureWorkspace(
   }
 }
 
-export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
-  const dummyHash = hashLabKey("TACO-MOON-FROG-00");
+export const labKeyPlugin = ({ checksumSecret, pepper }: LabKeyPluginOptions) => {
+  const dummyHash = hashLabKey("000000-000000-000000-000000-000000");
+  const labSessionSecurityMiddleware = createAuthMiddleware(async (ctx) => {
+    const active = ctx.context.session;
+    if (!active?.session || !active.user) {
+      throw new APIError("UNAUTHORIZED", {
+        message: "Please open your Lab Workspace again.",
+      });
+    }
+
+    let workspace: LabWorkspaceRecord | null;
+    try {
+      workspace = await ctx.context.adapter.findOne<LabWorkspaceRecord>({
+        model: "labWorkspace",
+        where: [{ field: "userId", value: active.user.id }],
+      });
+    } catch (error) {
+      ctx.context.logger.error(
+        "Failed to validate the Lab session security stamp",
+        error,
+      );
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message: "We couldn't securely check this session. Please try again.",
+      });
+    }
+
+    if (!workspace) return;
+
+    const session = active.session as typeof active.session & LabSessionRecord;
+    if (session.labKeyVersion === workspace.keyVersion) return;
+
+    try {
+      await ctx.context.internalAdapter.deleteSession(session.token);
+    } catch (error) {
+      ctx.context.logger.error("Failed to delete a stale Lab session", error);
+    }
+    deleteSessionCookie(ctx);
+    ctx.context.session = null;
+    throw new APIError("UNAUTHORIZED", {
+      message: "This device was signed out. Use your Lab Key to open it again.",
+    });
+  });
 
   return {
     id: "lab-key",
@@ -110,7 +161,11 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
         {
           method: "POST",
           requireHeaders: true,
-          use: [formCsrfMiddleware, sessionMiddleware],
+          use: [
+            formCsrfMiddleware,
+            sessionMiddleware,
+            labSessionSecurityMiddleware,
+          ],
         },
         async (ctx) => {
           const workspace = await ensureWorkspace(
@@ -131,7 +186,7 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
         {
           method: "GET",
           requireHeaders: true,
-          use: [sessionMiddleware],
+          use: [sessionMiddleware, labSessionSecurityMiddleware],
         },
         async (ctx) => {
           const workspace = await ensureWorkspace(
@@ -152,14 +207,21 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
         {
           method: "POST",
           requireHeaders: true,
-          use: [formCsrfMiddleware, sessionMiddleware],
+          use: [
+            formCsrfMiddleware,
+            sessionMiddleware,
+            labSessionSecurityMiddleware,
+          ],
         },
         async (ctx) => {
           const userId = ctx.context.session.user.id;
           const workspace = await ensureWorkspace(ctx.context.adapter, userId);
+          const sessionsToRevoke = await ctx.context.internalAdapter.listSessions(
+            userId,
+          );
 
           for (let attempt = 0; attempt < 5; attempt += 1) {
-            const labKey = generateLabKey();
+            const labKey = generateLabKey(checksumSecret);
             const keyLookup = createLabKeyLookup(labKey, pepper);
             const collision = await ctx.context.adapter.findOne<LabWorkspaceRecord>({
               model: "labWorkspace",
@@ -171,31 +233,35 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
             }
 
             const keyHash = await hashLabKey(labKey);
+            const nextVersion = workspace.keyVersion + 1;
+            const replacementSession =
+              await ctx.context.internalAdapter.createSession(
+                userId,
+                false,
+                { labKeyVersion: nextVersion },
+                true,
+              );
 
+            if (!replacementSession) {
+              throw new APIError("INTERNAL_SERVER_ERROR", {
+                message: "We couldn't secure this browser with the new Lab Key.",
+              });
+            }
+
+            let updated: LabWorkspaceRecord | null;
             try {
-              const updated =
-                await ctx.context.adapter.incrementOne<LabWorkspaceRecord>({
-                  model: "labWorkspace",
-                  where: [{ field: "userId", value: userId }],
-                  increment: { keyVersion: 1 },
-                  set: {
-                    keyLookup,
-                    keyHash,
-                    updatedAt: new Date(),
-                  },
-                });
-
-              if (!updated) {
-                throw new APIError("INTERNAL_SERVER_ERROR", {
-                  message: "We couldn't protect this Lab Workspace yet.",
-                });
-              }
-
-              ctx.setHeader("Cache-Control", "no-store");
-              return ctx.json({
-                labKey,
-                replaced: workspace.keyVersion > 0,
-                keyVersion: updated.keyVersion,
+              updated = await ctx.context.adapter.incrementOne<LabWorkspaceRecord>({
+                model: "labWorkspace",
+                where: [
+                  { field: "userId", value: userId },
+                  { field: "keyVersion", value: workspace.keyVersion },
+                ],
+                increment: { keyVersion: 1 },
+                set: {
+                  keyLookup,
+                  keyHash,
+                  updatedAt: new Date(),
+                },
               });
             } catch (error) {
               const racedCollision =
@@ -204,10 +270,61 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
                   where: [{ field: "keyLookup", value: keyLookup }],
                 });
 
-              if (!racedCollision) {
-                throw error;
+              if (
+                racedCollision?.id === workspace.id &&
+                racedCollision.keyVersion === nextVersion
+              ) {
+                updated = racedCollision;
+              } else {
+                await ctx.context.internalAdapter.deleteSession(
+                  replacementSession.token,
+                );
+
+                if (!racedCollision) {
+                  throw error;
+                }
+
+                continue;
               }
             }
+
+            if (!updated || updated.keyVersion !== nextVersion) {
+              await ctx.context.internalAdapter.deleteSession(
+                replacementSession.token,
+              );
+              throw new APIError("CONFLICT", {
+                message: "Your Lab Key changed in another browser. Please try again.",
+              });
+            }
+
+            const staleTokens = sessionsToRevoke
+              .map((session) => session.token)
+              .filter((token) => token !== replacementSession.token);
+
+            if (staleTokens.length > 0) {
+              try {
+                await ctx.context.internalAdapter.deleteSessions(staleTokens);
+              } catch (error) {
+                // The version check still rejects every stale token. Keep the
+                // fresh session/key usable and leave an operational signal for
+                // cleaning up any rows the adapter could not delete.
+                ctx.context.logger.error(
+                  "Failed to delete sessions invalidated by Lab Key rotation",
+                  error,
+                );
+              }
+            }
+
+            await setSessionCookie(ctx, {
+              session: replacementSession,
+              user: ctx.context.session.user,
+            });
+            ctx.setHeader("Cache-Control", "no-store");
+            return ctx.json({
+              labKey,
+              replaced: workspace.keyVersion > 0,
+              keyVersion: updated.keyVersion,
+            });
           }
 
           throw new APIError("INTERNAL_SERVER_ERROR", {
@@ -227,7 +344,13 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
           const normalized = normalizeLabKey(ctx.body.labKey);
 
           if (!normalized) {
-            await verifyLabKey(ctx.body.labKey, await dummyHash);
+            throw genericKeyError();
+          }
+
+          if (
+            isChecksummedLabKey(normalized) &&
+            !hasValidLabKeyChecksum(normalized, checksumSecret)
+          ) {
             throw genericKeyError();
           }
 
@@ -272,6 +395,9 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
 
           const session = await ctx.context.internalAdapter.createSession(
             anonymousUser.id,
+            false,
+            { labKeyVersion: workspace.keyVersion },
+            true,
           );
 
           if (!session) {
@@ -294,13 +420,82 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
           });
         },
       ),
+      signOutEverywhere: createAuthEndpoint(
+        "/lab-sessions/sign-out-everywhere",
+        {
+          method: "POST",
+          requireHeaders: true,
+          use: [
+            formCsrfMiddleware,
+            sensitiveSessionMiddleware,
+            labSessionSecurityMiddleware,
+          ],
+        },
+        async (ctx) => {
+          const workspace = await ensureWorkspace(
+            ctx.context.adapter,
+            ctx.context.session.user.id,
+          );
+          const nextVersion = workspace.keyVersion + 1;
+          let invalidated: LabWorkspaceRecord | null;
+
+          try {
+            invalidated =
+              await ctx.context.adapter.incrementOne<LabWorkspaceRecord>({
+                model: "labWorkspace",
+                where: [
+                  { field: "userId", value: ctx.context.session.user.id },
+                  { field: "keyVersion", value: workspace.keyVersion },
+                ],
+                increment: { keyVersion: 1 },
+                set: { updatedAt: new Date() },
+              });
+          } catch (error) {
+            ctx.context.logger.error(
+              "Failed to invalidate every Lab session",
+              error,
+            );
+            throw new APIError("INTERNAL_SERVER_ERROR", {
+              message: "We couldn't sign every device out yet. Please try again.",
+            });
+          }
+
+          if (!invalidated || invalidated.keyVersion !== nextVersion) {
+            throw new APIError("CONFLICT", {
+              message:
+                "Your Lab security changed in another browser. Please try again.",
+            });
+          }
+
+          try {
+            await ctx.context.internalAdapter.deleteUserSessions(
+              ctx.context.session.user.id,
+            );
+          } catch (error) {
+            // The security-stamp change above has already revoked every old
+            // session. Physical deletion is best-effort cleanup at this point.
+            ctx.context.logger.error(
+              "Failed to delete sessions after global Lab sign-out",
+              error,
+            );
+          }
+
+          deleteSessionCookie(ctx);
+          ctx.setHeader("Cache-Control", "no-store");
+          return ctx.json({ success: true });
+        },
+      ),
       setDisplayName: createAuthEndpoint(
         "/display-name",
         {
           method: "POST",
           body: displayNameBody,
           requireHeaders: true,
-          use: [formCsrfMiddleware, sessionMiddleware],
+          use: [
+            formCsrfMiddleware,
+            sessionMiddleware,
+            labSessionSecurityMiddleware,
+          ],
         },
         async (ctx) => {
           const currentUser = ctx.context.session.user;
@@ -354,12 +549,69 @@ export const labKeyPlugin = ({ pepper }: LabKeyPluginOptions) => {
         max: 3,
       },
       {
+        pathMatcher: (path) => path.startsWith("/lab-sessions/sign-out-everywhere"),
+        window: 60,
+        max: 3,
+      },
+      {
         pathMatcher: (path) => path.startsWith("/display-name"),
         window: 60,
         max: 8,
       },
     ],
+    hooks: {
+      after: [
+        {
+          matcher: (ctx) => ctx.path === "/get-session",
+          handler: createAuthMiddleware(async (ctx) => {
+            const active = ctx.context.session;
+            if (!active?.session || !active.user) return;
+
+            let workspace: LabWorkspaceRecord | null;
+            try {
+              workspace = await ctx.context.adapter.findOne<LabWorkspaceRecord>({
+                model: "labWorkspace",
+                where: [{ field: "userId", value: active.user.id }],
+              });
+            } catch (error) {
+              ctx.context.logger.error(
+                "Failed to validate the Lab session security stamp",
+                error,
+              );
+              return ctx.json(null);
+            }
+
+            if (!workspace) return;
+
+            const session = active.session as typeof active.session & LabSessionRecord;
+            if (session.labKeyVersion === workspace.keyVersion) return;
+
+            try {
+              await ctx.context.internalAdapter.deleteSession(session.token);
+            } catch (error) {
+              ctx.context.logger.error(
+                "Failed to delete a stale Lab session",
+                error,
+              );
+            }
+            deleteSessionCookie(ctx);
+            ctx.context.session = null;
+            return ctx.json(null);
+          }),
+        },
+      ],
+    },
     schema: {
+      session: {
+        fields: {
+          labKeyVersion: {
+            type: "number",
+            required: true,
+            defaultValue: 0,
+            input: false,
+          },
+        },
+      },
       labWorkspace: {
         fields: {
           userId: {

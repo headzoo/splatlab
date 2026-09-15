@@ -1,13 +1,19 @@
 import "server-only";
 
-import { ALLOW_ALL_MODERATOR, UNFLAGGED, type ContentModerator, type ModerationVerdict } from "./moderation";
+import {
+  MODERATION_UNAVAILABLE,
+  UNAVAILABLE_MODERATOR,
+  UNFLAGGED,
+  type ContentModerator,
+  type ModerationVerdict,
+} from "./moderation";
 
 const OPENAI_MODERATIONS_URL = "https://api.openai.com/v1/moderations";
 const DEFAULT_MODERATION_MODEL = "omni-moderation-latest";
 /**
  * Screening runs twice per turn on the critical path, so it gets a much
- * tighter budget than the 30s model call. A slow provider fails open rather
- * than pushing the turn past the route's 60s ceiling.
+ * tighter budget than the 30s model call. A slow provider returns the explicit
+ * unavailable verdict instead of pushing the turn past the route's 60s ceiling.
  */
 const DEFAULT_TIMEOUT_MS = 5_000;
 
@@ -27,17 +33,29 @@ function flaggedCategories(categories: unknown): readonly string[] {
     .map(([category]) => category);
 }
 
-function readVerdict(payload: ModerationPayload): ModerationVerdict {
-  if (!Array.isArray(payload.results) || !payload.results.length) return UNFLAGGED;
+function readVerdict(payload: ModerationPayload): ModerationVerdict | null {
+  if (!Array.isArray(payload.results) || payload.results.length !== 1) return null;
   const [first] = payload.results as readonly ModerationResult[];
-  if (!first || typeof first !== "object" || first.flagged !== true) return UNFLAGGED;
-  return { flagged: true, categories: flaggedCategories(first.categories) };
+  if (
+    !first ||
+    typeof first !== "object" ||
+    typeof first.flagged !== "boolean" ||
+    !first.categories ||
+    typeof first.categories !== "object" ||
+    Array.isArray(first.categories) ||
+    !Object.values(first.categories).every((value) => typeof value === "boolean")
+  ) {
+    return null;
+  }
+  return first.flagged
+    ? { flagged: true, categories: flaggedCategories(first.categories) }
+    : UNFLAGGED;
 }
 
 /**
- * Fails open by design. A moderation outage should not take the builder down
- * for every kid using it, and the agent's blast radius is already bounded by
- * the tool allowlist and the physics envelope.
+ * Returns a distinct unavailable verdict on provider failure. Callers fail
+ * closed with a kid-friendly retry response, without mistaking an outage for
+ * unsafe content.
  */
 export class OpenAIContentModerator implements ContentModerator {
   private readonly apiKey: string;
@@ -51,7 +69,8 @@ export class OpenAIContentModerator implements ContentModerator {
   }
 
   async screen(text: string, signal?: AbortSignal): Promise<ModerationVerdict> {
-    if (!this.apiKey || !text.trim()) return UNFLAGGED;
+    if (!text.trim()) return UNFLAGGED;
+    if (!this.apiKey) return MODERATION_UNAVAILABLE;
 
     const timeoutSignal = AbortSignal.timeout(this.timeoutMs);
     const combined = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
@@ -64,21 +83,28 @@ export class OpenAIContentModerator implements ContentModerator {
         signal: combined,
       });
       if (!response.ok) {
-        console.warn("Moderation request failed, allowing turn", { status: response.status });
-        return UNFLAGGED;
+        console.warn("Moderation request failed, withholding turn", {
+          status: response.status,
+        });
+        return MODERATION_UNAVAILABLE;
       }
-      return readVerdict(await response.json() as ModerationPayload);
+      const verdict = readVerdict(await response.json() as ModerationPayload);
+      if (!verdict) {
+        console.warn("Moderation returned an invalid payload, withholding turn");
+        return MODERATION_UNAVAILABLE;
+      }
+      return verdict;
     } catch (error) {
-      console.warn("Moderation request errored, allowing turn", error);
-      return UNFLAGGED;
+      console.warn("Moderation request errored, withholding turn", error);
+      return MODERATION_UNAVAILABLE;
     }
   }
 }
 
 export function createContentModerator(environment: NodeJS.ProcessEnv = process.env): ContentModerator {
   if (!environment.OPENAI_API_KEY?.trim()) {
-    console.warn("OPENAI_API_KEY is unset, build chat moderation is disabled");
-    return ALLOW_ALL_MODERATOR;
+    console.warn("OPENAI_API_KEY is unset, build chat will fail closed");
+    return UNAVAILABLE_MODERATOR;
   }
   return new OpenAIContentModerator(environment);
 }

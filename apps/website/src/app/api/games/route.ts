@@ -46,6 +46,7 @@ export async function POST(request: Request) {
   try {
     const game = await createGame(session.user.id, {
       title: parsed.data.title ?? defaultGameTitle(parsed.data.spec),
+      isPublic: parsed.data.isPublic,
       spec: parsed.data.spec,
     });
     return NextResponse.json({ game }, { status: 201 });

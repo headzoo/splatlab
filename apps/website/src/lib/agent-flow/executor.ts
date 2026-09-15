@@ -1,7 +1,7 @@
 import { FLOW_ID, FlowContractError, branchTarget, deterministicCondition, evaluateCondition, nextNode, type CompiledFlow, type CompiledNode } from "./contract";
 import { interpolate } from "./interpolate";
 import { type ModelClient, type ModelMessage, type ModelToolDefinition, type ModelToolOutput, type ModelTurnItem, ModelOutputError } from "./model-client";
-import { ALLOW_ALL_MODERATOR, screenCooperMessage, type ContentModerator } from "./moderation";
+import { screenCooperMessage, type ContentModerator } from "./moderation";
 import { getRegisteredFlow, type RegisteredFlow } from "./registry";
 import { AgentFlowRunStore, type AgentFlowRun } from "./run-store";
 import { getAgentTool, type ToolExecutionContext } from "./tools/registry";
@@ -48,7 +48,7 @@ export class BuildExecutionError extends Error {
 export type BuildExecutorDependencies = Readonly<{
   modelClient: ModelClient;
   runStore?: AgentFlowRunStore;
-  moderator?: ContentModerator;
+  moderator: ContentModerator;
   /**
    * Defaults to the checked-in build flow. The product flow replies on every
    * turn, so tests supply a graph that still reaches Condition Agent, Human
@@ -58,6 +58,9 @@ export type BuildExecutorDependencies = Readonly<{
 }>;
 
 export async function executeBuildMessage(input: ExecuteBuildMessageInput, dependencies: BuildExecutorDependencies): Promise<BuildMessageResult> {
+  if (!dependencies.moderator) {
+    throw new BuildExecutionError("Content moderation is unavailable", "moderation_unavailable");
+  }
   const registered = dependencies.flow ?? getRegisteredFlow(FLOW_ID);
   const store = dependencies.runStore ?? new AgentFlowRunStore();
   const active = await store.loadActive(input.ownerId, input.gameId);
@@ -75,7 +78,7 @@ export async function executeBuildMessage(input: ExecuteBuildMessageInput, depen
   if (started.status === "active_conflict") throw new BuildExecutionError("A build turn is already active", "active_run");
   if (started.status === "stale_running") throw new BuildExecutionError("Previous build turn expired", "stale_running");
   try {
-    return await walk(registered.flow, nextRequired(registered.flow, start), started.run, started.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator ?? ALLOW_ALL_MODERATOR, started.builderChatHistory, input.signal);
+    return await walk(registered.flow, nextRequired(registered.flow, start), started.run, started.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator, started.builderChatHistory, input.signal);
   } catch (error) {
     await failBestEffort(store, input, started.run, error);
     throw error;
@@ -83,6 +86,9 @@ export async function executeBuildMessage(input: ExecuteBuildMessageInput, depen
 }
 
 export async function resumeBuildTurn(input: ResumeBuildTurnInput, dependencies: BuildExecutorDependencies): Promise<BuildMessageResult> {
+  if (!dependencies.moderator) {
+    throw new BuildExecutionError("Content moderation is unavailable", "moderation_unavailable");
+  }
   const registered = dependencies.flow ?? getRegisteredFlow(FLOW_ID);
   const store = dependencies.runStore ?? new AgentFlowRunStore();
   const active = await store.loadActive(input.ownerId, input.gameId);
@@ -105,7 +111,7 @@ export async function resumeBuildTurn(input: ResumeBuildTurnInput, dependencies:
   try {
     const target = registered.flow.nodesById.get(targetId);
     if (!target) throw new FlowContractError("Human Input target is missing");
-    return await walk(registered.flow, target, claimed.run, claimed.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator ?? ALLOW_ALL_MODERATOR, claimed.builderChatHistory ?? [], input.signal);
+    return await walk(registered.flow, target, claimed.run, claimed.run.revision, input.ownerId, input.gameId, store, dependencies.modelClient, dependencies.moderator, claimed.builderChatHistory ?? [], input.signal);
   } catch (error) {
     await failBestEffort(store, input, claimed.run, error);
     throw error;

@@ -3,19 +3,24 @@ import { randomUUID } from "node:crypto";
 import {
   activeMapSource,
   gameDocumentSchema,
+  toPublicGameDocument,
   type GameDocument,
   type GamePreviewKind,
+  type PublicGameDto,
+  type PublicGameSummaryDto,
   type SavedGameDto,
   type SavedGameSummaryDto,
 } from "./game-contract";
 import { mergeObjectArrays } from "./cooper-spec-change";
 import { deleteOwnedBlob } from "./blob-store";
+import { displayNameAvatarSrc, UNSET_DISPLAY_NAME } from "./display-name";
 import { getPrisma, hasDatabase } from "./prisma";
 
 export type StoredGame = {
   id: string;
   ownerId: string;
   title: string;
+  isPublic: boolean;
   gameType: GamePreviewKind;
   mapSource: string;
   spec: GameDocument;
@@ -38,6 +43,7 @@ function parseStoredGame(record: {
   id: string;
   ownerId: string;
   title: string;
+  isPublic: boolean;
   gameType: string;
   mapSource: string;
   spec: unknown;
@@ -59,6 +65,7 @@ function toDto(game: StoredGame): SavedGameDto {
   return {
     id: game.id,
     title: game.title,
+    isPublic: game.isPublic,
     gameType: game.gameType,
     mapSource: game.mapSource,
     spec: game.spec,
@@ -73,12 +80,34 @@ function toSummary(game: StoredGame): SavedGameSummaryDto {
   return {
     id: game.id,
     title: game.title,
+    isPublic: game.isPublic,
     gameType: game.gameType,
     mapSource: game.mapSource,
     thumbnailDataUrl: game.thumbnailDataUrl,
     revision: game.revision,
     createdAt: game.createdAt.toISOString(),
     updatedAt: game.updatedAt.toISOString(),
+  };
+}
+
+function toPublicDto(game: StoredGame): PublicGameDto {
+  return {
+    id: game.id,
+    title: game.title,
+    spec: toPublicGameDocument(game.spec),
+  };
+}
+
+function toPublicSummary(
+  game: StoredGame,
+  creator?: { name: string; image: string | null },
+): PublicGameSummaryDto {
+  return {
+    ...toSummary(game),
+    creator: {
+      displayName: creator?.name.trim() || UNSET_DISPLAY_NAME,
+      avatarSrc: displayNameAvatarSrc(creator?.image),
+    },
   };
 }
 
@@ -98,6 +127,30 @@ export async function listGames(ownerId: string): Promise<SavedGameSummaryDto[]>
   return records.map((record) => toSummary(parseStoredGame(record)));
 }
 
+/** Public discovery is intentionally separate from owner-scoped Lab listing. */
+export async function listPublicGames(): Promise<PublicGameSummaryDto[]> {
+  if (!hasDatabase()) {
+    return memoryGames()
+      .filter((game) => game.isPublic)
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+      .map((game) => toPublicSummary(game));
+  }
+
+  const records = await getPrisma().game.findMany({
+    where: { isPublic: true },
+    orderBy: { createdAt: "desc" },
+    include: {
+      owner: {
+        select: { name: true, image: true },
+      },
+    },
+  });
+
+  return records.map((record) =>
+    toPublicSummary(parseStoredGame(record), record.owner),
+  );
+}
+
 export async function getGame(ownerId: string, id: string): Promise<SavedGameDto | null> {
   if (!hasDatabase()) {
     const game = memoryGames().find(
@@ -110,19 +163,23 @@ export async function getGame(ownerId: string, id: string): Promise<SavedGameDto
   return record ? toDto(parseStoredGame(record)) : null;
 }
 
-export async function getPublicGame(id: string): Promise<SavedGameDto | null> {
+export async function getPublicGame(id: string): Promise<PublicGameDto | null> {
   if (!hasDatabase()) {
-    const game = memoryGames().find((candidate) => candidate.id === id);
-    return game ? toDto(game) : null;
+    const game = memoryGames().find(
+      (candidate) => candidate.id === id && candidate.isPublic,
+    );
+    return game ? toPublicDto(game) : null;
   }
 
-  const record = await getPrisma().game.findUnique({ where: { id } });
-  return record ? toDto(parseStoredGame(record)) : null;
+  const record = await getPrisma().game.findFirst({
+    where: { id, isPublic: true },
+  });
+  return record ? toPublicDto(parseStoredGame(record)) : null;
 }
 
 export async function createGame(
   ownerId: string,
-  input: { title: string; spec: GameDocument },
+  input: { title: string; isPublic?: boolean; spec: GameDocument },
 ): Promise<SavedGameDto> {
   const now = new Date();
   const gameType = input.spec.previewKind;
@@ -133,6 +190,7 @@ export async function createGame(
       id: randomUUID(),
       ownerId,
       title: input.title,
+      isPublic: input.isPublic ?? false,
       gameType,
       mapSource,
       spec: input.spec,
@@ -149,6 +207,7 @@ export async function createGame(
     data: {
       ownerId,
       title: input.title,
+      isPublic: input.isPublic ?? false,
       gameType,
       mapSource,
       spec: input.spec,
@@ -203,7 +262,12 @@ function withServerOwnedFields(spec: GameDocument, stored: GameDocument): GameDo
 export async function updateGame(
   ownerId: string,
   id: string,
-  input: { title: string; spec: GameDocument; expectedRevision: number },
+  input: {
+    title: string;
+    isPublic?: boolean;
+    spec: GameDocument;
+    expectedRevision: number;
+  },
 ): Promise<UpdateGameResult> {
   if (!hasDatabase()) {
     const game = memoryGames().find(
@@ -216,6 +280,7 @@ export async function updateGame(
     }
 
     game.title = input.title;
+    if (input.isPublic !== undefined) game.isPublic = input.isPublic;
     game.gameType = input.spec.previewKind;
     game.mapSource = activeMapSource(input.spec);
     game.spec = withServerOwnedFields(input.spec, game.spec);
@@ -232,6 +297,7 @@ export async function updateGame(
     where: { id, ownerId, revision: input.expectedRevision },
     data: {
       title: input.title,
+      ...(input.isPublic !== undefined ? { isPublic: input.isPublic } : {}),
       gameType: input.spec.previewKind,
       mapSource: activeMapSource(input.spec),
       spec: withServerOwnedFields(input.spec, parseStoredGame(existing).spec),

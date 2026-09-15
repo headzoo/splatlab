@@ -374,6 +374,32 @@ export function planMoveLevel(
 }
 
 /**
+ * Moves one level directly to another numbered position. The settings dialog
+ * uses this for drag-and-drop so a long move is one undoable edit rather than
+ * a burst of adjacent moves.
+ */
+export function planMoveLevelTo(
+  spec: GameDocument,
+  level: unknown,
+  position: unknown,
+): CooperSpecChange {
+  return forKind(spec.previewKind, (ops) => {
+    const editable = ops.editable(spec);
+    const index = requireLevelIndex(editable.levels.length, level);
+    const target = requireLevelIndex(editable.levels.length, position);
+
+    if (index === target) {
+      return ops.change(editable, editable.levels, editable.activeSource);
+    }
+
+    const levels = [...editable.levels];
+    const [moved] = levels.splice(index, 1);
+    levels.splice(target, 0, moved);
+    return ops.change(editable, levels, editable.activeSource);
+  });
+}
+
+/**
  * A catalog template is only listed while it is the level being shown, so
  * switching away from one has to copy it into the game first or it drops off
  * the end of the list. Switching to the level already showing changes nothing.

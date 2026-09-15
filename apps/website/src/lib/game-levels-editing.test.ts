@@ -11,6 +11,7 @@ import {
   gameLevelSummaries,
   planAddLevel,
   planMoveLevel,
+  planMoveLevelTo,
   planPlayerAppearance,
   planRemoveLevel,
   planRenameLevel,
@@ -166,6 +167,22 @@ test("moving a level swaps it with its neighbour and renumbers the rest", () => 
   assert.deepEqual(
     gameLevelSummaries(moved).map((level) => level.name),
     [names[0], names[2], names[1]],
+  );
+});
+
+test("dragging a level moves it directly to the dropped position", () => {
+  const spec = gameWithLevels(3);
+  const names = gameLevelSummaries(spec).map((level) => level.name);
+  const moved = apply(spec, (current) => planMoveLevelTo(current, 4, 2));
+
+  assert.deepEqual(
+    gameLevelSummaries(moved).map((level) => level.name),
+    [names[0], names[3], names[1], names[2]],
+  );
+  assert.equal(
+    gameLevelSummaries(moved).find((level) => level.name === names[3])?.playing,
+    true,
+    "reordering keeps the same level selected",
   );
 });
 

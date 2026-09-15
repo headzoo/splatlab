@@ -150,9 +150,6 @@ export function MediaLibrary({
                   />
                 </button>
                 <div className={styles.gameCardBody}>
-                  <span className={styles.gameCardIcon} aria-hidden="true">
-                    📷
-                  </span>
                   <strong>{item.gameTitle ?? "Screenshot"}</strong>
                   <span className={styles.gameCardMeta}>
                     Screenshot

@@ -13,7 +13,7 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 import type { SavedGameSummaryDto } from "@/lib/game-contract";
-import { buildGamePath } from "@/lib/game-routes";
+import { buildGamePath, playGamePath } from "@/lib/game-routes";
 import type { MediaAssetDto } from "@/lib/media";
 
 import { useAuthFlow } from "../auth-flow";
@@ -22,7 +22,7 @@ import { MediaLibrary } from "./media-library";
 
 import styles from "./workspace.module.css";
 
-const LAB_KEY_EXAMPLE = "TACO-MOON-FROG-82";
+const LAB_KEY_EXAMPLE = "482917-063541-829304-771625-038451";
 
 type Workspace = {
   workspaceId: string;
@@ -53,10 +53,12 @@ export function WorkspaceClient() {
   const router = useRouter();
   const { markSignedIn } = useAuthFlow();
   const replaceDialogRef = useRef<HTMLDialogElement>(null);
+  const signOutDialogRef = useRef<HTMLDialogElement>(null);
   const keyDialogRef = useRef<HTMLDialogElement>(null);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [issuedKey, setIssuedKey] = useState<IssuedKey | null>(null);
   const [busy, setBusy] = useState(false);
+  const [signOutBusy, setSignOutBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [games, setGames] = useState<SavedGameSummaryDto[] | null>(null);
@@ -222,6 +224,43 @@ export function WorkspaceClient() {
     keyDialogRef.current?.close();
     setIssuedKey(null);
     setCopied(false);
+  }
+
+  async function signOutEverywhere() {
+    setSignOutBusy(true);
+    setError("");
+    signOutDialogRef.current?.close();
+
+    try {
+      const response = await fetch(
+        "/api/auth/lab-sessions/sign-out-everywhere",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        },
+      );
+      const payload: unknown = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          getErrorMessage(
+            payload,
+            "We couldn't sign every device out yet. Please try again.",
+          ),
+        );
+      }
+
+      router.replace("/");
+      router.refresh();
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "We couldn't sign every device out yet. Please try again.",
+      );
+      setSignOutBusy(false);
+    }
   }
 
   async function submitLabKey(event: FormEvent<HTMLFormElement>) {
@@ -410,70 +449,74 @@ export function WorkspaceClient() {
               </>
             ) : (
               <div className={styles.gameGrid}>
-                {games.map((game) => (
-                  <article className={styles.gameCard} key={game.id}>
-                    <Link
-                      className={styles.gameCardTopper}
-                      href={`/play/${encodeURIComponent(game.id)}`}
-                      aria-label={`Play ${game.title}`}
-                    >
-                      {game.thumbnailDataUrl ? (
-                        <Image
-                          src={game.thumbnailDataUrl}
-                          alt={`Game preview for ${game.title}`}
-                          fill
-                          sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"
-                          unoptimized
-                        />
-                      ) : (
-                        <span className={styles.gameCardTopperFallback}>
-                          <b aria-hidden="true">
-                            {game.gameType === "maze" ? "▦" : "🎮"}
-                          </b>
-                          <small>Preview coming soon</small>
+                {games.map((game) => {
+                  const previewHref = game.isPublic
+                    ? playGamePath(game.id)
+                    : buildGamePath(game.id);
+                  const previewLabel = game.isPublic ? "Play" : "Preview";
+
+                  return (
+                    <article className={styles.gameCard} key={game.id}>
+                      <Link
+                        className={styles.gameCardTopper}
+                        href={previewHref}
+                        aria-label={`${previewLabel} ${game.title}`}
+                      >
+                        {game.thumbnailDataUrl ? (
+                          <Image
+                            src={game.thumbnailDataUrl}
+                            alt={`Game preview for ${game.title}`}
+                            fill
+                            sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"
+                            unoptimized
+                          />
+                        ) : (
+                          <span className={styles.gameCardTopperFallback}>
+                            <b aria-hidden="true">
+                              {game.gameType === "maze" ? "▦" : "🎮"}
+                            </b>
+                            <small>Preview coming soon</small>
+                          </span>
+                        )}
+                      </Link>
+                      <div className={styles.gameCardBody}>
+                        <strong>{game.title}</strong>
+                        <span className={styles.gameCardMeta}>
+                          {game.gameType === "maze" ? "Maze" : "Platformer"}
+                          <small>
+                            Updated {new Date(game.updatedAt).toLocaleDateString()}
+                          </small>
                         </span>
-                      )}
-                    </Link>
-                    <div className={styles.gameCardBody}>
-                      <span className={styles.gameCardIcon} aria-hidden="true">
-                        {game.gameType === "maze" ? "▦" : "🎮"}
-                      </span>
-                      <strong>{game.title}</strong>
-                      <span className={styles.gameCardMeta}>
-                        {game.gameType === "maze" ? "Maze" : "Platformer"}
-                        <small>
-                          Updated {new Date(game.updatedAt).toLocaleDateString()}
-                        </small>
-                      </span>
-                    </div>
-                    <div className={styles.gameCardActions}>
-                      <Link
-                        className={`${styles.gameCardButton} ${styles.gameCardPlay}`}
-                        href={`/play/${encodeURIComponent(game.id)}`}
-                      >
-                        Play
-                      </Link>
-                      <Link
-                        className={`${styles.gameCardButton} ${styles.gameCardEdit}`}
-                        href={buildGamePath(game.id)}
-                      >
-                        Edit
-                      </Link>
-                    </div>
-                    <details className={styles.gameMenu}>
-                      <summary aria-label={`Open menu for ${game.title}`}>•••</summary>
-                      <div>
-                        <button
-                          type="button"
-                          disabled={deletingGameId === game.id}
-                          onClick={() => void removeGame(game)}
-                        >
-                          {deletingGameId === game.id ? "Deleting…" : "Delete"}
-                        </button>
                       </div>
-                    </details>
-                  </article>
-                ))}
+                      <div className={styles.gameCardActions}>
+                        <Link
+                          className={`${styles.gameCardButton} ${styles.gameCardPlay}`}
+                          href={previewHref}
+                        >
+                          {previewLabel}
+                        </Link>
+                        <Link
+                          className={`${styles.gameCardButton} ${styles.gameCardEdit}`}
+                          href={buildGamePath(game.id)}
+                        >
+                          Edit
+                        </Link>
+                      </div>
+                      <details className={styles.gameMenu}>
+                        <summary aria-label={`Open menu for ${game.title}`}>•••</summary>
+                        <div>
+                          <button
+                            type="button"
+                            disabled={deletingGameId === game.id}
+                            onClick={() => void removeGame(game)}
+                          >
+                            {deletingGameId === game.id ? "Deleting…" : "Delete"}
+                          </button>
+                        </div>
+                      </details>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -516,7 +559,7 @@ export function WorkspaceClient() {
             <button
               className={styles.keyButton}
               type="button"
-              disabled={!workspace || busy}
+              disabled={!workspace || busy || signOutBusy}
               onClick={requestLabKey}
             >
               {busy
@@ -525,6 +568,16 @@ export function WorkspaceClient() {
                   ? "Make a New Lab Key"
                   : "Make My Lab Key"}
             </button>
+            {workspace?.hasLabKey ? (
+              <button
+                className={styles.signOutEverywhereButton}
+                type="button"
+                disabled={busy || signOutBusy}
+                onClick={() => signOutDialogRef.current?.showModal()}
+              >
+                {signOutBusy ? "Signing Out…" : "Sign Out Everywhere"}
+              </button>
+            ) : null}
             <small>Keep your Lab Key private!</small>
           </div>
 
@@ -590,8 +643,8 @@ export function WorkspaceClient() {
         <span className={styles.dialogKicker}>Heads up!</span>
         <h2 id="replace-key-title">Replace Your Lab Key?</h2>
         <p>
-          Your old key will stop working right away. This device will stay
-          signed in.
+          Your old key and every other signed-in device will stop working right
+          away. This device gets a fresh session and stays signed in.
         </p>
         <div className={styles.dialogActions}>
           <button
@@ -607,6 +660,44 @@ export function WorkspaceClient() {
             onClick={() => void issueLabKey()}
           >
             Make New Key
+          </button>
+        </div>
+      </dialog>
+
+      <dialog
+        className={styles.confirmDialog}
+        ref={signOutDialogRef}
+        aria-labelledby="sign-out-everywhere-title"
+      >
+        <button
+          className={styles.closeButton}
+          type="button"
+          aria-label="Close"
+          onClick={() => signOutDialogRef.current?.close()}
+        >
+          ×
+        </button>
+        <span className={styles.dialogKicker}>Security check</span>
+        <h2 id="sign-out-everywhere-title">Sign Out Everywhere?</h2>
+        <p>
+          Every device using this Lab Workspace—including this one—will be
+          signed out. Your Lab Key will still open it again.
+        </p>
+        <div className={styles.dialogActions}>
+          <button
+            className={styles.cancelButton}
+            type="button"
+            onClick={() => signOutDialogRef.current?.close()}
+          >
+            Stay Signed In
+          </button>
+          <button
+            className={styles.signOutButton}
+            type="button"
+            disabled={signOutBusy}
+            onClick={() => void signOutEverywhere()}
+          >
+            {signOutBusy ? "Signing Out…" : "Sign Out Everywhere"}
           </button>
         </div>
       </dialog>

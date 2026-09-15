@@ -384,6 +384,56 @@ export const gameDocumentSchema = z
 export type GameDocument = z.infer<typeof gameDocumentSchema>;
 export type GamePreviewKind = GameDocument["previewKind"];
 
+/**
+ * The public player needs the authored runtime, but never the private
+ * conversation or setup progress that produced it. Keep this type explicit so
+ * a server component cannot accidentally serialize builder state to visitors.
+ */
+export type PublicGameDocument = Pick<
+  GameDocument,
+  | "schemaVersion"
+  | "previewKind"
+  | "platformerMapSource"
+  | "mazeMapSource"
+  | "platformerLevels"
+  | "mazeLevels"
+  | "playerCharacter"
+  | "humanGender"
+  | "skinTone"
+  | "hairColor"
+  | "platformerTerrainEdits"
+  | "platformerObjectEdits"
+  | "platformerObjectRemovals"
+  | "platformerObjectSettings"
+  | "platformerLevelArt"
+  | "physicsDocument"
+  | "startingLives"
+>;
+
+export function toPublicGameDocument(
+  spec: GameDocument,
+): PublicGameDocument {
+  return {
+    schemaVersion: spec.schemaVersion,
+    previewKind: spec.previewKind,
+    platformerMapSource: spec.platformerMapSource,
+    mazeMapSource: spec.mazeMapSource,
+    platformerLevels: spec.platformerLevels,
+    mazeLevels: spec.mazeLevels,
+    playerCharacter: spec.playerCharacter,
+    humanGender: spec.humanGender,
+    skinTone: spec.skinTone,
+    hairColor: spec.hairColor,
+    platformerTerrainEdits: spec.platformerTerrainEdits,
+    platformerObjectEdits: spec.platformerObjectEdits,
+    platformerObjectRemovals: spec.platformerObjectRemovals,
+    platformerObjectSettings: spec.platformerObjectSettings,
+    platformerLevelArt: spec.platformerLevelArt,
+    physicsDocument: spec.physicsDocument,
+    startingLives: spec.startingLives,
+  };
+}
+
 export const DEFAULT_GAME_DOCUMENT: GameDocument = {
   schemaVersion: 1,
   previewKind: "platformer",
@@ -408,6 +458,7 @@ export const DEFAULT_GAME_DOCUMENT: GameDocument = {
 export const createGameInputSchema = z
   .object({
     title: z.string().trim().min(1).max(80).optional(),
+    isPublic: z.boolean().optional(),
     spec: gameDocumentSchema,
   })
   .strict();
@@ -415,6 +466,7 @@ export const createGameInputSchema = z
 export const updateGameInputSchema = z
   .object({
     title: z.string().trim().min(1).max(80),
+    isPublic: z.boolean().optional(),
     spec: gameDocumentSchema,
     expectedRevision: z.number().int().positive(),
   })
@@ -506,6 +558,7 @@ export function defaultGameTitle(spec: GameDocument) {
 export type SavedGameDto = {
   id: string;
   title: string;
+  isPublic: boolean;
   gameType: GamePreviewKind;
   mapSource: string;
   spec: GameDocument;
@@ -516,3 +569,16 @@ export type SavedGameDto = {
 };
 
 export type SavedGameSummaryDto = Omit<SavedGameDto, "spec">;
+
+export type PublicGameDto = {
+  id: string;
+  title: string;
+  spec: PublicGameDocument;
+};
+
+export type PublicGameSummaryDto = SavedGameSummaryDto & {
+  creator: {
+    displayName: string;
+    avatarSrc: string | null;
+  };
+};

@@ -1,14 +1,10 @@
-import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import {
-  SCREENSHOT_MAX_BYTES,
   THUMBNAIL_MAX_BYTES,
-  screenshotBlobPathname,
   thumbnailBlobPathname,
-  type LabUploadKind,
 } from "@/lib/blob-path";
 import { hasBlobStore, putOwnedBlob } from "@/lib/blob-store";
 import { getGame } from "@/lib/games";
@@ -16,7 +12,7 @@ import { getGame } from "@/lib/games";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const kindSchema = z.enum(["screenshot", "thumbnail"]);
+const kindSchema = z.literal("thumbnail");
 const gameIdSchema = z.string().trim().min(1).max(80);
 
 function formString(form: FormData, name: string) {
@@ -70,7 +66,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const kind: LabUploadKind = kindResult.data;
   const rawGameId = formString(form, "gameId");
   const gameIdResult = rawGameId ? gameIdSchema.safeParse(rawGameId) : null;
   if (rawGameId && !gameIdResult?.success) {
@@ -81,10 +76,11 @@ export async function POST(request: Request) {
   }
 
   const gameId = gameIdResult?.success ? gameIdResult.data : null;
-  const expectedType = kind === "thumbnail" ? "image/webp" : "image/png";
-  const maxBytes = kind === "thumbnail" ? THUMBNAIL_MAX_BYTES : SCREENSHOT_MAX_BYTES;
-
-  if (file.type !== expectedType || file.size <= 0 || file.size > maxBytes) {
+  if (
+    file.type !== "image/webp" ||
+    file.size <= 0 ||
+    file.size > THUMBNAIL_MAX_BYTES
+  ) {
     return NextResponse.json(
       { message: "That image upload was not valid." },
       { status: 400 },
@@ -92,15 +88,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const pathname =
-      kind === "thumbnail"
-        ? await thumbnailPathForGame(session.user.id, gameId)
-        : screenshotBlobPathname(session.user.id, randomUUID());
+    const pathname = await thumbnailPathForGame(session.user.id, gameId);
 
     const uploaded = await putOwnedBlob({
       pathname,
       body: file,
-      contentType: expectedType,
+      contentType: "image/webp",
+      addRandomSuffix: false,
+      allowOverwrite: true,
     });
 
     return NextResponse.json({
