@@ -1,6 +1,7 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import { SiteHeader } from "./site-header";
+import { SiteLegalNav } from "./site-legal-nav";
 import { AuthAction } from "./auth-flow";
 import { HeroParallax } from "./hero-parallax";
 
@@ -236,6 +237,7 @@ export default function Home() {
           <p className={styles.footerNote}>Ideas today.<br />Games tomorrow.</p>
           <div className={styles.footerAction}>
             <CtaButton />
+            <SiteLegalNav tone="onDark" />
           </div>
           <p className={`${styles.footerNote} ${styles.footerNoteRight}`}>
             Silly ideas.<br />Serious fun.

@@ -879,6 +879,12 @@
   gap: 34px;
 }
 
+.footerAction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .footerAction .cta {
   min-width: 304px;
   min-height: 52px;

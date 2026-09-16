@@ -766,6 +766,17 @@ When creating Splat Lab! UI or marketing assets:
 
 
 # Other Characters
+
+## Cooper
+
+He works at the lab. He is also, somehow, the lab's guinea pig.
+
+He helps kids build games, then personally tests every ridiculous idea they invent.
+
+Cheerful, battle-tested, and first in line when the cannon needs a volunteer.
+
+“Should we test it?”
+
 ## Rupert
 
 If something on the hill is broken, dark, sparking, or making a noise it definitely shouldn't be making, somebody has probably already called him.

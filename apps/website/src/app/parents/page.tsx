@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { AuthAction } from "../auth-flow";
 import { SiteHeader } from "../site-header";
+import { SiteLegalNav } from "../site-legal-nav";
 import styles from "./parents.module.css";
 
 export const metadata: Metadata = {
@@ -326,6 +327,7 @@ export default function ParentsPage() {
             <h2>Let their ideas take flight!</h2>
             <p>Give your child the tools to imagine, create, and play with Splat Lab!</p>
             <StartButton />
+            <SiteLegalNav />
           </div>
         </div>
       </footer>

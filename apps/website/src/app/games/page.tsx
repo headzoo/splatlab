@@ -4,6 +4,7 @@ import Image from "next/image";
 import { listPublicGames } from "@/lib/games";
 
 import { SiteHeader } from "../site-header";
+import { SiteLegalNav } from "../site-legal-nav";
 import { GamesCatalog } from "./games-catalog";
 
 import styles from "./games.module.css";
@@ -62,6 +63,10 @@ export default async function GamesPage() {
       </section>
 
       <GamesCatalog games={games} />
+
+      <footer className={styles.footer}>
+        <SiteLegalNav />
+      </footer>
     </main>
   );
 }

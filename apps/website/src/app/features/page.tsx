@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { SiteHeader } from "../site-header";
+import { SiteLegalNav } from "../site-legal-nav";
 import { AuthAction } from "../auth-flow";
 import styles from "./features.module.css";
 
@@ -225,6 +226,7 @@ export default function FeaturesPage() {
             <h2>Let their ideas take flight!</h2>
             <p>Give your child the tools to imagine, create, and play with Splat Lab!</p>
             <CtaLink signedInChildren="Go to Lab" />
+            <SiteLegalNav />
           </div>
         </div>
       </footer>
