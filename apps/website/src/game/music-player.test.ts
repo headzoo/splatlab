@@ -46,6 +46,8 @@ class FakeGainNode {
 class FakeSourceNode {
   buffer: unknown = null;
   loop = false;
+  loopStart = 0;
+  loopEnd = 0;
   started = false;
   stoppedAt: number | null = null;
   connectedTo: unknown = null;
@@ -72,6 +74,11 @@ class FakeAudioContext {
   gains: FakeGainNode[] = [];
   closed = false;
   resumed = 0;
+  /**
+   * What the decoder hands back. Opus reports longer than the authored loop
+   * because of its pre-skip padding, so this defaults to a padded length.
+   */
+  decodedDuration = 68.6;
 
   createBufferSource() {
     const source = new FakeSourceNode();
@@ -86,7 +93,10 @@ class FakeAudioContext {
   }
 
   async decodeAudioData(encoded: ArrayBuffer) {
-    return { byteLength: encoded.byteLength } as unknown as AudioBuffer;
+    return {
+      byteLength: encoded.byteLength,
+      duration: this.decodedDuration,
+    } as unknown as AudioBuffer;
   }
 
   async resume() {
@@ -107,10 +117,19 @@ const TRACKS = {
 
 type Cue = keyof typeof TRACKS;
 
-function createPlayer(overrides: { fetchAudio?: (url: string) => Promise<ArrayBuffer> } = {}) {
+function createPlayer(
+  overrides: {
+    fetchAudio?: (url: string) => Promise<ArrayBuffer>;
+    tracks?: Record<Cue, MusicTrack>;
+    decodedDuration?: number;
+  } = {},
+) {
   const context = new FakeAudioContext();
+  if (overrides.decodedDuration !== undefined) {
+    context.decodedDuration = overrides.decodedDuration;
+  }
   const requested: string[] = [];
-  const player = new MusicPlayer<Cue>(TRACKS, {
+  const player = new MusicPlayer<Cue>(overrides.tracks ?? TRACKS, {
     createContext: () => context as unknown as AudioContext,
     fetchAudio:
       overrides.fetchAudio ??
@@ -136,6 +155,56 @@ test("music loops through a buffer source rather than an HTMLAudioElement", asyn
   assert.equal(context.sources[0].loop, true, "the buffer source must loop in the audio thread");
   assert.equal(context.sources[0].started, true);
   assert.equal(player.playingCue, "gameplay");
+});
+
+/**
+ * The seam is validated in `apps/game/tools/audio.py` against the authored WAV,
+ * but the runtime plays Opus, which decodes at 48 kHz behind pre-skip padding.
+ * Looping the decoded buffer whole would play that padding every pass and undo
+ * the validation, so the loop is bounded by the authored length.
+ */
+test("the loop ends where the author ended it, not where the decoder did", async () => {
+  const { player, context } = createPlayer({
+    tracks: {
+      gameplay: { url: "/gameplay.ogg", volume: 0.32, loopSeconds: 68.571429 },
+      boss: { url: "/boss.ogg", volume: 0.38, loopSeconds: 16 },
+    },
+    decodedDuration: 68.68, // authored length plus codec padding
+  });
+
+  player.start("gameplay");
+  await settle();
+
+  assert.equal(context.sources[0].loopStart, 0);
+  assert.equal(context.sources[0].loopEnd, 68.571429);
+});
+
+test("a track with no authored length still loops its whole buffer", async () => {
+  const { player, context } = createPlayer({ decodedDuration: 42 });
+
+  player.start("gameplay");
+  await settle();
+
+  assert.equal(context.sources[0].loopEnd, 42);
+});
+
+/**
+ * A manifest that outran the audio would otherwise loop through silence, which
+ * is worse than a slightly early loop point.
+ */
+test("an authored length longer than the audio is clamped to the audio", async () => {
+  const { player, context } = createPlayer({
+    tracks: {
+      gameplay: { url: "/gameplay.ogg", volume: 0.32, loopSeconds: 90 },
+      boss: { url: "/boss.ogg", volume: 0.38, loopSeconds: 16 },
+    },
+    decodedDuration: 60,
+  });
+
+  player.start("gameplay");
+  await settle();
+
+  assert.equal(context.sources[0].loopEnd, 60);
 });
 
 test("repeating the active cue does not restart or refetch the loop", async () => {

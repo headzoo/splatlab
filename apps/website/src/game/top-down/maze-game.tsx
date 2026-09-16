@@ -14,6 +14,7 @@ import {
 import {
   assetUrl,
   MAZE_IMAGE_URLS,
+  mazeLevelSheets,
   mazeLoadingBackdrop,
   resolveMazeVisuals,
   type MazeImageKey,
@@ -513,7 +514,11 @@ export function MazeGame({
 
     void (async () => {
       const defeatedSheet = playerDefeatedEventSheet(playerAssetId);
-      const sheets = Object.entries(MAZE_IMAGE_URLS);
+      // Only this maze's theme. Fetching all four themes' tilesets to draw one
+      // was three quarters of the download for nothing.
+      const sheets = mazeLevelSheets(map.id).map(
+        (key) => [key, MAZE_IMAGE_URLS[key]] as const,
+      );
       const track = createSpritePreloader(
         spritePreloadTotal({
           sheetCount: sheets.length,
@@ -530,7 +535,7 @@ export function MazeGame({
 
       await Promise.all(sheets.map(async ([key, url]) => {
         const image = await track(url);
-        if (image) imagesRef.current[key as MazeImageKey] = image;
+        if (image) imagesRef.current[key] = image;
       }));
 
       const basePlayerImage = await track(
@@ -562,7 +567,7 @@ export function MazeGame({
     })();
 
     return () => { cancelled = true; };
-  }, [hairColor, playerAssetId, skinTone]);
+  }, [hairColor, map.id, playerAssetId, skinTone]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

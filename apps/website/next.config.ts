@@ -1,49 +1,35 @@
 import type { NextConfig } from "next";
 
-const gameRuntimeFiles = [
+/**
+ * Everything `/game-assets` can read off disk at runtime.
+ *
+ * These are whole directories rather than a per-file list. The previous
+ * hand-maintained list had silently drifted from the route's allowlist and was
+ * missing 49 served files, including every Space, Dragons, and Graveyard
+ * background, so those worlds rendered without art in production while
+ * working locally. `game-asset-tracing.test.ts` fails if the two disagree.
+ */
+export const gameRuntimeFiles = [
+  "../game/audio/*/*.ogg",
   "../game/audio/*/*.wav",
-  "../game/backgrounds/background_neutral_green_hills_*.png",
-  "../game/backgrounds/background_ice_world_*.png",
-  "../game/sprites/short_sword_v1.png",
-  "../game/sprites/space_cooper_01.png",
-  "../game/sprites/space_cooper_01_attack.png",
-  "../game/sprites/space_cooper_01_defeated.png",
-  "../game/sprites/*_cooper_01.png",
-  "../game/sprites/*_human_01.png",
-  "../game/sprites/*_girl_01.png",
-  "../game/sprites/*_ghost_01.png",
-  "../game/sprites/*_robot_01.png",
-  "../game/sprite-masks/*_human_01-skin-mask.png",
-  "../game/sprite-masks/*_human_01-hair-mask.png",
-  "../game/sprite-masks/*_girl_01-skin-mask.png",
-  "../game/sprite-masks/*_girl_01-hair-mask.png",
-  "../game/sprites/*_maze_floor_01.png",
-  "../game/sprites/*_maze_wall_01.png",
-  "../game/sprites/*_maze_obstacle_01.png",
-  "../game/sprites/*_maze_key_01.png",
-  "../game/sprites/*_maze_door_01.png",
-  "../game/sprites/haunted_graveyard_flaming_pumpkin_01.png",
-  "../game/sprites/dragons_emberkeep_fireball_01.png",
-  "../game/sprites/neutral_ghost_01.png",
-  "../game/sprites/neutral_robot_01.png",
-  "../game/sprites/neutral_zombie_01.png",
-  "../game/sprites/neutral_green_hills_boss_01.png",
-  "../game/sprites/neutral_green_hills_flying_cooper_01.png",
-  "../game/sprites/neutral_green_hills_platformer_ground_01.png",
-  "../game/sprites/neutral_green_hills_platformer_hazard_01.png",
-  "../game/sprites/neutral_green_hills_platformer_obstacle_01.png",
-  "../game/sprites/neutral_green_hills_platformer_platform_01.png",
-  "../game/sprites/ice_world_platformer_*.png",
-  "../game/sprites/ice_world_boss_01*.png",
-  "../game/sprites/ice_world_crystal_projectile_01.png",
-  "../game/sprites/shared_game_over_01.png",
-  "../game/sprites/shared_platformer_easter_egg_01.png",
-  "../game/sprites/shared_victory_burst_01.png",
-  "../game/sprites/space_platformer_checkpoint_01.png",
-  "../game/sprites/space_platformer_coin_01.png",
-  "../game/sprites/space_platformer_goal_01.png",
-  "../game/sprites/space_platformer_hud_coins_01.png",
-  "../game/sprites/space_platformer_hud_lives_01.png",
+  "../game/backgrounds/*.webp",
+  "../game/sprites/*.png",
+  "../game/sprite-masks/*.png",
+];
+
+/**
+ * Masters that are authored and checked in but never served, and so must not
+ * ride along with the directory globs above: sprite `-source` art is 188 MB
+ * against 8 MB of runtime sheets, the background PNGs are 22.6 MB against
+ * 3.1 MB of WebP, and the music WAVs are 16.8 MB against 4 MB of Opus. Only
+ * the short effect WAVs are still served. Excludes are applied after includes
+ * during tracing, so these win.
+ */
+export const gameRuntimeExcludedFiles = [
+  "../game/sprites/*-source.png",
+  "../game/backgrounds/*.png",
+  "../game/audio/*/gameplay_loop.wav",
+  "../game/audio/*/boss_loop.wav",
 ];
 
 export const videoRouteTracingFiles = ["./node_modules/ffmpeg-static/**"];
@@ -86,6 +72,9 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/game-assets/*": gameRuntimeFiles,
     "/api/media/video": videoRouteTracingFiles,
+  },
+  outputFileTracingExcludes: {
+    "/game-assets/*": gameRuntimeExcludedFiles,
   },
   headers: async () => [...mediaEmbedRouteHeaders],
 };

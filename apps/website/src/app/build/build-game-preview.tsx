@@ -21,7 +21,9 @@ import {
   gameMazeMaps,
   mazeMapIndex,
 } from "@/game/game-levels";
-import { ART_WORLDS, artWorld } from "@/game/platformer/art-catalog";
+import { ART_WORLDS, artWorld, IMAGE_URLS } from "@/game/platformer/art-catalog";
+import { platformerWorldPaletteSheets } from "@/game/platformer/level-assets";
+import { loadSpriteImage } from "@/game/player-appearance";
 import {
   applyPlatformerLevelArt,
   applyPlatformerObjectEdits,
@@ -1085,14 +1087,39 @@ export function BuildGamePreview({
     ],
   );
 
+  /**
+   * Warm up a palette the moment a world is selected, not when the first tile
+   * from it is placed.
+   *
+   * The canvas only downloads what the level already wears, so without this the
+   * toolbox button proves the art exists while the first paint has nothing to
+   * draw with. A world lends at most a dozen small sheets, and these never gate
+   * play: they land in the shared sprite cache that the canvas reads.
+   */
+  const homeWorldId = editableObjectMap
+    ? artWorld(editableObjectMap.presentation.backgroundId)?.id ?? ART_WORLDS[0].id
+    : null;
+  useEffect(() => {
+    if (!homeWorldId) return;
+    const worlds = new Set(
+      [terrainArtWorld, objectArtWorld, homeWorldId].filter(
+        (world): world is ArtWorldId => Boolean(world),
+      ),
+    );
+    for (const world of worlds) {
+      for (const key of platformerWorldPaletteSheets(world)) {
+        void loadSpriteImage(IMAGE_URLS[key]);
+      }
+    }
+  }, [homeWorldId, objectArtWorld, terrainArtWorld]);
+
   if (!current || !currentMaze || !editableObjectMap) return null;
   /**
    * The level's own world is what the dropdowns show until a kid picks another,
    * and painting from it records no world at all, so the level keeps wearing
    * whatever it wears - including anything Cooper borrowed for it.
    */
-  const homeArtWorld =
-    artWorld(editableObjectMap.presentation.backgroundId)?.id ?? ART_WORLDS[0].id;
+  const homeArtWorld = homeWorldId ?? ART_WORLDS[0].id;
   const selectedTerrainArtWorld = terrainArtWorld ?? homeArtWorld;
   const selectedObjectArtWorld = objectArtWorld ?? homeArtWorld;
   const paintTerrainWorld =

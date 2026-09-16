@@ -1,0 +1,22 @@
+{
+  "dragons_emberkeep_v1": {
+    "boss_loop": 16.0,
+    "gameplay_loop": 73.142857
+  },
+  "haunted_graveyard_v1": {
+    "boss_loop": 16.0,
+    "gameplay_loop": 60.0
+  },
+  "ice_world_v1": {
+    "boss_loop": 16.0,
+    "gameplay_loop": 57.6
+  },
+  "neutral_green_hills_v1": {
+    "boss_loop": 16.0,
+    "gameplay_loop": 60.952381
+  },
+  "space_basic_v1": {
+    "boss_loop": 16.0,
+    "gameplay_loop": 68.571429
+  }
+}

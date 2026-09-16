@@ -25,6 +25,7 @@ import {
   type ImageKey,
 } from "./art-catalog";
 import { MAP_COMPLETION_DELAY_SECONDS } from "./campaign";
+import { platformerLevelSheets } from "./level-assets";
 import { drawBossHealthBar } from "./boss-health-bar";
 import {
   createInitialState,
@@ -1206,6 +1207,9 @@ export function PlatformerGame({
   const [muted, setMuted] = useState(false);
   const [assetsReady, setAssetsReady] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
+  // Bumped when sheets arrive after the level is already playable, so the
+  // canvas repaints for art that a builder edit pulled in mid-session.
+  const [lateSheetsLoaded, setLateSheetsLoaded] = useState(0);
   const [controlBindings, setControlBindings] = useState<ControlBindings>(copyDefaultControlBindings);
   const [capturingBinding, setCapturingBinding] = useState<CapturingBinding>(null);
   const [controlError, setControlError] = useState("");
@@ -1237,7 +1241,14 @@ export function PlatformerGame({
   const autoPlayStartedRef = useRef(false);
   const inputRef = useRef<InputState>(emptyInput());
   const imagesRef = useRef<Partial<Record<ImageKey, HTMLImageElement>>>({});
+  // Which sheets have already been asked for. The builder re-composes the map
+  // on every edit, so this is what keeps a paint stroke from re-downloading the
+  // level or flashing the loading screen for one new tile.
+  const requestedSheetsRef = useRef(new Set<ImageKey>());
   const playerImageRef = useRef<CanvasImageSource | null>(null);
+  // Recolouring reads back two full mask sheets, so it is redone only when the
+  // appearance really changed rather than on every builder edit.
+  const playerAppearanceRef = useRef<string | null>(null);
   const audioRef = useRef<RuntimeAudio | null>(null);
   const fullscreen = useGameFullscreen(gameRef);
 
@@ -1341,55 +1352,79 @@ export function PlatformerGame({
   useEffect(() => {
     let cancelled = false;
 
+    // Only what this level draws, not the whole catalog. A Space level has no
+    // reason to download Dragon World's backgrounds to show a starfield.
+    const needed = platformerLevelSheets(map, playerAssetId).filter(
+      (key) => !requestedSheetsRef.current.has(key),
+    );
+    for (const key of needed) requestedSheetsRef.current.add(key);
+
+    // An edit that introduces one new sheet must not re-cover a level the
+    // player is already playing, so the bar only gates the first load.
+    const gatesPlay = !assetsReady;
+    if (!needed.length && !gatesPlay) return;
+
     void (async () => {
-      const sheets = Object.entries(IMAGE_URLS) as Array<[ImageKey, string]>;
+      const sheets = needed.map((key) => [key, IMAGE_URLS[key]] as const);
       const track = createSpritePreloader(
         spritePreloadTotal({ sheetCount: sheets.length, playerAssetId }),
         (fraction) => {
           // Swapping heroes restarts this effect, and a bar that slid backwards
           // would read as a stall rather than a fresh download.
-          if (!cancelled) setLoadProgress((filled) => Math.max(filled, fraction));
+          if (!cancelled && gatesPlay) {
+            setLoadProgress((filled) => Math.max(filled, fraction));
+          }
         },
       );
-      const loadSheet = async ([key, url]: [ImageKey, string]) => {
+      const loadSheet = async ([key, url]: readonly [ImageKey, string]) => {
         const image = await track(url);
         if (image) imagesRef.current[key] = image;
       };
 
       // The loading screen shows the furthest background, so it is fetched
-      // first rather than queued behind a hundred sprites on a slow line.
+      // first rather than queued behind the rest of the level on a slow line.
       const backdropSheet = sheets.find(([, url]) => url === backdropImageUrl);
       if (backdropSheet) await loadSheet(backdropSheet);
       await Promise.all(
         sheets.filter((sheet) => sheet !== backdropSheet).map(loadSheet),
       );
 
-      const basePlayerImage = imagesRef.current[playerAssetId];
-      if (basePlayerImage && isCustomizableHumanAsset(playerAssetId)) {
-        const [skinMask, hairMask] = await Promise.all([
-          track(assetUrl(`sprite-masks/${playerAssetId}-skin-mask.png`)),
-          track(assetUrl(`sprite-masks/${playerAssetId}-hair-mask.png`)),
-        ]);
-        playerImageRef.current = skinMask && hairMask
-          ? recolorHumanSprite(
-              basePlayerImage,
-              skinMask,
-              hairMask,
-              skinTone,
-              hairColor,
-            )
-          : basePlayerImage;
-      } else {
-        playerImageRef.current = basePlayerImage ?? null;
+      const appearance = `${playerAssetId}:${skinTone}:${hairColor}`;
+      if (playerAppearanceRef.current !== appearance) {
+        const basePlayerImage = imagesRef.current[playerAssetId];
+        if (basePlayerImage && isCustomizableHumanAsset(playerAssetId)) {
+          const [skinMask, hairMask] = await Promise.all([
+            track(assetUrl(`sprite-masks/${playerAssetId}-skin-mask.png`)),
+            track(assetUrl(`sprite-masks/${playerAssetId}-hair-mask.png`)),
+          ]);
+          playerImageRef.current = skinMask && hairMask
+            ? recolorHumanSprite(
+                basePlayerImage,
+                skinMask,
+                hairMask,
+                skinTone,
+                hairColor,
+              )
+            : basePlayerImage;
+        } else {
+          playerImageRef.current = basePlayerImage ?? null;
+        }
+        playerAppearanceRef.current = appearance;
       }
 
-      if (!cancelled) setAssetsReady(true);
+      if (cancelled) return;
+      setAssetsReady(true);
+      if (!gatesPlay) setLateSheetsLoaded((loaded) => loaded + 1);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [backdropImageUrl, hairColor, playerAssetId, skinTone]);
+    // `assetsReady` is deliberately absent: it is read to decide whether this
+    // run gates play, and depending on it would re-run the effect the moment it
+    // flips.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backdropImageUrl, hairColor, map, playerAssetId, skinTone]);
 
   const render = useCallback((elapsedSeconds: number, renderedState = stateRef.current) => {
     const canvas = canvasRef.current;
@@ -1524,7 +1559,7 @@ export function PlatformerGame({
 
   useEffect(() => {
     render(performance.now() / 1000);
-  }, [assetsReady, render]);
+  }, [assetsReady, lateSheetsLoaded, render]);
 
   useEffect(() => {
     if (renderedMapRef.current === map) return;

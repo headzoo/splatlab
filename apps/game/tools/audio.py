@@ -346,9 +346,123 @@ def loopcheck(paths: list[Path], join_path: Path | None) -> int:
     return 1 if failed else 0
 
 
+# Runtime music encoding.
+#
+# The authored loops are 16-bit mono WAV, which is right for seam analysis and
+# wrong for the network: one `gameplay_loop.wav` is 2.9 MB and is fetched the
+# moment a kid presses play. Opus carries the same 22 kHz mono material at a
+# fraction of that.
+#
+# Opus always runs at 48 kHz internally and prepends decoder pre-skip padding,
+# so a decoded buffer is neither the authored length nor the authored rate.
+# Looping such a buffer whole would reopen exactly the seam the checks above
+# exist to protect. The runtime therefore loops on the authored duration, which
+# is recorded here in `MUSIC_MANIFEST` for the player to read.
+MUSIC_CUES = ("gameplay_loop", "boss_loop")
+MUSIC_BITRATE = "64k"
+MUSIC_MANIFEST = "audio/music-loops.json"
+
+# Opus frames are 20 ms, so a re-decoded loop lands within one frame of the
+# authored length. More drift than this means the encode is not the same audio.
+MAX_DURATION_DRIFT_SECONDS = 0.05
+
+
+def _ffmpeg() -> str:
+    import shutil as _shutil
+
+    found = _shutil.which("ffmpeg")
+    if not found:
+        raise AudioSpecError(
+            "ffmpeg is required to encode runtime music and was not found on PATH"
+        )
+    return found
+
+
+def encode_music(repo_root: Path = REPO_ROOT, *, write: bool = True) -> dict[str, Any]:
+    """Encode every pack's music loops to Opus and record their true lengths."""
+    import subprocess
+
+    ffmpeg = _ffmpeg()
+    manifest: dict[str, dict[str, float]] = {}
+    wav_total = 0
+    ogg_total = 0
+
+    for pack_dir in sorted((repo_root / "audio").iterdir()):
+        if not pack_dir.is_dir():
+            continue
+        for cue in MUSIC_CUES:
+            source = pack_dir / f"{cue}.wav"
+            if not source.is_file():
+                raise AudioSpecError(f"{pack_dir.name}: {cue}.wav is missing")
+
+            # The authored frame count is the loop, exactly. Seconds rather than
+            # frames because the decoder will not hand back the authored rate.
+            _samples, _channels, sample_rate, frame_count = _read_samples(
+                source, str(source)
+            )
+            duration = frame_count / sample_rate
+
+            # `_check_loop_seam` is what makes the loop safe to repeat at all, so
+            # a file that cannot pass it must not become a runtime asset.
+            _check_loop_seam(source, f"{pack_dir.name}.{cue}")
+
+            destination = source.with_suffix(".ogg")
+            if write:
+                result = subprocess.run(
+                    [
+                        ffmpeg, "-v", "error", "-y",
+                        "-i", str(source),
+                        "-c:a", "libopus",
+                        "-b:a", MUSIC_BITRATE,
+                        "-application", "audio",
+                        str(destination),
+                    ],
+                    capture_output=True,
+                    text=True,
+                )
+                if result.returncode != 0:
+                    raise AudioSpecError(
+                        f"{pack_dir.name}.{cue}: ffmpeg failed: {result.stderr.strip()}"
+                    )
+                encoded = subprocess.run(
+                    [
+                        ffmpeg.replace("ffmpeg", "ffprobe"), "-v", "error",
+                        "-show_entries", "format=duration",
+                        "-of", "default=noprint_wrappers=1:nokey=1",
+                        str(destination),
+                    ],
+                    capture_output=True,
+                    text=True,
+                )
+                drift = abs(float(encoded.stdout.strip()) - duration)
+                if drift > MAX_DURATION_DRIFT_SECONDS:
+                    raise AudioSpecError(
+                        f"{pack_dir.name}.{cue}: encoded length drifts {drift * 1000:.0f} ms "
+                        f"from the authored {duration:.3f}s, so the loop point moved"
+                    )
+                if destination.stat().st_size >= source.stat().st_size:
+                    raise AudioSpecError(
+                        f"{pack_dir.name}.{cue}: Opus is not smaller than the WAV master"
+                    )
+                ogg_total += destination.stat().st_size
+
+            wav_total += source.stat().st_size
+            manifest.setdefault(pack_dir.name, {})[cue] = round(duration, 6)
+
+    if write:
+        path = repo_root / MUSIC_MANIFEST
+        path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+        print(f"Wrote {path.relative_to(repo_root)}")
+        print(
+            f"{len(manifest)} packs: {wav_total / 1048576:.1f} MB WAV -> "
+            f"{ogg_total / 1048576:.1f} MB Opus ({wav_total / ogg_total:.1f}x)"
+        )
+    return manifest
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["validate", "loopcheck"])
+    parser.add_argument("command", choices=["validate", "loopcheck", "encode-music"])
     parser.add_argument("paths", nargs="*", type=Path, help="WAV files to inspect with loopcheck")
     parser.add_argument(
         "--write-join",
@@ -359,6 +473,13 @@ def main() -> int:
     args = parser.parse_args()
     if args.command == "loopcheck":
         return loopcheck(args.paths, args.write_join)
+    if args.command == "encode-music":
+        try:
+            encode_music()
+        except AudioSpecError as exc:
+            print(f"Music encoding failed: {exc}")
+            return 1
+        return 0
     try:
         packs = validate_all()
     except AudioSpecError as exc:

@@ -38,7 +38,7 @@ test("the loading backdrop is the level's furthest parallax layer", () => {
   const greenHills = loadingBackdrop({ backgroundId: "neutral_green_hills_01" });
   assert.equal(
     greenHills.imageUrl,
-    "/game-assets/backgrounds/background_neutral_green_hills_castle_far_01.png",
+    "/game-assets/backgrounds/background_neutral_green_hills_castle_far_01.webp",
   );
 });
 

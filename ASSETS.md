@@ -286,6 +286,25 @@ Generate each background layer as a wide transparent or partially transparent
 repeat-x PNG at `2172 x 724` RGBA. Layers must tile horizontally, support
 `mirrorAlternate`, and preserve the listed parallax composition.
 
+The authored `backgrounds/*.png` plates are masters, not runtime files. They are
+referenced by `background-specs/*.json` and by the Game Editor, and they total
+`22.6 MB`, which is far too much for a level to download. The games load
+`backgrounds/*.webp` instead. After generating or editing any plate, re-encode
+the runtime files and check both the master and the `.webp` in:
+
+```bash
+python3 apps/game/tools/backgrounds.py
+```
+
+The encoder writes one `.webp` beside each master at quality `95`, method `6`,
+and reports the saving (currently `22.6 MB` to `3.1 MB`). It keeps the lossless
+encode for any plate where lossy buys less than `1.15x`, and it stops rather
+than writing a file that is not smaller than its master or a plate that is not
+`2172 x 724`. Use `--check` to preview without writing. Do not hand-convert a
+background or point the runtime at a `.png`; `game-loading-overlay.test.ts`
+fetches every level's furthest layer through the real asset route and fails if
+the runtime file is missing.
+
 | Background ID | Layers to recreate |
 | --- | --- |
 | `neutral_green_hills_01` | Base color `#4dbcf2`. Recreate every layer as a `2172 x 724` RGBA repeat-x strip with genuine transparency, using `brand/cooper-green-hills-world.png` as the authoritative saturated, rounded 3D-cartoon world reference. `background_neutral_green_hills_castle_far_01` retains its stable legacy asset ID but must contain no castle: use dimensional white clouds, crisp snowcapped blue mountains, blue-green pine forests, rounded lime hills, and a few tiny distant cream-and-timber chicken cottages with red coop roofs, egg-shaped openings, rooster weathervanes, and soft chimney smoke; parallax `0.10`, center anchored. `background_neutral_green_hills_waterfalls_mid_01`: warm golden-orange grass-topped mesas, bright turquoise waterfalls and mist, pines, paths, small bridges, and sparse cottage clusters, with no castle; parallax `0.34`, bottom anchored. `background_neutral_green_hills_foliage_near_01`: glossy layered lime, emerald, and deep-teal foliage with fir tips, vines, warm rocks, and red, yellow, and white flowers; no buildings; parallax `0.66`, bottom anchored. Exclude characters, animals, gameplay objects, terrain blocks, UI, text, logos, checkerboards, borders, and watermarks from all three layers. |
@@ -343,6 +362,29 @@ python3 tools/audio.py loopcheck audio/<pack>/gameplay_loop.wav --write-join /tm
 If recreating with AI audio instead of the scripts, preserve the cue names,
 durations, tempo, mono channel count, loopability, and relative gains from the
 pack JSON, and confirm `loopcheck` still passes.
+
+The music WAVs are masters, not runtime files. At `2.9 MB` for one gameplay
+loop they are fetched the instant a kid presses play, so the games load
+`audio/<pack>/<cue>.ogg` instead. Effects stay WAV: they are a few KB, they
+never loop, and each is only fetched when its event fires. After authoring or
+editing any music loop, re-encode the runtime files and check in both the
+master and the `.ogg`:
+
+```bash
+python3 tools/audio.py encode-music
+```
+
+This re-runs the loop-seam check on every master, encodes Opus at `64k`
+(`16.8 MB` of WAV becomes `4.0 MB`), refuses an encode whose length drifts more
+than `50 ms` from the authored loop, and writes `audio/music-loops.json` with
+each loop's exact authored duration.
+
+That manifest is load-bearing, not bookkeeping. Opus decodes at `48 kHz` and
+prepends pre-skip padding, so the decoded buffer is longer than the loop;
+`MusicPlayer` sets `loopStart`/`loopEnd` from the manifest so the padding can
+never play inside the loop. Do not hand-encode a loop, point the runtime at a
+`.wav`, or drop `loopSeconds` from a track — any of those silently reopens the
+seam that `loopcheck` exists to protect.
 
 All five gameplay loops share one arrangement engine
 (`render_phrased_loop` in `tools/generate_audio.py`). Each is built from

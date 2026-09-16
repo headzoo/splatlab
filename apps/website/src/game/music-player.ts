@@ -14,6 +14,15 @@
 export type MusicTrack = {
   url: string;
   volume: number;
+  /**
+   * The authored loop length in seconds.
+   *
+   * A lossy codec does not hand back the buffer that was encoded: Opus decodes
+   * at 48 kHz and prepends pre-skip padding, so the decoded buffer runs past
+   * the loop point. Repeating it whole would put that padding inside the loop
+   * and reopen the seam. Given this, the loop is bounded explicitly instead.
+   */
+  loopSeconds?: number;
 };
 
 export type MusicPlayerOptions = {
@@ -187,6 +196,17 @@ export class MusicPlayer<Cue extends string> {
       const gain = context.createGain();
       source.buffer = buffer;
       source.loop = true;
+      // Never loop past the authored end. A codec's padding lands after it, and
+      // a buffer that is shorter than claimed would loop on silence, so the
+      // bound is clamped to what actually decoded.
+      const loopEnd = Math.min(
+        track.loopSeconds ?? buffer.duration,
+        buffer.duration,
+      );
+      if (loopEnd > 0) {
+        source.loopStart = 0;
+        source.loopEnd = loopEnd;
+      }
       gain.gain.value = 0;
       source.connect(gain);
       gain.connect(this.master);

@@ -1,0 +1,15 @@
+{
+  "assetId": "neutral_lango_01",
+  "approvedAt": "2026-09-16T00:19:57.231169+00:00",
+  "recipe": "sprite-specs/neutral_lango_01.json",
+  "runtimeImage": "sprites/neutral_lango_01.png",
+  "sha256": "d600d95f5979552a7db06de0ab81a0885fd0716eb593a027cd5dea506c8cd43c",
+  "validationReport": "sprite-reports/neutral_lango_01/neutral_lango_01-report.json",
+  "eventSheets": {
+    "defeated": {
+      "runtimeImage": "sprites/neutral_lango_01_defeated.png",
+      "sha256": "51247a545617cc1a509618944aacf3088324c68cef64b2651465871cb211fa88",
+      "validationReport": "sprite-reports/neutral_lango_01_defeated/neutral_lango_01_defeated-report.json"
+    }
+  }
+}

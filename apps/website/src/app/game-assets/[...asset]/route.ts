@@ -4,31 +4,37 @@ import path from "node:path";
 import { SOUND_PACK_EFFECT_CUES, SOUND_PACK_IDS } from "@/game/sound-packs";
 
 /** Every sound pack ships the same file names, so the audio half of the
- * allowlist is expanded from the pack and cue lists rather than hand-listed. */
+ * allowlist is expanded from the pack and cue lists rather than hand-listed.
+ * Music is served as Opus and effects as WAV, matching what the runtime asks
+ * for: the loops are minutes long, the effects are a few KB each. */
 const audioFiles: Record<string, string> = Object.fromEntries(
-  SOUND_PACK_IDS.flatMap((packId) =>
-    ["gameplay_loop", "boss_loop", ...SOUND_PACK_EFFECT_CUES].map((file) => [
+  SOUND_PACK_IDS.flatMap((packId) => [
+    ...["gameplay_loop", "boss_loop"].map((file) => [
+      `audio/${packId}/${file}.ogg`,
+      path.resolve(process.cwd(), `../game/audio/${packId}/${file}.ogg`),
+    ]),
+    ...SOUND_PACK_EFFECT_CUES.map((file) => [
       `audio/${packId}/${file}.wav`,
       path.resolve(process.cwd(), `../game/audio/${packId}/${file}.wav`),
     ]),
-  ),
+  ]),
 );
 
 const assetFiles: Record<string, string> = {
   ...audioFiles,
-  "backgrounds/background_neutral_green_hills_castle_far_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_castle_far_01.png"),
-  "backgrounds/background_neutral_green_hills_foliage_near_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_foliage_near_01.png"),
-  "backgrounds/background_neutral_green_hills_waterfalls_mid_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_waterfalls_mid_01.png"),
-  "backgrounds/background_space_stars_far_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_space_stars_far_01.png"),
-  "backgrounds/background_space_moon_mid_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_space_moon_mid_01.png"),
-  "backgrounds/background_space_station_near_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_space_station_near_01.png"),
-  "backgrounds/background_haunted_graveyard_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_haunted_graveyard_01.png"),
-  "backgrounds/background_dragons_ash_far_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_dragons_ash_far_01.png"),
-  "backgrounds/background_dragons_volcano_mid_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_dragons_volcano_mid_01.png"),
-  "backgrounds/background_dragons_ruins_near_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_dragons_ruins_near_01.png"),
-  "backgrounds/background_ice_world_mountains_far_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_ice_world_mountains_far_01.png"),
-  "backgrounds/background_ice_world_glaciers_mid_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_ice_world_glaciers_mid_01.png"),
-  "backgrounds/background_ice_world_crystals_near_01.png": path.resolve(process.cwd(), "../game/backgrounds/background_ice_world_crystals_near_01.png"),
+  "backgrounds/background_neutral_green_hills_castle_far_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_castle_far_01.webp"),
+  "backgrounds/background_neutral_green_hills_foliage_near_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_foliage_near_01.webp"),
+  "backgrounds/background_neutral_green_hills_waterfalls_mid_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_neutral_green_hills_waterfalls_mid_01.webp"),
+  "backgrounds/background_space_stars_far_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_space_stars_far_01.webp"),
+  "backgrounds/background_space_moon_mid_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_space_moon_mid_01.webp"),
+  "backgrounds/background_space_station_near_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_space_station_near_01.webp"),
+  "backgrounds/background_haunted_graveyard_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_haunted_graveyard_01.webp"),
+  "backgrounds/background_dragons_ash_far_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_dragons_ash_far_01.webp"),
+  "backgrounds/background_dragons_volcano_mid_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_dragons_volcano_mid_01.webp"),
+  "backgrounds/background_dragons_ruins_near_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_dragons_ruins_near_01.webp"),
+  "backgrounds/background_ice_world_mountains_far_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_ice_world_mountains_far_01.webp"),
+  "backgrounds/background_ice_world_glaciers_mid_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_ice_world_glaciers_mid_01.webp"),
+  "backgrounds/background_ice_world_crystals_near_01.webp": path.resolve(process.cwd(), "../game/backgrounds/background_ice_world_crystals_near_01.webp"),
   "sprites/short_sword_v1.png": path.resolve(process.cwd(), "../game/sprites/short_sword_v1.png"),
   "sprites/space_cooper_01.png": path.resolve(process.cwd(), "../game/sprites/space_cooper_01.png"),
   "sprites/space_cooper_01_attack.png": path.resolve(process.cwd(), "../game/sprites/space_cooper_01_attack.png"),
@@ -170,8 +176,17 @@ const assetFiles: Record<string, string> = {
 
 const CONTENT_TYPES: Record<string, string> = {
   ".png": "image/png",
+  ".webp": "image/webp",
   ".wav": "audio/wav",
+  ".ogg": "audio/ogg",
 };
+
+/**
+ * Every asset path this route will serve. Exported so the build's file-tracing
+ * globs can be checked against it: a served file the deployment does not carry
+ * is a 404 that only appears in production.
+ */
+export const GAME_ASSET_PATHS: readonly string[] = Object.keys(assetFiles);
 
 export async function GET(
   _request: Request,

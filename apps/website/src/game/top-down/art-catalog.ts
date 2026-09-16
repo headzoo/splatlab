@@ -73,3 +73,25 @@ export function resolveMazeVisuals(mapId: string): MazeVisualProfile {
 export function mazeLoadingBackdrop(mapId: string) {
   return { color: resolveMazeVisuals(mapId).color, imageUrl: undefined };
 }
+
+/**
+ * The sheets one maze needs before it can draw: its own theme's five slots plus
+ * the enemy and hazard art every theme shares. Seven instead of the twenty-two
+ * the runtime used to fetch, which pulled all four themes' tilesets to draw one.
+ *
+ * Unlike the platformer, nothing here is per-object. Maze objects carry an
+ * `assetId` in the contract but the canvas never reads it, so the theme is the
+ * whole answer.
+ */
+export function mazeLevelSheets(mapId: string): MazeImageKey[] {
+  const visuals = resolveMazeVisuals(mapId);
+  return [
+    visuals.floor,
+    visuals.wall,
+    visuals.obstacle,
+    visuals.key,
+    visuals.door,
+    "enemy",
+    "hazard",
+  ];
+}

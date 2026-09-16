@@ -70,7 +70,7 @@ test("theme prefixes match so a new variant inherits its theme's audio", () => {
   assert.equal(resolveSoundPackId("haunted_graveyard_maze_03"), "haunted_graveyard_v1");
 });
 
-test("every sound pack url is backed by a checked-in wav", () => {
+test("every sound pack url is backed by a checked-in file", () => {
   for (const packId of SOUND_PACK_IDS) {
     const tracks = soundPackMusicTracks(packId);
     const urls = [
@@ -82,6 +82,40 @@ test("every sound pack url is backed by a checked-in wav", () => {
       assert.ok(url.startsWith("/game-assets/audio/"), url);
       const file = path.join(GAME_ROOT, url.replace("/game-assets/", ""));
       assert.ok(existsSync(file), `${url} is missing on disk`);
+    }
+  }
+});
+
+/**
+ * Music is the only thing big enough to matter over the network - one WAV loop
+ * was 2.9 MB - while the effects are a few KB and never loop, so they stay WAV.
+ */
+test("music is served compressed and effects stay uncompressed", () => {
+  for (const packId of SOUND_PACK_IDS) {
+    const tracks = soundPackMusicTracks(packId);
+    assert.match(tracks.gameplay.url, /\.ogg$/, packId);
+    assert.match(tracks.boss.url, /\.ogg$/, packId);
+    for (const cue of SOUND_PACK_EFFECT_CUES) {
+      assert.match(soundPackEffectUrl(packId, cue), /\.wav$/, `${packId} ${cue}`);
+    }
+  }
+});
+
+/**
+ * Opus decodes at 48 kHz with pre-skip padding, so the runtime has to loop on
+ * the authored length rather than on the decoded buffer. A track that forgot to
+ * carry it would loop through that padding and reopen the validated seam.
+ */
+test("every music track carries the authored loop length", () => {
+  for (const packId of SOUND_PACK_IDS) {
+    const tracks = soundPackMusicTracks(packId);
+    for (const [cue, track] of Object.entries(tracks)) {
+      assert.equal(
+        typeof track.loopSeconds,
+        "number",
+        `${packId} ${cue} has no loopSeconds`,
+      );
+      assert.ok(track.loopSeconds! > 0, `${packId} ${cue} loops on nothing`);
     }
   }
 });
